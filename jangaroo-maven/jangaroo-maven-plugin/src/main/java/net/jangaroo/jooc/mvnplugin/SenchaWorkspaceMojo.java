@@ -3,6 +3,7 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
@@ -42,7 +43,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
    * The sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
-  private SenchaConfiguration senchaConfiguration;
+  private MavenSenchaConfiguration senchaConfiguration;
 
   /**
    * Defines

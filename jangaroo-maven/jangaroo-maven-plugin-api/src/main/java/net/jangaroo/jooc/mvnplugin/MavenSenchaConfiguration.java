@@ -1,16 +1,11 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @SuppressWarnings("FieldCanBeLocal")
-public class SenchaConfiguration extends SenchaProfileConfiguration {
-
-  public enum Type {
-    CODE,
-    THEME,
-    APP,
-    WORKSPACE
-  }
+public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration implements SenchaConfiguration {
 
   /**
    * Set this to <code>true</code> to generate sencha files (workspace, package, app).
@@ -58,7 +53,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${production}")
-  private SenchaProfileConfigurationProduction production;
+  private MavenSenchaProfileConfigurationProduction production;
 
   /**
    * Testing only configuration.
@@ -66,7 +61,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${testing}")
-  private SenchaProfileConfigurationTesting testing;
+  private MavenSenchaProfileConfigurationTesting testing;
 
   /**
    * Development only configuration
@@ -74,7 +69,7 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
    * Ignored for {@link Type#WORKSPACE}
    */
   @Parameter(defaultValue = "${development}")
-  private SenchaProfileConfigurationDevelopment development;
+  private MavenSenchaProfileConfigurationDevelopment development;
 
   /**
    * For {@link Type#WORKSPACE} defined the Ext Framework directory for the module.
@@ -124,106 +119,132 @@ public class SenchaConfiguration extends SenchaProfileConfiguration {
   @Parameter(defaultValue = "false")
   private boolean scssFromSrc;
 
+  @Override
   public boolean isEnabled() {
     return enabled;
   }
 
+  @Override
   public Type getType() {
     return type;
   }
 
+  @Override
   public boolean isTemporaryWorkspace() {
     return temporaryWorkspace;
   }
 
+  @Override
   public String getToolkit() {
     return toolkit;
   }
 
+  @Override
   public String getTheme() {
     return theme;
   }
 
+  @Override
   public SenchaProfileConfiguration getProduction() {
     return production;
   }
 
+  @Override
   public SenchaProfileConfiguration getDevelopment() {
     return development;
   }
 
+  @Override
   public SenchaProfileConfiguration getTesting() {
     return testing;
   }
 
+  @Override
   public String getExtFrameworkDir() {
     return extFrameworkDir;
   }
 
+  @Override
   public String getBuildDir() {
     return buildDir;
   }
 
+  @Override
   public String getPackagesDir() {
     return packagesDir;
   }
 
+  @Override
   public boolean isSkipBuild() {
     return skipBuild;
   }
 
+  @Override
   public boolean isScssFromSrc() {
     return scssFromSrc;
   }
 
+  @Override
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
 
+  @Override
   public void setType(Type type) {
     this.type = type;
   }
 
+  @Override
   public void setTemporaryWorkspace(boolean temporaryWorkspace) {
     this.temporaryWorkspace = temporaryWorkspace;
   }
 
+  @Override
   public void setToolkit(String toolkit) {
     this.toolkit = toolkit;
   }
 
+  @Override
   public void setTheme(String theme) {
     this.theme = theme;
   }
 
-  public void setProduction(SenchaProfileConfigurationProduction production) {
+  @Override
+  public void setProduction(MavenSenchaProfileConfigurationProduction production) {
     this.production = production;
   }
 
-  public void setDevelopment(SenchaProfileConfigurationDevelopment development) {
+  @Override
+  public void setDevelopment(MavenSenchaProfileConfigurationDevelopment development) {
     this.development = development;
   }
 
-  public void setTesting(SenchaProfileConfigurationTesting testing) {
+  @Override
+  public void setTesting(MavenSenchaProfileConfigurationTesting testing) {
     this.testing = testing;
   }
 
+  @Override
   public void setExtFrameworkDir(String extFrameworkDir) {
     this.extFrameworkDir = extFrameworkDir;
   }
 
+  @Override
   public void setBuildDir(String buildDir) {
     this.buildDir = buildDir;
   }
 
+  @Override
   public void setPackagesDir(String packagesDir) {
     this.packagesDir = packagesDir;
   }
 
+  @Override
   public void setSkipBuild(boolean skipBuild) {
     this.skipBuild = skipBuild;
   }
 
+  @Override
   public void setScssFromSrc(boolean scssFromSrc) {
     this.scssFromSrc = scssFromSrc;
   }

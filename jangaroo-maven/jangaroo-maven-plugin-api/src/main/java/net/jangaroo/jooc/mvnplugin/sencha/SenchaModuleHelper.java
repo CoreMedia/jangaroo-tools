@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;

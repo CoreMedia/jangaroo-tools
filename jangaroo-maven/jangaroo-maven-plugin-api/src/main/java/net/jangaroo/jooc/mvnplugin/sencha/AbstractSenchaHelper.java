@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
-import net.jangaroo.jooc.mvnplugin.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;

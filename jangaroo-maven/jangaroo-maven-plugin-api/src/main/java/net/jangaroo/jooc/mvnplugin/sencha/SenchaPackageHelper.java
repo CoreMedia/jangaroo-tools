@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
@@ -55,7 +55,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
             pathConfigurer
     };
 
-    SenchaConfiguration workspaceConfiguration = new SenchaConfiguration();
+    SenchaConfiguration workspaceConfiguration = new MavenSenchaConfiguration();
     workspaceConfiguration.setEnabled(true);
     String projectBuildDirRelativeToProjectBaseDir = project.getBasedir().toPath().relativize(Paths.get(project.getBuild().getDirectory())).toString();
     workspaceConfiguration.setBuildDir(projectBuildDirRelativeToProjectBaseDir + File.separator + getSenchaModuleName() + File.separator + SenchaUtils.SENCHA_RELATIVE_BUILD_PATH);

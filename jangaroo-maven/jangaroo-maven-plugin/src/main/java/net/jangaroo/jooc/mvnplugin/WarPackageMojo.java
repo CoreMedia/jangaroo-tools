@@ -58,7 +58,7 @@ public class WarPackageMojo extends PackageApplicationMojo {
   private List<Resource> resources;
 
   @Parameter(defaultValue = "${senchaConfiguration}")
-  private SenchaConfiguration senchaConfiguration;
+  private MavenSenchaConfiguration senchaConfiguration;
 
   public File getPackageSourceDirectory() {
     return resources.isEmpty() ? null : new File(resources.get(0).getDirectory());

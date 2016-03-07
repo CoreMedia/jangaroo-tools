@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;

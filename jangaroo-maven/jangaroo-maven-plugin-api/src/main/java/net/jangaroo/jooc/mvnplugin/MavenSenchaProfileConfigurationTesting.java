@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
-public class SenchaProfileConfigurationTesting extends SenchaProfileConfiguration {
+public class MavenSenchaProfileConfigurationTesting extends MavenSenchaProfileConfiguration {
 
   @Override
   public String getProfileName() {
