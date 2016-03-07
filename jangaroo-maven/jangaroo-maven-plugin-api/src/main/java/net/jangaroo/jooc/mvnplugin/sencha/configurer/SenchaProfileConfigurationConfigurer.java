@@ -5,6 +5,8 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,9 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   static final String PATH = "path";
   static final String BUNDLE = "bundle";
   static final String INCLUDE_IN_BUNDLE = "includeInBundle";
+  static final String BUILD_OUT_CSS_PATH = "${build.out.css.path}";
+  static final String EXCLUDE = "exclude";
+  static final String FASHION = "fashion";
 
   private SenchaProfileConfiguration senchaProfileConfiguration;
 
@@ -67,6 +72,10 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
     result.put(PATH, path);
     result.put(BUNDLE, bundle);
     result.put(INCLUDE_IN_BUNDLE, includeInBundle);
+    // special case for ant variable specifying the generated css (should not be added if sencha fashion is active)
+    if (BUILD_OUT_CSS_PATH.equals(path)) {
+      result.put(EXCLUDE, Collections.singletonList(FASHION));
+    }
 
     return result;
   }
