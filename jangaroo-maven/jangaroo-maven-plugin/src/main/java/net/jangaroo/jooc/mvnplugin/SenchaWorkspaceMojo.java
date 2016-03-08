@@ -24,8 +24,6 @@ import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
@@ -195,7 +193,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   /**
-   * Depedency does not implement an equals method, so we need to check it the hard way
+   * Dependency does not implement an equals method, so we need to check it the hard way.
+   * Only considers group id and artifact id
    * @param dependencies a list of depedencies
    * @param dependencyToCheck a dependency which we want to check
    * @return whether the given dependency is contained in the given dependencies list
@@ -294,17 +293,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     }
     Path absolutePathFromProperty = Paths.get(remotePackagesDir).normalize();
     return absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString();
-  }
-
-  private Path normalizePath(Path path) throws MojoExecutionException {
-    try {
-      if (!Files.exists(path)) {
-        Files.createDirectories(path);
-      }
-      return path.toRealPath();
-    } catch (IOException e) {
-      throw new MojoExecutionException("path could not be normalized: " + path, e);
-    }
   }
 
   private boolean isRemoteAggregator(MavenProject project) {
