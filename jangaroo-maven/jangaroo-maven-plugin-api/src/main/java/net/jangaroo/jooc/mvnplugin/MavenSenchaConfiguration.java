@@ -79,6 +79,18 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   @Parameter(defaultValue = "false")
   private boolean scssFromSrc;
 
+  /**
+   * Defines the coordinates of the local remote-packages Maven module. E.g.,
+   * <pre>
+   * &lt;remotePackagesArtifact>
+   *    &lt;groupdId>com.coremedia.blueprint&lt;/groupId>
+   *    &lt;artifactId>remote-packages&lt;/artifactId>
+   * &lt;/remotePackagesArtifact>
+   * </pre>
+   */
+  @Parameter(property = "remotePackagesArtifact")
+  private ArtifactItem remotePackagesArtifact;
+
   @Override
   public boolean isEnabled() {
     return enabled;
@@ -182,5 +194,59 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   @Override
   public void setScssFromSrc(boolean scssFromSrc) {
     this.scssFromSrc = scssFromSrc;
+  }
+
+  /**
+   * @return the coordinates of the remote packages artifact
+   */
+  public ArtifactItem getRemotePackagesArtifact() {
+    return remotePackagesArtifact;
+  }
+
+  /**
+   * @param remotePackagesArtifact Defines the coordinates of the remote-packages artifact
+   */
+  public void setRemotePackagesArtifact(ArtifactItem remotePackagesArtifact) {
+    this.remotePackagesArtifact = remotePackagesArtifact;
+  }
+
+  /**
+   * Holds the basic coordinates of the Maven artifact
+   */
+  public static final class ArtifactItem {
+
+    @Parameter
+    private String groupId;
+
+    @Parameter
+    private String artifactId;
+
+    /**
+     * @param groupId Sets the artifact's groupId
+     */
+    public void setGroupId(String groupId) {
+      this.groupId = groupId;
+    }
+
+    /**
+     * @param artifactId Sets the artifact's artifactId
+     */
+    public void setArtifactId(String artifactId) {
+      this.artifactId = artifactId;
+    }
+
+    /**
+     * @return the artifact's groupId
+     */
+    public String getGroupId() {
+      return groupId;
+    }
+
+    /**
+     * @return the artifact's artifactId
+     */
+    public String getArtifactId() {
+      return artifactId;
+    }
   }
 }

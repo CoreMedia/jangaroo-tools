@@ -18,6 +18,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,21 +46,21 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   @Parameter(property = "senchaConfiguration")
   private MavenSenchaConfiguration senchaConfiguration;
 
-  /**
-   * Defines
-   */
-  @Parameter(property = "remotePackagesArtifact")
-  private ArtifactItem remotePackagesArtifact;
-
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    MavenProject remotePackagesProject = getRemotePackagesProject();
+    MavenSenchaConfiguration.ArtifactItem remotePackages = senchaConfiguration.getRemotePackagesArtifact();
+    if (remotePackages != null) {
+      MavenProject remotePackagesProject = getRemotePackagesProject(session, remotePackages);
 
-    String remotePackagesPath = getPathRelativeToCurrentProjectFrom("remote.packages.dir", remotePackagesProject);
-    senchaConfiguration.setPackagesDir(remotePackagesPath);
+      String remotePackagesPath = getPathRelativeToCurrentProjectFrom("remote.packages.dir", remotePackagesProject);
+      senchaConfiguration.setPackagesDir(remotePackagesPath);
 
-    String extPath = getPathRelativeToCurrentProjectFrom("ext.dir", remotePackagesProject);
-    senchaConfiguration.setExtFrameworkDir(extPath);
+      String extPath = getPathRelativeToCurrentProjectFrom("ext.dir", remotePackagesProject);
+      senchaConfiguration.setExtFrameworkDir(extPath);
+
+      // add remote packaging module to all jangaroo modules that do not contain this dependency
+      addRemotePackagesProject(remotePackagesProject);
+    }
 
     senchaConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
 
@@ -67,29 +68,31 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
-
-    // add remote packaging module to all jangaroo modules that do not contain this dependency
-    addRemotePackagesProject();
   }
 
-  private MavenProject getRemotePackagesProject() throws MojoExecutionException {
-    if (remotePackagesArtifact.groupId == null || remotePackagesArtifact.artifactId == null) {
-      return project;
+  @Nonnull
+  static MavenProject getRemotePackagesProject(@Nonnull MavenSession session,
+                                                       @Nonnull MavenSenchaConfiguration.ArtifactItem remotePackageArtifact)
+          throws MojoExecutionException {
+    if (remotePackageArtifact.getGroupId() == null || remotePackageArtifact.getArtifactId() == null) {
+      return session.getCurrentProject();
     }
     List<MavenProject> allReactorProjects = session.getProjects();
     for (MavenProject project : allReactorProjects) {
 
-      if (project.getGroupId().equals(remotePackagesArtifact.groupId)
-              && project.getArtifactId().equals(remotePackagesArtifact.artifactId)) {
+      if (project.getGroupId().equals(remotePackageArtifact.getGroupId())
+              && project.getArtifactId().equals(remotePackageArtifact.getArtifactId())) {
         return project;
       }
 
     }
-    throw new MojoExecutionException("Could not find local remote-packages module with coordinates " + remotePackagesArtifact.groupId + ":" + remotePackagesArtifact.artifactId);
+    throw new MojoExecutionException("Could not find local remote-packages module with coordinates "
+            + remotePackageArtifact.getGroupId() + ":" + remotePackageArtifact.getArtifactId());
   }
 
-  private void addRemotePackagesProject() throws MojoExecutionException {
-    Dependency remotePackagingProjectDependency = getRemotePackagingProjectAsDependency();
+  private void addRemotePackagesProject(@Nonnull MavenProject remotePackagesProject)
+          throws MojoExecutionException {
+    Dependency remotePackagingProjectDependency = getRemotePackagingProjectAsDependency(remotePackagesProject);
     if (null != remotePackagingProjectDependency) {
       List<MavenProject> allReactorProjects = session.getProjects();
       for (MavenProject project : allReactorProjects) {
@@ -106,27 +109,30 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private boolean containsDependency(List<Dependency> dependencies, Dependency dependencyToCheck) {
-    for (Dependency dependency: dependencies) {
-      if (dependency.getGroupId().equals(dependencyToCheck.getGroupId()) && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())) {
+    for (Dependency dependency : dependencies) {
+      if (dependency.getGroupId().equals(dependencyToCheck.getGroupId())
+              && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())) {
         return true;
       }
     }
     return false;
   }
 
-  private Dependency getRemotePackagingProjectAsDependency() {
+  private Dependency getRemotePackagingProjectAsDependency(@Nonnull MavenProject remotePackagesProject) {
     Dependency dependency = null;
-    if (remotePackagesArtifact.groupId != null || remotePackagesArtifact.artifactId != null) {
+
+    if (remotePackagesProject.getGroupId() != null || remotePackagesProject.getArtifactId() != null) {
       dependency = new Dependency();
-      dependency.setArtifactId(remotePackagesArtifact.artifactId);
-      dependency.setGroupId(remotePackagesArtifact.groupId);
+      dependency.setArtifactId(remotePackagesProject.getArtifactId());
+      dependency.setGroupId(remotePackagesProject.getGroupId());
       dependency.setVersion("${project.version}");
       dependency.setType("pom");
     }
     return dependency;
   }
 
-  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages) throws MojoExecutionException {
+  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages)
+          throws MojoExecutionException {
     Path absolutePathToCurrentProject = project.getBasedir().toPath().normalize();
     String remotePackagesDir = (String) remotePackages.getProperties().get(pathFromProperty);
     if (remotePackagesDir == null) {
@@ -147,22 +153,5 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     }
   }
 
-  public static final class ArtifactItem {
-
-    @Parameter(defaultValue = "com.coremedia.cms")
-    private String groupId;
-
-    @Parameter(defaultValue = "remote-packages")
-    private String artifactId;
-
-
-    public void setGroupId(String groupId) {
-      this.groupId = groupId;
-    }
-
-    public void setArtifactId(String artifactId) {
-      this.artifactId = artifactId;
-    }
-  }
 
 }
