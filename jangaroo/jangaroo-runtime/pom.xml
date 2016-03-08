@@ -93,6 +93,10 @@
                 <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/src">
                   <fileset dir="target/classes/META-INF/resources/joo/classes"/>
                 </copy>
+                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/overrides" />
+                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/overrides">
+                  <fileset dir="target/classes/META-INF/resources/joo/overrides"/>
+                </copy>
                 <!-- execute sencha package build -->
                 <exec executable="sencha"
                       dir="target/net.jangaroo__jangaroo-runtime/packages/local/package">
