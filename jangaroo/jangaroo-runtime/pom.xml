@@ -78,31 +78,31 @@
                   <fileset dir="src/main/joo-js" />
                 </copy>
                 <!-- sencha package -->
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime">
+                <mkdir dir="target/workspace" />
+                <copy todir="target/workspace">
                   <fileset dir="sencha" />
                 </copy>
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/resources/joo" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/resources/joo">
+                <mkdir dir="target/workspace/packages/local/package/resources/joo" />
+                <copy todir="target/workspace/packages/local/package/resources/joo">
                   <filelist dir="target/classes/META-INF/resources/joo">
                     <file name="jangaroo-runtime.module.js" />
                     <file name="AS3.js" />
                   </filelist>
                 </copy>
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/src" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/src">
+                <mkdir dir="target/workspace/packages/local/package/src" />
+                <copy todir="target/workspace/packages/local/package/src">
                   <fileset dir="target/classes/META-INF/resources/joo/classes"/>
                 </copy>
-                <!-- execute sencha package build -->
                 <exec executable="sencha"
-                      dir="target/net.jangaroo__jangaroo-runtime/packages/local/package">
+                      dir="target/workspace/packages/local/package"><!-- execute sencha package build -->
                   <arg value="package" />
                   <arg value="build" />
                 </exec>
                 <!-- put to classes folder so sencha folder is included in artifact -->
                 <mkdir dir="target/classes/net.jangaroo__jangaroo-runtime" />
-                <unzip src="target/net.jangaroo__jangaroo-runtime/build/${project.groupId}__${project.artifactId}/${project.groupId}__${project.artifactId}.pkg"
-                       dest="target/classes/net.jangaroo__jangaroo-runtime" />
+                <copy toDir="target">
+                  <file name="target/workspace/packages/local/package/build/${project.groupId}__${project.artifactId}.pkg"/>
+                </copy>
               </target>
             </configuration>
           </execution>
