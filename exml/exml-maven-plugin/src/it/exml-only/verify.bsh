@@ -9,35 +9,35 @@ try
     File target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        print( "target file is missing or a directory." );
         return false;
     }
 
     File generatedSources = new File ( target, "generated-sources"+File.separator+"joo" );
     if ( !generatedSources.exists() || !generatedSources.isDirectory() )
     {
-        System.err.println( generatedSources + " directory is missing or not a directory." );
+        print( generatedSources + " directory is missing or not a directory." );
         return false;
     }
 
     File generatedAS = new File ( generatedSources, "testPackage"+File.separator+"MyComponent.as" );
     if ( !generatedAS.exists() || !generatedAS.isFile() )
     {
-        System.err.println( generatedAS + " output file is missing or not a file." );
+        print( generatedAS + " output file is missing or not a file." );
         return false;
     }
 
     File generatedConfigAS = new File ( generatedSources, "testPackage"+File.separator+"config"+File.separator+"myComponent.as" );
     if ( !generatedConfigAS.exists() || !generatedConfigAS.isFile() )
     {
-        System.err.println( generatedConfigAS.getName() + " output file is missing or not a file." );
+        print( generatedConfigAS.getName() + " output file is missing or not a file." );
         return false;
     }
 
     File xsd = new File ( target, "generated-resources"+File.separator+"testPackage.config.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( xsd.getName() + " output file is missing or not a file." );
+        print( xsd.getName() + " output file is missing or not a file." );
         return false;
     }
 

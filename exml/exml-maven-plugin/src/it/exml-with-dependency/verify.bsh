@@ -28,7 +28,7 @@ try
     File target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        print( "target file is missing or a directory." );
         return false;
     }
 
@@ -36,28 +36,28 @@ try
     File xsd = new File( target, "generated-resources"+File.separator+"net.jangaroo.example.config.xsd" );
     if ( !xsd.exists() || !xsd.isFile() )
     {
-        System.err.println( "xsd file is missing or not a file: " + xsd.getPath() );
+        print( "xsd file is missing or not a file: " + xsd.getPath() );
         return false;
     }
 
     File expectedXsd = new File(basedir, "expected.xsd");
     boolean xsdEqual = FileUtils.contentEquals(expectedXsd, xsd);
     if (!xsdEqual) {
-        System.err.println( "generated xsd " + xsd.getPath() + " does not match expected xsd " + expectedXsd.getPath() + ".");
+        print( "generated xsd " + xsd.getPath() + " does not match expected xsd " + expectedXsd.getPath() + ".");
         return false;
     }
 
     File jarFile = new File( target, "exml-with-dependency-1.0-SNAPSHOT.jar" );
     if ( !jarFile.isFile() )
     {
-        System.err.println( "JAR file is missing" );
+        print( "JAR file is missing" );
         return false;
     }
 
     File sourcesJarFile = new File( target, "exml-with-dependency-1.0-SNAPSHOT-sources.jar" );
     if ( !sourcesJarFile.isFile() )
     {
-        System.err.println( "Sources JAR file is missing" );
+        print( "Sources JAR file is missing" );
         //return false;
     }
 
