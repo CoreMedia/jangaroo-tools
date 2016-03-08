@@ -70,6 +70,7 @@ public class PomManipulator {
       Transformer transformer = transformerFactory.newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
       DOMSource source = new DOMSource(doc);
       StreamResult streamResult = new StreamResult(pom);
       transformer.transform(source, streamResult);
