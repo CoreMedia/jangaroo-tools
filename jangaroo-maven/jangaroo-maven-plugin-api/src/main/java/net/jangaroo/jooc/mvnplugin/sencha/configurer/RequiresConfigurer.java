@@ -35,6 +35,7 @@ public class RequiresConfigurer implements Configurer {
 
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
+      // TODO should only have jangaroo deps, no need for this check (needs to be the same as SenchaWorkspaceMojo#addRemotePackagesProject)
       if (SenchaUtils.isSenchaPackageArtifact(artifact)) {
         String senchaPackageNameForArtifact = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
         if (senchaPackageNameForArtifact.equals(themePackageName)) {

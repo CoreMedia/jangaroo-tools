@@ -140,10 +140,12 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       if (Types.JANGAROO_TYPE.equals(currentProject.getPackaging())) {
         // check all dependencies of this project, do they contain remote depedencies
         for (Dependency dependency: currentProject.getDependencies()) {
-          MavenProject projectFromDependency = createProjectFromDependency(dependency);
-          if (!remotePackagesProjects.contains(projectFromDependency) && !collectedProjects.contains(projectFromDependency)) {
-            // add dependency to this project for remote packaging
-            remotePackagesProjects.add(projectFromDependency);
+          if (!"provided".equals(dependency.getScope())) {
+            MavenProject projectFromDependency = createProjectFromDependency(dependency);
+            if (!remotePackagesProjects.contains(projectFromDependency) && !collectedProjects.contains(projectFromDependency)) {
+              // add dependency to this project for remote packaging
+              remotePackagesProjects.add(projectFromDependency);
+            }
           }
         }
       }
