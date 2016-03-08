@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -57,9 +55,6 @@ public class WarPackageMojo extends PackageApplicationMojo {
   @Parameter(defaultValue = "${project.resources}")
   private List<Resource> resources;
 
-  @Parameter(defaultValue = "${senchaConfiguration}")
-  private MavenSenchaConfiguration senchaConfiguration;
-
   public File getPackageSourceDirectory() {
     return resources.isEmpty() ? null : new File(resources.get(0).getDirectory());
   }
@@ -72,11 +67,6 @@ public class WarPackageMojo extends PackageApplicationMojo {
   public void execute()
       throws MojoExecutionException, MojoFailureException {
     createWebapp(packageSourceDirectory);
-
-    // for now:
-    SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
-    senchaHelper.createModule();
-    senchaHelper.prepareModule();
   }
 
 }
