@@ -43,12 +43,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
   /**
-   * The Maven project object
-   */
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  private MavenProject project;
-
-  /**
    * Indicates whether the build will fail if there are compilation errors.
    */
   @SuppressWarnings("FieldCanBeLocal")
@@ -140,11 +134,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    */
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
-
-  @Override
-  protected MavenProject getProject() {
-    return project;
-  }
 
   public abstract String getModuleClassesJsFileName();
 

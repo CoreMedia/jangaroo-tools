@@ -163,12 +163,6 @@ public class PackageMojo extends AbstractMojo {
       archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
               + "/pom.xml");
 
-      SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
-      // for now:
-      senchaHelper.createModule();
-      senchaHelper.prepareModule();
-      senchaHelper.packageModule(archiver);
-
       mavenArchiver.createArchive(mavenSession, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);

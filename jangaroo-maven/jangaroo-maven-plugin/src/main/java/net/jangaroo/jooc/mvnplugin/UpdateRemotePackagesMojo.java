@@ -30,17 +30,6 @@ public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
 
   public static final String REMOTE_AGGREGATOR_ARTIFACT_ID = "remote-packages";
 
-  /**
-   * The maven project.
-   */
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  private MavenProject project;
-
-  @Override
-  protected MavenProject getProject() {
-    return project;
-  }
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     long startTime = System.nanoTime();
@@ -73,7 +62,7 @@ public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
 
     updatePom(remoteAggregatorProject, createDependencies(Lists.<MavenProject>newArrayList(projectDependencies), remoteAggregatorProject));
 
-    getLog().debug(String.format("Needed %d ns to update remotes for project %s", System.nanoTime() - startTime, project));
+    getLog().debug(String.format("Needed %d ns to update remotes for project %s", System.nanoTime() - startTime, getProject()));
   }
 
   private boolean isRemoteAggregator(MavenProject project) {
