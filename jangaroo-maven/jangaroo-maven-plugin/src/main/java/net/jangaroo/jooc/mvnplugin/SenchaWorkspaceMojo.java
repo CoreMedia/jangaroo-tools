@@ -165,7 +165,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     dependencies.add(getSenchaExtDependency());
 
     // update the dependencies part of the project pom
-    PomManipulator.updateDependencies(remoteAggregatorProject.getFile(), dependencies, getLog());
+    PomManipulator.updateDependencies(remoteAggregatorProject, dependencies, getLog());
 
     getLog().debug(String.format("Needed %d ns to update remotes for project %s", System.nanoTime() - startTime, project));
   }
@@ -185,7 +185,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
           if (!containsDependency(project.getDependencies(), remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
                     remotePackagingProjectDependency, project));
-            PomManipulator.addDependency(project.getFile(), remotePackagingProjectDependency, getLog());
+            PomManipulator.addDependency(project, remotePackagingProjectDependency, getLog());
           }
         }
       }
