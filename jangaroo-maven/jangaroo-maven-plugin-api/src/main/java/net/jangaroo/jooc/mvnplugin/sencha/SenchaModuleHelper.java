@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 public class SenchaModuleHelper implements SenchaHelper {
@@ -33,7 +34,7 @@ public class SenchaModuleHelper implements SenchaHelper {
   }
 
   @Override
-  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
+  public void packageModule(Archiver archiver) throws MojoExecutionException {
     delegate.packageModule(archiver);
   }
 
