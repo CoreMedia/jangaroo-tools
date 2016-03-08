@@ -87,7 +87,7 @@ public class SenchaWorkspaceMojo extends JangarooMojo {
     if (null != remotePackagingProjectDependency) {
       List<MavenProject> allReactorProjects = session.getProjects();
       for (MavenProject project : allReactorProjects) {
-        if (Types.JANGAROO_TYPE.equals(project.getPackaging())) {
+        if (Types.SENCHA_TYPES.contains(project.getPackaging())) {
           List<Dependency> projectDependencies = project.getDependencies();
           if (!containsDependency(projectDependencies, remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",

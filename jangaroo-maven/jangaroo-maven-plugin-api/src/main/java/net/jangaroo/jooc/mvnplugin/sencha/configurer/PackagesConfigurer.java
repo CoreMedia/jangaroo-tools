@@ -52,7 +52,7 @@ public class PackagesConfigurer implements Configurer {
     if (null != collectedProjects) {
 
       for (MavenProject p : collectedProjects) {
-        if (Types.JANGAROO_TYPE.equals(p.getPackaging())) {
+        if (Types.SENCHA_TYPES.contains(p.getPackaging())) {
           mavenProjectsWithSenchaPackages.add(p);
         }
       }

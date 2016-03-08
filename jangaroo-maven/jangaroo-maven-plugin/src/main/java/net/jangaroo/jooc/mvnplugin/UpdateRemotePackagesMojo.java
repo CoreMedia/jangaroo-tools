@@ -40,7 +40,7 @@ public class UpdateRemotePackagesMojo extends AbstractJangarooMojo {
     Set<MavenProject> projectDependencies = new TreeSet<>(new MavenProjectComparator());
 
     for (MavenProject currentProject: projects) {
-      if (Types.JANGAROO_TYPE.equals(currentProject.getPackaging())) {
+      if (Types.SENCHA_TYPES.contains(currentProject.getPackaging())) {
         List<Dependency> currentProjectDependencies = currentProject.getDependencies();
         for (Dependency dependency: currentProjectDependencies) {
           MavenProject projectFromDependency = createProjectFromDependency(dependency);

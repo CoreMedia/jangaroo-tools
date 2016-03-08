@@ -429,6 +429,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   protected abstract Set<String> getExcludes();
 
   protected boolean isJangarooPackaging() {
-    return Types.JANGAROO_TYPE.equals(getProject().getPackaging());
+    return Types.SENCHA_TYPES.contains(getProject().getPackaging());
   }
 }

@@ -16,6 +16,9 @@ package net.jangaroo.jooc.mvnplugin;
  * limitations under the License.
  */
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">nicolas De Loof</a>
  */
@@ -24,7 +27,13 @@ public interface Types {
   /**
    * packaging type handled by the plugin
    */
-  String JANGAROO_TYPE = "jangaroo";
+  String JANGAROO_TYPE = "jangaroo"; // TODO legacy
+
+  String SENCHA_CODE = "sencha-code";
+  String SENCHA_THEME = "sencha-theme";
+  String SENCHA_APP = "sencha-app";
+
+  List<String> SENCHA_TYPES = Arrays.asList(JANGAROO_TYPE, SENCHA_CODE, SENCHA_APP, SENCHA_THEME);
 
   /**
    * extension for packaging handled by the plugin

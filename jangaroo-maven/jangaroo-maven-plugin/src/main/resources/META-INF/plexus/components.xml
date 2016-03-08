@@ -24,7 +24,30 @@
     -->
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
-      <role-hint>jangaroo</role-hint>
+      <role-hint>sencha-code</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
+          </generate-sources>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+          <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
+          <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-package</package>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>sencha-app</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
@@ -43,5 +66,29 @@
         </phases>
       </configuration>
     </component>
+
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>sencha-theme</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
+          </generate-sources>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+          <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
+          <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-package</package>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
   </components>
 </component-set>

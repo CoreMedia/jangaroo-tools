@@ -61,7 +61,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
   private boolean skipTests;
 
   public File getPackageSourceDirectory() {
-    return Types.JANGAROO_TYPE.equals(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;
+    return Types.SENCHA_TYPES.contains(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;
   }
 
   protected boolean isTestAvailable() {

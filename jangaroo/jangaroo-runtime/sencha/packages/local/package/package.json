@@ -41,5 +41,8 @@
     "path" : "resources",
     "output" : "shared"
   } ],
-  "theme" : ""
+  "theme" : "",
+  "build" : {
+    "dir" : "${package.dir}/build"
+  }
 }
