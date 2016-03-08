@@ -12,8 +12,7 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.Archiver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -146,7 +145,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   }
 
   @Override
-  public void packageModule(JarArchiver archiver) throws MojoExecutionException {
+  public void packageModule(Archiver archiver) throws MojoExecutionException {
     if (getSenchaConfiguration().isEnabled()) {
       if (!getSenchaConfiguration().isSkipBuild()) {
 

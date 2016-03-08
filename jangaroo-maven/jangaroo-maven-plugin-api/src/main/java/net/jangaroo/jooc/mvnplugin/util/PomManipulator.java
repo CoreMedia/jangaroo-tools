@@ -6,6 +6,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -46,11 +47,6 @@ public class PomManipulator {
    * @param pom - the pom file to manipulate
    * @param dependencies - the dependencies which should be added
    * @param log -Maven Logger to Log what happens
-   * @throws IOException
-   * @throws SAXException
-   * @throws ParserConfigurationException
-   * @throws XPathExpressionException
-   * @throws TransformerException
    */
   public static void addDependencies(File pom, List<Dependency> dependencies, Log log) throws MojoExecutionException { //NOSONAR
     Document doc = initDocument(pom);
@@ -59,6 +55,15 @@ public class PomManipulator {
     addDependencies(doc, nodes, dependencies, log);
     writeUpdatedPom(pom, doc);
   }
+
+  public static void updateDependencies(File pom, List<Dependency> dependencies, Log log) throws MojoExecutionException { //NOSONAR
+    Document doc = initDocument(pom);
+
+    NodeList nodes = queryForDependencies(doc);
+    setDependencies(doc, nodes, dependencies, log);
+    writeUpdatedPom(pom, doc);
+  }
+
 
   public static void addDependency(File pom, Dependency dependency, Log log) throws MojoExecutionException { //NOSONAR
     addDependencies(pom, Collections.singletonList(dependency), log);
@@ -97,17 +102,13 @@ public class PomManipulator {
   private static Document initDocument(File pom) throws MojoExecutionException {
     try {
       String xml = FileUtils.readFileToString(pom);
-
-      DocumentBuilderFactory xmlFact =
-              DocumentBuilderFactory.newInstance();
+      DocumentBuilderFactory xmlFact = DocumentBuilderFactory.newInstance();
       // there is only one default namespace so we can disable it
       // notice: namespaces break xpath expressions
       // either disable them or provide a NamespaceContext
       xmlFact.setNamespaceAware(false);
       DocumentBuilder builder = xmlFact.newDocumentBuilder();
-      return builder.parse(
-              new java.io.ByteArrayInputStream(
-                      xml.getBytes(Charset.forName("UTF-8"))));
+      return builder.parse(new java.io.ByteArrayInputStream(xml.getBytes(Charset.forName("UTF-8"))));
     } catch (ParserConfigurationException e) {
       throw new MojoExecutionException("Cannot read pom because of parser exception", e);
     }  catch (SAXException e) {
@@ -121,7 +122,7 @@ public class PomManipulator {
     //Only one dependencies tag allowed in maven, so we can assume we want this node.
     Node dependencyNodes = nodes.item(0);
     for (Dependency dependency: dependencies) {
-      Node dependencyNode = XmlHelper.createDependencyNode(document, dependency);
+      Node dependencyNode = createDependencyNode(document, dependency);
       dependencyNodes.appendChild(dependencyNode);
       log.info("Append dependency to dependency management: " + dependency);
     }
@@ -129,12 +130,51 @@ public class PomManipulator {
 
   private static void setDependencies(Document document, NodeList nodes, List<Dependency> dependencies, Log log) { //NOSONAR
     //Only one dependencies tag allowed in maven, so we can assume we want this node.
-    Node dependencyNodes = nodes.item(0);
-    // TODO dependencyNodes.remve all
+    Node dependenciesNode = nodes.item(0);
+
+    // remove all existing dependencies
+    removeChilds(dependenciesNode);
+
+    // XmlHelper.removeEmptyText(dependenciesNode, log);
+
+    // add all the new dependencies
     for (Dependency dependency: dependencies) {
-      Node dependencyNode = XmlHelper.createDependencyNode(document, dependency);
-      dependencyNodes.appendChild(dependencyNode);
+      Node dependencyNode = createDependencyNode(document, dependency);
+      dependenciesNode.appendChild(dependencyNode);
       log.info("Append dependency to dependency management: " + dependency);
     }
+  }
+
+  private static void removeChilds(Node node) {
+    while (node.hasChildNodes()) {
+      node.removeChild(node.getFirstChild());
+    }
+  }
+
+  private static Node createDependencyNode(Document document, Dependency dependency) {
+    return createDependencyNode(document, dependency.getArtifactId(), dependency.getGroupId(), dependency.getVersion(), dependency.getType());
+  }
+
+  private static Node createDependencyNode(Document document, String artifactId, String groupId, String version, String type) {
+
+    Element dependencyNode = createElement(document, "dependency", null);
+
+    Element artifactIdTag = createElement(document, "artifactId", artifactId);
+    Element groupIdTag = createElement(document, "groupId", groupId);
+    Element versionTag = createElement(document, "version", version);
+    Element scopeTag = createElement(document, "type", type);
+
+    dependencyNode.appendChild(artifactIdTag);
+    dependencyNode.appendChild(groupIdTag);
+    dependencyNode.appendChild(versionTag);
+    dependencyNode.appendChild(scopeTag);
+
+    return dependencyNode;
+  }
+
+  private static Element createElement(Document document, String tagname, String textContent) {
+    Element element = document.createElement(tagname);
+    element.setTextContent(textContent);
+    return element;
   }
 }
