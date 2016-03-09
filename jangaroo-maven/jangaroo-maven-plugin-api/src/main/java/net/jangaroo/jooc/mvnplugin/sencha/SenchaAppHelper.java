@@ -6,8 +6,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -65,21 +63,15 @@ class SenchaAppHelper extends AbstractSenchaHelper {
       }
 
       String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(getSenchaConfiguration().getTheme(), getProject());
-      String line = "sencha generate app"
+
+      String arguments = "generate app"
               + " -ext"
               + " -" + getSenchaConfiguration().getToolkit()
               + " --theme-name=\"" + themePackageName + "\""
               + " --path=\"\""
               + " " + getSenchaModuleName();
-      CommandLine cmdLine = CommandLine.parse(line);
-      DefaultExecutor executor = new DefaultExecutor();
-      executor.setWorkingDirectory(workingDirectory);
-      executor.setExitValue(0);
-      try {
-        executor.execute(cmdLine);
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not execute sencha cmd to generate app", e);
-      }
+      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+      senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated
       // for normal packages skip generating css and slices
@@ -188,16 +180,8 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    String line = "sencha app build --production";
-    CommandLine cmdLine = CommandLine.parse(line);
-    DefaultExecutor executor = new DefaultExecutor();
-    executor.setWorkingDirectory(senchaAppDirectory);
-    executor.setExitValue(0);
-    try {
-      executor.execute(cmdLine);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not execute sencha cmd to build app", e);
-    }
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
+    senchaCmdExecutor.execute();
   }
 
   private Map<String, Object> getAppConfig() throws MojoExecutionException {

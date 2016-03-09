@@ -7,8 +7,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -89,20 +87,13 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
 
       Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
-      String line = "sencha generate package"
+      String arguments = "generate package"
               + " --name=\"" + getSenchaModuleName() + "\""
               + " --namespace=\"\""
               + " --type=\"code\""
               + " " + pathToWorkingDirectory;
-      CommandLine cmdLine = CommandLine.parse(line);
-      DefaultExecutor executor = new DefaultExecutor();
-      executor.setWorkingDirectory(workingDirectory);
-      executor.setExitValue(0);
-      try {
-        executor.execute(cmdLine);
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not execute sencha cmd to generate package", e);
-      }
+      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+      senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated
       // for normal packages skip generating css and slices
@@ -220,16 +211,8 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {
-    String line = "sencha package build";
-    CommandLine cmdLine = CommandLine.parse(line);
-    DefaultExecutor executor = new DefaultExecutor();
-    executor.setWorkingDirectory(senchaPackageDirectory);
-    executor.setExitValue(0);
-    try {
-      executor.execute(cmdLine);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not execute sencha cmd to build package", e);
-    }
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaPackageDirectory, "package build", getLog());
+    senchaCmdExecutor.execute();
   }
 
   private Map<String, Object> getPackageConfig() throws MojoExecutionException {
