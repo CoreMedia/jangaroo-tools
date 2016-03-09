@@ -13,6 +13,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.Archiver;
+import org.codehaus.plexus.archiver.ArchiverException;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -176,6 +177,19 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
         File pkg = new File(workspaceOutputPath + File.separator + getSenchaModuleName() + File.separator + getSenchaModuleName() + SenchaUtils.SENCHA_PKG_EXTENSION);
         if (!pkg.exists()) {
           throw new MojoExecutionException("could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for sencha package " + getSenchaModuleName());
+        }
+        File tempDirectory;
+        try {
+          tempDirectory = createTempDirectory();
+        } catch (IOException e) {
+          throw new MojoExecutionException("could not create temporary directory", e);
+        }
+        tempDirectory.deleteOnExit();
+        SenchaUtils.extractZipToDirectory(pkg, tempDirectory);
+        try {
+          archiver.addDirectory(tempDirectory, getSenchaModuleName() + "/");
+        } catch (ArchiverException e) {
+          throw new MojoExecutionException("could not add package directory to jar", e);
         }
 
         if (getSenchaConfiguration().isScssFromSrc()) {
