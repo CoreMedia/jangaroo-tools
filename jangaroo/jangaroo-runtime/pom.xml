@@ -93,6 +93,10 @@
                 <copy todir="target/workspace/packages/local/package/src">
                   <fileset dir="target/classes/META-INF/resources/joo/classes"/>
                 </copy>
+                <mkdir dir="target/workspace/packages/local/package/overrides" />
+                <copy todir="target/workspace/packages/local/package/overrides">
+                  <fileset dir="target/classes/META-INF/resources/joo/overrides"/>
+                </copy>
                 <exec executable="sencha"
                       dir="target/workspace/packages/local/package"><!-- execute sencha package build -->
                   <arg value="package" />
