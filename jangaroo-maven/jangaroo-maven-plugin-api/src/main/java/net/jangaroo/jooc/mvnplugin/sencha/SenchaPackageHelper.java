@@ -7,6 +7,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -92,6 +93,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
               + " --namespace=\"\""
               + " --type=\"code\""
               + " " + pathToWorkingDirectory;
+      getLog().info("generating sencha package module");
       SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
       senchaCmdExecutor.execute();
 
@@ -211,6 +213,7 @@ class SenchaPackageHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {
+    getLog().info("building sencha package module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaPackageDirectory, "package build", getLog());
     senchaCmdExecutor.execute();
   }

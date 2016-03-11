@@ -4,6 +4,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaWorkspaceConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -60,8 +61,8 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
           }
         }
 
-        String arguments = "generate workspace .";
-        SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+        getLog().info("generating sencha workspace module");
+        SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog());
         senchaCmdExecutor.execute();
 
         // sencha.cfg should be recreated

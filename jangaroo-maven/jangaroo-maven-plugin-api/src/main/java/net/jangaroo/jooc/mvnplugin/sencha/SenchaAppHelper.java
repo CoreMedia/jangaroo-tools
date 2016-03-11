@@ -6,6 +6,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -70,6 +71,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
               + " --theme-name=\"" + themePackageName + "\""
               + " --path=\"\""
               + " " + getSenchaModuleName();
+      getLog().info("generating sencha app module");
       SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
       senchaCmdExecutor.execute();
 
@@ -180,6 +182,7 @@ class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
+    getLog().info("building sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
     senchaCmdExecutor.execute();
   }
