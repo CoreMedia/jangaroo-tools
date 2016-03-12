@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class SenchaCmdExecutor {
 
-  static final int MAX_EXECUTION_TIME = 60000;
+  static final long MAX_EXECUTION_TIME = ExecuteWatchdog.INFINITE_TIMEOUT;
   static final int MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS = 5;
 
   private File workingDirectory;
