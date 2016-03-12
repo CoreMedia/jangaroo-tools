@@ -215,7 +215,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   private Dependency getRemotePackagingProjectAsDependency(@Nonnull MavenProject remotePackagesProject) {
     Dependency dependency = null;
     if (remotePackagesProject.getGroupId() != null && remotePackagesProject.getArtifactId() != null) {
-      dependency = createDepedency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}");
+      dependency = createDependency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}", "runtime");
     }
     return dependency;
   }
@@ -250,7 +250,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       return null;
     }
 
-    Dependency dependency = createDepedency(mavenProject);
+    Dependency dependency = createDependency(mavenProject);
 
     List<Dependency> dependencyList = remoteAggregator.getDependencyManagement().getDependencies();
     for (Dependency dependencyFromList: dependencyList) {
@@ -270,19 +270,20 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private Dependency getSenchaExtDependency() {
-    return createDepedency(SENCHA_EXT_GROUP_ID, SENCHA_EXT_ARTIFACT_ID, SENCHA_EXT_TYPE, null);
+    return createDependency(SENCHA_EXT_GROUP_ID, SENCHA_EXT_ARTIFACT_ID, SENCHA_EXT_TYPE, null, null);
   }
 
-  private static Dependency createDepedency(@Nonnull MavenProject mavenProject) {
-    return createDepedency(mavenProject.getGroupId(), mavenProject.getArtifactId(), null, mavenProject.getVersion());
+  private static Dependency createDependency(@Nonnull MavenProject mavenProject) {
+    return createDependency(mavenProject.getGroupId(), mavenProject.getArtifactId(), null, mavenProject.getVersion(), null);
   }
 
-  private static Dependency createDepedency(String groupId, String artifactId, String type, String version) {
+  private static Dependency createDependency(String groupId, String artifactId, String type, String version, String scope) {
     Dependency dependency = new Dependency();
     dependency.setArtifactId(artifactId);
     dependency.setGroupId(groupId);
     dependency.setType(type);
     dependency.setVersion(version);
+    dependency.setScope(scope);
     return dependency;
   }
 
