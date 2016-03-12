@@ -29,7 +29,7 @@ import java.io.File;
 @Mojo(name = "generate-sencha-module",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
-        threadSafe = true, aggregator = true)
+        threadSafe = true)
 public class SenchaModuleMojo extends AbstractMojo {
 
   /**
