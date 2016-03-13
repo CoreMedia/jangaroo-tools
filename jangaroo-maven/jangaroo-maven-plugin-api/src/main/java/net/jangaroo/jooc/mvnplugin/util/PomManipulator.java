@@ -177,10 +177,10 @@ public class PomManipulator {
   }
 
   private static Node createDependencyNode(Document document, Dependency dependency) {
-    return createDependencyNode(document, dependency.getArtifactId(), dependency.getGroupId(), dependency.getVersion(), dependency.getType());
+    return createDependencyNode(document, dependency.getArtifactId(), dependency.getGroupId(), dependency.getVersion(), dependency.getType(), dependency.getScope());
   }
 
-  private static Node createDependencyNode(Document document, String artifactId, String groupId, String version, String type) {
+  private static Node createDependencyNode(Document document, String artifactId, String groupId, String version, String type, String scope) {
 
     Element dependencyNode = createElement(document, "dependency", null);
 
@@ -197,6 +197,11 @@ public class PomManipulator {
     if (type != null) {
       Element typeTag = createElement(document, "type", type);
       dependencyNode.appendChild(typeTag);
+    }
+
+    if (scope != null) {
+      Element scopeTag = createElement(document, "scope", scope);
+      dependencyNode.appendChild(scopeTag);
     }
 
     return dependencyNode;
