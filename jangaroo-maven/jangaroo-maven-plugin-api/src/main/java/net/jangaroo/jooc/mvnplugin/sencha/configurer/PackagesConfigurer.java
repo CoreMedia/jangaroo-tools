@@ -63,21 +63,16 @@ public class PackagesConfigurer implements Configurer {
 
     for (MavenProject mavenProjectWithSenchaPackage : mavenProjectsWithSenchaPackages) {
 
-      // TODO: check type by configuration not by name
-      if (mavenProjectWithSenchaPackage.getArtifactId().endsWith("-webapp")) {
-        // needs to be put into: apps: [], ignore for now path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
-      } else {
-        Path path;
-        path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
-        Path relativePath = rootPath.relativize(path);
-        String relativePathString = relativePath.toString();
+      Path path;
+      path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
+      Path relativePath = rootPath.relativize(path);
+      String relativePathString = relativePath.toString();
 
-        if (relativePathString.isEmpty()) {
-          throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
-        }
-
-        result.add("${workspace.dir}" + SenchaUtils.SEPARATOR + relativePathString);
+      if (relativePathString.isEmpty()) {
+        throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
       }
+
+      result.add("${workspace.dir}" + SenchaUtils.SEPARATOR + relativePathString);
     }
 
     return result;
