@@ -180,6 +180,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
     Dependency remotePackagingProjectDependency = getRemotePackagingProjectAsDependency(remotePackagesProject);
     if (null != remotePackagingProjectDependency) {
+      String version = remotePackagingProjectDependency.getVersion();
       // check all known projects if they have the jangaroo type
       for (MavenProject project : session.getProjects()) {
         if (Types.JANGAROO_TYPE.equals(project.getPackaging())) {
@@ -187,6 +188,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
           if (!containsDependency(project.getDependencies(), remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
                     remotePackagingProjectDependency, project));
+            remotePackagingProjectDependency.setVersion(version);
+            cleanupDependencyVersionForProject(project, remotePackagingProjectDependency);
             PomManipulator.addDependency(project, remotePackagingProjectDependency, getLog());
           }
         }
@@ -204,7 +207,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   private boolean containsDependency(@Nonnull List<Dependency> dependencies, @Nonnull Dependency dependencyToCheck) {
     for (Dependency dependency : dependencies) {
       if (dependency.getGroupId().equals(dependencyToCheck.getGroupId())
-              && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())) {
+              && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())
+              && dependency.getType().equals(dependencyToCheck.getType())) {
         return true;
       }
     }
@@ -215,7 +219,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   private Dependency getRemotePackagingProjectAsDependency(@Nonnull MavenProject remotePackagesProject) {
     Dependency dependency = null;
     if (remotePackagesProject.getGroupId() != null && remotePackagesProject.getArtifactId() != null) {
-      dependency = createDependency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}", "runtime");
+      dependency = createDependency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}", Artifact.SCOPE_RUNTIME);
     }
     return dependency;
   }
@@ -251,22 +255,32 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     }
 
     Dependency dependency = createDependency(mavenProject);
-
-    List<Dependency> dependencyList = remoteAggregator.getDependencyManagement().getDependencies();
-    for (Dependency dependencyFromList: dependencyList) {
-      if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
-              && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
-              && dependencyFromList.getVersion().equals(dependency.getVersion())) {
-        // should add a warning if version differs
-        dependency.setVersion(null);
-        break;
-      }
-    }
+    cleanupDependencyVersionForProject(remoteAggregator, dependency);
 
     dependency.setScope(Artifact.SCOPE_RUNTIME);
     dependency.setType(Types.JAVASCRIPT_EXTENSION);
 
     return dependency;
+  }
+
+  private void cleanupDependencyVersionForProject(@Nonnull MavenProject mavenProject, @Nonnull Dependency dependency) {
+    String version = dependency.getVersion();
+    if (version == null) {
+      return;
+    }
+    if ("${project.version}".equals(version)) {
+      version = mavenProject.getVersion();
+    }
+    List<Dependency> dependencyList = mavenProject.getDependencyManagement().getDependencies();
+    for (Dependency dependencyFromList: dependencyList) {
+      if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
+              && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
+              && dependencyFromList.getVersion().equals(version)) {
+        // should add a warning if version differs
+        dependency.setVersion(null);
+        break;
+      }
+    }
   }
 
   private Dependency getSenchaExtDependency() {
