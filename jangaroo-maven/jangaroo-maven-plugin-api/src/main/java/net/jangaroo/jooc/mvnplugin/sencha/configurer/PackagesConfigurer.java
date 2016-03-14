@@ -9,6 +9,7 @@ import org.apache.maven.project.MavenProject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,24 +64,23 @@ public class PackagesConfigurer implements Configurer {
 
     for (MavenProject mavenProjectWithSenchaPackage : mavenProjectsWithSenchaPackages) {
 
-      // TODO: check type by configuration not by name
-      if (mavenProjectWithSenchaPackage.getArtifactId().endsWith("-webapp")) {
-        // needs to be put into: apps: [], ignore for now path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
-      } else {
-        Path path;
-        path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH);
-        Path relativePath = rootPath.relativize(path);
-        String relativePathString = relativePath.toString();
+      Path path;
+      path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH);
+      Path relativePath = rootPath.relativize(path);
+      String relativePathString = relativePath.toString();
 
-        if (relativePathString.isEmpty()) {
-          throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
-        }
-
-        result.add("${workspace.dir}" + SenchaUtils.SEPARATOR + relativePathString);
+      if (relativePathString.isEmpty()) {
+        throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
       }
+
+      result.add("${workspace.dir}" + SenchaUtils.SEPARATOR + relativePathString);
+
     }
 
-    return result;
+    // sort resulting paths deterministically so that it remains the same no matter what OS you are using
+    Collections.sort(result);
+
+    return Collections.unmodifiableList(result);
   }
 
   private String absolutePath(String path) {
