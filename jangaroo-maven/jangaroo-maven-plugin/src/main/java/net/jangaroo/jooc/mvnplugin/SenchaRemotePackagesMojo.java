@@ -41,7 +41,7 @@ import java.util.zip.ZipFile;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "extract-remote-packages",
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
 public class SenchaRemotePackagesMojo extends AbstractMojo {
 
@@ -64,7 +64,7 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
     File extTargetDirectory = new File( getExtFrameworkDirectory(project) );
     createTargetDir(extTargetDirectory);
 
-    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
+    Set<Artifact> dependencyArtifacts = project.getArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
       if (SenchaUtils.PACKAGE_EXTENSION.equals(artifact.getType())
               || "zip".equals(artifact.getType())) {
