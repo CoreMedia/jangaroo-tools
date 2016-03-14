@@ -76,13 +76,14 @@ class SenchaAppHelper extends AbstractSenchaHelper {
       senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated
-      // for normal packages skip generating css and slices
+      // for normal apps skip slicing and disable optimization of defines
       if (senchaCfg.exists()) {
         PrintWriter pw = null;
         try {
           FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
 
           pw = new PrintWriter(fw);
+          pw.println("skip.slice=1");
           // If true will cause problems with class pre- and postprocessors we use
           pw.println("app.output.js.optimize.defines=false");
         } catch (IOException e) {
