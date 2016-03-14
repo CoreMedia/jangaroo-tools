@@ -102,16 +102,32 @@
                   <arg value="package" />
                   <arg value="build" />
                 </exec>
-                <!-- put to classes folder so sencha folder is included in artifact -->
-                <mkdir dir="target/classes/net.jangaroo__jangaroo-runtime" />
-                <copy toDir="target">
-                  <file name="target/workspace/packages/local/package/build/${project.groupId}__${project.artifactId}.pkg"/>
-                </copy>
               </target>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-pkg</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>target/workspace/packages/local/package/build/${project.groupId}__${project.artifactId}.pkg</file>
+                  <type>pkg</type>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

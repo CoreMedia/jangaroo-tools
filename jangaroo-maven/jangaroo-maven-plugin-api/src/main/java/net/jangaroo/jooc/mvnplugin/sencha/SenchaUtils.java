@@ -28,11 +28,17 @@ public class SenchaUtils {
   public static final String SEPARATOR = "/";
 
   public static final String SENCHA_BASE_PATH = "sencha";
-  public static final String SENCHA_PACKAGES = "packages";
-  public static final String SENCHA_PACKAGES_LOCAL = "local";
+
+  public static final String PACKAGE_EXTENSION = "pkg";
+
+  public static final String LOCAL_PACKAGES_PATH = "/packages/local/";
+
+  public static final String LOCAL_PACKAGE_PATH = LOCAL_PACKAGES_PATH + "package/";
+
+  public static final String LOCAL_PACKAGE_BUILD_PATH = LOCAL_PACKAGE_PATH + "build/";
 
   /**
-   * The name of the folder of the generated module inside the {@link SenchaUtils#SENCHA_PACKAGES_LOCAL} folder.
+   * The name of the folder of the generated module inside the {@link #LOCAL_PACKAGE_PATH} folder.
    * Make sure that the name is not too long to avoid exceeding the max path length in windows.
    * The old path length relative to the target folder was 43 chars:
    * classes\META-INF\resources\joo\classes\com
@@ -42,9 +48,6 @@ public class SenchaUtils {
    * 43 - SENCHA_BASE_BATH.length - SENCHA_PACKAGES.length - SENCHA_PACKAGE_LOCAL.length
    *    - SENCHA_RELATIVE_CLASS_PATH.length - 4 (Separator)
    */
-  public static final String LOCAL_PACKAGE_PATH = "package";
-
-  public static final String SENCHA_RELATIVE_BUILD_PATH = "build";
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
@@ -133,10 +136,10 @@ public class SenchaUtils {
         if (isSenchaPackageArtifact(artifact)) {
           return getSenchaPackageName(groupId, artifactId);
         }
-        throw new MojoExecutionException("Theme name references to an artifact that contains no sencha package");
+        throw new MojoExecutionException("Theme name references an artifact that contains no sencha package");
       }
     }
-    throw new MojoExecutionException("Theme name references to an artifact which is not added to dependencies");
+    throw new MojoExecutionException("Theme name references an artifact which is not added to dependencies");
   }
 
   public static File findClosestSenchaWorkspaceDir(File dir) {
@@ -202,107 +205,6 @@ public class SenchaUtils {
     return workspacePath.relativize(workingDirectoryPath);
   }
 
-  public static void extractRemotePackagesForProject(MavenProject project, String targetDirectory) throws MojoExecutionException {
-    @SuppressWarnings("unchecked") Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
-    for (Artifact artifact : dependencyArtifacts) {
-
-      if (!isSenchaPackageArtifact(artifact)) {
-        continue;
-      }
-      if ("net.jangaroo".equals(artifact.getGroupId())
-              && "ext-js".equals(artifact.getArtifactId())) {
-        // ext-js is handled differently
-        continue;
-      }
-
-      if (!Types.JAVASCRIPT_EXTENSION.equals(artifact.getType())) {
-        continue;
-      }
-
-      String senchaPackageName = SenchaUtils.getSenchaPackageNameForArtifact(artifact);
-      String remotePackageFolderName = senchaPackageName + "__" + SenchaUtils.getSenchaVersionForArtifact(artifact);
-      File remotePackageFolder = new File(targetDirectory + SEPARATOR + remotePackageFolderName);
-
-      try {
-        ZipFile zipFile = new ZipFile(artifact.getFile());
-        ZipEntry packageJson = zipFile.getEntry(senchaPackageName + SEPARATOR + SENCHA_PACKAGE_FILENAME);
-        // skip if no package json is found
-        if (null == packageJson) {
-          continue;
-        }
-        zipFile.close();
-
-        // make sure folder ist cleaned up
-        if (remotePackageFolder.exists()) {
-          try {
-            FileUtils.deleteDirectory(remotePackageFolder);
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not remove old extracted package folder");
-          }
-        }
-        if (!remotePackageFolder.exists() && !remotePackageFolder.mkdirs()) {
-          throw new MojoExecutionException("could not create folder for remote package " + remotePackageFolder);
-        }
-
-        extractZipToDirectory(artifact.getFile(), remotePackageFolder, SENCHA_BASE_PATH + SEPARATOR);
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not read from artifact file", e);
-      }
-    }
-  }
-
-  public static void extractZipToDirectory(File zip, File directory, String startFrom) throws MojoExecutionException {
-    try {
-      java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zip);
-      Enumeration<?> enu = zipFile.entries();
-      while (enu.hasMoreElements()) {
-        java.util.zip.ZipEntry zipEntry = (java.util.zip.ZipEntry) enu.nextElement();
-
-        String name = zipEntry.getName();
-
-        if (name.equals(startFrom) || !name.startsWith(startFrom)) {
-          continue;
-        }
-
-        name = name.substring(startFrom.length());
-
-        // Do we need to create a directory ?
-        File file = new File(directory.getAbsolutePath() + SEPARATOR + name);
-        if (name.endsWith(SEPARATOR)) {
-          if (!file.exists() && !file.mkdirs()) {
-            throw new MojoExecutionException("could not create directory: " + file);
-          }
-          continue;
-        }
-
-        File parent = file.getParentFile();
-        if (parent != null) {
-          if (!parent.exists() && !parent.mkdirs()) {
-            throw new MojoExecutionException("could not create directory: " + parent);
-          }
-        }
-
-        // Extract the file
-        InputStream is = zipFile.getInputStream(zipEntry);
-        FileOutputStream fos = new FileOutputStream(file);
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = is.read(bytes)) >= 0) {
-          fos.write(bytes, 0, length);
-        }
-        is.close();
-        fos.close();
-
-      }
-      zipFile.close();
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not unpack zip file", e);
-    }
-  }
-
-  public static void extractZipToDirectory(File zip, File directory) throws MojoExecutionException {
-    extractZipToDirectory(zip, directory, "");
-  }
 
   public static boolean isSenchaPackageArtifact(Artifact artifact) throws MojoExecutionException {
     return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType())

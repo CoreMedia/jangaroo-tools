@@ -14,7 +14,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.CompilerMessage;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -429,6 +428,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   protected abstract Set<String> getExcludes();
 
   protected boolean isJangarooPackaging() {
-    return Types.SENCHA_TYPES.contains(getProject().getPackaging());
+    return MavenSenchaConfiguration.isSenchaPackaging(getProject().getPackaging());
   }
 }

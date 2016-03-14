@@ -23,7 +23,7 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>testwar</groupId>
   <artifactId>simple-project</artifactId>
-  <packaging>sencha-code</packaging>
+  <packaging>jangaroo</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
@@ -43,9 +43,6 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
         <configuration>
-          <senchaConfiguration>
-            <enabled>false</enabled>
-          </senchaConfiguration>
           <namespaces>
             <namespace>
               <uri>library://testNamespace</uri>

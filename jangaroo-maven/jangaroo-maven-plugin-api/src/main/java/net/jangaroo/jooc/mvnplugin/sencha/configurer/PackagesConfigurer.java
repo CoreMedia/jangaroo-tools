@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.Types;
+import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -52,7 +52,7 @@ public class PackagesConfigurer implements Configurer {
     if (null != collectedProjects) {
 
       for (MavenProject p : collectedProjects) {
-        if (Types.SENCHA_TYPES.contains(p.getPackaging())) {
+        if (MavenSenchaConfiguration.isSenchaPackaging(p.getPackaging())) {
           mavenProjectsWithSenchaPackages.add(p);
         }
       }
@@ -68,7 +68,7 @@ public class PackagesConfigurer implements Configurer {
         // needs to be put into: apps: [], ignore for now path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + "/" + SENCHA_BASE_PATH);
       } else {
         Path path;
-        path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.SEPARATOR + "packages" + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES_LOCAL);
+        path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH);
         Path relativePath = rootPath.relativize(path);
         String relativePathString = relativePath.toString();
 

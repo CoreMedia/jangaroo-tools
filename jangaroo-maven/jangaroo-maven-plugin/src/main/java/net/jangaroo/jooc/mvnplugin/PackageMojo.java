@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;

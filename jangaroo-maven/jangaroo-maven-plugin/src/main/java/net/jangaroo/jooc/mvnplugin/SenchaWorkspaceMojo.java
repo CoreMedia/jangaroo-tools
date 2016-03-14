@@ -8,8 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaWorkspaceHelper;
 import net.jangaroo.jooc.mvnplugin.util.PomManipulator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -38,7 +37,7 @@ import java.util.TreeSet;
 @Mojo(name = "generate-sencha-workspace",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         threadSafe = true, aggregator = true)
-public class SenchaWorkspaceMojo extends JangarooMojo {
+public class SenchaWorkspaceMojo extends AbstractMojo {
 
   static final String REMOTE_AGGREGATOR_ARTIFACT_ID = "remote-packages";
   static final String SENCHA_EXT_ARTIFACT_ID = "ext";
@@ -48,9 +47,19 @@ public class SenchaWorkspaceMojo extends JangarooMojo {
   @Parameter(defaultValue = "${session}")
   private MavenSession session;
 
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  private MavenProject project;
+
+  /**
+   * The sencha configuration to use.
+   */
+  @Parameter(property = "senchaConfiguration")
+  private MavenSenchaConfiguration senchaConfiguration;
+
+
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    MavenSenchaConfiguration.ArtifactItem remotePackages = getSenchaConfiguration().getRemotePackagesArtifact();
+    MavenSenchaConfiguration.ArtifactItem remotePackages = senchaConfiguration.getRemotePackagesArtifact();
     if (remotePackages != null) {
       MavenProject remotePackagesProject = getRemotePackagesProject(session, remotePackages);
 
@@ -72,16 +81,16 @@ public class SenchaWorkspaceMojo extends JangarooMojo {
     senchaConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
 
     // for now:
-    SenchaHelper senchaHelper = new SenchaModuleHelper(getProject(), getSenchaConfiguration(), getLog());
+    SenchaHelper senchaHelper = new SenchaWorkspaceHelper(project, senchaConfiguration, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
   }
 
   private void addDirectoryLocations(MavenProject remotePackagesProject) throws MojoExecutionException {
-    String remotePackagesPath = getPathRelativeToCurrentProjectFrom("remote.packages.dir", remotePackagesProject);
+    String remotePackagesPath = getPathRelativeToCurrentProjectFrom(SenchaRemotePackagesMojo.getRemotePackagesDirectory(remotePackagesProject));
     senchaConfiguration.setPackagesDir(remotePackagesPath);
 
-    String extPath = getPathRelativeToCurrentProjectFrom("ext.dir", remotePackagesProject);
+    String extPath = getPathRelativeToCurrentProjectFrom(SenchaRemotePackagesMojo.getExtFrameworkDirectory(remotePackagesProject));
     senchaConfiguration.setExtFrameworkDir(extPath);
   }
 
@@ -171,11 +180,11 @@ public class SenchaWorkspaceMojo extends JangarooMojo {
 
     Dependency remotePackagingProjectDependency = getRemotePackagingProjectAsDependency(remotePackagesProject);
     if (null != remotePackagingProjectDependency) {
-      // check all known projects if they have the jangaroo type
-      for (MavenProject project : session.getProjects()) {
-        if (Types.SENCHA_TYPES.equals(project.getPackaging())) {
-          // if the project does not contain the dependency to the remote packages aggregator, add it
-          if (!containsDependency(project.getDependencies(), remotePackagingProjectDependency)) {
+      List<MavenProject> allReactorProjects = session.getProjects();
+      for (MavenProject project : allReactorProjects) {
+        if (MavenSenchaConfiguration.isSenchaPackaging(project.getPackaging())) {
+          List<Dependency> projectDependencies = project.getDependencies();
+          if (!containsDependency(projectDependencies, remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
                     remotePackagingProjectDependency, project));
             PomManipulator.addDependency(project, remotePackagingProjectDependency, getLog());
@@ -277,14 +286,10 @@ public class SenchaWorkspaceMojo extends JangarooMojo {
     return dependency;
   }
 
-  private String getPathRelativeToCurrentProjectFrom(String pathFromProperty, MavenProject remotePackages)
+  private String getPathRelativeToCurrentProjectFrom(String remotePackagePath)
           throws MojoExecutionException {
-    Path absolutePathToCurrentProject = getProject().getBasedir().toPath().normalize();
-    String remotePackagesDir = (String) remotePackages.getProperties().get(pathFromProperty);
-    if (remotePackagesDir == null) {
-      remotePackagesDir = getProject().getBuild().getDirectory() + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_PACKAGES; // TODO is this a good constant?
-    }
-    Path absolutePathFromProperty = Paths.get(remotePackagesDir).normalize();
+    Path absolutePathToCurrentProject = project.getBasedir().toPath().normalize();
+    Path absolutePathFromProperty = Paths.get(remotePackagePath).normalize();
     return absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString();
   }
 

@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import org.apache.commons.lang3.StringUtils;
+
 public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**
@@ -112,10 +114,25 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   void setScssFromSrc(boolean scssFromSrc);
 
-  enum Type {
+  public enum Type {
     CODE,
     THEME,
     APP,
-    WORKSPACE
+    WORKSPACE;
+
+    private static final String SENCHA_PACKAGING_PREFIX = "sencha-";
+
+    public static boolean isSenchaPackaging(String packaging) {
+      return fromPackaging(packaging) != null;
+    }
+
+    public static Type fromPackaging(String packaging) {
+      String typeAsString = null;
+      if (packaging.startsWith(SENCHA_PACKAGING_PREFIX)) {
+        typeAsString = packaging.substring(SENCHA_PACKAGING_PREFIX.length());
+      }
+      return StringUtils.isEmpty(typeAsString) ? null : Type.valueOf(typeAsString.toUpperCase());
+    }
+
   }
 }

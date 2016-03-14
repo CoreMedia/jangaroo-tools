@@ -58,14 +58,14 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   /**
    * @see SenchaConfiguration#getBuildDir()
    */
-  @Parameter(defaultValue = "${project.build.directory}/sencha/build", readonly = true)
+  @Parameter(property = "project.build.directory", readonly = true)
   private String buildDir = "target/sencha/build";
 
   /**
    * @see SenchaConfiguration#getPackagesDir()
    */
-  @Parameter(defaultValue = "${project.build.directory}/sencha/packages", readonly = true)
-  private String packagesDir = "target/sencha/packages";
+  @Parameter(defaultValue = "${project.build.directory}/packages", readonly = true)
+  private String packagesDir = "target/packages";
 
   /**
    * @see SenchaConfiguration#isSkipBuild()
@@ -90,6 +90,12 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
    */
   @Parameter(property = "remotePackagesArtifact")
   private ArtifactItem remotePackagesArtifact;
+
+  @Parameter(property = "project.packaging", readonly = true)
+  private String packaging;
+
+  @Parameter(property = "project.basedir")
+  private String baseDir;
 
   @Override
   public boolean isEnabled() {
@@ -131,6 +137,9 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
     return extFrameworkDir;
   }
 
+  /**
+   * @return the Maven project's build directory
+   */
   @Override
   public String getBuildDir() {
     return buildDir;
@@ -197,6 +206,13 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   /**
+   * @return the Maven project's base directory
+   */
+  public String getBaseDir() {
+    return baseDir;
+  }
+
+  /**
    * @return the coordinates of the remote packages artifact
    */
   public ArtifactItem getRemotePackagesArtifact() {
@@ -208,6 +224,10 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
    */
   public void setRemotePackagesArtifact(ArtifactItem remotePackagesArtifact) {
     this.remotePackagesArtifact = remotePackagesArtifact;
+  }
+
+  public static boolean isSenchaPackaging(String packaging) {
+    return Types.JANGAROO_TYPE.equals(packaging) || Type.isSenchaPackaging(packaging);
   }
 
   /**

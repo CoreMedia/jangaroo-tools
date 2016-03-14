@@ -6,12 +6,9 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,7 +16,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-class SenchaWorkspaceHelper extends AbstractSenchaHelper {
+public class SenchaWorkspaceHelper extends AbstractSenchaHelper {
 
   private final Configurer[] workspaceConfigurers;
   private final String senchaWorkspacePath;
@@ -119,37 +116,11 @@ class SenchaWorkspaceHelper extends AbstractSenchaHelper {
   }
 
   @Override
-  public void packageModule(Archiver archiver) throws MojoExecutionException {
+  public File packageModule() throws MojoExecutionException {
     // nothing to do
+    return null;
   }
 
-  @Override
-  public void deleteModule() throws MojoExecutionException {
-    if (getSenchaConfiguration().isEnabled()) {
-      File fWorkingDirectory;
-      try {
-        fWorkingDirectory = getProject().getBasedir().getCanonicalFile();
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not determine project base directory", e);
-      }
-
-      File fSenchaFolder = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_DIRECTORYNAME);
-      if (fSenchaFolder.exists()) {
-        try {
-          FileUtils.deleteDirectory(fSenchaFolder);
-        } catch (IOException e) {
-          throw new MojoExecutionException("could not clean workspace folder", e);
-        }
-      }
-
-      File fWorkspaceJson = new File(fWorkingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
-      if (fWorkspaceJson.exists()) {
-        if (!fWorkspaceJson.delete()) {
-          throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
-        }
-      }
-    }
-  }
 
   private void writeWorkspaceJson(File workingDirectory) throws MojoExecutionException {
     Map<String, Object> workspaceConfig = getWorkspaceConfig();

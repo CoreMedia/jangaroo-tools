@@ -19,9 +19,38 @@
     </component>
 
 
+    <component>
+      <role>org.codehaus.plexus.archiver.UnArchiver</role>
+      <role-hint>pkg</role-hint>
+      <implementation>org.codehaus.plexus.archiver.zip.ZipUnArchiver</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+
     <!--
     A custom lifecycle for javascript packaging
     -->
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jangaroo</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
+          </generate-sources>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
+          <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
+          <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>sencha-code</role-hint>
@@ -59,7 +88,8 @@
           <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile,
             net.jangaroo:jangaroo-maven-plugin:${pom.version}:unpack-jangaroo-test-dependencies</test-compile>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
-          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-app</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
