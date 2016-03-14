@@ -11,6 +11,12 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.coremedia.sencha</groupId>
+      <artifactId>ext</artifactId>
+      <type>zip</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
