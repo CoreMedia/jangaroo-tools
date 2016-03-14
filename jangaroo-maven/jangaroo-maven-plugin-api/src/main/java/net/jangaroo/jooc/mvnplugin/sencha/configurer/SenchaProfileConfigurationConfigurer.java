@@ -1,11 +1,11 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
+import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +33,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
     config.put(CSS, getAdditionalResources(senchaProfileConfiguration.getAdditionalCssNonBundle(), senchaProfileConfiguration.getAdditionalCssBundle(), senchaProfileConfiguration.getAdditionalCssIncludeInBundle()));
     List<Object> js = new ArrayList<Object>();
     js.addAll(getAdditionalResources(senchaProfileConfiguration.getAdditionalJsNonBundle(), senchaProfileConfiguration.getAdditionalJsBundle(), senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
-    List<String> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
+    List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
     if (null != editorPlugins && !editorPlugins.isEmpty()) {
       String profileFolder = "";
       if (null != senchaProfileConfiguration.getProfileName()) {

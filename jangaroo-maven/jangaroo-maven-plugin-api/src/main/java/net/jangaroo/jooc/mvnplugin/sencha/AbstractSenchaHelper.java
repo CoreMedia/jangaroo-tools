@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -112,7 +113,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
   }
 
   protected void addRegisterEditorPluginsResource(String modulePath, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
-    List<String> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
+    List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
     if (null != editorPlugins && !editorPlugins.isEmpty()) {
       String profileFolder = "";
       if (null != senchaProfileConfiguration.getProfileName()) {
@@ -129,14 +130,29 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
       try {
         FileWriter fw = new FileWriter(resource, true);
         pw = new PrintWriter(fw);
-        for (String editorPlugin : editorPlugins) {
-          String editorPluginName = getPluginName(editorPlugin);
-          String editorPluginCompiledClassName = "AS3." + editorPlugin;
-          pw.println("Ext.require(\"" + editorPluginCompiledClassName + "\");");
-          pw.println("coremediaEditorPlugins.push({\n"
-                  + "name: \"" + editorPluginName + "\",\n"
-                  + "mainClass: \"" + editorPlugin + "\"\n"
-                  + "});");
+        for (EditorPluginDescriptor editorPlugin : editorPlugins) {
+          if (null == editorPlugin.getMainClass()) {
+            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
+            continue;
+          }
+          String name = editorPlugin.getName();
+          if (null == name) {
+            name = getPluginName(editorPlugin.getMainClass());
+          }
+          String editorPluginCompiledClassName = "AS3." + editorPlugin.getMainClass();
+          pw.println("Ext.require(\"" + StringUtils.escape(editorPluginCompiledClassName) + "\");");
+          pw.println("coremediaEditorPlugins.push({");
+          // optional parameters are added first so they can always be followed by a comma
+          if (null != editorPlugin.getRequiredLicenseFeature()) {
+            pw.println("\trequiredLicenseFeature: \"" + StringUtils.escape(editorPlugin.getRequiredLicenseFeature()) + "\",");
+          }
+          if (null != editorPlugin.getRequiredGroup()) {
+            pw.println("\trequiredGroup: \"" + StringUtils.escape(editorPlugin.getRequiredGroup()) + "\",");
+          }
+          pw.println("\tname: \"" + StringUtils.escape(name) + "\",");
+          pw.println("\tmainClass: \"" + StringUtils.escape(editorPlugin.getMainClass()) + "\"");
+
+          pw.println("});");
         }
       } catch (IOException e) {
         throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
