@@ -44,7 +44,7 @@ under the License.
         </executions>
         <configuration>
           <senchaConfiguration>
-            <enabled>false</enabled>
+            <skipBuild>true</skipBuild>
           </senchaConfiguration>
         </configuration>
       </plugin>
