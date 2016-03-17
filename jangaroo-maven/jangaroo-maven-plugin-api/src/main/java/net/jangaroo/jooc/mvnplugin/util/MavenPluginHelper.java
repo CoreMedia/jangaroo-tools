@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
-import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -19,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class MavenPluginHelper {
@@ -107,10 +107,17 @@ public class MavenPluginHelper {
    * @return <code>true</code> if both ids have the same groupId and artifactId otherwise <code>false</code>
    */
   public static boolean hasSameGroupIdAndArtifactId(String id1, String id2) {
+    if (Objects.equals(id1, id2)) {
+      return true;
+    }
+    if (id1 == null || id2 == null) {
+      return false;
+    }
+
     String[] id1Coordinates = StringUtils.split(id1, ':');
     String[] id2Coordinates = StringUtils.split(id2, ':');
     return (id1Coordinates.length >= 2 && id2Coordinates.length >= 2)
-            && Objects.equal(id1Coordinates[0],id2Coordinates[0])   // groupId = 0
-            && Objects.equal(id1Coordinates[1],id2Coordinates[1]);  // artifactId = 1
+            && Objects.equals(id1Coordinates[0],id2Coordinates[0])   // groupId = 0
+            && Objects.equals(id1Coordinates[1],id2Coordinates[1]);  // artifactId = 1
   }
 }
