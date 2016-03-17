@@ -2,26 +2,26 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.Types;
-import org.apache.commons.io.FileUtils;
+import com.google.common.collect.Iterables;
+import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class SenchaUtils {
 
@@ -36,6 +36,8 @@ public class SenchaUtils {
   public static final String LOCAL_PACKAGE_PATH = LOCAL_PACKAGES_PATH + "package/";
 
   public static final String LOCAL_PACKAGE_BUILD_PATH = LOCAL_PACKAGE_PATH + "build/";
+
+  public final static String APP_TARGET_DIRECTORY = "/app";
 
   /**
    * The name of the folder of the generated module inside the {@link #LOCAL_PACKAGE_PATH} folder.
@@ -76,33 +78,26 @@ public class SenchaUtils {
   public static final String SENCHA_SASS_ETC_IMPORTS = "imports.scss";
   public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "registerEditorPlugins.js";
 
-  public static final Map<SenchaConfiguration.Type, String> PLACEHOLDERS = ImmutableMap.of(
-          SenchaConfiguration.Type.APP, "${app.dir}",
-          SenchaConfiguration.Type.CODE, "${package.dir}",
-          SenchaConfiguration.Type.THEME, "${package.dir}",
-          SenchaConfiguration.Type.WORKSPACE, "${workspace.dir}"
+  public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??
+          Type.APP, "${app.dir}",
+          Type.CODE, "${package.dir}",
+          Type.THEME, "${package.dir}",
+          Type.WORKSPACE, "${workspace.dir}"
   );
 
-  private static final String MAVEN_DEPENDENCY_SCOPE_TEST = "test";
-  private static final String MAVEN_DEPENDENCY_SCOPE_PROVIDED = "provided";
-
-  private static ObjectMapper objectMapper;
+  private final static ObjectMapper objectMapper;
+  static {
+    objectMapper = new ObjectMapper();
+    objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+  }
 
   private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");
 
-  private static String getSenchaPackageName(String groupId, String artifactId) {
+  public static String getSenchaPackageName(String groupId, String artifactId) {
     return groupId + "__" + artifactId;
   }
 
-  public static String getSenchaPackageNameForMavenProject(MavenProject project) {
-    return getSenchaPackageName(project.getGroupId(), project.getArtifactId());
-  }
-
-  public static String getSenchaPackageNameForArtifact(Artifact artifact) {
-    return getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
-  }
-
-  private static String getSenchaVersionForMavenVersion(String version) {
+  public static String getSenchaVersionForMavenVersion(String version) {
     // Very simple matching for now, maybe needs some adjustment
     version = version.replace("-SNAPSHOT", "").replace("-", ".");
     if (SENCHA_VERSION_PATTERN.matcher(version).matches()) {
@@ -110,15 +105,6 @@ public class SenchaUtils {
     } else {
       return null;
     }
-  }
-
-  public static String getSenchaVersionForProject(MavenProject project) {
-    return getSenchaVersionForMavenVersion(project.getVersion());
-
-  }
-
-  public static String getSenchaVersionForArtifact(Artifact artifact) {
-    return getSenchaVersionForMavenVersion(artifact.getVersion());
   }
 
   public static String getSenchaPackageNameForTheme(String theme, MavenProject project) throws MojoExecutionException {
@@ -133,10 +119,7 @@ public class SenchaUtils {
     for (Artifact artifact : dependencyArtifacts) {
       if (groupId.equals(artifact.getGroupId())
               && artifactId.equals(artifact.getArtifactId())) {
-        if (isSenchaPackageArtifact(artifact)) {
-          return getSenchaPackageName(groupId, artifactId);
-        }
-        throw new MojoExecutionException("Theme name references an artifact that contains no sencha package");
+        return getSenchaPackageName(groupId, artifactId);
       }
     }
     throw new MojoExecutionException("Theme name references an artifact which is not added to dependencies");
@@ -168,14 +151,14 @@ public class SenchaUtils {
   /**
    * Generates an absolute path to the module dir for the given relative path using a placeholder.
    *
-   * @param type the sencha type
+   * @param packageType the Maven project's packaging type
    * @param relativePath the path relative to the sencha module
    * @return path prefixed with a placeholder and a separator to have an absolute path
    */
-  public static String generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type type, String relativePath) {
+  public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
     // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
     relativePath = relativePath.replace("\\", "/");
-    String result = PLACEHOLDERS.get(type);
+    String result = PLACEHOLDERS.get(packageType);
     if (!StringUtils.isEmpty(relativePath)
             && !relativePath.startsWith(SEPARATOR)) {
       result += SEPARATOR + relativePath;
@@ -184,10 +167,6 @@ public class SenchaUtils {
   }
 
   public static ObjectMapper getObjectMapper() {
-    if (null == objectMapper) {
-      objectMapper = new ObjectMapper();
-      objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-    }
     return objectMapper;
   }
 
@@ -205,20 +184,22 @@ public class SenchaUtils {
     return workspacePath.relativize(workingDirectoryPath);
   }
 
+  public static boolean isActualSenchaDependency(@Nonnull Dependency dependency,
+                                                 @Nonnull MavenSenchaConfiguration senchaConfiguration) {
+    String remotePackagesArtifact = senchaConfiguration.getRemotePackagesArtifact();
+    final String dependencyId = dependency.getManagementKey();
 
-  public static boolean isSenchaPackageArtifact(Artifact artifact) throws MojoExecutionException {
-    return Types.JAVASCRIPT_EXTENSION.equalsIgnoreCase(artifact.getType())
-            && !MAVEN_DEPENDENCY_SCOPE_TEST.equalsIgnoreCase(artifact.getScope())  // TODO should we really exclude test scope artifacts?
-            && !MAVEN_DEPENDENCY_SCOPE_PROVIDED.equalsIgnoreCase(artifact.getScope());
+    boolean isExcluded = Iterables.tryFind(senchaConfiguration.getExcludes(), new Predicate<String>() {
+      @Override
+      public boolean apply(@Nullable String input) {
+        return input != null && dependencyId.startsWith(input);
+      }
+    }).isPresent();
+
+    return !isExcluded
+            && !dependencyId.startsWith(remotePackagesArtifact)
+            && !dependency.getScope().equals(Artifact.SCOPE_PROVIDED)
+            && !dependency.getScope().equals(Artifact.SCOPE_TEST);
   }
 
-  public static Map<String, Object> getWorkspaceConfig(File workspaceDir) throws MojoExecutionException {
-    try {
-      //noinspection unchecked
-      return (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(new File(workspaceDir.getAbsolutePath() + File.separator + SENCHA_WORKSPACE_FILENAME), Map.class);
-
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not read " + SENCHA_WORKSPACE_FILENAME, e);
-    }
-  }
 }

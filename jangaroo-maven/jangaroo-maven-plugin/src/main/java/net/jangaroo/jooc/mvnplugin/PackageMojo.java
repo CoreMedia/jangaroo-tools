@@ -133,7 +133,7 @@ public class PackageMojo extends AbstractMojo {
 
   public void execute()
       throws MojoExecutionException {
-    File jarFile = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
+    File jarFile = new File(targetDir, finalName + ".jar");
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);

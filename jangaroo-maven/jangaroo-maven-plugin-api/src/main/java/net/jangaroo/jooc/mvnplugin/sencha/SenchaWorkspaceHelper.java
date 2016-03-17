@@ -1,9 +1,10 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import net.jangaroo.jooc.mvnplugin.Type;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.AppConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaWorkspaceConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,92 +27,87 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper {
 
     this.senchaWorkspacePath = getProject().getBasedir().getAbsolutePath();
 
-    PathConfigurer pathConfigurer = new PathConfigurer(senchaConfiguration);
     PackagesConfigurer packagesConfigurer = new PackagesConfigurer(project, senchaConfiguration);
+    AppConfigurer appConfigurer = new AppConfigurer(project, senchaConfiguration);
 
-    this.workspaceConfigurers = new Configurer[] {
+    this.workspaceConfigurers = new Configurer[]{
             DefaultSenchaWorkspaceConfigurer.getInstance(),
-            pathConfigurer,
-            packagesConfigurer
+            packagesConfigurer,
+            appConfigurer
     };
   }
 
   @Override
   public void createModule() throws MojoExecutionException {
-    if (getSenchaConfiguration().isEnabled()) {
-      File workingDirectory;
+    File workingDirectory;
+    try {
+      workingDirectory = getProject().getBasedir().getCanonicalFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not determine project base directory", e);
+    }
+
+    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+      throw new MojoExecutionException("could not create working directory");
+    }
+
+    if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
+
+      File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_CONFIG);
+      // make sure senchaCfg does not exist
+      if (senchaCfg.exists()) {
+        if (!senchaCfg.delete()) {
+          throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_CONFIG + " for workspace");
+        }
+      }
+
+      String line = "sencha generate workspace .";
+      CommandLine cmdLine = CommandLine.parse(line);
+      DefaultExecutor executor = new DefaultExecutor();
+      executor.setWorkingDirectory(workingDirectory);
+      executor.setExitValue(0);
       try {
-        workingDirectory = getProject().getBasedir().getCanonicalFile();
+        executor.execute(cmdLine);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not determine project base directory", e);
+        throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
       }
 
-      if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-        throw new MojoExecutionException("could not create working directory");
-      }
-
-      if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
-
-        File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_CONFIG);
-        // make sure senchaCfg does not exist
-        if (senchaCfg.exists()) {
-          if (!senchaCfg.delete()) {
-            throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_WORKSPACE_CONFIG + " for workspace");
-          }
-        }
-
-        String line = "sencha generate workspace .";
-        CommandLine cmdLine = CommandLine.parse(line);
-        DefaultExecutor executor = new DefaultExecutor();
-        executor.setWorkingDirectory(workingDirectory);
-        executor.setExitValue(0);
+      // sencha.cfg should be recreated
+      // for normal packages skip generating css and slices
+      if (senchaCfg.exists()) {
+        PrintWriter pw = null;
         try {
-          executor.execute(cmdLine);
+          FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
+          pw = new PrintWriter(fw);
+          pw.println("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getSenchaConfiguration().getExtFrameworkDir()));
         } catch (IOException e) {
-          throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
-        }
-
-        // sencha.cfg should be recreated
-        // for normal packages skip generating css and slices
-        if (senchaCfg.exists()) {
-          PrintWriter pw = null;
-          try {
-            FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
-            pw = new PrintWriter(fw);
-            pw.println("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(SenchaConfiguration.Type.WORKSPACE,  getSenchaConfiguration().getExtFrameworkDir()));
-          } catch (IOException e) {
-            throw new MojoExecutionException("could not append ext framework dir to sencha config of workspace");
-          } finally {
-            if (null != pw) {
-              pw.close();
-            }
+          throw new MojoExecutionException("could not append ext framework dir to sencha config of workspace");
+        } finally {
+          if (null != pw) {
+            pw.close();
           }
-        } else {
-          throw new MojoExecutionException("could not find sencha.cfg of workspace");
         }
       } else {
-        getLog().info("Skipping generate workspace because there already is a workspace in the directory hierarchy");
+        throw new MojoExecutionException("could not find sencha.cfg of workspace");
       }
+    } else {
+      getLog().info("Skipping generate workspace because there already is a workspace in the directory hierarchy");
     }
   }
 
   @Override
   public void prepareModule() throws MojoExecutionException {
-    if (getSenchaConfiguration().isEnabled()) {
+    File workingDirectory;
+    workingDirectory = new File(senchaWorkspacePath);
 
-      File workingDirectory;
-      workingDirectory = new File(senchaWorkspacePath);
+    if (!workingDirectory.exists()) {
+      getLog().info("generating sencha package into: " + workingDirectory.getPath());
+      getLog().debug("created " + workingDirectory.mkdirs());
+    }
 
-      if (!workingDirectory.exists()) {
-        getLog().info("generating sencha package into: " + workingDirectory.getPath());
-        getLog().debug("created " + workingDirectory.mkdirs());
-      }
-
-      if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
-        writeWorkspaceJson(workingDirectory);
-      } else {
-        getLog().info("Skipping preparation of workspace because there already is a workspace in the directory hierarchy");
-      }
+    if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
+      writeWorkspaceJson(workingDirectory);
+    } else {
+      getLog().info("Skipping preparation of workspace because there already is a workspace in the directory hierarchy");
     }
   }
 

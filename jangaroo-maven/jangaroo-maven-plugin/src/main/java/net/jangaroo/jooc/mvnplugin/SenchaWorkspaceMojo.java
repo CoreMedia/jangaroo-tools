@@ -6,10 +6,11 @@ package net.jangaroo.jooc.mvnplugin;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaWorkspaceHelper;
 import net.jangaroo.jooc.mvnplugin.util.PomManipulator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -39,11 +40,6 @@ import java.util.TreeSet;
         threadSafe = true, aggregator = true)
 public class SenchaWorkspaceMojo extends AbstractMojo {
 
-  static final String REMOTE_AGGREGATOR_ARTIFACT_ID = "remote-packages";
-  static final String SENCHA_EXT_ARTIFACT_ID = "ext";
-  static final String SENCHA_EXT_GROUP_ID = "com.coremedia.sencha";
-  static final String SENCHA_EXT_TYPE = "zip";
-
   @Parameter(defaultValue = "${session}")
   private MavenSession session;
 
@@ -59,8 +55,12 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    MavenSenchaConfiguration.ArtifactItem remotePackages = senchaConfiguration.getRemotePackagesArtifact();
+    senchaConfiguration.setType(Type.WORKSPACE);
+    senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
+
+    String remotePackages = senchaConfiguration.getRemotePackagesArtifact();
     if (remotePackages != null) {
+
       MavenProject remotePackagesProject = getRemotePackagesProject(session, remotePackages);
 
       // add location of dirs to sencha configuration
@@ -75,11 +75,10 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
     // we need to create the sencha module
     createAndPrepareSenchaModule();
+
   }
 
   private void createAndPrepareSenchaModule() throws MojoExecutionException {
-    senchaConfiguration.setType(SenchaConfiguration.Type.WORKSPACE);
-
     // for now:
     SenchaHelper senchaHelper = new SenchaWorkspaceHelper(project, senchaConfiguration, getLog());
     senchaHelper.createModule();
@@ -96,30 +95,32 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   /**
    * Returns the configured remote packages project or the current project if none is configured.
-   * @param session the current session
-   * @param remotePackageArtifact the configured remote packages project
+   *
+   * @param session               the current session
+   * @param remotePackageArtifactId the identifier of the configured remote packages project
    * @return the configured remote packages project or the current project if none is configured
    * @throws MojoExecutionException
    */
   @Nonnull
-  static MavenProject getRemotePackagesProject(@Nonnull MavenSession session,
-                                               @Nonnull MavenSenchaConfiguration.ArtifactItem remotePackageArtifact)
+  private MavenProject getRemotePackagesProject(@Nonnull MavenSession session,
+                                               @Nonnull String remotePackageArtifactId)
           throws MojoExecutionException {
 
-    if (remotePackageArtifact.getGroupId() == null || remotePackageArtifact.getArtifactId() == null) {
+    if (StringUtils.isEmpty(remotePackageArtifactId)) {
       return session.getCurrentProject();
     }
     List<MavenProject> allReactorProjects = session.getProjects();
     for (MavenProject project : allReactorProjects) {
-
-      if (project.getGroupId().equals(remotePackageArtifact.getGroupId())
-              && project.getArtifactId().equals(remotePackageArtifact.getArtifactId())) {
+      String projectId = project.getId();
+      // the project id has the following format <groupid>:<artifactid>:<packaging>:<version> while
+      // the remotePackageArtifactId usually looks as follows <groupid>:<artifactid>
+      if (isRemoteAggregator(project)) {
         return project;
       }
 
     }
     throw new MojoExecutionException("Could not find local remote-packages module with coordinates "
-            + remotePackageArtifact.getGroupId() + ":" + remotePackageArtifact.getArtifactId());
+            + remotePackageArtifactId);
   }
 
   /**
@@ -136,11 +137,11 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     List<MavenProject> collectedProjects = project.getCollectedProjects();
 
     // check all collected projects for packaging type jangaroo
-    for (MavenProject currentProject: collectedProjects) {
-      if (Types.JANGAROO_TYPE.equals(currentProject.getPackaging())) {
-        // check all dependencies of this project, do they contain remote depedencies
-        for (Dependency dependency: currentProject.getDependencies()) {
-          if (!"provided".equals(dependency.getScope())) {
+    for (MavenProject currentProject : collectedProjects) {
+      if (Type.containsJangarooSources(currentProject)) {
+        // check all dependencies of this project, do they contain remote dependencies
+        for (Dependency dependency : currentProject.getDependencies()) {
+          if (SenchaUtils.isActualSenchaDependency(dependency, senchaConfiguration)) {
             MavenProject projectFromDependency = createProjectFromDependency(dependency);
             if (!remotePackagesProjects.contains(projectFromDependency) && !collectedProjects.contains(projectFromDependency)) {
               // add dependency to this project for remote packaging
@@ -163,9 +164,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     List<Dependency> dependencies = Lists.newArrayList(
             createDependencies(ImmutableList.copyOf(remotePackagesProjects), remoteAggregatorProject));
 
-    // add dependency on sencha ext as well
-    dependencies.add(getSenchaExtDependency());
-
     // update the dependencies part of the project pom
     PomManipulator.updateDependencies(remoteAggregatorProject, dependencies, getLog());
 
@@ -174,6 +172,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   /**
    * Adds a dependency to the remote packages aggregator to all jangaroo modules that do not have it
+   *
    * @param remotePackagesProject the remote packages aggregator to use
    */
   private void addRemotePackagesProject(@Nonnull MavenProject remotePackagesProject) throws MojoExecutionException {
@@ -182,7 +181,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     if (null != remotePackagingProjectDependency) {
       List<MavenProject> allReactorProjects = session.getProjects();
       for (MavenProject project : allReactorProjects) {
-        if (MavenSenchaConfiguration.isSenchaPackaging(project.getPackaging())) {
+        if (Type.containsJangarooSources(project)) {
           List<Dependency> projectDependencies = project.getDependencies();
           if (!containsDependency(projectDependencies, remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
@@ -197,7 +196,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   /**
    * Dependency does not implement an equals method, so we need to check it the hard way.
    * Only considers group id and artifact id
-   * @param dependencies a list of depedencies
+   *
+   * @param dependencies      a list of depedencies
    * @param dependencyToCheck a dependency which we want to check
    * @return whether the given dependency is contained in the given dependencies list
    */
@@ -222,6 +222,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   /**
    * Returns the given dependency as {@link MavenProject}
+   *
    * @param dependency the dependency to convert to a {@link MavenProject}
    * @return the given dependency as {@link MavenProject}
    */
@@ -253,7 +254,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     Dependency dependency = createDepedency(mavenProject);
 
     List<Dependency> dependencyList = remoteAggregator.getDependencyManagement().getDependencies();
-    for (Dependency dependencyFromList: dependencyList) {
+    for (Dependency dependencyFromList : dependencyList) {
       if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
               && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
               && dependencyFromList.getVersion().equals(dependency.getVersion())) {
@@ -263,14 +264,10 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       }
     }
 
-    dependency.setScope(Artifact.SCOPE_RUNTIME);
-    dependency.setType(Types.JAVASCRIPT_EXTENSION);
+    dependency.setScope(Artifact.SCOPE_COMPILE);
+    dependency.setType(SenchaUtils.PACKAGE_EXTENSION);
 
     return dependency;
-  }
-
-  private Dependency getSenchaExtDependency() {
-    return createDepedency(SENCHA_EXT_GROUP_ID, SENCHA_EXT_ARTIFACT_ID, SENCHA_EXT_TYPE, null);
   }
 
   private static Dependency createDepedency(@Nonnull MavenProject mavenProject) {
@@ -294,7 +291,9 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private boolean isRemoteAggregator(MavenProject project) {
-    return REMOTE_AGGREGATOR_ARTIFACT_ID.equals(project.getArtifactId());
+    String remotePackageArtifactId = senchaConfiguration.getRemotePackagesArtifact();
+    String projectId = project.getId();
+    return projectId.startsWith(remotePackageArtifactId);
   }
 
   /**

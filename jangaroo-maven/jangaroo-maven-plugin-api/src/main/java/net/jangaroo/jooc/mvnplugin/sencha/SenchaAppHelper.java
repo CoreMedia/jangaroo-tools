@@ -1,11 +1,14 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import com.google.common.collect.ImmutableMap;
+import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.IOUtils;
@@ -22,16 +25,16 @@ import java.util.Map;
 
 public class SenchaAppHelper extends AbstractSenchaHelper {
 
-  private final static String APP_TARGET_DIRECTORY = "app";
+  private static final String SENCHA_APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
 
   private final PathConfigurer pathConfigurer;
   private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
-  public SenchaAppHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
+  public SenchaAppHelper(MavenProject project, MavenSenchaConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
-    this.senchaAppPath = project.getBuild().getDirectory() + File.separator + APP_TARGET_DIRECTORY;
+    this.senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
@@ -115,6 +118,9 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File workingDirectory = new File(senchaAppPath);
 
     writeAppJson(workingDirectory);
+
+    File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + SENCHA_APP_BUILD_PROPERTIES_FILE);
+    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of("build.dir", "${app.dir}/build/${build.environment}"));
   }
 
   @Override
@@ -142,12 +148,9 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
       throw new MojoExecutionException("could not find sencha workspace directory");
     }
 
-    Map<String, Object> workspaceConfig = SenchaUtils.getWorkspaceConfig(workspaceDir);
-    String workspaceOutputPath = pathConfigurer.getWorkspaceOutputPath(workspaceConfig, workspaceDir);
-
-    File productionDirectory = new File(workspaceOutputPath + File.separator + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH + File.separator + getSenchaModuleName());
+    File productionDirectory = new File(senchaAppPath + "/build/" + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
     if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
-      throw new MojoExecutionException("could not find production directory for sencha app " + getSenchaModuleName());
+      throw new MojoExecutionException("could not find production directory for sencha app " + productionDirectory);
     }
 
 

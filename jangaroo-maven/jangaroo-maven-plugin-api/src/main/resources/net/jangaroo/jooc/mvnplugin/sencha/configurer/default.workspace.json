@@ -1,6 +1,6 @@
 {
   "apps": [],
-  "build": "${workspace.dir}/build",
+  "build": "${workspace.dir}/target/sencha/build",
   "packages": {
     "dir": [
       "${workspace.dir}/packages/local"

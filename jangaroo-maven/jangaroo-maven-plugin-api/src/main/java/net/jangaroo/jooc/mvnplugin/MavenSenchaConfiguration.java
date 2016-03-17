@@ -4,106 +4,98 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.util.Collections;
+import java.util.List;
+
+/**
+ *
+ */
 @SuppressWarnings("FieldCanBeLocal")
 public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration implements SenchaConfiguration {
 
   /**
-   * @see SenchaConfiguration#isEnabled()
-   */
-  @Parameter(defaultValue = "true")
-  private boolean enabled = true;
-
-  /**
    * @see SenchaConfiguration#getType()
    */
-  @Parameter(defaultValue = "CODE")
-  private Type type = Type.CODE;
+  @Parameter
+  private String type = Type.CODE;
 
   /**
    * @see SenchaConfiguration#getToolkit()
    */
-  @Parameter(defaultValue = "classic")
+  @Parameter
   private String toolkit = "classic";
 
   /**
    * @see SenchaConfiguration#getTheme()
    */
-  @Parameter(defaultValue = "")
+  @Parameter
   private String theme = "";
 
   /**
    * @see SenchaConfiguration#getProduction()
    */
-  @Parameter(defaultValue = "${production}")
+  @Parameter
   private MavenSenchaProfileConfigurationProduction production;
 
   /**
    * @see SenchaConfiguration#getTesting()
    */
-  @Parameter(defaultValue = "${testing}")
+  @Parameter
   private MavenSenchaProfileConfigurationTesting testing;
 
   /**
    * @see SenchaConfiguration#getDevelopment()
    */
-  @Parameter(defaultValue = "${development}")
+  @Parameter
   private MavenSenchaProfileConfigurationDevelopment development;
 
   /**
    * @see SenchaConfiguration#getExtFrameworkDir()
    */
-  @Parameter(defaultValue = "${project.build.directory}/ext")
+  @Parameter
   private String extFrameworkDir = "target/ext";
 
   /**
    * @see SenchaConfiguration#getBuildDir()
    */
-  @Parameter(property = "project.build.directory", readonly = true)
+  @Parameter
   private String buildDir = "target/sencha/build";
 
   /**
    * @see SenchaConfiguration#getPackagesDir()
    */
-  @Parameter(defaultValue = "${project.build.directory}/packages", readonly = true)
+  @Parameter
   private String packagesDir = "target/packages";
 
   /**
    * @see SenchaConfiguration#isSkipBuild()
    */
-  @Parameter(defaultValue = "false")
-  private boolean skipBuild;
+  @Parameter
+  private boolean skipBuild = false;
 
   /**
    * @see SenchaConfiguration#isScssFromSrc()
    */
-  @Parameter(defaultValue = "false")
-  private boolean scssFromSrc;
+  @Parameter
+  private boolean scssFromSrc = false;
 
   /**
    * Defines the coordinates of the local remote-packages Maven module. E.g.,
    * <pre>
-   * &lt;remotePackagesArtifact>
-   *    &lt;groupdId>com.coremedia.blueprint&lt;/groupId>
-   *    &lt;artifactId>remote-packages&lt;/artifactId>
-   * &lt;/remotePackagesArtifact>
+   * &lt;remotePackagesArtifact>net.jangaroo:remote-packages&lt;/remotePackagesArtifact>
    * </pre>
    */
-  @Parameter(property = "remotePackagesArtifact")
-  private ArtifactItem remotePackagesArtifact;
+  @Parameter
+  private String remotePackagesArtifact;
 
-  @Parameter(property = "project.packaging", readonly = true)
-  private String packaging;
-
-  @Parameter(property = "project.basedir")
-  private String baseDir;
-
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
+  /**
+   * Exclude the dependencies with the following coordinates from the Sencha build process.
+   */
+  @Parameter
+  private List<String> excludes = Collections.emptyList();
 
   @Override
-  public Type getType() {
+  public String getType() {
     return type;
   }
 
@@ -161,16 +153,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   @Override
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-  }
-
-  @Override
-  public void setType(Type type) {
-    this.type = type;
-  }
-
-  @Override
   public void setToolkit(String toolkit) {
     this.toolkit = toolkit;
   }
@@ -186,18 +168,8 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   @Override
-  public void setBuildDir(String buildDir) {
-    this.buildDir = buildDir;
-  }
-
-  @Override
   public void setPackagesDir(String packagesDir) {
     this.packagesDir = packagesDir;
-  }
-
-  @Override
-  public void setSkipBuild(boolean skipBuild) {
-    this.skipBuild = skipBuild;
   }
 
   @Override
@@ -206,67 +178,31 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   }
 
   /**
-   * @return the Maven project's base directory
-   */
-  public String getBaseDir() {
-    return baseDir;
-  }
-
-  /**
    * @return the coordinates of the remote packages artifact
    */
-  public ArtifactItem getRemotePackagesArtifact() {
+  public String getRemotePackagesArtifact() {
     return remotePackagesArtifact;
   }
 
-  /**
-   * @param remotePackagesArtifact Defines the coordinates of the remote-packages artifact
-   */
-  public void setRemotePackagesArtifact(ArtifactItem remotePackagesArtifact) {
-    this.remotePackagesArtifact = remotePackagesArtifact;
+  public List<String> getExcludes() {
+    return Collections.unmodifiableList(excludes);
   }
 
-  public static boolean isSenchaPackaging(String packaging) {
-    return Types.JANGAROO_TYPE.equals(packaging) || Type.isSenchaPackaging(packaging);
-  }
+  // *******************************
+  // Setters
 
   /**
-   * Holds the basic coordinates of the Maven artifact
+   * Sets all configuration according the Maven project's build dir
+   * @param buildDir
    */
-  public static final class ArtifactItem {
-
-    @Parameter
-    private String groupId;
-
-    @Parameter
-    private String artifactId;
-
-    /**
-     * @param groupId Sets the artifact's groupId
-     */
-    public void setGroupId(String groupId) {
-      this.groupId = groupId;
-    }
-
-    /**
-     * @param artifactId Sets the artifact's artifactId
-     */
-    public void setArtifactId(String artifactId) {
-      this.artifactId = artifactId;
-    }
-
-    /**
-     * @return the artifact's groupId
-     */
-    public String getGroupId() {
-      return groupId;
-    }
-
-    /**
-     * @return the artifact's artifactId
-     */
-    public String getArtifactId() {
-      return artifactId;
-    }
+  public void setProjectBuildDir(String buildDir) {
+    this.extFrameworkDir = buildDir + "/ext";
+    this.packagesDir = buildDir + "/packages";
+    this.buildDir = buildDir + "/sencha/build";
   }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
 }

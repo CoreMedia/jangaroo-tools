@@ -427,7 +427,4 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected abstract Set<String> getExcludes();
 
-  protected boolean isJangarooPackaging() {
-    return MavenSenchaConfiguration.isSenchaPackaging(getProject().getPackaging());
-  }
 }

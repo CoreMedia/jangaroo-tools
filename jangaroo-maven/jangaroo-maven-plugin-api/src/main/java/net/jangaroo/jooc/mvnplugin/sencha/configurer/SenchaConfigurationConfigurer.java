@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
@@ -35,15 +36,15 @@ public class SenchaConfigurationConfigurer implements Configurer {
     configureAdditionalResourcesForProfile(config, DEVELOPMENT, senchaConfiguration.getDevelopment());
 
     String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(senchaConfiguration.getTheme(), project);
-    if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())) {
+    if (Type.CODE.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
       config.put(THEME, themePackageName);
     }
-    if (SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
+    if (Type.THEME.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
       config.put(EXTEND, themePackageName);
     }
-    if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
+    if (Type.APP.equals(senchaConfiguration.getType())) {
       config.put(THEME, themePackageName);
     }
   }

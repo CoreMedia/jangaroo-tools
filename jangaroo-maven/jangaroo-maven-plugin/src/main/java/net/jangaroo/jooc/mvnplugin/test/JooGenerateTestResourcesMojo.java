@@ -1,9 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.PackageApplicationMojo;
+import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.maven.plugin.MojoExecutionException;
-import net.jangaroo.jooc.mvnplugin.Types;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -62,7 +61,7 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
   private boolean skipTests;
 
   public File getPackageSourceDirectory() {
-    return MavenSenchaConfiguration.isSenchaPackaging(project.getPackaging()) ? outputDirectory : testPackageSourceDirectory;
+    return Type.containsJangarooSources(project) ? outputDirectory : testPackageSourceDirectory;
   }
 
   protected boolean isTestAvailable() {

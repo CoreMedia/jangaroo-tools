@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -34,27 +34,28 @@ public class PackagesConfigurer implements Configurer {
   public void configure(Map<String, Object> config) throws MojoExecutionException {
     Map<String, Object> packages = new LinkedHashMap<String, Object>();
 
-    packages.put(DIR, getLocalPackagePathsJsonAndExtractRemotePackages());
+    packages.put(DIR, getLocalPathsToPackages());
     packages.put(EXTRACT, absolutePath(senchaConfiguration.getPackagesDir()));
 
     config.put(PACKAGES, packages);
   }
 
-  private List<String> getLocalPackagePathsJsonAndExtractRemotePackages() throws MojoExecutionException {
+  private List<String> getLocalPathsToPackages() throws MojoExecutionException {
     List<String> result = new ArrayList<String>();
 
     // first package path indicates the path other packages are generated from, this needs to be the workspace dir
     result.add(absolutePath(""));
 
-    Set<MavenProject> mavenProjectsWithSenchaPackages = new HashSet<MavenProject>();
+    Set<MavenProject> senchaPackages = new HashSet<MavenProject>();
 
-    List<MavenProject> collectedProjects = project.getCollectedProjects();
+    List<MavenProject> projectsInReactor = project.getCollectedProjects();
 
-    if (null != collectedProjects) {
+    if (null != projectsInReactor) {
 
-      for (MavenProject p : collectedProjects) {
-        if (MavenSenchaConfiguration.isSenchaPackaging(p.getPackaging())) {
-          mavenProjectsWithSenchaPackages.add(p);
+      for (MavenProject project : projectsInReactor) {
+        String packageType = project.getPackaging();
+        if (Type.CODE.equals(packageType) || Type.THEME.equals(packageType)) {
+          senchaPackages.add(project);
         }
       }
 
@@ -62,10 +63,9 @@ public class PackagesConfigurer implements Configurer {
 
     Path rootPath = project.getBasedir().toPath().normalize();
 
-    for (MavenProject mavenProjectWithSenchaPackage : mavenProjectsWithSenchaPackages) {
+    for (MavenProject senchaPackage : senchaPackages) {
 
-      Path path;
-      path = Paths.get(mavenProjectWithSenchaPackage.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH);
+      Path path = Paths.get(senchaPackage.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH);
       Path relativePath = rootPath.relativize(path);
       String relativePathString = relativePath.toString();
 
@@ -73,7 +73,7 @@ public class PackagesConfigurer implements Configurer {
         throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
       }
 
-      result.add("${workspace.dir}" + SenchaUtils.SEPARATOR + relativePathString);
+      result.add(SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + relativePathString);
 
     }
 
@@ -84,7 +84,7 @@ public class PackagesConfigurer implements Configurer {
   }
 
   private String absolutePath(String path) {
-    return SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), path);
+    return SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, path);
   }
 
 }

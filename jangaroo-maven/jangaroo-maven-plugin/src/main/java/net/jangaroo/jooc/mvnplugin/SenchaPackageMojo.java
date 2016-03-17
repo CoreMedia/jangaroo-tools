@@ -33,8 +33,11 @@ public class SenchaPackageMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (!senchaConfiguration.isSkipBuild()) {
 
-    if (!senchaConfiguration.isSkipBuild() && senchaConfiguration.isEnabled()) {
+      senchaConfiguration.setType(project.getPackaging()); // packaging is validated through lifecycle component mapping
+      senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
+
       SenchaHelper senchaHelper = new SenchaPackageHelper(project, senchaConfiguration, getLog());
       // for now:
       senchaHelper.createModule();

@@ -30,7 +30,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     this.senchaConfiguration = senchaConfiguration;
     this.log = log;
 
-    this.senchaModuleName = SenchaUtils.getSenchaPackageNameForMavenProject(project);
+    this.senchaModuleName = SenchaUtils.getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
   private void copyFilesFromSrc(String path, String suffix) throws MojoExecutionException {

@@ -3,12 +3,7 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -22,18 +17,10 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Mojo to compile properties files to ActionScript3 files
@@ -76,7 +63,9 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
           if (extFrameworkArtifact.equals(artifact.getDependencyConflictId())) {
             unArchiver.setDestDirectory(extTargetDirectory);
           } else {
-            File packagesTargetDirectory = new File( remotePackagesTargetDir +  SenchaUtils.getSenchaPackageNameForArtifact(artifact) );
+            File packagesTargetDirectory = new File(
+                    remotePackagesTargetDir + SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId())
+            );
             createTargetDir(packagesTargetDirectory);
             unArchiver.setDestDirectory(packagesTargetDirectory);
           }

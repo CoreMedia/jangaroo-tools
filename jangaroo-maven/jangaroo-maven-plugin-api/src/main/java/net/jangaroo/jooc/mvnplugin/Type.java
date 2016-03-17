@@ -16,20 +16,22 @@ package net.jangaroo.jooc.mvnplugin;
  * limitations under the License.
  */
 
+import org.apache.maven.project.MavenProject;
+
 /**
  * @author <a href="mailto:nicolas.deloof@gmail.com">nicolas De Loof</a>
  */
-public interface Types {
+public class Type {
 
-  /**
-   * packaging type handled by the plugin
-   */
-  String JANGAROO_TYPE = "jangaroo";
+  public static final String CODE = "sencha-code";
+  public static final String THEME = "sencha-theme";
+  public static final String APP = "sencha-app";
+  public static final String WORKSPACE = "pom"; // TODO pom?
 
+  public static boolean containsJangarooSources(MavenProject project) {
+    String packagingType = project.getPackaging();
+    return Type.APP.equals(packagingType) || Type.CODE.equals(packagingType) || Type.THEME.equals(packagingType);
+  }
 
-  /**
-   * extension for packaging handled by the plugin
-   */
-  String JAVASCRIPT_EXTENSION = "jar";
 
 }

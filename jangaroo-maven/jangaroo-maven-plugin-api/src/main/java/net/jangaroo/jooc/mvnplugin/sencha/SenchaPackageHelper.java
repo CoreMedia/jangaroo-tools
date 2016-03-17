@@ -1,6 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
@@ -8,6 +10,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.IOUtils;
@@ -17,18 +20,15 @@ import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Properties;
 
 public class SenchaPackageHelper extends AbstractSenchaHelper {
+
+  private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 
   private final PathConfigurer pathConfigurer;
   private final Configurer[] packageConfigurers;
@@ -47,7 +47,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     senchaPackageBuildOutputDir = project.getBuild().getDirectory() +  SenchaUtils.LOCAL_PACKAGE_BUILD_PATH;
 
     Configurer defaultSenchaPackageConfigurer;
-    if (SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
+    if (Type.THEME.equals(senchaConfiguration.getType())) {
       defaultSenchaPackageConfigurer = DefaultSenchaThemePackageConfigurer.getInstance();
     } else {
       defaultSenchaPackageConfigurer = DefaultSenchaCodePackageConfigurer.getInstance();
@@ -148,7 +148,11 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     File workingDirectory = new File(senchaPackagePath);
 
     writePackageJson(workingDirectory);
-    writeBuildProperties(workingDirectory);
+
+    File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
+    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
+            "pkg.file.name", "${package.name}.pkg",
+            "pkg.build.dir", "${package.dir}/build"));
   }
 
   @Override
@@ -193,35 +197,6 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     } catch (IOException e) {
       throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_PACKAGE_FILENAME, e);
     }
-  }
-
-  private void writeBuildProperties(File workingDirectory) throws MojoExecutionException {
-    Properties buildProperties = new Properties();
-    File buildPropertyFile = new File(workingDirectory.getAbsolutePath() + "/.sencha/package/build.properties");
-
-    InputStream inputStream = null;
-    try {
-      inputStream = new FileInputStream(buildPropertyFile);
-      buildProperties.load(inputStream);
-    } catch (IOException ioe) {
-      throw new MojoExecutionException("Failed to read property file " + buildPropertyFile, ioe);
-    } finally {
-      IOUtils.closeQuietly(inputStream);
-    }
-
-    buildProperties.put("pkg.build.dir","${package.dir}/build");
-    buildProperties.put("pkg.file.name","${package.name}.pkg");
-
-    OutputStream outputStream = null;
-    try {
-      outputStream = new FileOutputStream(buildPropertyFile);
-      buildProperties.store(outputStream, "Overrides .sencha/package/default.properties");
-    } catch (IOException ioe) {
-      throw new MojoExecutionException("Failed to write to property file " + buildPropertyFile, ioe);
-    } finally {
-      IOUtils.closeQuietly(outputStream);
-    }
-
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {

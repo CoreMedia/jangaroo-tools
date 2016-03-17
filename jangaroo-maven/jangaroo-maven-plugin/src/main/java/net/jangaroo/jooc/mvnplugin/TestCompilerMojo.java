@@ -8,7 +8,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Mojo to compile Jangaroo sources from during the test-compile phase.
@@ -100,7 +104,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return isJangarooPackaging() ? testOutputDirectory : testPackageSourceDirectory;
+    return Type.containsJangarooSources(getProject()) ? testOutputDirectory : testPackageSourceDirectory;
   }
 
 

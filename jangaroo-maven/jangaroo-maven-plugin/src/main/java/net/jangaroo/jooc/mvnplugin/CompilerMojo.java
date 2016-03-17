@@ -10,7 +10,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Mojo to compile Jangaroo sources during the compile phase.
@@ -76,7 +79,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private String apiOutputDirectory;
 
   public File getApiOutputDirectory() {
-    return isJangarooPackaging() ? new File(apiOutputDirectory) : null;
+    return Type.containsJangarooSources(getProject()) ? new File(apiOutputDirectory) : null;
   }
 
   @Override
@@ -89,7 +92,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return isJangarooPackaging() ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
+    return Type.containsJangarooSources(getProject()) ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
   }
 
   protected File getTempClassesOutputDirectory() {

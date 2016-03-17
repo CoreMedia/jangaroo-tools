@@ -42,21 +42,22 @@ public class SenchaAppMojo extends AbstractMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    if (senchaConfiguration.isEnabled()) {
-      SenchaHelper senchaHelper = new SenchaAppHelper(project, senchaConfiguration, getLog());
-      // for now:
-      senchaHelper.createModule();
-      senchaHelper.prepareModule();
-      File productionDirectory = senchaHelper.packageModule();
+    senchaConfiguration.setType(Type.APP);
+    senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
+
+    SenchaHelper senchaHelper = new SenchaAppHelper(project, senchaConfiguration, getLog());
+    // for now:
+    senchaHelper.createModule();
+    senchaHelper.prepareModule();
+    File productionDirectory = senchaHelper.packageModule();
 
 
-      try {
-        FileSet appFiles = new DefaultFileSet( productionDirectory ).prefixed( "META-INF/resources/" );
-        jarArchiver.addFileSet(appFiles);
+    try {
+      FileSet appFiles = new DefaultFileSet(productionDirectory).prefixed("META-INF/resources/");
+      jarArchiver.addFileSet(appFiles);
 
-      } catch (ArchiverException e) {
-        throw new MojoExecutionException("could not add app production directory to jar", e);
-      }
+    } catch (ArchiverException e) {
+      throw new MojoExecutionException("could not add app production directory to jar", e);
     }
 
   }
