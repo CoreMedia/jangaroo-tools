@@ -37,7 +37,7 @@
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
             net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-package</package>
-          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>
@@ -60,7 +60,7 @@
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
             net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-app</package>
-          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>
@@ -83,7 +83,7 @@
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package,
             net.jangaroo:jangaroo-maven-plugin:${pom.version}:sencha-package</package>
-          <verify>org.apache.maven.plugins:maven-source-plugin:jar</verify>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>

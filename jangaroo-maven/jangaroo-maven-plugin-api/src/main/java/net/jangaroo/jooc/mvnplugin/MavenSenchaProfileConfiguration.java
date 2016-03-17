@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
+import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -48,7 +49,7 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
    * @see SenchaProfileConfiguration#getEditorPlugins()
    */
   @Parameter
-  private List<String> editorPlugins;
+  private List<MavenEditorPluginDescriptor> editorPlugins;
 
   @Override
   public String getProfileName() {
@@ -86,7 +87,7 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   }
 
   @Override
-  public List<String> getEditorPlugins() {
+  public List<? extends EditorPluginDescriptor> getEditorPlugins() {
     return editorPlugins;
   }
 }

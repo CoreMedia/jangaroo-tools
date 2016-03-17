@@ -179,13 +179,16 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
     Dependency remotePackagingProjectDependency = getRemotePackagingProjectAsDependency(remotePackagesProject);
     if (null != remotePackagingProjectDependency) {
-      List<MavenProject> allReactorProjects = session.getProjects();
-      for (MavenProject project : allReactorProjects) {
-        if (Type.containsJangarooSources(project)) {
-          List<Dependency> projectDependencies = project.getDependencies();
-          if (!containsDependency(projectDependencies, remotePackagingProjectDependency)) {
+      String version = remotePackagingProjectDependency.getVersion();
+      // check all known projects if they have the jangaroo type
+      for (MavenProject project : session.getProjects()) {
+        if (Types.JANGAROO_TYPE.equals(project.getPackaging())) {
+          // if the project does not contain the dependency to the remote packages aggregator, add it
+          if (!containsDependency(project.getDependencies(), remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
                     remotePackagingProjectDependency, project));
+            remotePackagingProjectDependency.setVersion(version);
+            cleanupDependencyVersionForProject(project, remotePackagingProjectDependency);
             PomManipulator.addDependency(project, remotePackagingProjectDependency, getLog());
           }
         }
@@ -204,7 +207,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   private boolean containsDependency(@Nonnull List<Dependency> dependencies, @Nonnull Dependency dependencyToCheck) {
     for (Dependency dependency : dependencies) {
       if (dependency.getGroupId().equals(dependencyToCheck.getGroupId())
-              && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())) {
+              && dependency.getArtifactId().equals(dependencyToCheck.getArtifactId())
+              && dependency.getType().equals(dependencyToCheck.getType())) {
         return true;
       }
     }
@@ -215,7 +219,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   private Dependency getRemotePackagingProjectAsDependency(@Nonnull MavenProject remotePackagesProject) {
     Dependency dependency = null;
     if (remotePackagesProject.getGroupId() != null && remotePackagesProject.getArtifactId() != null) {
-      dependency = createDepedency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}");
+      dependency = createDependency(remotePackagesProject.getGroupId(), remotePackagesProject.getArtifactId(), "pom", "${project.version}", Artifact.SCOPE_RUNTIME);
     }
     return dependency;
   }
@@ -251,13 +255,28 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       return null;
     }
 
-    Dependency dependency = createDepedency(mavenProject);
+    Dependency dependency = createDependency(mavenProject);
+    cleanupDependencyVersionForProject(remoteAggregator, dependency);
 
-    List<Dependency> dependencyList = remoteAggregator.getDependencyManagement().getDependencies();
-    for (Dependency dependencyFromList : dependencyList) {
+    dependency.setScope(Artifact.SCOPE_COMPILE);
+    dependency.setType(Types.PACKAGE_EXTENSION);
+
+    return dependency;
+  }
+
+  private void cleanupDependencyVersionForProject(@Nonnull MavenProject mavenProject, @Nonnull Dependency dependency) {
+    String version = dependency.getVersion();
+    if (version == null) {
+      return;
+    }
+    if ("${project.version}".equals(version)) {
+      version = mavenProject.getVersion();
+    }
+    List<Dependency> dependencyList = mavenProject.getDependencyManagement().getDependencies();
+    for (Dependency dependencyFromList: dependencyList) {
       if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
               && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
-              && dependencyFromList.getVersion().equals(dependency.getVersion())) {
+              && dependencyFromList.getVersion().equals(version)) {
         // should add a warning if version differs
         dependency.setVersion(null);
         break;
@@ -270,16 +289,37 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     return dependency;
   }
 
-  private static Dependency createDepedency(@Nonnull MavenProject mavenProject) {
-    return createDepedency(mavenProject.getGroupId(), mavenProject.getArtifactId(), null, mavenProject.getVersion());
+  private void cleanupDependencyVersionForProject(@Nonnull MavenProject mavenProject, @Nonnull Dependency dependency) {
+    String version = dependency.getVersion();
+    if (version == null) {
+      return;
+    }
+    if ("${project.version}".equals(version)) {
+      version = mavenProject.getVersion();
+    }
+    List<Dependency> dependencyList = mavenProject.getDependencyManagement().getDependencies();
+    for (Dependency dependencyFromList: dependencyList) {
+      if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
+              && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
+              && dependencyFromList.getVersion().equals(version)) {
+        // should add a warning if version differs
+        dependency.setVersion(null);
+        break;
+      }
+    }
   }
 
-  private static Dependency createDepedency(String groupId, String artifactId, String type, String version) {
+  private static Dependency createDependency(@Nonnull MavenProject mavenProject) {
+    return createDependency(mavenProject.getGroupId(), mavenProject.getArtifactId(), null, mavenProject.getVersion(), null);
+  }
+
+  private static Dependency createDependency(String groupId, String artifactId, String type, String version, String scope) {
     Dependency dependency = new Dependency();
     dependency.setArtifactId(artifactId);
     dependency.setGroupId(groupId);
     dependency.setType(type);
     dependency.setVersion(version);
+    dependency.setScope(scope);
     return dependency;
   }
 

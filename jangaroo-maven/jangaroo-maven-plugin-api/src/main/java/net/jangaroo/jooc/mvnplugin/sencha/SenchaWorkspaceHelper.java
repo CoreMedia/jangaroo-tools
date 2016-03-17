@@ -5,11 +5,13 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.AppConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaWorkspaceConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.Archiver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -60,16 +62,9 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper {
         }
       }
 
-      String line = "sencha generate workspace .";
-      CommandLine cmdLine = CommandLine.parse(line);
-      DefaultExecutor executor = new DefaultExecutor();
-      executor.setWorkingDirectory(workingDirectory);
-      executor.setExitValue(0);
-      try {
-        executor.execute(cmdLine);
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not execute sencha cmd to generate workspace", e);
-      }
+        getLog().info("generating sencha workspace module");
+        SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog());
+        senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated
       // for normal packages skip generating css and slices

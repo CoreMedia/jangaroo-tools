@@ -8,10 +8,8 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
-import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -66,41 +64,37 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
       }
     }
 
-    String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(getSenchaConfiguration().getTheme(), getProject());
-    String line = "sencha generate app"
-            + " -ext"
-            + " -" + getSenchaConfiguration().getToolkit()
-            + " --theme-name=\"" + themePackageName + "\""
-            + " --path=\"\""
-            + " " + getSenchaModuleName();
-    CommandLine cmdLine = CommandLine.parse(line);
-    DefaultExecutor executor = new DefaultExecutor();
-    executor.setWorkingDirectory(workingDirectory);
-    executor.setExitValue(0);
-    try {
-      executor.execute(cmdLine);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not execute sencha cmd to generate app", e);
-    }
+      String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(getSenchaConfiguration().getTheme(), getProject());
 
-    // sencha.cfg should be recreated
-    // for normal packages skip generating css and slices
-    if (senchaCfg.exists()) {
-      PrintWriter pw = null;
-      FileWriter fw = null;
-      try {
-        fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
-        pw = new PrintWriter(fw);
-        // If true will cause problems with class pre- and postprocessors we use
-        pw.println("app.output.js.optimize.defines=false");
-      } catch (IOException e) {
-        throw new MojoExecutionException("could disable derive and minifying in sencha config of app");
-      } finally {
-        IOUtils.closeQuietly(pw);
-        IOUtils.closeQuietly(fw);
+      String arguments = "generate app"
+              + " -ext"
+              + " -" + getSenchaConfiguration().getToolkit()
+              + " --theme-name=\"" + themePackageName + "\""
+              + " --path=\"\""
+              + " " + getSenchaModuleName();
+      getLog().info("generating sencha app module");
+      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+      senchaCmdExecutor.execute();
+
+      // sencha.cfg should be recreated
+      // for normal packages skip generating css and slices
+      if (senchaCfg.exists()) {
+        PrintWriter pw = null;
+        try {
+          FileWriter fw = new FileWriter(senchaCfg.getAbsoluteFile(), true);
+
+          pw = new PrintWriter(fw);
+          pw.println("skip.slice=1");
+          // If true will cause problems with class pre- and postprocessors we use
+          pw.println("app.output.js.optimize.defines=false");
+        } catch (IOException e) {
+          throw new MojoExecutionException("could disable derive and minifying in sencha config of app");
+        } finally {
+          IOUtils.closeQuietly(pw);
+          IOUtils.closeQuietly(fw);        }
+      } else {
+        throw new MojoExecutionException("could not find sencha.cfg of package");
       }
-    } else {
-      throw new MojoExecutionException("could not find sencha.cfg of package");
     }
   }
 
@@ -178,16 +172,9 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    String line = "sencha app build --production";
-    CommandLine cmdLine = CommandLine.parse(line);
-    DefaultExecutor executor = new DefaultExecutor();
-    executor.setWorkingDirectory(senchaAppDirectory);
-    executor.setExitValue(0);
-    try {
-      executor.execute(cmdLine);
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not execute sencha cmd to build app", e);
-    }
+    getLog().info("building sencha app module");
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
+    senchaCmdExecutor.execute();
   }
 
   private Map<String, Object> getAppConfig() throws MojoExecutionException {

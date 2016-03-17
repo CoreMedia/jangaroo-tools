@@ -76,7 +76,7 @@ public class SenchaUtils {
   public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
   public static final String SENCHA_SASS_ETC_IMPORTS = "imports.scss";
-  public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "registerEditorPlugins.js";
+  public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "editorPlugins.js";
 
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??
           Type.APP, "${app.dir}",
