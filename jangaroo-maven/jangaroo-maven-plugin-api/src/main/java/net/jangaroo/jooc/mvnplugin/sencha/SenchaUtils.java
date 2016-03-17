@@ -30,8 +30,6 @@ public class SenchaUtils {
 
   public static final String SENCHA_BASE_PATH = "sencha";
 
-  public static final String PACKAGE_EXTENSION = "pkg";
-
   public static final String LOCAL_PACKAGES_PATH = "/packages/local/";
 
   public static final String LOCAL_PACKAGE_PATH = LOCAL_PACKAGES_PATH + "package/";

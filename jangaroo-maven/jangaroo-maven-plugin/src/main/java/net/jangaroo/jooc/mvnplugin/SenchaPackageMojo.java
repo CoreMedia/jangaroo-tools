@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -44,7 +43,7 @@ public class SenchaPackageMojo extends AbstractMojo {
       senchaHelper.prepareModule();
       File pkg = senchaHelper.packageModule();
 
-      helper.attachArtifact(project, SenchaUtils.PACKAGE_EXTENSION, pkg);
+      helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
     }
 
   }

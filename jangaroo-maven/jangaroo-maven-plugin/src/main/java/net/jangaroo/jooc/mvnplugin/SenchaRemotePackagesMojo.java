@@ -32,6 +32,9 @@ import java.util.Set;
         threadSafe = true)
 public class SenchaRemotePackagesMojo extends AbstractMojo {
 
+  private static final String PACKAGES_DIRECTORY = "/packages/";
+  private static final String EXT_FRAMEWORK_DIRECTORY = "/ext/";
+
   /**
    * The maven project.
    */
@@ -48,44 +51,49 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
 
     String remotePackagesTargetDir = getRemotePackagesDirectory(project);
 
-    File extTargetDirectory = new File( getExtFrameworkDirectory(project) );
-    createTargetDir(extTargetDirectory);
-
     Set<Artifact> dependencyArtifacts = project.getArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (SenchaUtils.PACKAGE_EXTENSION.equals(artifact.getType())
-              || "zip".equals(artifact.getType())) {
+      if (Type.PACKAGE_EXTENSION.equals(artifact.getType()) || Type.ZIP_EXTENSION.equals(artifact.getType())) {
 
-        try {
+        unpackArtifact(remotePackagesTargetDir, artifact);
 
-          UnArchiver unArchiver = archiverManager.getUnArchiver("zip");
-          unArchiver.setSourceFile(artifact.getFile());
-          if (extFrameworkArtifact.equals(artifact.getDependencyConflictId())) {
-            unArchiver.setDestDirectory(extTargetDirectory);
-          } else {
-            File packagesTargetDirectory = new File(
-                    remotePackagesTargetDir + SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId())
-            );
-            createTargetDir(packagesTargetDirectory);
-            unArchiver.setDestDirectory(packagesTargetDirectory);
-          }
-          unArchiver.extract();
-
-        } catch (NoSuchArchiverException e) {
-          throw new MojoExecutionException("Could not find zipUnArchiver.", e);
-        } catch ( ArchiverException e ) {
-          throw new MojoExecutionException( "Could not extract: " + artifact, e );
-        }
       }
     }
   }
 
+  private void unpackArtifact(String remotePackagesTargetDir, Artifact artifact) throws MojoExecutionException {
+    try {
+
+      UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
+      unArchiver.setSourceFile(artifact.getFile());
+
+      File packageTargetDir;
+      if (extFrameworkArtifact.equals(artifact.getDependencyConflictId())) {
+        packageTargetDir = new File( getExtFrameworkDirectory(project) );
+      } else {
+        packageTargetDir = new File(remotePackagesTargetDir
+                        + SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
+      }
+
+      createTargetDir(packageTargetDir);
+      unArchiver.setDestDirectory(packageTargetDir);
+
+      unArchiver.extract();
+      getLog().info(String.format("Extracted %s to %s", artifact, packageTargetDir));
+
+    } catch (NoSuchArchiverException e) {
+      throw new MojoExecutionException("Could not find zipUnArchiver.", e);
+    } catch ( ArchiverException e ) {
+      throw new MojoExecutionException( "Could not extract: " + artifact, e );
+    }
+  }
+
   static String getRemotePackagesDirectory(MavenProject remotePackagesProject) {
-    return remotePackagesProject.getBuild().getDirectory() + "/packages/";
+    return remotePackagesProject.getBuild().getDirectory() + PACKAGES_DIRECTORY;
   }
 
   static String getExtFrameworkDirectory(MavenProject remotePackagesProject) {
-    return remotePackagesProject.getBuild().getDirectory() + "/ext/";
+    return remotePackagesProject.getBuild().getDirectory() + EXT_FRAMEWORK_DIRECTORY;
   }
 
 
