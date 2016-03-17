@@ -176,7 +176,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
    */
   private void addRemotePackagesProject(@Nonnull MavenProject remotesProject) throws MojoExecutionException {
 
-    String version = remotesProject.getVersion();
     // check all known projects if they have the jangaroo type
     for (MavenProject project : session.getProjects()) {
 
@@ -193,7 +192,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
                   remotesProject.getGroupId(), remotesProject.getArtifactId(), "pom", "${project.version}");
         }
 
-        remotesDependency.setVersion(version);
         PomManipulator.addDependency(project, remotesDependency, getLog());
 
         getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
