@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -192,12 +193,12 @@ public class SenchaUtils {
     boolean isExcluded = Iterables.tryFind(senchaConfiguration.getExcludes(), new Predicate<String>() {
       @Override
       public boolean apply(@Nullable String input) {
-        return input != null && dependencyId.startsWith(input);
+        return input != null && MavenPluginHelper.hasSameGroupIdAndArtifactId(dependencyId, input);
       }
     }).isPresent();
 
     return !isExcluded
-            && !dependencyId.startsWith(remotePackagesArtifact)
+            && !MavenPluginHelper.hasSameGroupIdAndArtifactId(dependencyId, remotePackagesArtifact)
             && !dependency.getScope().equals(Artifact.SCOPE_PROVIDED)
             && !dependency.getScope().equals(Artifact.SCOPE_TEST);
   }

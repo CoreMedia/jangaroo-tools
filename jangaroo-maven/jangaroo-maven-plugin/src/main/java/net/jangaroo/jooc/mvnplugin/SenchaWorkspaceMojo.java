@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaWorkspaceHelper;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.jooc.mvnplugin.util.PomManipulator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -112,8 +113,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     List<MavenProject> allReactorProjects = session.getProjects();
     for (MavenProject project : allReactorProjects) {
       String projectId = project.getId();
-      // the project id has the following format <groupid>:<artifactid>:<packaging>:<version> while
-      // the remotePackageArtifactId usually looks as follows <groupid>:<artifactid>
       if (isRemoteAggregator(project)) {
         return project;
       }
@@ -306,9 +305,11 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private boolean isRemoteAggregator(MavenProject project) {
+    // the project id has the following format <groupid>:<artifactid>:<packaging>:<version> while
+    // the remotePackageArtifactId usually looks as follows <groupid>:<artifactid>
     String remotePackageArtifactId = senchaConfiguration.getRemotePackagesArtifact();
     String projectId = project.getId();
-    return projectId.startsWith(remotePackageArtifactId);
+    return MavenPluginHelper.hasSameGroupIdAndArtifactId(projectId, remotePackageArtifactId);
   }
 
   /**

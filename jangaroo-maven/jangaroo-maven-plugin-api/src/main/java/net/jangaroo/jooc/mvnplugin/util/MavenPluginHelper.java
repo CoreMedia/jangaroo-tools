@@ -1,6 +1,9 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import com.google.common.base.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -91,5 +94,23 @@ public class MavenPluginHelper {
   @SuppressWarnings({"unchecked"})
   public Set<Artifact> getArtifacts() {
     return project.getArtifacts();
+  }
+
+  /**
+   * Compares two Maven identifiers and returns <code>true</code> if both
+   * have the same <em>groupId</em> and <em>artifactId</em>. Packaging, type,
+   * version and scope are ignored. The method assumes the default Maven
+   * format returned by {@link MavenProject#getId()}, {@link Artifact#getId()} or {@link Dependency#getManagementKey()}.
+   *
+   * @param id1 maven identifier of the first artifact
+   * @param id2 maven identifier of the second artifact
+   * @return <code>true</code> if both ids have the same groupId and artifactId otherwise <code>false</code>
+   */
+  public static boolean hasSameGroupIdAndArtifactId(String id1, String id2) {
+    String[] id1Coordinates = StringUtils.split(id1, ':');
+    String[] id2Coordinates = StringUtils.split(id2, ':');
+    return (id1Coordinates.length >= 2 && id2Coordinates.length >= 2)
+            && Objects.equal(id1Coordinates[0],id2Coordinates[0])   // groupId = 0
+            && Objects.equal(id1Coordinates[1],id2Coordinates[1]);  // artifactId = 1
   }
 }
