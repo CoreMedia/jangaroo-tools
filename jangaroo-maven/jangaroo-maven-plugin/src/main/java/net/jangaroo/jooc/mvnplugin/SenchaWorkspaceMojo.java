@@ -61,18 +61,23 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     senchaConfiguration.setType(Type.WORKSPACE);
     senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
 
-    String remotePackages = senchaConfiguration.getRemotePackagesArtifact();
+    String remotePackagesFromConfiguration = senchaConfiguration.getRemotePackagesArtifact();
 
-    MavenProject remotePackagesProject = getRemotePackagesProject(session, remotePackages);
+    MavenProject remotePackagesProject = getRemotePackagesProject(session, remotePackagesFromConfiguration);
 
     // add location of dirs to sencha configuration
     addDirectoryLocations(remotePackagesProject);
 
-    // updates dependencies to remote packages in remote packages aggregator
-    updateRemotePackages(remotePackagesProject);
+    // only update POMs if a separate remote-packages module exists and is configured
+    if (remotePackagesFromConfiguration != null) {
 
-    // add remote packaging module to all jangaroo modules that do not contain this dependency
-    addRemotePackagesProject(remotePackagesProject);
+      // updates dependencies to remote packages in remote packages aggregator
+      updateRemotePackages(remotePackagesProject);
+
+      // add remote packaging module to all jangaroo modules that do not contain this dependency
+      addRemotePackagesProject(remotePackagesProject);
+
+    }
 
     // we need to create the sencha module
     createAndPrepareSenchaModule();
@@ -104,7 +109,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
    */
   @Nonnull
   private MavenProject getRemotePackagesProject(@Nonnull MavenSession session,
-                                                @Nonnull String remotePackageArtifactId)
+                                                @Nullable String remotePackageArtifactId)
           throws MojoExecutionException {
 
     if (StringUtils.isEmpty(remotePackageArtifactId)) {
@@ -138,15 +143,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     for (MavenProject currentProject : collectedProjects) {
       if (Type.containsJangarooSources(currentProject)) {
         // check all dependencies of this project, do they contain remote dependencies
-        for (Dependency dependency : currentProject.getDependencies()) {
-          if (SenchaUtils.isActualSenchaDependency(dependency, senchaConfiguration)) {
-            MavenProject projectFromDependency = createProjectFromDependency(dependency);
-            if (!remotePackagesProjects.contains(projectFromDependency) && !collectedProjects.contains(projectFromDependency)) {
-              // add dependency to this project for remote packaging
-              remotePackagesProjects.add(projectFromDependency);
-            }
-          }
-        }
+        collectRemoteDependencies(remotePackagesProjects, collectedProjects, currentProject);
       }
     }
 
@@ -158,6 +155,18 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
     PomManipulator.updateDependencies(remoteAggregatorProject, dependencies, getLog());
 
     getLog().debug(String.format("Needed %d ns to update remotes for project %s", System.nanoTime() - startTime, project));
+  }
+
+  private void collectRemoteDependencies(Set<MavenProject> remotePackages, List<MavenProject> localProjects, MavenProject currentProject) {
+    for (Dependency dependency : currentProject.getDependencies()) {
+      if (SenchaUtils.isActualSenchaDependency(dependency, senchaConfiguration)) {
+        MavenProject projectFromDependency = createProjectFromDependency(dependency);
+        if (!remotePackages.contains(projectFromDependency) && !localProjects.contains(projectFromDependency)) {
+          // add dependency to this project for remote packaging
+          remotePackages.add(projectFromDependency);
+        }
+      }
+    }
   }
 
   /**
@@ -248,7 +257,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       dependency.setVersion(null);
     }
 
-    dependency.setType(SenchaUtils.PACKAGE_EXTENSION);
+    dependency.setType(Type.PACKAGE_EXTENSION);
 
     return dependency;
   }
