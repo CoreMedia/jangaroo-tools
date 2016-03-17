@@ -182,7 +182,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
       String version = remotePackagingProjectDependency.getVersion();
       // check all known projects if they have the jangaroo type
       for (MavenProject project : session.getProjects()) {
-        if (Types.JANGAROO_TYPE.equals(project.getPackaging())) {
+        if (Type.containsJangarooSources(project)) {
           // if the project does not contain the dependency to the remote packages aggregator, add it
           if (!containsDependency(project.getDependencies(), remotePackagingProjectDependency)) {
             getLog().info(String.format("Add dependency %s as remote packaging module to the module %s",
@@ -257,31 +257,6 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
     Dependency dependency = createDependency(mavenProject);
     cleanupDependencyVersionForProject(remoteAggregator, dependency);
-
-    dependency.setScope(Artifact.SCOPE_COMPILE);
-    dependency.setType(Types.PACKAGE_EXTENSION);
-
-    return dependency;
-  }
-
-  private void cleanupDependencyVersionForProject(@Nonnull MavenProject mavenProject, @Nonnull Dependency dependency) {
-    String version = dependency.getVersion();
-    if (version == null) {
-      return;
-    }
-    if ("${project.version}".equals(version)) {
-      version = mavenProject.getVersion();
-    }
-    List<Dependency> dependencyList = mavenProject.getDependencyManagement().getDependencies();
-    for (Dependency dependencyFromList: dependencyList) {
-      if (dependencyFromList.getGroupId().equals(dependency.getGroupId())
-              && dependencyFromList.getArtifactId().equals(dependency.getArtifactId())
-              && dependencyFromList.getVersion().equals(version)) {
-        // should add a warning if version differs
-        dependency.setVersion(null);
-        break;
-      }
-    }
 
     dependency.setScope(Artifact.SCOPE_COMPILE);
     dependency.setType(SenchaUtils.PACKAGE_EXTENSION);

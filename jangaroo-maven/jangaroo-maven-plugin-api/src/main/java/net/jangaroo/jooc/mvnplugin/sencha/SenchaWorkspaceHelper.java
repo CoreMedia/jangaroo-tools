@@ -5,13 +5,10 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.AppConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaWorkspaceConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.PackagesConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.Archiver;
 
 import java.io.File;
 import java.io.FileWriter;
