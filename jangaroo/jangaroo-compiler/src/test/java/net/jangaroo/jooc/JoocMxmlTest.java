@@ -90,6 +90,15 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testUnexpectedTextContent() throws Exception {
+    File sourceFile = getFile("/package1/mxml/ErrorUnexpectedTextContent.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (Unexpected text inside MXML element: 'Blablabla'.) did not occur",
+            testLog.hasError("Unexpected text inside MXML element: 'Blablabla'."));
+  }
+
+  @Test
   public void testScriptCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/ScriptCdataMxmlClass", ".mxml");
   }

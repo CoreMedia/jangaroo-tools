@@ -26,7 +26,15 @@
     -->
     <fx:int id="num">123</fx:int>
     <fx:int id="empty"/>
+    <fx:Boolean id="someFlag1"/>
+    <fx:Boolean id="anotherFlag1"/>
+    <fx:Boolean id="someFlag2">false</fx:Boolean>
+    <fx:Boolean id="anotherFlag2">true</fx:Boolean>
+    <fx:Boolean id="someFlag3">{false}</fx:Boolean>
+    <fx:Boolean id="anotherFlag3">{true}</fx:Boolean>
     <fx:Object id="blub" name="Kuno"/>
+    <fx:Object id="emptyObject"/>
+    <fx:Object id="joe">{{ name: "Joe" }}</fx:Object>
     <fx:Array id="list">
       <fx:Object name="Joe"/>
       <ConfigClass><items>
