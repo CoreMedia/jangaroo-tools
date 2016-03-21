@@ -553,8 +553,10 @@ public final class MxmlToModelParser {
     return null != textNode ? textNode.getText() : "";
   }
 
-  public String getConstructorCode() {
-    return constructorCode.toString();
+  public String consumeConstructorCode() {
+    String result = constructorCode.toString();
+    constructorCode.setLength(0);
+    return result;
   }
 
   public String getClassBodyCode() {

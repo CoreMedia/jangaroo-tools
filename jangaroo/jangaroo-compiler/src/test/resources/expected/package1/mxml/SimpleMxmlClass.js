@@ -14,7 +14,6 @@ public class SimpleMxmlClass extends ConfigClass implements package1.Interface{
     public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
 var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
 var defaults_$1/*:SimpleMxmlClass*/ ={};
-config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
 
     AS3.setBindable(defaults_$1,"bar" , "FOO & BAR!");
     AS3.setBindable(defaults_$1,"computed" , 'B' + 'AR!');
@@ -34,6 +33,8 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     other_39_5_$1["blubb_config"] = 'blub config expression';
     other_39_5_$1["blubb_accessor"] = 'blub accessor expression';
     AS3.setBindable(defaults_$1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(other_39_5_$1));
+config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
+
     config_$1.foo = "bar";
     config_$1.number = 1 < 2  ? 1 + 1 : 3;
     joo.addEventListener(config_$1, "click",AS3.bind( this,"$on_config_$1_click$2"), AS3.package1.someOtherPackage.SomeEvent);
