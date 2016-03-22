@@ -156,7 +156,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.getConstructorCode()));
+    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.consumeConstructorCode()));
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(mxmlToModelParser.getClassBodyCode()).getDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
@@ -220,6 +220,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
       mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
     }
+    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.consumeConstructorCode()));
   }
 
   List<Directive> getClassBodyDirectives() {

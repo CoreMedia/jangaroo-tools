@@ -40,7 +40,6 @@ public class AllElements extends Panel{
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$2(config);
 var config_$1/*:AllElements*/ =AS3.cast(AllElements,{});
 var defaults_$1/*:AllElements*/ ={};
-config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
 
     var myVar3_50_5_$1/*:ext.config.button*/ = AS3.cast(AS3.ext.config.button,{});
     myVar3_50_5_$1.text = "Foo";
@@ -54,6 +53,8 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     object_55_7_$1.sortable = true;
     object_55_7_$1.menuDisabled = false;
     this.myVar4$2 = [object_54_7_$1, object_55_7_$1];
+config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
+
     var panel_59_3_$1/*:ext.config.panel*/ = AS3.cast(AS3.ext.config.panel,{});
     panel_59_3_$1.title = "I am a panel";
     panel_59_3_$1.layout = config.myLayout;
