@@ -355,6 +355,8 @@ XmlComment = "<!--" ~"-->"
   "<"                             { return symbol(LT); }
   "</"                            { return symbol(LT_SLASH); }
   "/>"                            { return symbol(SLASH_GT); }
+  ">" / "<![CDATA["               { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
+  ">" / "<"                       { return symbol(GT); }
   ">"                             { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
   ":"                             { return symbol(COLON); }
   "="                             { return symbol(EQ); }

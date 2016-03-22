@@ -322,15 +322,20 @@ public final class MxmlToModelParser {
   }
 
   private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
-    String value;
+    String value = null;
     String textContent = getTextContent(objectElement);
     if (MxmlUtils.isBindingExpression(textContent)) {
-      value = MxmlUtils.getBindingExpression(textContent);
+      return MxmlUtils.getBindingExpression(textContent);
     } else if ("String".equals(className)) {
-      value = CompilerUtils.quote(textContent);
-    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className)) {
-      value = textContent.isEmpty() ? null : textContent;
-    } else if ("Object".equals(className)) {
+      return CompilerUtils.quote(textContent);
+    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className) || "Boolean".equals(className)) {
+      return textContent.isEmpty() ? null : textContent;
+    }
+
+    if (!textContent.trim().isEmpty()) {
+      throw Jooc.error(objectElement, String.format("Unexpected text inside MXML element: '%s'.", textContent));
+    }
+    if ("Object".equals(className)) {
       value = "{}";
     } else if ("Array".equals(className)) {
       value = createArrayCodeFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
@@ -553,8 +558,10 @@ public final class MxmlToModelParser {
     return null != textNode ? textNode.getText() : "";
   }
 
-  public String getConstructorCode() {
-    return constructorCode.toString();
+  public String consumeConstructorCode() {
+    String result = constructorCode.toString();
+    constructorCode.setLength(0);
+    return result;
   }
 
   public String getClassBodyCode() {
