@@ -4,6 +4,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,8 +42,8 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  @Parameter(defaultValue = "com.coremedia.sencha:ext:zip", readonly = true)
-  private String extFrameworkArtifact;
+  @Parameter
+  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
 
   @Inject
   private ArchiverManager archiverManager;
@@ -53,7 +54,7 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
 
     Set<Artifact> dependencyArtifacts = project.getArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (Type.PACKAGE_EXTENSION.equals(artifact.getType()) || Type.ZIP_EXTENSION.equals(artifact.getType())) {
+      if (Type.PACKAGE_EXTENSION.equals(artifact.getType())) {
 
         unpackArtifact(remotePackagesTargetDir, artifact);
 
@@ -68,7 +69,9 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
       unArchiver.setSourceFile(artifact.getFile());
 
       File packageTargetDir;
-      if (extFrameworkArtifact.equals(artifact.getDependencyConflictId())) {
+      MavenDependency extFrameworkDependency = MavenDependency.fromKey(senchaConfiguration.getExtFrameworkArtifact());
+      MavenDependency currentArtifactDependency = MavenDependency.fromArtifact(artifact);
+      if (currentArtifactDependency.equalsGroupIdAndArtifactId(extFrameworkDependency)) {
         packageTargetDir = new File( getExtFrameworkDirectory(project) );
       } else {
         packageTargetDir = new File(remotePackagesTargetDir

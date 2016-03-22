@@ -2,20 +2,15 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -183,22 +178,14 @@ public class SenchaUtils {
     return workspacePath.relativize(workingDirectoryPath);
   }
 
-  public static boolean isActualSenchaDependency(@Nonnull Dependency dependency,
-                                                 @Nonnull MavenSenchaConfiguration senchaConfiguration) {
-    String remotePackagesArtifact = senchaConfiguration.getRemotePackagesArtifact();
-    final String dependencyId = dependency.getManagementKey();
-
-    boolean isExcluded = Iterables.tryFind(senchaConfiguration.getExcludes(), new Predicate<String>() {
-      @Override
-      public boolean apply(@Nullable String input) {
-        return input != null && MavenPluginHelper.hasSameGroupIdAndArtifactId(dependencyId, input);
-      }
-    }).isPresent();
-
-    return !isExcluded
-            && !MavenPluginHelper.hasSameGroupIdAndArtifactId(dependencyId, remotePackagesArtifact)
-            && !dependency.getScope().equals(Artifact.SCOPE_PROVIDED)
-            && !dependency.getScope().equals(Artifact.SCOPE_TEST);
+  public static boolean isRequiredSenchaDependency(@Nonnull MavenDependency dependency,
+                                                   @Nonnull MavenDependency remotePackageDependency,
+                                                   @Nonnull MavenDependency extFrameworkDependency) {
+    return !dependency.equalsGroupIdAndArtifactId(remotePackageDependency)
+            && !dependency.equalsGroupIdAndArtifactId(extFrameworkDependency)
+            && !"pom".equals(dependency.getType())
+            && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
+            && !Artifact.SCOPE_TEST.equals(dependency.getScope());
   }
 
 }

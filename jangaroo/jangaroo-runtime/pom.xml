@@ -12,9 +12,9 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.coremedia.sencha</groupId>
-      <artifactId>ext</artifactId>
-      <type>zip</type>
+      <groupId>net.jangaroo.com.sencha</groupId>
+      <artifactId>ext-js</artifactId>
+      <type>pkg</type>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

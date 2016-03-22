@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -36,6 +37,8 @@ public class RequiresConfigurer implements Configurer {
 
     List<Dependency> projectDependencies = project.getDependencies();
 
+    MavenDependency remotePackageDependency = MavenDependency.fromKey(senchaConfiguration.getRemotePackagesArtifact());
+    MavenDependency extFrameworkDependency = MavenDependency.fromKey(senchaConfiguration.getExtFrameworkArtifact());
     for (Dependency dependency : projectDependencies) {
 
       // TODO we should not assume that #getSenchaPackageNameForArtifact and #getSenchaPackageNameForTheme use the same string format
@@ -43,8 +46,9 @@ public class RequiresConfigurer implements Configurer {
               dependency.getGroupId(), dependency.getArtifactId()
       );
 
+      MavenDependency mavenDependency = MavenDependency.fromDependency(dependency);
       if (!senchaPackageNameForArtifact.equals(themePackageName)
-              && SenchaUtils.isActualSenchaDependency(dependency, senchaConfiguration)) {
+              && SenchaUtils.isRequiredSenchaDependency(mavenDependency, remotePackageDependency, extFrameworkDependency)) {
         String version = SenchaUtils.getSenchaVersionForMavenVersion(dependency.getVersion());
         if (null == version) {
           throw new MojoExecutionException("Could not determine sencha version from maven version of artifact "

@@ -55,6 +55,8 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
    */
   String getExtFrameworkDir();
 
+  String getExtFrameworkArtifact();
+
   /**
    * Build directory relative to baseDir
    */

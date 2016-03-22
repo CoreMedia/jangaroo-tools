@@ -4,9 +4,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  *
  */
@@ -88,11 +85,8 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   @Parameter
   private String remotePackagesArtifact;
 
-  /**
-   * Exclude the dependencies with the following coordinates from the Sencha build process.
-   */
   @Parameter
-  private List<String> excludes = Collections.emptyList();
+  private String extFrameworkArtifact = "net.jangaroo.com.sencha:ext-js";
 
   @Override
   public String getType() {
@@ -127,6 +121,11 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
   @Override
   public String getExtFrameworkDir() {
     return extFrameworkDir;
+  }
+
+  @Override
+  public String getExtFrameworkArtifact() {
+    return extFrameworkArtifact;
   }
 
   /**
@@ -182,10 +181,6 @@ public class MavenSenchaConfiguration extends MavenSenchaProfileConfiguration im
    */
   public String getRemotePackagesArtifact() {
     return remotePackagesArtifact;
-  }
-
-  public List<String> getExcludes() {
-    return Collections.unmodifiableList(excludes);
   }
 
   // *******************************

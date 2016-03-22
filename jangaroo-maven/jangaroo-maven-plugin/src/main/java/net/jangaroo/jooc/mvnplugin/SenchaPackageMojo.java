@@ -27,7 +27,7 @@ public class SenchaPackageMojo extends AbstractMojo {
    * The sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
-  private MavenSenchaConfiguration senchaConfiguration;
+  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
 
 
   @Override
