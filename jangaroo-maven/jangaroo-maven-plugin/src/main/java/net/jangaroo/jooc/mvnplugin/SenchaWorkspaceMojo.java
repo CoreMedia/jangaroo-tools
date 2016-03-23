@@ -267,6 +267,9 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
   }
 
   private boolean isDependencyManaged(@Nonnull MavenProject project, @Nonnull final Dependency dependency) {
+    if (project.getDependencyManagement() == null) {
+      return false;
+    }
     final String dependencyVersion = dependency.getVersion();
     return Iterables.tryFind(project.getDependencyManagement().getDependencies(), new Predicate<Dependency>() {
       @Override
