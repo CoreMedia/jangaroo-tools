@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
 import static net.jangaroo.exml.tools.ExtJsApi.Deprecation;
@@ -56,6 +58,7 @@ import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
  */
 public class ExtAsApiGenerator {
 
+  private static final Pattern SINGLETON_CLASS_NAME_PATTERN = Pattern.compile("^S[A-Z]");
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -66,6 +69,7 @@ public class ExtAsApiGenerator {
   private static boolean generateForMxml;
   private static Properties jsAsNameMappingProperties = new Properties();
   private static Properties jsConfigClassNameMappingProperties = new Properties();
+  private static Properties eventWordsProperties = new Properties();
   private static final String EXT_3_4_EVENT = "ext.IEventObject";
   private static String EXT_EVENT;
   private static Map<String, Map<String, String>> aliasGroupToAliasToClass = new TreeMap<String, Map<String, String>>();
@@ -84,6 +88,7 @@ public class ExtAsApiGenerator {
 
     jsAsNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-as-name-mapping.properties"));
     jsConfigClassNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-config-name-mapping.properties"));
+    eventWordsProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/event-words.properties"));
 
     File[] files = srcDir.listFiles();
     if (files != null) {
@@ -502,17 +507,17 @@ public class ExtAsApiGenerator {
 
   private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events) {
     for (Event event : events) {
+      String eventName = toCamelCase(event.name);
       AnnotationModel annotationModel = new AnnotationModel("Event",
-              new AnnotationPropertyModel("name", "'on" + event.name + "'"));
+              new AnnotationPropertyModel("name", "'on" + eventName + "'"));
       String asdoc = toAsDoc(event);
       if (generateEventClasses) {
         String eventTypeQName = generateEventClass(compilationUnitModel, event);
         annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
-        asdoc +=  String.format("%n@eventType %s.NAME", eventTypeQName);
+        asdoc +=  String.format("%n@eventType %s.%s", eventTypeQName, toConstantName(event.name));
       }
       annotationModel.setAsdoc(asdoc);
       classModel.addAnnotation(annotationModel);
-      System.err.println("*** adding event " + event.name + " to class " + classModel.getName());
     }
   }
 
@@ -520,42 +525,108 @@ public class ExtAsApiGenerator {
     return name == null || name.length() == 0 ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  private static String generateEventClass(CompilationUnitModel compilationUnitModel, Event event) {
-    ClassModel classModel = compilationUnitModel.getClassModel();
-    String eventTypeQName = CompilerUtils.qName(compilationUnitModel.getPackage(),
-            "events." + classModel.getName() + capitalize(event.name) + "Event");
-    CompilationUnitModel extAsClassUnit = compilationUnitModelRegistry.resolveCompilationUnit(eventTypeQName);
-    if (extAsClassUnit == null) {
-      extAsClassUnit = createClassModel(eventTypeQName);
-      ClassModel extAsClass = (ClassModel)extAsClassUnit.getPrimaryDeclaration();
-      extAsClass.setSuperclass("flash.events.Event");
-      extAsClass.setAsdoc(String.format("%s%n@see %s", toAsDoc(event), compilationUnitModel.getQName()));
+  private static String generateEventClass(CompilationUnitModel eventClientClass, Event event) {
+    String eventTypeNamePrefix = eventClientClass.getPrimaryDeclaration().getName();
+    if (SINGLETON_CLASS_NAME_PATTERN.matcher(eventTypeNamePrefix).find()) {
+      eventTypeNamePrefix = eventTypeNamePrefix.substring(1);
+    }
+    String eventTypeQName = eventClientClass.getPackage() + ".events." + eventTypeNamePrefix;
+    String eventClientClassQName = eventClientClass.getQName();
+    for (int i = 0; i < event.params.size(); i++) {
+      Param param = event.params.get(i);
+      String asType = convertType(param.type);
+      if (!"eOpts".equals(param.name) && !"this".equals(param.name) && (i > 0 || !eventClientClassQName.equals(asType))) {
+        eventTypeQName += "_" + param.name;
+      }
+    }
+    eventTypeQName += "Event";
 
-      FieldModel eventNameConstant = new FieldModel("NAME", "String", CompilerUtils.quote("on" + event.name));
-      eventNameConstant.setStatic(true);
-      eventNameConstant.setConst(true);
-      eventNameConstant.setAsdoc(String.format("This constant defines the value of the <code>type</code> property of the event object%nfor a <code>%s</code> event.%n@eventType %s", "on" + event.name, "on" + event.name));
-      extAsClass.addMember(eventNameConstant);
+    String eventName = toCamelCase(event.name);
+
+    CompilationUnitModel eventType = compilationUnitModelRegistry.resolveCompilationUnit(eventTypeQName);
+    if (eventType == null) {
+      eventType = createClassModel(eventTypeQName);
+      ClassModel extAsClass = eventType.getClassModel();
+      extAsClass.setSuperclass("net.jangaroo.ext.FlExtEvent");
 
       MethodModel constructorModel = extAsClass.createConstructor();
+      constructorModel.addParam(new ParamModel("type", "String"));
       constructorModel.addParam(new ParamModel("arguments", "Array"));
-      StringBuilder propertyAssignments = new StringBuilder();
-      for (int i = 0; i < event.params.size(); i++) {
-        Param param = event.params.get(i);
+      constructorModel.setBody("super(type, arguments);");
 
-        // add assignment to constructor body:
-        propertyAssignments.append(String.format("%n    this['%s'] = arguments[%d];", convertName(param.name), i));
+      StringBuilder parameterSequence = new StringBuilder();
+      String separator = "[";
+      for (Param param : event.params) {
+        String parameterName = convertName(param.name);
 
-        // add getter method:
-        MethodModel property = new MethodModel(MethodType.GET, convertName(param.name), convertType(param.type));
-        property.setAsdoc(toAsDoc(param));
-        extAsClass.addMember(property);
+        // add parameter to sequence constant:
+        parameterSequence.append(separator).append(CompilerUtils.quote(parameterName));
+        separator = ", ";
+
+        if (!"eOpts".equals(param.name)) { // eOpts is inherited from FlExtEvent!
+          // add getter method:
+          MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
+          property.setAsdoc(toAsDoc(param));
+          extAsClass.addMember(property);
+        }
       }
+      parameterSequence.append("]");
 
-      constructorModel.setBody("super(NAME);" + propertyAssignments.toString());
-
+      FieldModel parameterSequenceConstant = new FieldModel("__PARAMETER_SEQUENCE__", "Array", parameterSequence.toString());
+      parameterSequenceConstant.setStatic(true);
+      parameterSequenceConstant.setConst(true);
+      extAsClass.addMember(parameterSequenceConstant);
     }
+
+    FieldModel eventNameConstant = new FieldModel(toConstantName(event.name), "String", CompilerUtils.quote("on" + eventName));
+    eventNameConstant.setStatic(true);
+    eventNameConstant.setConst(true);
+    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event), eventClientClass.getQName(), "on" + eventName));
+    eventType.getClassModel().addMember(eventNameConstant);
+
     return eventTypeQName;
+  }
+
+  private static String toCamelCase(String eventName) {
+    if (!eventName.toLowerCase().equals(eventName)) {
+      // already CamelCase:
+      return eventName;
+    }
+    StringBuilder camelCaseName = new StringBuilder();
+    for (String word : splitIntoWords(eventName)) {
+      camelCaseName.append(capitalize(word));
+    }
+    assert camelCaseName.toString().toLowerCase().equals(eventName);
+    return camelCaseName.toString();
+  }
+
+  private static String toConstantName(String eventName) {
+    StringBuilder constantName = new StringBuilder();
+    for (String word : splitIntoWords(eventName.toLowerCase())) {
+      constantName.append(word.toUpperCase()).append('_');
+    }
+    constantName.setLength(constantName.length() - 1); // cut last '_'
+    return constantName.toString();
+  }
+
+  private static List<String> splitIntoWords(String mergedWords) {
+    List<String> words = new ArrayList<String>();
+    String remaining = mergedWords;
+    while (!remaining.isEmpty()) {
+      String candidate = "";
+      for (Object keyObject : eventWordsProperties.keySet()) {
+        String key = (String) keyObject;
+        if (key.length() > candidate.length() && remaining.startsWith(key)) {
+          candidate = key;
+        }
+      }
+      if (candidate.isEmpty()) {
+        System.err.printf("No word found in dictionary for %s's suffix '%s'.%n", mergedWords, remaining);
+        candidate = remaining;
+      }
+      words.add(candidate);
+      remaining = remaining.substring(candidate.length());
+    } return words;
   }
 
   private static void addFields(ClassModel classModel, List<? extends Member> fields) {
