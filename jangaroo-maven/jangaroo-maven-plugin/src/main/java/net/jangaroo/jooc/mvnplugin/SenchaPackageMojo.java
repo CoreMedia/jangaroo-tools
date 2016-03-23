@@ -32,19 +32,19 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
   private boolean skipRemotePackaging;
 
   /**
-   * Defines the type of the Sencha package that will be generated. Possible values are "code" (default) and "theme".
+   * Defines the packageType of the Sencha package that will be generated. Possible values are "code" (default) and "theme".
    */
   @Parameter(defaultValue = Type.CODE)
-  private String type;
+  private String packageType;
 
   @Override
   public String getType() {
-    if (Type.CODE.equals(type) || Type.THEME.equals(type)) {
-      return type;
+    if (Type.CODE.equals(packageType) || Type.THEME.equals(packageType)) {
+      return packageType;
     }
-    getLog().error(String.format("%s is not a valid packaging type. Using \"code\" instead.", type));
-    type = Type.CODE;
-    return type;
+    getLog().error(String.format("%s is not a valid packaging packageType. Using \"code\" instead.", packageType));
+    packageType = Type.CODE;
+    return packageType;
   }
 
   @Override
