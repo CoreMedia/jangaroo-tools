@@ -33,7 +33,7 @@ public class RequiresConfigurer implements Configurer {
   private Set<Map<String, Object>> getRequiredDependencies() throws MojoExecutionException {
     Set<Map<String, Object>> requiredDependencies = new HashSet<Map<String, Object>>();
 
-    String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(senchaConfiguration.getTheme(), project);
+    MavenDependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
 
     List<Dependency> projectDependencies = project.getDependencies();
 
@@ -46,9 +46,9 @@ public class RequiresConfigurer implements Configurer {
               dependency.getGroupId(), dependency.getArtifactId()
       );
 
-      MavenDependency mavenDependency = MavenDependency.fromDependency(dependency);
-      if (!senchaPackageNameForArtifact.equals(themePackageName)
-              && SenchaUtils.isRequiredSenchaDependency(mavenDependency, remotePackageDependency, extFrameworkDependency)) {
+      MavenDependency projectDependency = MavenDependency.fromDependency(dependency);
+      if (SenchaUtils.isRequiredSenchaDependency(projectDependency, remotePackageDependency, extFrameworkDependency)
+              && !projectDependency.equalsGroupIdAndArtifactId(themeDependency)) {
         String version = SenchaUtils.getSenchaVersionForMavenVersion(dependency.getVersion());
         if (null == version) {
           throw new MojoExecutionException("Could not determine sencha version from maven version of artifact "

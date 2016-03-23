@@ -1,8 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 @Mojo(name = "sencha-package", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaPackageMojo extends AbstractMojo {
+public class SenchaPackageMojo extends AbstractSenchaMojo {
 
   @Inject
   private MavenProjectHelper helper;
@@ -24,20 +24,30 @@ public class SenchaPackageMojo extends AbstractMojo {
   private MavenProject project;
 
   /**
-   * The sencha configuration to use.
+   * Skip the build process of the sencha module.
+   *
+   * Only use this for local development to speed up the build process of the maven app.
+   * For deployment the build process is required otherwise remote packages will have no contents.
    */
-  @Parameter(property = "senchaConfiguration")
-  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
+  @Parameter(defaultValue = "false")
+  private boolean skipRemotePackaging;
 
+  /**
+   * @see SenchaConfiguration#getType()
+   */
+  @Parameter(defaultValue = Type.CODE)
+  private String type;
+
+  @Override
+  public String getType() {
+    return type;
+  }
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!senchaConfiguration.isSkipBuild()) {
+    if (!skipRemotePackaging) {
 
-      senchaConfiguration.setType(project.getPackaging()); // packaging is validated through lifecycle component mapping
-      senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
-
-      SenchaHelper senchaHelper = new SenchaPackageHelper(project, senchaConfiguration, getLog());
+      SenchaHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
       // for now:
       senchaHelper.createModule();
       senchaHelper.prepareModule();

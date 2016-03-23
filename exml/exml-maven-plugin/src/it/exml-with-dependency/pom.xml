@@ -42,9 +42,7 @@ under the License.
           <artifactId>jangaroo-maven-plugin</artifactId>
           <version>@project.version@</version>
           <configuration>
-            <senchaConfiguration>
-              <skipBuild>true</skipBuild>
-            </senchaConfiguration>
+            <skipRemotePackaging>true</skipRemotePackaging>
           </configuration>
         </plugin>
       </plugins>

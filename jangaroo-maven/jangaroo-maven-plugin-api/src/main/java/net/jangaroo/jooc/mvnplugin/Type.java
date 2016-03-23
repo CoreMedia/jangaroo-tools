@@ -26,7 +26,7 @@ public class Type {
   public static final String CODE = "sencha-code";
   public static final String THEME = "sencha-theme";
   public static final String APP = "sencha-app";
-  public static final String WORKSPACE = "pom"; // TODO pom?
+  public static final String WORKSPACE = "pom";
   public static final String PACKAGE_EXTENSION = "pkg";
   public static final String ZIP_EXTENSION = "zip";
 

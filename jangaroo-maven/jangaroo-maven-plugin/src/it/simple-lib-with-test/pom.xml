@@ -54,9 +54,7 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
         <configuration>
-          <senchaConfiguration>
-            <skipBuild>true</skipBuild>
-          </senchaConfiguration>
+          <skipRemotePackaging>true</skipRemotePackaging>
         </configuration>
       </plugin>
     </plugins>
@@ -69,11 +67,5 @@ under the License.
       <version>0.9.14</version>
     </dependency>
 
-    <!--<dependency>-->
-      <!--<groupId>net.jangaroo</groupId>-->
-      <!--<artifactId>joounit</artifactId>-->
-      <!--<scope>test</scope>-->
-      <!--<version>0.9.14</version>-->
-    <!--</dependency>-->
   </dependencies>
 </project>

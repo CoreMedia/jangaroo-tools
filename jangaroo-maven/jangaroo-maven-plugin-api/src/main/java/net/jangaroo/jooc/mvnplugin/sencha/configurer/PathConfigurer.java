@@ -37,7 +37,7 @@ public class PathConfigurer implements Configurer {
 
     boolean sassFromSrc = senchaConfiguration.isScssFromSrc();
 
-    config.put(OUTPUT, absolutePath(senchaConfiguration.getBuildDir(), false));
+    config.put(OUTPUT, absolutePath(SenchaUtils.SENCHA_RELATIVE_BUILD_PATH, false));
     config.put(CLASSPATH, absolutePath(SenchaUtils.SENCHA_RELATIVE_CLASS_PATH, false));
     config.put(OVERRIDES, absolutePath(SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH, false));
     List<Object> resources = new ArrayList<Object>();

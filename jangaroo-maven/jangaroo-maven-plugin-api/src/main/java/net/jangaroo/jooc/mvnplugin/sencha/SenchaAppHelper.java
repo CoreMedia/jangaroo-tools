@@ -36,7 +36,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
-    SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration);
+    SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration, log);
     pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     this.appConfigurers = new Configurer[]{
@@ -64,12 +64,9 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
       }
     }
 
-    String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(getSenchaConfiguration().getTheme(), getProject());
-
     String arguments = "generate app"
             + " -ext"
             + " -" + getSenchaConfiguration().getToolkit()
-            + " --theme-name=\"" + themePackageName + "\""
             + " --path=\"\""
             + " " + getSenchaModuleName();
     getLog().info("generating sencha app module");

@@ -49,9 +49,7 @@ under the License.
               <manifest>${project.build.sourceDirectory}/manifest.xml</manifest>
             </namespace>
           </namespaces>
-          <senchaConfiguration>
-            <skipBuild>true</skipBuild>
-          </senchaConfiguration>
+          <skipRemotePackaging>true</skipRemotePackaging>
         </configuration>
       </plugin>
     </plugins>

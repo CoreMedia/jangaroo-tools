@@ -4,9 +4,13 @@ import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
+import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -20,10 +24,12 @@ public class SenchaConfigurationConfigurer implements Configurer {
   static final String THEME = "theme";
 
   private MavenProject project;
+  private Log log;
   private SenchaConfiguration senchaConfiguration;
 
-  public SenchaConfigurationConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
+  public SenchaConfigurationConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     this.project = project;
+    this.log = log;
     this.senchaConfiguration = senchaConfiguration;
   }
 
@@ -35,7 +41,8 @@ public class SenchaConfigurationConfigurer implements Configurer {
     configureAdditionalResourcesForProfile(config, TESTING, senchaConfiguration.getTesting());
     configureAdditionalResourcesForProfile(config, DEVELOPMENT, senchaConfiguration.getDevelopment());
 
-    String themePackageName = SenchaUtils.getSenchaPackageNameForTheme(senchaConfiguration.getTheme(), project);
+    String themePackageName = getThemePackageName();
+
     if (Type.CODE.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
       config.put(THEME, themePackageName);
@@ -49,6 +56,23 @@ public class SenchaConfigurationConfigurer implements Configurer {
     }
   }
 
+  @Nonnull
+  private String getThemePackageName() {
+    MavenDependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
+    String themePackageName;
+    if (themeDependency == null) {
+      themePackageName = StringUtils.defaultString(senchaConfiguration.getTheme());
+      // print a warning if a theme was set but it could not be found in the list of dependencies
+      if (senchaConfiguration.getTheme() != null) {
+        log.warn(String.format("Could not identify theme dependency. Using theme  \"%s\" from configuration instead.",
+                themePackageName));
+      }
+    } else {
+      themePackageName = SenchaUtils.getSenchaPackageName(themeDependency.getGroupId(), themeDependency.getArtifactId());
+      log.info(String.format("Setting theme to \"%s\"", themePackageName));
+    }
+    return themePackageName;
+  }
 
   private void configureAdditionalResourcesForProfile(Map<String, Object> config, String profileName, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
     if (senchaProfileConfiguration != null) {

@@ -6,7 +6,6 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -31,7 +30,7 @@ import java.util.Set;
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES,
         requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
-public class SenchaRemotePackagesMojo extends AbstractMojo {
+public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
 
   private static final String PACKAGES_DIRECTORY = "/packages/";
   private static final String EXT_FRAMEWORK_DIRECTORY = "/ext/";
@@ -42,11 +41,13 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  @Parameter
-  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
-
   @Inject
   private ArchiverManager archiverManager;
+
+  @Override
+  public String getType() {
+    return null; // The remote packages mojo has no corresponding package type
+  }
 
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -69,7 +70,7 @@ public class SenchaRemotePackagesMojo extends AbstractMojo {
       unArchiver.setSourceFile(artifact.getFile());
 
       File packageTargetDir;
-      MavenDependency extFrameworkDependency = MavenDependency.fromKey(senchaConfiguration.getExtFrameworkArtifact());
+      MavenDependency extFrameworkDependency = MavenDependency.fromKey(getExtFrameworkArtifact());
       MavenDependency currentArtifactDependency = MavenDependency.fromArtifact(artifact);
       if (currentArtifactDependency.equalsGroupIdAndArtifactId(extFrameworkDependency)) {
         packageTargetDir = new File( getExtFrameworkDirectory(project) );

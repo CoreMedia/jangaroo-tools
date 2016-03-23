@@ -43,9 +43,7 @@ under the License.
           </execution>
         </executions>
         <configuration>
-          <senchaConfiguration>
-            <skipBuild>true</skipBuild>
-          </senchaConfiguration>
+          <skipRemotePackaging>true</skipRemotePackaging>
         </configuration>
       </plugin>
       <plugin>

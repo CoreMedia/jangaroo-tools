@@ -11,6 +11,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class SenchaUtils {
    *    - SENCHA_RELATIVE_CLASS_PATH.length - 4 (Separator)
    */
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
+  public static final String SENCHA_RELATIVE_BUILD_PATH = "build";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
   public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
@@ -101,22 +103,18 @@ public class SenchaUtils {
     }
   }
 
-  public static String getSenchaPackageNameForTheme(String theme, MavenProject project) throws MojoExecutionException {
-    String[] groupIdAndArtifactId = theme.split(":", 2);
-    if (groupIdAndArtifactId.length < 2) {
-      return theme;
-    }
+  @Nullable
+  public static MavenDependency getThemeDependency(@Nullable String theme, @Nonnull MavenProject project) {
+    MavenDependency themeDependency = MavenDependency.fromKey(theme);
     // verify that provided artifact is under project dependencies
-    String groupId = groupIdAndArtifactId[0];
-    String artifactId = groupIdAndArtifactId[1];
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (groupId.equals(artifact.getGroupId())
-              && artifactId.equals(artifact.getArtifactId())) {
-        return getSenchaPackageName(groupId, artifactId);
+      MavenDependency artifactDependency = MavenDependency.fromArtifact(artifact);
+      if (artifactDependency.equalsGroupIdAndArtifactId(themeDependency)) {
+        return artifactDependency;
       }
     }
-    throw new MojoExecutionException("Theme name references an artifact which is not added to dependencies");
+    return null;
   }
 
   public static File findClosestSenchaWorkspaceDir(File dir) {

@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import net.jangaroo.jooc.mvnplugin.Type;
-
 public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**
@@ -11,16 +9,11 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**
    * The toolkit to use
-   *
-   * Ignored for {@link Type#WORKSPACE}
    */
   String getToolkit();
 
   /**
-   * Used for {@link Type#APP} and {@link Type#CODE} to define the theme packages to use.
-   * For {@link Type#THEME} it defines the theme package to the theme extends.
-   *
-   * Ignored for {@link Type#WORKSPACE}
+   * Defines the theme package to be extended or to be used by the app or packages.
    *
    * When a ":" is found in the provided {@link String} it is assumed that a  maven dependency is used as theme and
    * converted properly.
@@ -29,38 +22,23 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**
    * Production only configuration
-   *
-   * Ignored for {@link Type#WORKSPACE}
    */
   SenchaProfileConfiguration getProduction();
 
   /**
    * Testing only configuration.
-   *
-   * Ignored for {@link Type#WORKSPACE}
    */
   SenchaProfileConfiguration getTesting();
 
   /**
    * Development only configuration
-   *
-   * Ignored for {@link Type#WORKSPACE}
    */
   SenchaProfileConfiguration getDevelopment();
 
   /**
-   * For {@link Type#WORKSPACE} defined the Ext Framework directory for the module.
-   *
-   * Ignored for {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME}
+   * Defines the Ext Framework directory of the workspace
    */
   String getExtFrameworkDir();
-
-  String getExtFrameworkArtifact();
-
-  /**
-   * Build directory relative to baseDir
-   */
-  String getBuildDir();
 
   /**
    * Packages directory relative to baseDir
@@ -68,17 +46,7 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
   String getPackagesDir();
 
   /**
-   * Skip the build process of the sencha module.
-   *
-   * Only use this for local development to speed up the build process of the maven app.
-   * For deployment the build process is required otherwise remote packages will have no contents.
-   *
-   * Ignored for {@link Type#WORKSPACE}
-   */
-  boolean isSkipBuild();
-
-  /**
-   * For {@link Type#APP}, {@link Type#CODE} and {@link Type#THEME} specifies if scss paths should map to the maven
+   * Specifies if scss paths should map to the maven
    * projects base sencha folder instead of to the generated module.
    *
    * Included paths:
@@ -88,14 +56,8 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
    *
    * When performaing packaging these paths will be removed temporarily as packages modules may not contain relative
    * paths outside the generated module folder.
-   *
-   * Ignored for {@link Type#WORKSPACE}
    */
   boolean isScssFromSrc();
-
-  void setToolkit(String toolkit);
-
-  void setTheme(String theme);
 
   void setExtFrameworkDir(String extFrameworkDir);
 

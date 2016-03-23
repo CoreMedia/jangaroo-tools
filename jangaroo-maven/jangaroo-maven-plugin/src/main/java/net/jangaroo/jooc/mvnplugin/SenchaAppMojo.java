@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -21,7 +20,7 @@ import java.io.File;
 
 
 @Mojo(name = "sencha-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaAppMojo extends AbstractMojo {
+public class SenchaAppMojo extends AbstractSenchaMojo {
 
   @Inject
   private MavenProjectHelper helper;
@@ -32,20 +31,15 @@ public class SenchaAppMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  /**
-   * The sencha configuration to use.
-   */
-  @Parameter(property = "senchaConfiguration")
-  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
-
+  @Override
+  public String getType() {
+    return Type.APP;
+  }
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    senchaConfiguration.setType(Type.APP);
-    senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
-
-    SenchaHelper senchaHelper = new SenchaAppHelper(project, senchaConfiguration, getLog());
+    SenchaHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
     // for now:
     senchaHelper.createModule();
     senchaHelper.prepareModule();

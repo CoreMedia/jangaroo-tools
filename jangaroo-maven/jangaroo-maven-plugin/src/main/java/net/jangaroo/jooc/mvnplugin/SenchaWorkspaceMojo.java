@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -44,7 +43,7 @@ import java.util.TreeSet;
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyCollection = ResolutionScope.COMPILE, // TEST needed when using pkgs for testing. see SenchaUtils#isRequireSenchaDependency
         threadSafe = true, aggregator = true)
-public class SenchaWorkspaceMojo extends AbstractMojo {
+public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
   @Parameter(defaultValue = "${session}")
   private MavenSession session;
@@ -52,18 +51,14 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  /**
-   * The sencha configuration to use.
-   */
-  @Parameter(property = "senchaConfiguration")
-  private MavenSenchaConfiguration senchaConfiguration = new MavenSenchaConfiguration();
+  @Override
+  public String getType() {
+    return Type.WORKSPACE;
+  }
 
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    senchaConfiguration.setType(Type.WORKSPACE);
-    senchaConfiguration.setProjectBuildDir(project.getBuild().getDirectory());
-
-    String remotePackagesFromConfiguration = senchaConfiguration.getRemotePackagesArtifact();
+    String remotePackagesFromConfiguration = getRemotePackagesArtifact();
 
     MavenProject remotePackagesProject = getRemotePackagesProject(remotePackagesFromConfiguration);
 
@@ -88,17 +83,21 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   private void createAndPrepareSenchaModule() throws MojoExecutionException {
     // for now:
-    SenchaHelper senchaHelper = new SenchaWorkspaceHelper(project, senchaConfiguration, getLog());
+    SenchaHelper senchaHelper = new SenchaWorkspaceHelper(project, this, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
   }
 
   private void addDirectoryLocations(MavenProject remotePackagesProject) throws MojoExecutionException {
-    String remotePackagesPath = getPathRelativeToCurrentProjectFrom(SenchaRemotePackagesMojo.getRemotePackagesDirectory(remotePackagesProject));
-    senchaConfiguration.setPackagesDir(remotePackagesPath);
+    String remotePackagesPath = getPathRelativeToCurrentProjectFrom(
+            SenchaRemotePackagesMojo.getRemotePackagesDirectory(remotePackagesProject)
+    );
+    setPackagesDir(remotePackagesPath);
 
-    String extPath = getPathRelativeToCurrentProjectFrom(SenchaRemotePackagesMojo.getExtFrameworkDirectory(remotePackagesProject));
-    senchaConfiguration.setExtFrameworkDir(extPath);
+    String extPath = getPathRelativeToCurrentProjectFrom(
+            SenchaRemotePackagesMojo.getExtFrameworkDirectory(remotePackagesProject)
+    );
+    setExtFrameworkDir(extPath);
   }
 
   /**
@@ -158,8 +157,8 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
   }
 
   private void collectRemoteDependencies(Set<MavenProject> remotePackages, List<MavenProject> localProjects, MavenProject currentProject) {
-    MavenDependency remotePackageDependency = MavenDependency.fromKey(senchaConfiguration.getRemotePackagesArtifact());
-    MavenDependency extFrameworkDependency = MavenDependency.fromKey(senchaConfiguration.getExtFrameworkArtifact());
+    MavenDependency remotePackageDependency = MavenDependency.fromKey(getRemotePackagesArtifact());
+    MavenDependency extFrameworkDependency = MavenDependency.fromKey(getExtFrameworkArtifact());
     for (Artifact artifact : currentProject.getArtifacts()) {
 
       MavenDependency dependency = MavenDependency.fromArtifact(artifact);
@@ -302,7 +301,7 @@ public class SenchaWorkspaceMojo extends AbstractMojo {
 
   private boolean isRemoteAggregator(@Nonnull MavenProject project) {
     MavenDependency dependency = MavenDependency.fromProject(project);
-    MavenDependency remotePackagesDependency = MavenDependency.fromKey(senchaConfiguration.getRemotePackagesArtifact());
+    MavenDependency remotePackagesDependency = MavenDependency.fromKey(getRemotePackagesArtifact());
     return dependency.equalsGroupIdAndArtifactId(remotePackagesDependency);
   }
 
