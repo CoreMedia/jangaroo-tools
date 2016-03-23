@@ -181,14 +181,8 @@ public class PackageMojo extends AbstractMojo {
       }
     }
     getLog().info("Creating Jangaroo module classes loader script '" + jsFile.getAbsolutePath() + "'.");
-    OutputStreamWriter writer = null;
-    try {
-      writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8");
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8")) {
       writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
     }
   }
 
@@ -215,14 +209,8 @@ public class PackageMojo extends AbstractMojo {
 
     File mf = File.createTempFile("maven", ".mf");
     mf.deleteOnExit();
-    PrintWriter writer = null;
-    try {
-      writer = new PrintWriter(new FileWriter(mf));
+    try (PrintWriter writer = new PrintWriter(new FileWriter(mf))) {
       manifest.write(writer);
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
     }
     return mf;
   }

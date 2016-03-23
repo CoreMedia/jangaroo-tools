@@ -126,10 +126,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
           throw new MojoExecutionException("Could not delete resource file for editor plugins");
         }
       }
-      PrintWriter pw = null;
-      try {
-        FileWriter fw = new FileWriter(resource, true);
-        pw = new PrintWriter(fw);
+
+      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
+
         for (EditorPluginDescriptor editorPlugin : editorPlugins) {
           if (null == editorPlugin.getMainClass()) {
             getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
@@ -156,11 +155,8 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
         }
       } catch (IOException e) {
         throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
-      } finally {
-        if (null != pw) {
-          pw.close();
-        }
       }
+
     }
   }
 

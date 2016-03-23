@@ -143,9 +143,10 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private static final String JOO_FLUSH_STYLE_SHEETS = "\njoo.flushStyleSheets();\n";
 
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
-    Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
-    Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js");
-    try {
+
+    try ( Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
+          Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js")) {
+
       jangarooApplicationWriter.write("// This file loads all collected JavaScript code from dependent Jangaroo modules.\n\n");
       jangarooApplicationAllWriter.write("// This file contains all collected JavaScript code from dependent Jangaroo modules.\n\n");
 
@@ -156,14 +157,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
       jangarooApplicationWriter.write(JOO_FLUSH_STYLE_SHEETS);
       jangarooApplicationAllWriter.write(JOO_FLUSH_STYLE_SHEETS);
-    } finally {
-      try {
-        jangarooApplicationWriter.close();
-        jangarooApplicationAllWriter.close();
-      } catch (IOException e) {
-        getLog().warn("IOException on close ignored.", e);
-      }
+
     }
+
   }
 
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
