@@ -37,6 +37,7 @@ public class PathConfigurer implements Configurer {
 
     boolean sassFromSrc = senchaConfiguration.isScssFromSrc();
 
+    // TODO check if this is actually correct for apps - where can we keep the defaults
     config.put(OUTPUT, absolutePath(SenchaUtils.SENCHA_RELATIVE_BUILD_PATH, false));
     config.put(CLASSPATH, absolutePath(SenchaUtils.SENCHA_RELATIVE_CLASS_PATH, false));
     config.put(OVERRIDES, absolutePath(SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH, false));
