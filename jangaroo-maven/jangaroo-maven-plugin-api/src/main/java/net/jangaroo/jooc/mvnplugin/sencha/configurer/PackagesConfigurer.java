@@ -54,7 +54,7 @@ public class PackagesConfigurer implements Configurer {
 
       for (MavenProject project : projectsInReactor) {
         String packageType = project.getPackaging();
-        if (Type.CODE.equals(packageType) || Type.THEME.equals(packageType)) {
+        if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
           senchaPackages.add(project);
         }
       }

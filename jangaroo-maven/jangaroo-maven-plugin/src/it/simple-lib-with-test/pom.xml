@@ -23,7 +23,7 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>test</groupId>
   <artifactId>simple-lib-with-test</artifactId>
-  <packaging>sencha-code</packaging>
+  <packaging>jangaroo-pkg</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>

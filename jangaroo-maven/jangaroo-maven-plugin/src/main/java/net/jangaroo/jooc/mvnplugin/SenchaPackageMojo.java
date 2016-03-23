@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -33,13 +32,18 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
   private boolean skipRemotePackaging;
 
   /**
-   * @see SenchaConfiguration#getType()
+   * Defines the type of the Sencha package that will be generated. Possible values are "code" (default) and "theme".
    */
   @Parameter(defaultValue = Type.CODE)
   private String type;
 
   @Override
   public String getType() {
+    if (Type.CODE.equals(type) || Type.THEME.equals(type)) {
+      return type;
+    }
+    getLog().error(String.format("%s is not a valid packaging type. Using \"code\" instead.", type));
+    type = Type.CODE;
     return type;
   }
 

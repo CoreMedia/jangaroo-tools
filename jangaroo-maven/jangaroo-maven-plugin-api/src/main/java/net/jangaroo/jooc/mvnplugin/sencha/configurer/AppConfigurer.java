@@ -44,7 +44,7 @@ public class AppConfigurer implements Configurer {
       // filter apps from all projects
       for (MavenProject project : projectsInReactor) {
         String packaging = project.getPackaging();
-        if (Type.APP.equals(packaging)) {
+        if (Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
           senchaApps.add(project);
         }
       }

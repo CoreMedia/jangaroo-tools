@@ -19,21 +19,28 @@ package net.jangaroo.jooc.mvnplugin;
 import org.apache.maven.project.MavenProject;
 
 /**
- * @author <a href="mailto:nicolas.deloof@gmail.com">nicolas De Loof</a>
+ * Contains some basic constants concerning the different entities of a Jangaroo and a SenchaCmd workspace
  */
-public class Type {
+public final class Type {
 
-  public static final String CODE = "sencha-code";
-  public static final String THEME = "sencha-theme";
-  public static final String APP = "sencha-app";
-  public static final String WORKSPACE = "pom";
+  public static final String CODE = "code";
+  public static final String THEME = "theme";
+  public static final String APP = "app";
+  public static final String WORKSPACE = "workspace";
+
   public static final String PACKAGE_EXTENSION = "pkg";
   public static final String ZIP_EXTENSION = "zip";
 
-  public static boolean containsJangarooSources(MavenProject project) {
-    String packagingType = project.getPackaging();
-    return Type.APP.equals(packagingType) || Type.CODE.equals(packagingType) || Type.THEME.equals(packagingType);
+  public static final String JANGAROO_PKG_PACKAGING = "jangaroo-pkg";
+  public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
+
+  private Type() {
+    // hide utility class constructor
   }
 
+  public static boolean containsJangarooSources(MavenProject project) {
+    String packagingType = project.getPackaging();
+    return Type.JANGAROO_PKG_PACKAGING.equals(packagingType) || Type.JANGAROO_APP_PACKAGING.equals(packagingType);
+  }
 
 }
