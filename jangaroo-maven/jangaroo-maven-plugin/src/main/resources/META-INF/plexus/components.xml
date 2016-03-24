@@ -11,9 +11,9 @@
       <role-hint>jangaroo-pkg</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
       <configuration>
-        <type>jangaroo-pkg</type>
-        <extension>jar</extension>
-        <language>jangaroo</language>
+        <type>pkg</type>
+        <extension>pkg</extension>
+        <language>extjs</language>
         <addedToClasspath>false</addedToClasspath>
         <packaging>jangaroo-pkg</packaging>
       </configuration>
