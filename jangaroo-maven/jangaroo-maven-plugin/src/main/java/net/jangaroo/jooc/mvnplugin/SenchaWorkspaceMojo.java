@@ -196,7 +196,9 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
     for (MavenProject project : session.getProjects()) {
 
       // if the project does not contain the dependency to the remote packages aggregator, add it
-      if (Type.containsJangarooSources(project) && !containsProject(project.getDependencies(), remotesProject)) {
+      if (!remotesProject.equals(project)
+              && Type.containsJangarooSources(project)
+              && !containsProject(project.getDependencies(), remotesProject)) {
 
         Dependency remotesDependency;
         if (!Objects.equals(remotesProject.getVersion(), project.getVersion())) {
