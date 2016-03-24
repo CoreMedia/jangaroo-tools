@@ -25,7 +25,7 @@ public class SenchaAppMojo extends AbstractSenchaMojo {
   @Inject
   private MavenProjectHelper helper;
 
-  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = "jar")
+  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
   private Archiver jarArchiver;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)

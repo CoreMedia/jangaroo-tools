@@ -8,13 +8,26 @@
     -->
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
-      <role-hint>jangaroo</role-hint>
+      <role-hint>jangaroo-pkg</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
       <configuration>
-        <type>jangaroo</type>
+        <type>jangaroo-pkg</type>
         <extension>jar</extension>
         <language>jangaroo</language>
         <addedToClasspath>false</addedToClasspath>
+        <packaging>jangaroo-pkg</packaging>
+      </configuration>
+    </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>jangaroo-app</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>jangaroo-app</type>
+        <extension>jar</extension>
+        <language>jangaroo</language>
+        <addedToClasspath>false</addedToClasspath>
+        <packaging>jangaroo-app</packaging>
       </configuration>
     </component>
 

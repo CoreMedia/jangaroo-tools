@@ -295,7 +295,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private Map<String, Artifact> artifactByInternalId() {
     final Map<String, Artifact> internalId2Artifact = new HashMap<String, Artifact>();
     for (Artifact artifact : getArtifacts()) {
-      if ("jar".equals(artifact.getType())) {
+      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
         String internalId = getInternalId(artifact);
         internalId2Artifact.put(internalId, artifact);
       }
@@ -320,8 +320,8 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
     List<String> deps = new LinkedList<String>();
     for (Dependency dep : getDependencies( projectBuildingResult.getProject() )) {
-      if ("jar".equals(dep.getType()) &&
-        ("compile".equals(dep.getScope()) || "runtime".equals(dep.getScope()))) {
+      if (Type.JAR_EXTENSION.equals(dep.getType()) &&
+        (Artifact.SCOPE_COMPILE.equals(dep.getScope()) || Artifact.SCOPE_RUNTIME.equals(dep.getScope()))) {
         deps.add(getInternalId(dep));
       }
     }

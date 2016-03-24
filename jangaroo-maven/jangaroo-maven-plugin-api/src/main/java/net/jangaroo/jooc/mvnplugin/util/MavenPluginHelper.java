@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -72,7 +73,9 @@ public class MavenPluginHelper {
       if (log.isDebugEnabled()) {
         log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + " type: " + dependency.getType());
       }
-      if (!dependency.isOptional() && ("compile".equals(dependency.getScope()) || includeTestScope && "test".equals(dependency.getScope())) && "jar".equals(dependency.getType())) {
+      if (!dependency.isOptional()
+              && (Artifact.SCOPE_COMPILE.equals(dependency.getScope()) || includeTestScope && Artifact.SCOPE_TEST.equals(dependency.getScope()))
+              && Type.JAR_EXTENSION.equals(dependency.getType())) {
         if (log.isDebugEnabled()) {
           log.debug("adding to classpath: compile dependency [" + dependency.toString() + "]");
         }
