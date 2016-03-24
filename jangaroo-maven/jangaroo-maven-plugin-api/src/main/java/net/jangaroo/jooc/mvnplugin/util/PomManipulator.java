@@ -157,9 +157,6 @@ public class PomManipulator {
     //Only one dependencies tag allowed in maven, so we can assume we want this node.
     Node dependenciesNode = nodes.item(0);
 
-    // remove all existing dependencies
-    removeChilds(dependenciesNode);
-
     // XmlHelper.removeEmptyText(dependenciesNode, log);
 
     // add all the new dependencies
@@ -167,12 +164,6 @@ public class PomManipulator {
       Node dependencyNode = createDependencyNode(document, dependency);
       dependenciesNode.appendChild(dependencyNode);
       log.info("Append dependency to dependency management: " + dependency);
-    }
-  }
-
-  private static void removeChilds(Node node) {
-    while (node.hasChildNodes()) {
-      node.removeChild(node.getFirstChild());
     }
   }
 

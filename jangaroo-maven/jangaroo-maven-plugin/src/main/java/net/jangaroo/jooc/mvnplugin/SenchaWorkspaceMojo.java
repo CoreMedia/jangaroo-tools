@@ -133,17 +133,26 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
    */
   public void updateRemotePackages(MavenProject remoteAggregatorProject) throws MojoExecutionException {
     long startTime = System.nanoTime();
+
     // we need to use projects in this set, because the class dependency does not have an equals method
     Set<MavenProject> remotePackagesProjects = new TreeSet<>(new MavenProjectComparator());
+    for (Artifact artifact : remoteAggregatorProject.getDependencyArtifacts()) {
+      MavenProject project = createProjectFromArtifact(artifact);
+    }
 
-    List<MavenProject> collectedProjects = session.getProjects();
+    List<MavenProject> localProjects = session.getProjects();
 
     // check all collected projects for packaging type jangaroo
-    for (MavenProject currentProject : collectedProjects) {
-      if (Type.containsJangarooSources(currentProject)) {
+    for (MavenProject localProject : localProjects) {
+      if (Type.containsJangarooSources(localProject)) {
         // check all dependencies of this project, do they contain remote dependencies
-        collectRemoteDependencies(remotePackagesProjects, collectedProjects, currentProject);
+        collectRemoteDependencies(remotePackagesProjects, localProjects, localProject);
       }
+    }
+
+    // remove those dependencies that are already in the remote aggregator
+    for (Artifact artifact : remoteAggregatorProject.getDependencyArtifacts()) {
+      remotePackagesProjects.remove(createProjectFromArtifact(artifact));
     }
 
     // we need this as list of dependencies
@@ -164,6 +173,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
       MavenDependency dependency = MavenDependency.fromArtifact(artifact);
       if (SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency, extFrameworkDependency)) {
         MavenProject projectFromDependency = createProjectFromArtifact(artifact);
+
         if (!remotePackages.contains(projectFromDependency) && !localProjects.contains(projectFromDependency)) {
           // add dependency to this project for remote packaging
           getLog().info(String.format("Added remote dependency \"%s\" for project \"%s\"", artifact.getId(), currentProject.getId()));
