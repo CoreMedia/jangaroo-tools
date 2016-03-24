@@ -47,7 +47,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
   }
 
   protected void copyFilesFromSrc(String path) throws MojoExecutionException {
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
+    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_CLASS_PATH);
     copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
     copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
     copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_SASS_PATH);
