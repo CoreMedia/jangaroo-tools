@@ -196,6 +196,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
           remotesDependency = createDependency(
                   remotesProject.getGroupId(), remotesProject.getArtifactId(), "pom", "${project.version}");
         }
+        remotesDependency.setScope(Artifact.SCOPE_PROVIDED);
 
         PomManipulator.addDependency(project, remotesDependency, getLog());
 
@@ -260,7 +261,6 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
     if (isDependencyManaged(remoteAggregator, dependency)) {
       dependency.setVersion(null);
     }
-
     dependency.setType(Type.PACKAGE_EXTENSION);
 
     return dependency;
