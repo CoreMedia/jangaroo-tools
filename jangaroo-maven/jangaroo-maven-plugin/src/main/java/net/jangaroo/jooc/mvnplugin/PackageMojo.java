@@ -127,7 +127,7 @@ public class PackageMojo extends AbstractMojo {
   private String moduleClassesJsFile;
 
   /**
-   * The sencha configuration to use.
+   * The Sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
   private MavenSenchaConfiguration senchaConfiguration;

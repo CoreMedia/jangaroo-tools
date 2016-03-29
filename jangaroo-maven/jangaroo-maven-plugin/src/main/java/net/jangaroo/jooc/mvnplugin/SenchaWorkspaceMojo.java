@@ -62,7 +62,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
     MavenProject remotePackagesProject = getRemotePackagesProject(remotePackagesFromConfiguration);
 
-    // add location of dirs to sencha configuration
+    // add location of dirs to Sencha configuration
     addDirectoryLocations(remotePackagesProject);
 
     // only update POMs if a separate remote-packages module exists and is configured
@@ -76,7 +76,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
     }
 
-    // we need to create the sencha module
+    // we need to create the Sencha module
     createAndPrepareSenchaModule();
 
   }

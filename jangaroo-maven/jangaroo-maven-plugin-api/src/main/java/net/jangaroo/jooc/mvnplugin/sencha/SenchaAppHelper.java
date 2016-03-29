@@ -97,7 +97,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File senchaDirectory = new File(senchaAppPath);
 
     if (!senchaDirectory.exists()) {
-      getLog().info("Generating sencha into: " + senchaDirectory.getPath());
+      getLog().info("Generating Sencha into: " + senchaDirectory.getPath());
       getLog().debug("Created " + senchaDirectory.mkdirs());
     }
 
@@ -136,12 +136,12 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
 
     if (null == workspaceDir) {
-      throw new MojoExecutionException("Could not find sencha workspace directory ");
+      throw new MojoExecutionException("Could not find Sencha workspace directory ");
     }
 
     File productionDirectory = new File(senchaAppPath + "/build/" + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
     if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
-      throw new MojoExecutionException("Could not find production directory for sencha app " + productionDirectory);
+      throw new MojoExecutionException("Could not find production directory for Sencha app " + productionDirectory);
     }
 
 
@@ -175,7 +175,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    getLog().info("Building sencha app module");
+    getLog().info("Building Sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
     senchaCmdExecutor.execute();
   }

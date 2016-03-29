@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A set of helper functions for handling sencha package structure.
+ * A set of helper functions for handling Sencha package structure.
  */
 abstract class AbstractSenchaHelper implements SenchaHelper {
 
@@ -154,7 +154,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
           pw.println("});");
         }
       } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
+        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");
       }
 
     }

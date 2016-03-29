@@ -67,18 +67,18 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     try {
       workingDirectory = new File(senchaPackagePath).getCanonicalFile();
     } catch (IOException e) {
-      throw new MojoExecutionException("could not determine working directory", e);
+      throw new MojoExecutionException("Could not determine working directory", e);
     }
 
     if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("could not create working directory " + workingDirectory);
+      throw new MojoExecutionException("Could not create working directory " + workingDirectory);
     }
 
     File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
     // make sure senchaCfg does not exist
     if (senchaCfg.exists()) {
       if (!senchaCfg.delete()) {
-        throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_PACKAGE_CONFIG + " for package");
+        throw new MojoExecutionException("Could not delete " + senchaCfg);
       }
     }
 
@@ -87,21 +87,21 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     // we must use the --name parameter to specify a path to the package directory as workspace.json cannot be modified
     // because of problems with parallel builds
 
-    // because using "/" in package name is not valid we must prevent sencha generate package to create a package.json
+    // because using "/" in package name is not valid we must prevent Sencha generate package to create a package.json
     // otherwise a temporary state exists where the whole workspace fails to build because of an invalid package name.
-    // this can be achieved by creating a package.json before sencha generate package is triggered.
+    // this can be achieved by creating a package.json before Sencha generate package is triggered.
     writePackageJson(workingDirectory);
 
     Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
-      String arguments = "generate package"
-              + " --name=\"" + getSenchaModuleName() + "\""
-              + " --namespace=\"\""
-              + " --type=\"code\""
-              + " " + pathToWorkingDirectory;
-      getLog().info("generating sencha package module");
-      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
-      senchaCmdExecutor.execute();
+    String arguments = "generate package"
+            + " --name=\"" + getSenchaModuleName() + "\""
+            + " --namespace=\"\""
+            + " --type=\"code\""
+            + " " + pathToWorkingDirectory;
+    getLog().info("Generating Sencha package module");
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+    senchaCmdExecutor.execute();
 
     // sencha.cfg should be recreated
     // for normal packages skip generating css and slices
@@ -110,10 +110,10 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
         pw.println("skip.sass=1");
         pw.println("skip.slice=1");
       } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
+        throw new MojoExecutionException("Could not append skip.sass and skip.slice to sencha.cfg of package");
       }
     } else {
-      throw new MojoExecutionException("could not find sencha.cfg of package");
+      throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
 
   }
@@ -123,8 +123,8 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     File senchaPackageDirectory = new File(senchaPackagePath);
 
     if (!senchaPackageDirectory.exists()) {
-      getLog().info("generating sencha package into: " + senchaPackageDirectory.getPath());
-      getLog().debug("created " + senchaPackageDirectory.mkdirs());
+      getLog().info("Generating Sencha package into: " + senchaPackageDirectory.getPath());
+      getLog().debug("Created " + senchaPackageDirectory.mkdirs());
     }
 
     copyFiles(senchaPackagePath);
@@ -148,7 +148,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     File senchaPackageDirectory = new File(senchaPackagePath);
 
     if (!senchaPackageDirectory.exists()) {
-      throw new MojoExecutionException("sencha package directory does not exist: " + senchaPackageDirectory.getPath());
+      throw new MojoExecutionException("Sencha package directory does not exist: " + senchaPackageDirectory.getPath());
     }
 
     if (getSenchaConfiguration().isScssFromSrc()) {
@@ -162,7 +162,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
 
     File pkg = new File(senchaPackageBuildOutputDir + getSenchaModuleName() + SenchaUtils.SENCHA_PKG_EXTENSION);
     if (!pkg.exists()) {
-      throw new MojoExecutionException("could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for sencha package " + getSenchaModuleName());
+      throw new MojoExecutionException("Could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaModuleName());
     }
 
     if (getSenchaConfiguration().isScssFromSrc()) {
@@ -182,12 +182,12 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     try {
       SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, packageConfig);
     } catch (IOException e) {
-      throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_PACKAGE_FILENAME, e);
+      throw new MojoExecutionException("Could not write " + SenchaUtils.SENCHA_PACKAGE_FILENAME, e);
     }
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {
-    getLog().info("building sencha package module");
+    getLog().info("Building Sencha package module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaPackageDirectory, "package build", getLog());
     senchaCmdExecutor.execute();
   }

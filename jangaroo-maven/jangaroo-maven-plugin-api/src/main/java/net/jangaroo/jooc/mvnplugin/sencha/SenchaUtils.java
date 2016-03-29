@@ -143,7 +143,7 @@ public class SenchaUtils {
    * Generates an absolute path to the module dir for the given relative path using a placeholder.
    *
    * @param packageType the Maven project's packaging type
-   * @param relativePath the path relative to the sencha module
+   * @param relativePath the path relative to the Sencha module
    * @return path prefixed with a placeholder and a separator to have an absolute path
    */
   public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
@@ -164,7 +164,7 @@ public class SenchaUtils {
   public static Path getRelativePathFromWorkspaceToWorkingDir(File workingDirectory) throws MojoExecutionException {
     File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
     if (null == closestSenchaWorkspaceDir) {
-      throw new MojoExecutionException("could not find sencha workspace above workingDirectory");
+      throw new MojoExecutionException("could not find Sencha workspace above workingDirectory");
     }
     Path workspacePath = closestSenchaWorkspaceDir.toPath().normalize();
     Path workingDirectoryPath = workingDirectory.toPath().normalize();

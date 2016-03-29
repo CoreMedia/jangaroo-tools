@@ -70,7 +70,7 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper {
       }
 
 
-      getLog().info("Generating sencha workspace module");
+      getLog().info("Generating Sencha workspace module");
       SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog());
       senchaCmdExecutor.execute();
 
@@ -116,7 +116,7 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper {
     workingDirectory = new File(senchaWorkspacePath);
 
     if (!workingDirectory.exists()) {
-      getLog().info("Generating sencha package into: " + workingDirectory.getPath());
+      getLog().info("Generating Sencha package into: " + workingDirectory.getPath());
       getLog().debug("Created " + workingDirectory.mkdirs());
     }
 

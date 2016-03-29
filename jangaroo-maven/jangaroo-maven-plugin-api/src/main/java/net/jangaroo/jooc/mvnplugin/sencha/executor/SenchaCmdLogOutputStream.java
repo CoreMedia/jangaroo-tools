@@ -28,11 +28,11 @@ public class SenchaCmdLogOutputStream extends LogOutputStream {
     // (e.g. if startet at exactly the same time)
     if (line.contains(ERROR_MESSAGE_BIND_FAIL)) {
       executeException = new RecoverableExecuteException("Detected bind fail", -1);
-      // on some systems sencha cmd hangs after bind fail...
+      // on some systems Sencha cmd hangs after bind fail...
       watchdog.destroyProcess();
     }
     // we cannot use --strict because not all warnings can be avoided, so we need to check for warnings
-    // about failed resolving of packages (why isn't this an error in sencha cmd?)
+    // about failed resolving of packages (why isn't this an error in Sencha cmd?)
     if (line.contains(ERROR_MESSAGE_PACKAGE_NOT_FOUND)) {
       executeException = new ExecuteException("Detected failed to resolve package", -1);
     }

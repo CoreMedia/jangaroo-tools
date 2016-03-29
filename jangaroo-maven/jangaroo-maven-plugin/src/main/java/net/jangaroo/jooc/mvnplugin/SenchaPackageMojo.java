@@ -23,7 +23,7 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
   private MavenProject project;
 
   /**
-   * Skip the build process of the sencha module.
+   * Skip the build process of the Sencha module.
    *
    * Only use this for local development to speed up the build process of the maven app.
    * For deployment the build process is required otherwise remote packages will have no contents.

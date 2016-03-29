@@ -51,7 +51,7 @@ public class RequiresConfigurer implements Configurer {
               && !projectDependency.equalsGroupIdAndArtifactId(themeDependency)) {
         String version = SenchaUtils.getSenchaVersionForMavenVersion(dependency.getVersion());
         if (null == version) {
-          throw new MojoExecutionException("Could not determine sencha version from maven version of artifact "
+          throw new MojoExecutionException("Could not determine Sencha version from maven version of artifact "
                   + dependency.getManagementKey());
         }
         Map<String, Object> require = new HashMap<String, Object>();
