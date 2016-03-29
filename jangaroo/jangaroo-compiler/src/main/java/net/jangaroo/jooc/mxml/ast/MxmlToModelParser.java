@@ -29,17 +29,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public final class MxmlToModelParser {
+final class MxmlToModelParser {
 
   private static final String EXT_CONFIG_CREATE_FLAG = "create";
   private static final String EXT_CONFIG_EXTRACT_XTYPE_PARAMETER = "extractXType";
 
   private static final String CONFIG_MODE_AT_SUFFIX = "$at";
   private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
-  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>();
+  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<>();
 
   private static final String DELETE_OBJECT_PROPERTY_CODE = "\n    delete %s['%s'];";
-  public static final String UNTYPED_MARKER = "__UNTYPED__";
+  private static final String UNTYPED_MARKER = "__UNTYPED__";
 
   static {
     CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
@@ -53,7 +53,7 @@ public final class MxmlToModelParser {
   private final StringBuilder constructorCode = new StringBuilder();
   private final StringBuilder classBodyCode = new StringBuilder();
 
-  public MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
+  MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
     this.mxmlParserHelper = mxmlParserHelper;
     this.compilationUnit = mxmlCompilationUnit;
@@ -126,7 +126,7 @@ public final class MxmlToModelParser {
     return null;
   }
 
-  public void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
+  void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
     processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
     processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
@@ -137,7 +137,7 @@ public final class MxmlToModelParser {
     ClassModel classModel = type == null ? null : type.getClassModel();
     List<XmlElement> childNodes = objectNode.getElements();
     MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
-    List<XmlElement> defaultPropertyValues = new ArrayList<XmlElement>();
+    List<XmlElement> defaultPropertyValues = new ArrayList<>();
     for (XmlElement element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
         MemberModel propertyModel = null;
@@ -209,7 +209,7 @@ public final class MxmlToModelParser {
   }
 
   private String createArrayCodeFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
-    List<String> arrayItems = new ArrayList<String>();
+    List<String> arrayItems = new ArrayList<>();
     for (XmlElement arrayItemNode : childElements) {
       String itemValue = createValueCodeFromElement(null, arrayItemNode, useConfigObjects);
       arrayItems.add(itemValue);
@@ -239,7 +239,7 @@ public final class MxmlToModelParser {
   }
 
   @Nullable
-  public String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
+  String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
     String className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
     if (className == null) {
       throw JangarooParser.error(objectElement, "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
@@ -322,7 +322,7 @@ public final class MxmlToModelParser {
   }
 
   private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
-    String value = null;
+    String value;
     String textContent = getTextContent(objectElement);
     if (MxmlUtils.isBindingExpression(textContent)) {
       return MxmlUtils.getBindingExpression(textContent);
@@ -558,13 +558,13 @@ public final class MxmlToModelParser {
     return null != textNode ? textNode.getText() : "";
   }
 
-  public String consumeConstructorCode() {
+  String consumeConstructorCode() {
     String result = constructorCode.toString();
     constructorCode.setLength(0);
     return result;
   }
 
-  public String getClassBodyCode() {
+  String getClassBodyCode() {
     return classBodyCode.toString();
   }
 }
