@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.Type;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -20,11 +19,9 @@ public class AppConfigurer implements Configurer {
   public static final String APP = "apps";
 
   private MavenProject project;
-  private SenchaConfiguration senchaConfiguration;
 
-  public AppConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
+  public AppConfigurer(MavenProject project) {
     this.project = project;
-    this.senchaConfiguration = senchaConfiguration;
   }
 
   @Override
@@ -33,9 +30,9 @@ public class AppConfigurer implements Configurer {
   }
 
   private List<String> getLocalPathsToApps() throws MojoExecutionException {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
 
-    Set<MavenProject> senchaApps = new HashSet<MavenProject>();
+    Set<MavenProject> senchaApps = new HashSet<>();
 
     List<MavenProject> projectsInReactor = project.getCollectedProjects();
 
@@ -73,10 +70,6 @@ public class AppConfigurer implements Configurer {
     }
 
     return Collections.unmodifiableList(result);
-  }
-
-  private String absolutePath(String path) {
-    return SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), path);
   }
 
 }

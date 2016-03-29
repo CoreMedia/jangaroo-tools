@@ -137,7 +137,9 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
     FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
             "pkg.file.name", "${package.name}.pkg",
-            "pkg.build.dir", "${package.dir}/build"));
+            "pkg.build.dir", "${package.dir}/build",
+            "build.temp.dir", "${package.dir}/build/temp"
+    ));
   }
 
   @Override

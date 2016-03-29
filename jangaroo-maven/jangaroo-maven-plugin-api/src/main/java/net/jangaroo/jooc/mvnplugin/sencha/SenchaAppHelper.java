@@ -106,7 +106,10 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     writeAppJson(workingDirectory);
 
     File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + SENCHA_APP_BUILD_PROPERTIES_FILE);
-    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of("build.dir", "${app.dir}/build/${build.environment}"));
+    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
+            "build.dir", "${app.dir}/build/${build.environment}",
+            "build.temp.dir", "${app.dir}/build/temp/${build.environment}"
+    ));
   }
 
   @Override
