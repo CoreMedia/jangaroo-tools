@@ -46,7 +46,6 @@ public class SenchaUtils {
    *    - SENCHA_RELATIVE_CLASS_PATH.length - 4 (Separator)
    */
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
-  public static final String SENCHA_RELATIVE_BUILD_PATH = "build";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
   public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
