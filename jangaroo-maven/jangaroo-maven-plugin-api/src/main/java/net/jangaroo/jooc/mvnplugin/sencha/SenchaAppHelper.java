@@ -20,10 +20,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.UUID;
 
 public class SenchaAppHelper extends AbstractSenchaHelper {
 
   private static final String SENCHA_APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
+  private static final String SENCHA_APP_ID_ATTRIBUTE = "id";
 
   private final PathConfigurer pathConfigurer;
   private final Configurer[] appConfigurers;
@@ -156,6 +158,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
 
   private void writeAppJson(File workingDirectory) throws MojoExecutionException {
     Map<String, Object> appConfig = getAppConfig();
+    appConfig.put(SENCHA_APP_ID_ATTRIBUTE, generateSenchaAppId());
 
     File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_FILENAME);
     try {
@@ -163,7 +166,12 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     } catch (IOException e) {
       throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_APP_FILENAME, e);
     }
+  }
 
+  private String generateSenchaAppId() {
+    String appIdString = SenchaUtils.getSenchaPackageName(getProject().getGroupId(), getProject().getArtifactId()) +
+            SenchaUtils.getSenchaVersionForMavenVersion(getProject().getVersion());
+    return UUID.nameUUIDFromBytes(appIdString.getBytes()).toString();
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
