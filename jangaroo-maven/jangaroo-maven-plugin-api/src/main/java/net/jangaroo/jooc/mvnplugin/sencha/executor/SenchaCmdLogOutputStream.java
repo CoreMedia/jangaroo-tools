@@ -21,7 +21,7 @@ public class SenchaCmdLogOutputStream extends LogOutputStream {
   }
 
   @Override protected void processLine(String line, int level) {
-    log.debug(line);
+    log.info(line);
     // IMPORTANT: this is just a workaround!
     // Although Sencha CMD supports multiple instances and picks different ports for the internal phantomjs
     // instance, it does not seem to be robust to support parallel builds.

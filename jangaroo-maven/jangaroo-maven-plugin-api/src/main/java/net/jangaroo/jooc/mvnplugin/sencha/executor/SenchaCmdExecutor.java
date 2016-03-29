@@ -42,12 +42,12 @@ public class SenchaCmdExecutor {
         try {
           internalExecute(cmdLine);
         } catch (RecoverableExecuteException e) {
-          log.debug("Execution of Sencha Cmd failed.");
           if (currentAttempt >= MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS) {
+            log.error("Execution of Sencha Cmd failed.");
             throw e;
           }
           currentAttempt++;
-          log.debug(String.format("Trying again - Attempt: %s of %s", currentAttempt, MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS));
+          log.debug(String.format("Execution failed. Trying again - Attempt: %s of %s", currentAttempt, MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS));
           continue;
         }
         break;
