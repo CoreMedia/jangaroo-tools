@@ -55,14 +55,14 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File workingDirectory = new File(senchaAppPath);
 
     if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("could not create working directory");
+      throw new MojoExecutionException("Could not create working directory.");
     }
 
     File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_CONFIG);
     // make sure senchaCfg does not exist
     if (senchaCfg.exists()) {
       if (!senchaCfg.delete()) {
-        throw new MojoExecutionException("could not delete " + SenchaUtils.SENCHA_APP_CONFIG + " for app");
+        throw new MojoExecutionException("Could not delete " + senchaCfg);
       }
     }
 
@@ -71,7 +71,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
             + " -" + getSenchaConfiguration().getToolkit()
             + " --path=\"\""
             + " " + getSenchaModuleName();
-    getLog().info("generating sencha app module");
+    getLog().info("Generating Sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
     senchaCmdExecutor.execute();
 
@@ -84,11 +84,11 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
         // If true will cause problems with class pre- and postprocessors we use
         pw.println("app.output.js.optimize.defines=false");
       } catch (IOException e) {
-        throw new MojoExecutionException("could disable derive and minifying in sencha config of app");
+        throw new MojoExecutionException("Could not write configuration to " + senchaCfg);
       }
 
     } else {
-      throw new MojoExecutionException("could not find sencha.cfg of package");
+      throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
   }
 
@@ -97,8 +97,8 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File senchaDirectory = new File(senchaAppPath);
 
     if (!senchaDirectory.exists()) {
-      getLog().info("generating sencha into: " + senchaDirectory.getPath());
-      getLog().debug("created " + senchaDirectory.mkdirs());
+      getLog().info("Generating sencha into: " + senchaDirectory.getPath());
+      getLog().debug("Created " + senchaDirectory.mkdirs());
     }
 
     copyFiles(senchaAppPath);
@@ -120,7 +120,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File senchaAppDirectory = new File(senchaAppPath);
 
     if (!senchaAppDirectory.exists()) {
-      throw new MojoExecutionException("sencha package directory does not exist: " + senchaAppDirectory.getPath());
+      throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
 
     if (getSenchaConfiguration().isScssFromSrc()) {
@@ -136,12 +136,12 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
 
     if (null == workspaceDir) {
-      throw new MojoExecutionException("could not find sencha workspace directory");
+      throw new MojoExecutionException("Could not find sencha workspace directory ");
     }
 
     File productionDirectory = new File(senchaAppPath + "/build/" + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
     if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
-      throw new MojoExecutionException("could not find production directory for sencha app " + productionDirectory);
+      throw new MojoExecutionException("Could not find production directory for sencha app " + productionDirectory);
     }
 
 
@@ -164,7 +164,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     try {
       SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
     } catch (IOException e) {
-      throw new MojoExecutionException("could not write " + SenchaUtils.SENCHA_APP_FILENAME, e);
+      throw new MojoExecutionException("Could not write " + SenchaUtils.SENCHA_APP_FILENAME, e);
     }
   }
 
@@ -175,7 +175,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
   }
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    getLog().info("building sencha app module");
+    getLog().info("Building sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
     senchaCmdExecutor.execute();
   }
