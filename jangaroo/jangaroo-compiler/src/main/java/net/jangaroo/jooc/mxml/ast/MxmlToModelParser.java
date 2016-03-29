@@ -537,9 +537,7 @@ final class MxmlToModelParser {
     String superclass = classModel.getSuperclass();
     if (superclass != null) {
       CompilationUnitModel superCompilationUnitModel = jangarooParser.resolveCompilationUnit(superclass);
-      if (superCompilationUnitModel != null) {
-        return superCompilationUnitModel.getClassModel();
-      }
+      return superCompilationUnitModel.getClassModel();
     }
     return null;
   }

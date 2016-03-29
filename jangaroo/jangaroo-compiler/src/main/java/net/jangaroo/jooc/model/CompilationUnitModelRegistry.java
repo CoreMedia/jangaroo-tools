@@ -16,7 +16,7 @@ import java.util.Set;
  * A registry of all known classes/interfaces. Lookup by name.
  */
 public class CompilationUnitModelRegistry implements CompilationUnitModelResolver {
-  private Map<String,CompilationUnitModel> registry = new LinkedHashMap<String, CompilationUnitModel>(500);
+  private Map<String,CompilationUnitModel> registry = new LinkedHashMap<>(500);
   private final ActionScriptCodeGeneratingModelVisitor DEBUG_CODE_GENERATOR = new ActionScriptCodeGeneratingModelVisitor(new PrintWriter(System.err), true);
 
   public void register(CompilationUnitModel compilationUnitModel) {
@@ -49,7 +49,7 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
     return registry.get(qName);
   }
 
-  public MethodModel resolveConstructor(ClassModel classModel) {
+  private MethodModel resolveConstructor(ClassModel classModel) {
     return resolveMethod(classModel, null, null);
   }
 
@@ -74,10 +74,6 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
     // look in current class's interfaces:
     for (String interfaceName : classModel.getInterfaces()) {
       CompilationUnitModel anInterface = resolveCompilationUnit(interfaceName);
-      if (anInterface == null) {
-        System.err.println("CompilationUnitModelRegistry#resolveDefiningInterface: compilation unit for " + interfaceName + " not found.");
-        continue;
-      }
       CompilationUnitModel recursionResult = resolveDefiningInterface(anInterface, methodType, methodName);
       if (recursionResult != null && (definingInterface == null || implementsInterface(definingInterface.getClassModel(), recursionResult.getQName()))) {
         // found more general interface that defines the method:
@@ -123,7 +119,7 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
     for (CompilationUnitModel compilationUnitModel : getCompilationUnitModels()) {
       ClassModel classModel = compilationUnitModel.getClassModel();
       if (classModel != null && classModel.isInterface()) {
-        Set<MemberModel> toBeRemoved = new HashSet<MemberModel>();
+        Set<MemberModel> toBeRemoved = new HashSet<>();
         for (MemberModel memberModel : classModel.getMembers()) {
           if (memberModel.isMethod()) { // should all be methods -- it's an interface!
             CompilationUnitModel definingInterfaceCU =
@@ -205,9 +201,6 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
     }
     for (String interfaceName : classModel.getInterfaces()) {
       CompilationUnitModel compilationUnitModel = resolveCompilationUnit(interfaceName);
-      if (compilationUnitModel == null) {
-        throw new NullPointerException("AS3 compilation unit not found: " + interfaceName);
-      }
       if (implementsInterface(compilationUnitModel.getClassModel(), anInterface)) {
         return true;
       }
@@ -330,7 +323,7 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
     return resolveCompilationUnit(classModel.getSuperclass());
   }
 
-  public ClassModel getSuperclass(ClassModel classModel) {
+  private ClassModel getSuperclass(ClassModel classModel) {
     CompilationUnitModel superclassCompilationUnit = getSuperclassCompilationUnit(classModel);
     return superclassCompilationUnit == null ? null : superclassCompilationUnit.getClassModel();
   }
