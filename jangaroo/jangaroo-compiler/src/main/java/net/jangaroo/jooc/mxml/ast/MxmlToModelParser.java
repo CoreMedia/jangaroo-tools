@@ -161,7 +161,7 @@ final class MxmlToModelParser {
             }
           }
         }
-        if (propertyModel == null && defaultPropertyModel != null && mxmlParserHelper.getClassNameForElement(jangarooParser, element) != null) {
+        if (propertyModel == null && defaultPropertyModel != null) {
           // collect item to add it to the default property later:
           defaultPropertyValues.add(element);
         } else {
@@ -241,9 +241,6 @@ final class MxmlToModelParser {
   @Nullable
   String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
     String className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
-    if (className == null) {
-      throw JangarooParser.error(objectElement, "Could not resolve class from MXML node " + objectElement.getNamespaceURI() + ":" + objectElement.getLocalName());
-    }
     compilationUnit.addImport(className);
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
@@ -482,11 +479,9 @@ final class MxmlToModelParser {
 
   // ======================================== auxiliary methods ========================================
 
+  @Nonnull
   private CompilationUnitModel getCompilationUnitModel(XmlElement element) {
     String fullClassName = mxmlParserHelper.getClassNameForElement(jangarooParser, element);
-    if (fullClassName == null) {
-      return null;
-    }
     try {
       return CompilationUnitModelUtils.getCompilationUnitModel(fullClassName, jangarooParser);
     } catch (CompilerError e) {

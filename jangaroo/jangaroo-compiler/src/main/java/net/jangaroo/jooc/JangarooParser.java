@@ -288,10 +288,8 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
 
 
   @Override
-  public CompilationUnitModel resolveCompilationUnit(String fullClassName) {
-    if (fullClassName == null) {
-      return null;
-    }
+  @Nonnull
+  public CompilationUnitModel resolveCompilationUnit(@Nonnull String fullClassName) {
     CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
     if (compilationUnitModel == null) {
       // Use a marker in the lookup table to identify infinite loops.

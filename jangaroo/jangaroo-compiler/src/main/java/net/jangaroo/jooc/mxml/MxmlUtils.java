@@ -88,11 +88,6 @@ public class MxmlUtils {
     return endPos + 1;
   }
 
-  public static String parsePackageFromNamespace(String uri) {
-    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
-            : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
-  }
-
   public static Object getAttributeValue(String attributeValue, String type) {
     if (!MxmlUtils.isBindingExpression(attributeValue)) {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);

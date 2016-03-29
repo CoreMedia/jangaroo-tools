@@ -3,6 +3,7 @@ package net.jangaroo.jooc.model;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.utils.AS3Type;
 
+import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,7 +41,8 @@ public class CompilationUnitModelRegistry implements CompilationUnitModelResolve
   private static final CompilationUnitModel ERROR_COMPILATION_UNIT = new CompilationUnitModel("", createErrorClass());
 
   @Override
-  public CompilationUnitModel resolveCompilationUnit(String qName) {
+  @Nonnull
+  public CompilationUnitModel resolveCompilationUnit(@Nonnull String qName) {
     if ("Error".equals(qName)) {
       return ERROR_COMPILATION_UNIT;
     }

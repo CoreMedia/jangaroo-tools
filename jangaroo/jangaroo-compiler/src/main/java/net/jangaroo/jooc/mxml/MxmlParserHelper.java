@@ -116,11 +116,8 @@ public class MxmlParserHelper {
   public Extends parseExtends(@Nonnull JangarooParser parser, @Nonnull XmlElement rootNode, @Nonnull String classQName) {
     JooSymbol rootNodeSymbol = rootNode.getSymbol();
     String superClassName = getClassNameForElement(parser, rootNode);
-    if (null == superClassName) {
-      throw JangarooParser.error(rootNodeSymbol, "Could not resolve super class from node " + rootNode);
-    }
     if (superClassName.equals(classQName)) {
-      throw JangarooParser.error(rootNodeSymbol, "Cyclic inheritance error: Super class and this component are the same. There is something wrong!");
+      throw JangarooParser.error(rootNodeSymbol, "Cyclic inheritance error: Super class and this component are the same.");
     }
 
     String template = TPL_EXTENDS;
@@ -168,11 +165,12 @@ public class MxmlParserHelper {
     throw new IllegalStateException("cannot find %s in template string '" + template + "'");
   }
 
+  @Nonnull
   public String getClassNameForElement(JangarooParser parser, XmlElement xmlElement){
     String name = xmlElement.getLocalName();
     String uri = xmlElement.getNamespaceURI();
     if (uri != null) {
-      String packageName = MxmlUtils.parsePackageFromNamespace(uri);
+      String packageName = parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
         if (qName.equals(CompilerUtils.qNameFromRelativPath(getInputSource().getRelativePath()))) {
@@ -182,10 +180,18 @@ public class MxmlParserHelper {
           return qName;
         }
       } else {
-        return parser.getMxmlComponentRegistry().getClassName(uri, name);
+        String className = parser.getMxmlComponentRegistry().getClassName(uri, name);
+        if(null != className) {
+          return className;
+        }
       }
     }
-    return null;
+    throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node " + xmlElement);
+  }
+
+  static String parsePackageFromNamespace(String uri) {
+    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
+            : uri.equals("*") || MxmlUtils.isMxmlNamespace(uri) ? "" : null;
   }
 
 }

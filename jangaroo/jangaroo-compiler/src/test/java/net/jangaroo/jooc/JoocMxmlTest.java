@@ -59,7 +59,16 @@ public class JoocMxmlTest extends AbstractJoocTest {
     config.addSourceFile(sourceFile);
     jooc.run();
     assertTrue("Expected error (cannot resolve class) did not occur",
-            testLog.hasError("Could not resolve class from MXML node foo:UnknownClass"));
+            testLog.hasError("Could not resolve class from MXML node <foo:UnknownClass/>"));
+  }
+
+  @Test
+  public void testMxmlSelfSuperClass() throws Exception {
+    File sourceFile = getFile("/package1/mxml/ErrorSelfSuperclass.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (cyclic inheritance) did not occur",
+            testLog.hasError("Cyclic inheritance error: Super class and this component are the same."));
   }
 
   @Test

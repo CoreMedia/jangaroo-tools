@@ -31,9 +31,6 @@ class CompilationUnitModelUtils {
   }
 
   static CompilationUnitModel getCompilationUnitModel(String fullClassName, CompilationUnitModelResolver resolver) {
-    if (fullClassName == null) {
-      return null;
-    }
     return resolver.resolveCompilationUnit(fullClassName);
   }
 }
