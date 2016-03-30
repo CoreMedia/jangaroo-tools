@@ -49,14 +49,13 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    SenchaHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
+    // for now:
+    senchaHelper.createModule();
+    senchaHelper.prepareModule();
+
     if (!skipRemotePackaging) {
-
-      SenchaHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
-      // for now:
-      senchaHelper.createModule();
-      senchaHelper.prepareModule();
       File pkg = senchaHelper.packageModule();
-
       helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
     }
 
