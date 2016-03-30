@@ -59,7 +59,13 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.9.14</version>
+      <version>@project.version@</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-runtime</artifactId>
+      <version>@project.version@</version>
+      <type>pkg</type>
     </dependency>
   </dependencies>
 
