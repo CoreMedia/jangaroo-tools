@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ErrorSelfSuperclass xmlns:fx="http://ns.adobe.com/mxml/2009"
+<SelfSuperclass xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns="package1.mxml.*">
   <!-- Superclass can't be class itself -->
-</ErrorSelfSuperclass>
+</SelfSuperclass>

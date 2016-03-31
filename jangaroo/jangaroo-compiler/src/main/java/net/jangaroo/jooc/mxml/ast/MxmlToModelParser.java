@@ -9,6 +9,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
+import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.VariableDeclaration;
@@ -82,7 +83,7 @@ final class MxmlToModelParser {
       boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
       if (noPrefix && !MxmlUtils.MXML_ID_ATTRIBUTE.equals(propertyName) ||
               isUntypedAccess) {
-        String value = attribute.getValue().getText();
+        JooSymbol value = attribute.getValue();
         MemberModel propertyModel = null;
         if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
@@ -107,7 +108,7 @@ final class MxmlToModelParser {
     }
   }
 
-  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, Ide targetVariable, boolean generatingConfig, String value, MemberModel propertyModel) {
+  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull MemberModel propertyModel) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     // skip property assignment to target object if it was already contained in config object:
     if (generatingConfig || configVariable == null) {
@@ -133,13 +134,13 @@ final class MxmlToModelParser {
     return null;
   }
 
-  void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
+  void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     CompilationUnitModel type = getCompilationUnitModel(objectNode);
     processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
     processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
   }
 
-  private void processChildNodes(XmlElement objectNode, CompilationUnitModel type, Ide configVariable, Ide targetVariable, boolean generatingConfig) {
+  private void processChildNodes(XmlElement objectNode, CompilationUnitModel type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     ClassModel classModel = type == null ? null : type.getClassModel();
     List<XmlElement> childNodes = objectNode.getElements();
@@ -155,8 +156,8 @@ final class MxmlToModelParser {
             if (propertyModel == null) {
               AnnotationModel eventModel = findEvent(classModel, propertyName);
               if (eventModel != null) {
-                String value = getTextContent(element);
-                createEventHandlerCode(variable, value, eventModel);
+                JooSymbol textContent = getTextContent(element);
+                createEventHandlerCode(variable, textContent, eventModel);
                 continue;
               }
             } else if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
@@ -177,7 +178,8 @@ final class MxmlToModelParser {
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
-            createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, getTextContent(element), propertyModel);
+            JooSymbol textContent = getTextContent(element);
+            createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, textContent, propertyModel);
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
@@ -217,7 +219,7 @@ final class MxmlToModelParser {
         constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
       }
     }
-    createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
+    createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
   }
 
   private String createArrayCodeFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
@@ -286,7 +288,7 @@ final class MxmlToModelParser {
                 .append('[').append(Jooc.BINDABLE_ANNOTATION_NAME).append(']')
                 .append(i < 0 ? "\n" : asDoc.substring(i))
                 .append("public var ").append(id).append(':').append(className).append(';');
-        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(classBodyCode.toString()).getDirectives());
+        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
       }
       targetVariableName = CompilerUtils.qName(qualifier, id);
     }
@@ -333,6 +335,9 @@ final class MxmlToModelParser {
       // no config object was built or event listeners or bindings have to be added:
       // process attribute and children and assign properties directly on the target object
       Ide ide = null != targetVariableName ? new Ide(targetVariableName) : null;
+      if(null == ide) {
+        throw new IllegalStateException("potential NPE ahead!");
+      }
       processAttributesAndChildNodes(objectElement, null, ide, false);
     }
     return targetVariableName;
@@ -340,7 +345,8 @@ final class MxmlToModelParser {
 
   private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
     String value;
-    String textContent = getTextContent(objectElement);
+    JooSymbol textContentSymbol = getTextContent(objectElement);
+    String textContent = textContentSymbol.getText().trim();
     if (MxmlUtils.isBindingExpression(textContent)) {
       return MxmlUtils.getBindingExpression(textContent);
     } else if ("String".equals(className)) {
@@ -349,8 +355,8 @@ final class MxmlToModelParser {
       return textContent.isEmpty() ? null : textContent;
     }
 
-    if (!textContent.trim().isEmpty()) {
-      throw Jooc.error(objectElement, String.format("Unexpected text inside MXML element: '%s'.", textContent));
+    if (!textContent.isEmpty()) {
+      throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
     }
     if ("Object".equals(className)) {
       value = "{}";
@@ -425,7 +431,7 @@ final class MxmlToModelParser {
     return compilationUnit.createAuxVar(preferredName);
   }
 
-  private void createEventHandlerCode(@Nonnull Ide ide, String value, AnnotationModel event) {
+  private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull AnnotationModel event) {
     AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
     String eventTypeStr;
     if (eventType == null) {
@@ -445,7 +451,7 @@ final class MxmlToModelParser {
     classBodyCode
             .append("private function ").append(eventHandlerName)
             .append(" (").append("event").append(':').append(eventTypeStr).append(") :void {\n")
-            .append("\n    ").append(value)
+            .append("\n    ").append(value.getText())
             .append('}');
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
 
@@ -458,33 +464,28 @@ final class MxmlToModelParser {
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
-  private void createPropertyAssignmentCode(@Nonnull Ide variable, MemberModel propertyModel, String value, boolean generatingConfig) {
-    String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
+  private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull MemberModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
+    Directive propertyAssignement = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
+    constructorBodyDirectives.add(propertyAssignement);
+  }
+
+  @Nonnull
+  private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull MemberModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
+    String propertyType = propertyModel.getType();
+    boolean untyped = UNTYPED_MARKER.equals(propertyType);
+    String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(value.getText(), untyped ? null : propertyType));
+
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    StringBuilder constructorCode = new StringBuilder();
-    constructorCode.append("    ");
-    String propertyAssignmentCode =
-            UNTYPED_MARKER.equals(propertyModel.getType()) || !propertyName.equals(propertyModel.getName())
-                    ? getUntypedPropertyAssignmentCode(variable, propertyName, attributeValueAsString)
-                    : getPropertyAssignmentCode(variable, propertyName, attributeValueAsString);
-    constructorCode.append(propertyAssignmentCode);
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    boolean untypedAccess = untyped || !propertyName.equals(propertyModel.getName());
+
+    Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, null));
+    return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
   }
 
   @Nonnull
   private static String getPropertyAssignmentCode(@Nonnull Ide variable, String propertyName, String attributeValueAsString) {
     String leftHandSide = Ide.THIS.equals(variable.getName()) ? propertyName : MessageFormat.format("{0}.{1}", variable, propertyName);
-    return getAssignmentCode(leftHandSide, attributeValueAsString);
-  }
-
-  @Nonnull
-  private static String getUntypedPropertyAssignmentCode(@Nonnull Ide variable, String propertyName, String attributeValueAsString) {
-    String leftHandSide = MessageFormat.format("{0}[\"{1}\"]", variable.getName(), propertyName);
-    return getAssignmentCode(leftHandSide, attributeValueAsString);
-  }
-
-  private static String getAssignmentCode(String leftHandSide, String rightHandSide) {
-    return MessageFormat.format("{0} = {1};", leftHandSide, rightHandSide);
+    return MessageFormat.format("{0} = {1};", leftHandSide, attributeValueAsString);
   }
 
   private static String getConfigOptionName(MemberModel propertyModel) {
@@ -551,6 +552,7 @@ final class MxmlToModelParser {
     return null;
   }
 
+  @Nonnull
   private MemberModel createDynamicPropertyModel(XmlElement element, CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
     if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
       // dynamic property of a non-dynamic class: warn!
@@ -568,13 +570,10 @@ final class MxmlToModelParser {
     return null;
   }
 
-  private Object getPropertyValue(MemberModel propertyModel, String value) {
-    return MxmlUtils.getAttributeValue(value, propertyModel == null || UNTYPED_MARKER.equals(propertyModel.getType()) ? null : propertyModel.getType());
-  }
-
-  private static String getTextContent(XmlElement element) {
-    JooSymbol textNode = Iterables.getFirst(element.getTextNodes(), null);
-    return null != textNode ? textNode.getText() : "";
+  @Nonnull
+  private static JooSymbol getTextContent(XmlElement element) {
+    //noinspection ConstantConditions
+    return Iterables.getFirst(element.getTextNodes(), new JooSymbol(""));
   }
 
   Collection<Directive> getConstructorBodyDirectives() {

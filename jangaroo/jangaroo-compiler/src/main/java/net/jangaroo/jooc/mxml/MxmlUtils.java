@@ -3,6 +3,8 @@ package net.jangaroo.jooc.mxml;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,7 +121,8 @@ public class MxmlUtils {
    * @param value        The value to be serialized.
    * @return a stringified representation of the object value
    */
-  public static String valueToString(Object value) {
+  @Nonnull
+  public static String valueToString(@Nullable Object value) {
     if (value == null) {
       return "null";
     }
