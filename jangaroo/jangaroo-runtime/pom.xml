@@ -84,9 +84,22 @@
                   <fileset dir="src/main/joo-js" />
                 </copy>
                 <!-- sencha package -->
+                <property name="maven.project.version" value="${project.version}"/>
+                <loadresource property="sencha.package.version">
+                  <propertyresource name="maven.project.version"/>
+                  <filterchain>
+                    <tokenfilter>
+                      <filetokenizer/>
+                      <replaceregex pattern="([0-9\.]+)(-?.*)" replace="\1"/>
+                    </tokenfilter>
+                  </filterchain>
+                </loadresource>
                 <mkdir dir="target/workspace" />
                 <copy todir="target/workspace">
-                  <fileset dir="sencha" />
+                  <fileset dir="src/main/sencha" />
+                  <filterset>
+                    <filter token="PROJECT_VERSION" value="${sencha.package.version}"/>
+                  </filterset>
                 </copy>
                 <mkdir dir="target/workspace/packages/local/package/resources/joo" />
                 <copy todir="target/workspace/packages/local/package/resources/joo">

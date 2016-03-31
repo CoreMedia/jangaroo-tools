@@ -1,6 +1,6 @@
 {
   "name" : "net.jangaroo__jangaroo-runtime",
-  "version" : "2.1",
+  "version" : "@PROJECT_VERSION@",
   "compatVersion" : "1.0.0.0",
   "type" : "code",
   "local" : true,
