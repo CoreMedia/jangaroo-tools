@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public class Ide extends NodeImplBase {
 
-  public static final Pattern IDE_PATTERN = Pattern.compile("[a-zA-Z$_@]([a-zA-Z0-9$_@])*");
+  static final Pattern IDE_PATTERN = Pattern.compile("[a-zA-Z$_@]([a-zA-Z0-9$_@])*");
 
   public static final String THIS = "this";
   private JooSymbol ide;
@@ -427,5 +427,11 @@ public class Ide extends NodeImplBase {
 
   public void setRewriteThis(boolean rewriteThis) {
     this.rewriteThis = rewriteThis;
+  }
+
+  public static void verifyIdentifier(String identifier, JooSymbol source) {
+    if(!IDE_PATTERN.matcher(identifier).matches()) {
+      throw JangarooParser.error(source, "invalid action script identifier");
+    }
   }
 }

@@ -6,6 +6,7 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.model.AnnotationModel;
@@ -19,13 +20,16 @@ import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +55,7 @@ final class MxmlToModelParser {
   private final MxmlCompilationUnit compilationUnit;
 
   private final StringBuilder constructorCode = new StringBuilder();
-  private final StringBuilder classBodyCode = new StringBuilder();
+  private final Collection<Directive> classBodyDirectives = new LinkedList<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
@@ -248,11 +252,16 @@ final class MxmlToModelParser {
       useConfigObjects = useConfigObjects(jangarooParser.resolveCompilationUnit(className).getClassModel());
     }
     String targetVariableName = null;   // name of the variable holding the object to build
-    String id = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
-    if (!id.isEmpty()) {
+    XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
+    String id = null;
+    if (null != idAttribute) {
+      JooSymbol idSymbol = idAttribute.getValue();
+      id = idSymbol.getText();
       if (id.equals(compilationUnit.getConstructorParamName())) {
         return null;
       }
+
+      Ide.verifyIdentifier(id, idSymbol);
 
       VariableDeclaration variableDeclaration = compilationUnit.getVariables().get(id);
       String qualifier = null != configVar ? configVar.getName() : "";
@@ -263,11 +272,13 @@ final class MxmlToModelParser {
       } else {
         String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
         int i = asDoc.lastIndexOf('\n');
-        classBodyCode.append('\n')
+        StringBuilder classBodyCode = new StringBuilder();
+        classBodyCode
                 .append(asDoc)
                 .append('[').append(Jooc.BINDABLE_ANNOTATION_NAME).append(']')
                 .append(i < 0 ? "\n" : asDoc.substring(i))
                 .append("public var ").append(id).append(':').append(className).append(';');
+        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(classBodyCode.toString()).getDirectives());
       }
       targetVariableName = CompilerUtils.qName(qualifier, id);
     }
@@ -287,7 +298,7 @@ final class MxmlToModelParser {
 
     String value = createValueCodeFromElement(objectElement, defaultUseConfigObjects, className, configVariable);
 
-    if (id.length() > 0) {
+    if (null != id) {
       if (null != configVar // it is a declaration...
               && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
               && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty() // ...and no sub-elements or text content!
@@ -297,10 +308,8 @@ final class MxmlToModelParser {
       }
       constructorCode.append("\n    ").append(targetVariableName);
     } else if (configVariable == null) {
-      if (targetVariableName == null) {
-        // no config object was built: create variable for object to build now:
-        targetVariableName = createAuxVar(objectElement).getName();
-      }
+      // no config object was built: create variable for object to build now:
+      targetVariableName = createAuxVar(objectElement).getName();
       constructorCode.append("\n    ").append("var ").append(targetVariableName).append(":").append(className);
     } else if (useConfigObjects) {
       return configVariable.getName();
@@ -382,10 +391,11 @@ final class MxmlToModelParser {
     return createAuxVar(symbol, prefix);
   }
 
-  private Ide createAuxVar(XmlElement element, String idAttributeValue) {
+  @Nonnull
+  private Ide createAuxVar(@Nonnull XmlElement element, @Nullable String idAttributeValue) {
     JooSymbol symbol = element.getSymbol();
     StringBuilder name = new StringBuilder();
-    if (idAttributeValue.isEmpty()) {
+    if (StringUtils.isEmpty(idAttributeValue)) {
       String prefix = element.getPrefix();
       if(null != prefix) {
         name.append(prefix).append('_');
@@ -393,9 +403,7 @@ final class MxmlToModelParser {
       name.append(element.getLocalName());
     } else {
       name.append(idAttributeValue);
-      if(!Ide.IDE_PATTERN.matcher(idAttributeValue).matches()) {
-        throw JangarooParser.error(symbol, "invalid action script identifier");
-      }
+      Ide.verifyIdentifier(idAttributeValue, symbol);
     }
     return createAuxVar(symbol, name.toString());
   }
@@ -422,11 +430,14 @@ final class MxmlToModelParser {
     }
     String variable = ide.getName();
     String eventHandlerName = "$on_" + variable + "_" + eventName.replace('-', '_');
-    classBodyCode.append('\n')
+    StringBuilder classBodyCode = new StringBuilder();
+    classBodyCode
             .append("private function ").append(eventHandlerName)
             .append(" (").append("event").append(':').append(eventTypeStr).append(") :void {\n")
             .append("\n    ").append(value)
             .append('}');
+    classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
+
     compilationUnit.addImport("joo.addEventListener");
     constructorCode.append("\n    ").append("joo.addEventListener(").append(variable).append(", ")
             .append(CompilerUtils.quote(eventName)).append(", ")
@@ -557,7 +568,7 @@ final class MxmlToModelParser {
     return result;
   }
 
-  String getClassBodyCode() {
-    return classBodyCode.toString();
+  Collection<Directive> getClassBodyDirectives() {
+    return classBodyDirectives;
   }
 }

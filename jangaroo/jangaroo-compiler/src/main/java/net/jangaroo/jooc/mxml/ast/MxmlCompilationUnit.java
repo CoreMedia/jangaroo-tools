@@ -157,7 +157,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.consumeConstructorCode()));
-    classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(mxmlToModelParser.getClassBodyCode()).getDirectives());
+    classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));

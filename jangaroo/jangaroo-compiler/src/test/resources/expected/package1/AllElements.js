@@ -96,7 +96,6 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var aplugin_125_7_$1/*:ext.config.aplugin*/ = AS3.cast(AS3.ext.config.aplugin,{});
     panel_59_3_$1.plugins = [aplugin_124_7_$1, aplugin_125_7_$1];
     config_$1.items = [panel_59_3_$1]; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.ext.Panel.prototype.constructor.call(this,config_$1);}/*
-
 /*
       anonymous object in array:
 

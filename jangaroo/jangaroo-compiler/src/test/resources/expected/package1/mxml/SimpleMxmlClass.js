@@ -85,7 +85,6 @@ config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
 
     [Bindable]
     public var list:Object;
-
 [Bindable]
 public var bar:String;
 [Bindable]

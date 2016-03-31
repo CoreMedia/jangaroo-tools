@@ -21,7 +21,6 @@ public class DeclarationsMxmlClass extends SomeNativeClass{public*/function Decl
     other_25_5_$1["blubb_accessor"] = 'blub accessor expression';
     AS3.setBindable(this,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(other_25_5_$1));
 }/*
-
 [Bindable]
 public var bar:String;
 /**
