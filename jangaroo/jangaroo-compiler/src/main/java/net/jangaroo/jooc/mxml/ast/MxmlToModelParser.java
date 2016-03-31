@@ -6,8 +6,11 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.Directive;
+import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
@@ -54,7 +57,7 @@ final class MxmlToModelParser {
   private final MxmlParserHelper mxmlParserHelper;
   private final MxmlCompilationUnit compilationUnit;
 
-  private final StringBuilder constructorCode = new StringBuilder();
+  private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
@@ -63,8 +66,8 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private void renderConfigAuxVar(@Nonnull Ide ide, String type, boolean useCast) {
-    constructorCode.append(String.format("\n    var %s:%s = %s;", ide.getName(), type, useCast ? type + "({})" : "{}"));
+  private void renderConfigAuxVar(@Nonnull Ide ide, Ide type, boolean useCast) {
+    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type, useCast));
   }
 
   private void processAttributes(XmlElement objectNode, CompilationUnitModel type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
@@ -182,7 +185,9 @@ final class MxmlToModelParser {
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
           if (atValue != null) {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-            constructorCode.append(String.format("\n    %s.%s = %s;", variable, atPropertyName + CONFIG_MODE_AT_SUFFIX, atValue));
+            DotExpr dotExpr = new DotExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_DOT, new Ide(atPropertyName + CONFIG_MODE_AT_SUFFIX));
+            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseImport(atValue).getIde());
+            constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
           }
         }
       }
@@ -202,11 +207,14 @@ final class MxmlToModelParser {
       AnnotationPropertyModel extractXType = extConfigAnnotation.getPropertiesByName().get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
       if (extractXType != null) {
         String extractXTypeToProperty = extractXType.getStringValue();
+        StringBuilder constructorCode = new StringBuilder();
         if (extractXTypeToProperty != null) {
-          constructorCode.append("\n    ").append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
+          constructorCode.append("    ")
+                  .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
         }
         constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
         constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+        constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
       }
     }
     createPropertyAssignmentCode(variable, propertyModel, MxmlUtils.createBindingExpression(value), generatingConfig);
@@ -245,7 +253,7 @@ final class MxmlToModelParser {
   @Nullable
   String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
     String className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
-    compilationUnit.addImport(className);
+    Ide typeIde = compilationUnit.addImport(className);
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
       // let the class decide:
@@ -288,7 +296,7 @@ final class MxmlToModelParser {
     if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar(objectElement, id);
-      renderConfigAuxVar(configVariable, className, true);
+      renderConfigAuxVar(configVariable, typeIde, true);
       if (targetVariableName == null) {
         targetVariableName = createAuxVar(objectElement).getName();
       }
@@ -298,6 +306,7 @@ final class MxmlToModelParser {
 
     String value = createValueCodeFromElement(objectElement, defaultUseConfigObjects, className, configVariable);
 
+    StringBuilder constructorCode = new StringBuilder();
     if (null != id) {
       if (null != configVar // it is a declaration...
               && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
@@ -306,17 +315,19 @@ final class MxmlToModelParser {
         // prevent assigning a default value for such an empty declaration:
         return null;
       }
-      constructorCode.append("\n    ").append(targetVariableName);
+      constructorCode.append("    ").append(targetVariableName);
     } else if (configVariable == null) {
       // no config object was built: create variable for object to build now:
       targetVariableName = createAuxVar(objectElement).getName();
-      constructorCode.append("\n    ").append("var ").append(targetVariableName).append(":").append(className);
+      constructorCode.append("    ")
+              .append("var ").append(targetVariableName).append(":").append(className);
     } else if (useConfigObjects) {
       return configVariable.getName();
     } else {
       return value; // no aux var necessary
     }
     constructorCode.append(" = ").append(value).append(";");
+    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
 
     if (configVariable == null && !"Array".equals(className)) {
       // no config object was built or event listeners or bindings have to be added:
@@ -439,21 +450,25 @@ final class MxmlToModelParser {
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
 
     compilationUnit.addImport("joo.addEventListener");
-    constructorCode.append("\n    ").append("joo.addEventListener(").append(variable).append(", ")
+    StringBuilder constructorCode = new StringBuilder();
+    constructorCode.append("    ").append("joo.addEventListener(").append(variable).append(", ")
             .append(CompilerUtils.quote(eventName)).append(", ")
             .append(eventHandlerName).append(", ")
             .append(eventTypeStr).append(");");
+    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
   private void createPropertyAssignmentCode(@Nonnull Ide variable, MemberModel propertyModel, String value, boolean generatingConfig) {
     String attributeValueAsString = MxmlUtils.valueToString(getPropertyValue(propertyModel, value));
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    constructorCode.append("\n    ");
+    StringBuilder constructorCode = new StringBuilder();
+    constructorCode.append("    ");
     String propertyAssignmentCode =
             UNTYPED_MARKER.equals(propertyModel.getType()) || !propertyName.equals(propertyModel.getName())
                     ? getUntypedPropertyAssignmentCode(variable, propertyName, attributeValueAsString)
                     : getPropertyAssignmentCode(variable, propertyName, attributeValueAsString);
     constructorCode.append(propertyAssignmentCode);
+    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
   @Nonnull
@@ -562,10 +577,8 @@ final class MxmlToModelParser {
     return null != textNode ? textNode.getText() : "";
   }
 
-  String consumeConstructorCode() {
-    String result = constructorCode.toString();
-    constructorCode.setLength(0);
-    return result;
+  Collection<Directive> getConstructorBodyDirectives() {
+    return constructorBodyDirectives;
   }
 
   Collection<Directive> getClassBodyDirectives() {

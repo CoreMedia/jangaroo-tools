@@ -14,8 +14,7 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
         throw "cannot do it with " + v;
       }
     }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
-var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
-
+    var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
     config_$1.foo = "bar";
 }/*}}
 

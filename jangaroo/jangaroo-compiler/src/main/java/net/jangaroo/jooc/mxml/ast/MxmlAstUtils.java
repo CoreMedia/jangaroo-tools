@@ -115,7 +115,7 @@ class MxmlAstUtils {
       value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     }
     Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n"), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
   }
 
   @Nonnull
