@@ -1,34 +1,21 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PathConfigurer implements Configurer {
 
-  static final String OUTPUT = "output";
-
-  static final String CLASSPATH = "classpath";
-  static final String OVERRIDES = "overrides";
-  static final String RESOURCES = "resources";
-  static final String RESOURCES_PATH = "path";
   static final String SASS = "sass";
   static final String SASS_NAMESPACE = "namespace";
   static final String SASS_ETC = "etc";
   static final String SASS_VAR = "var";
   static final String SASS_SRC = "src";
-  static final String APPS = "apps";
-
-  static final String BUILD = "build";
-  static final String DIR = "dir";
 
   private SenchaConfiguration senchaConfiguration;
 
@@ -38,53 +25,16 @@ public class PathConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
-    if (!senchaConfiguration.getType().equals(SenchaConfiguration.Type.WORKSPACE)) {
-      boolean sassFromSrc = senchaConfiguration.isScssFromSrc();
 
-      config.put(OUTPUT, absolutePath(senchaConfiguration.getBuildDir(), false));
-      config.put(CLASSPATH, absolutePath(SenchaUtils.SENCHA_RELATIVE_CLASS_PATH, false));
-      config.put(OVERRIDES, absolutePath(SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH, false));
-      List<Object> resources = new ArrayList<Object>();
-      // no substitution! as this must be a relative path
-      // only apps should use "shared" flag
-      configureResourcesForPath(resources, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH, SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType()));
-      config.put(RESOURCES, resources);
+    boolean sassFromSrc = senchaConfiguration.isScssFromSrc();
 
-      Map<String, Object> sass = new HashMap<String, Object>();
-      sass.put(SASS_NAMESPACE, "");
-      sass.put(SASS_ETC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_ETC_PATH + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_SASS_ETC_IMPORTS, sassFromSrc));
-      sass.put(SASS_VAR, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_VAR_PATH, sassFromSrc));
-      sass.put(SASS_SRC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_MIXINS_PATH, sassFromSrc) + "," + absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_INCLUDES_PATH, sassFromSrc));
-      config.put(SASS, sass);
-    } else {
-      config.put(APPS, new ArrayList<Object>());
-      Map<String, Object> output = new LinkedHashMap<String, Object>();
-      output.put(DIR, absolutePath(senchaConfiguration.getBuildDir(), false));
-      config.put(BUILD, output);
-    }
-  }
+    Map<String, Object> sass = new HashMap<>();
+    sass.put(SASS_NAMESPACE, "");
+    sass.put(SASS_ETC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_ETC_PATH + SenchaUtils.SEPARATOR + SenchaUtils.SENCHA_SASS_ETC_IMPORTS, sassFromSrc));
+    sass.put(SASS_VAR, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_VAR_PATH, sassFromSrc));
+    sass.put(SASS_SRC, absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_MIXINS_PATH, sassFromSrc) + "," + absolutePath(SenchaUtils.SENCHA_RELATIVE_SASS_SRC_INCLUDES_PATH, sassFromSrc));
+    config.put(SASS, sass);
 
-  public String getWorkspaceOutputPath(Map<String, Object> config, File workspaceDir) throws MojoExecutionException {
-    // Read workspace.json
-    String workspaceOutputPath = workspaceDir.getAbsolutePath() + File.separator + senchaConfiguration.getBuildDir();
-      // check if custom workspace dir has been set
-      Object build = config.get(BUILD);
-      if (build instanceof Map) {
-        build = ((Map) build).get(DIR);
-      }
-      if (build instanceof String) {
-        workspaceOutputPath = ((String) build).replace(SenchaUtils.PLACEHOLDERS.get(SenchaConfiguration.Type.WORKSPACE), workspaceDir.getAbsolutePath());
-      }
-    return workspaceOutputPath;
-  }
-
-  private void configureResourcesForPath(List<Object> resources, String path, boolean shared) {
-    Map<String, Object> resource = new LinkedHashMap<String, Object>();
-    resource.put(RESOURCES_PATH, path);
-    if (shared) {
-      resource.put(OUTPUT, "shared");
-    }
-    resources.add(resource);
   }
 
   private String absolutePath(String path, boolean fromSrc) {
@@ -98,11 +48,11 @@ public class PathConfigurer implements Configurer {
   private String getRelativePathFromModuleToSrc() {
     // TODO: determine real path!
     String pathDown = ".." + SenchaUtils.SEPARATOR;
-    if (SenchaConfiguration.Type.APP.equals(senchaConfiguration.getType())) {
+    if (Type.APP.equals(senchaConfiguration.getType())) {
       return StringUtils.repeat(pathDown, 2);
     }
-    if (SenchaConfiguration.Type.CODE.equals(senchaConfiguration.getType())
-            || SenchaConfiguration.Type.THEME.equals(senchaConfiguration.getType())) {
+    if (Type.CODE.equals(senchaConfiguration.getType())
+            || Type.THEME.equals(senchaConfiguration.getType())) {
       return StringUtils.repeat(pathDown, 4);
     }
     return "";

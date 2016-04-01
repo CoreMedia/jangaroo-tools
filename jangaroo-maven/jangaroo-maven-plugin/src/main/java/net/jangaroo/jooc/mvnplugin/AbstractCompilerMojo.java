@@ -14,7 +14,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.compiler.CompilerMessage;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
@@ -25,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -41,12 +41,6 @@ import java.util.Set;
 public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
-
-  /**
-   * The Maven project object
-   */
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  private MavenProject project;
 
   /**
    * Indicates whether the build will fail if there are compilation errors.
@@ -141,11 +135,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
 
-  @Override
-  protected MavenProject getProject() {
-    return project;
-  }
-
   public abstract String getModuleClassesJsFileName();
 
   public File getModuleClassesJsFile() {
@@ -218,7 +207,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       configuration.setDebugMode(null);
       configuration.setOutputDirectory(getTempClassesOutputDirectory());
       configuration.setApiOutputDirectory(null);
-
 
 
       result = compile(jooc);
@@ -358,33 +346,36 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       log.debug("Output file: " + outputFile);
     }
 
-    try {
-      // If the directory where the output file is going to land
-      // doesn't exist then create it.
-      File outputFileDirectory = outputFile.getParentFile();
+    // If the directory where the output file is going to land
+    // doesn't exist then create it.
+    File outputFileDirectory = outputFile.getParentFile();
 
-      if (!outputFileDirectory.exists()) {
-        //noinspection ResultOfMethodCallIgnored
-        if (outputFileDirectory.mkdirs()) {
-          log.debug("created output directory " + outputFileDirectory);
-        }
+    if (!outputFileDirectory.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      if (outputFileDirectory.mkdirs()) {
+        log.debug("created output directory " + outputFileDirectory);
       }
+    }
+
+    try (Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")) {
 
       @SuppressWarnings({"unchecked"})
       // resource bundle classes should always be loaded dynamically:
-              List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties_*.js");
+      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties_*.js");
       // We should now have all the files we want to concat so let's do it.
-      Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8");
+
       int tempOutputDirPathLength = tempOutputDir.getAbsolutePath().length() + 1;
       for (File file : files) {
         String className = file.getAbsolutePath();
         className = className.substring(tempOutputDirPathLength, className.length() - ".js".length());
         className = className.replace(File.separatorChar, '.');
         fos.write("// class " + className + "\n");
-        IOUtil.copy(new FileInputStream(file), fos, "UTF-8");
+        try (InputStream fileInput = new FileInputStream(file)) {
+          IOUtil.copy(fileInput, fos, "UTF-8");
+        }
         fos.write('\n');
       }
-      fos.close();
+
     } catch (IOException e) {
       throw new MojoExecutionException("could not build output file " + outputFile + ": " + e.toString(), e);
     }
@@ -439,7 +430,4 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected abstract Set<String> getExcludes();
 
-  protected boolean isJangarooPackaging() {
-    return Types.JANGAROO_TYPE.equals(getProject().getPackaging());
-  }
 }

@@ -1,8 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.jar.JarArchiver;
+
+import java.io.File;
 
 public interface SenchaHelper {
 
@@ -10,7 +10,6 @@ public interface SenchaHelper {
 
   void prepareModule() throws MojoExecutionException;
 
-  void packageModule(Archiver archiver) throws MojoExecutionException;
+  File packageModule() throws MojoExecutionException;
 
-  void deleteModule() throws MojoExecutionException;
 }

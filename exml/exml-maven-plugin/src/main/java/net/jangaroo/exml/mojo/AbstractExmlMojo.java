@@ -18,17 +18,12 @@ import java.util.List;
  * The most abstract EXML Mojo you could imagine.
  */
 public abstract class AbstractExmlMojo extends JangarooMojo {
+
   /**
    * Output directory for all ActionScript3 files generated out of exml components
    */
   @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
   private File generatedSourcesDirectory;
-
-  /**
-   * The Maven project object
-   */
-  @Parameter(defaultValue = "${project}", readonly = true)
-  private MavenProject project;
 
   /**
    * Source directory to scan for files to compile.
@@ -56,11 +51,6 @@ public abstract class AbstractExmlMojo extends JangarooMojo {
 
   @Parameter(defaultValue = "${plugin}", readonly = true)
   private PluginDescriptor pluginDescriptor;
-
-  @Override
-  protected MavenProject getProject() {
-    return project;
-  }
 
   public File getSourceDirectory() {
     return sourceDirectory;

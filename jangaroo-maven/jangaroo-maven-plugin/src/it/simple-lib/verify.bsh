@@ -27,7 +27,7 @@ try
     File target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        print( "target file is missing or a directory." );
         return false;
     }
 
@@ -35,49 +35,49 @@ try
     File catalogFile = new File ( target, "classes/catalog.xml" );
     if ( !catalogFile.exists() || !catalogFile.isFile() )
     {
-        System.err.println( "classes/catalog.xml file is missing or not a file." );
+        print( "classes/catalog.xml file is missing or not a file." );
         return false;
     }
 
     File jsDir = new File ( target, "classes/META-INF/resources/joo/classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "classes/META-INF/resources/joo/classes directory is missing or not a directory." );
+        print( "classes/META-INF/resources/joo/classes directory is missing or not a directory." );
         return false;
     }
 
     File helloWorldJs = new File ( jsDir, "net/jangaroo/example/HelloWorld.js" );
     if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
     {
-        System.err.println( "HelloWorld.js output file is missing or not a file." );
+        print( "HelloWorld.js output file is missing or not a file." );
         return false;
     }
 
     File testClassJs = new File ( jsDir, "net/jangaroo/example/TestClass.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
-        System.err.println( "TestClass.js output file is missing or not a file." );
+        print( "TestClass.js output file is missing or not a file." );
         return false;
     }
 
     target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        print( "target file is missing or a directory." );
         return false;
     }
 
     File jarFile = new File( target, "simple-project-1.0-SNAPSHOT.jar" );
     if ( !jarFile.isFile() )
     {
-        System.err.println( "JAR file is missing" );
+        print( "JAR file is missing" );
         return false;
     }
 
     File sourcesJarFile = new File( target, "simple-project-1.0-SNAPSHOT-sources.jar" );
     if ( !sourcesJarFile.isFile() )
     {
-        System.err.println( "Sources JAR file is missing" );
+        print( "Sources JAR file is missing" );
         return false;
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A set of helper functions for handling sencha package structure.
+ * A set of helper functions for handling Sencha package structure.
  */
 abstract class AbstractSenchaHelper implements SenchaHelper {
 
@@ -31,7 +31,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     this.senchaConfiguration = senchaConfiguration;
     this.log = log;
 
-    this.senchaModuleName = SenchaUtils.getSenchaPackageNameForMavenProject(project);
+    this.senchaModuleName = SenchaUtils.getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
   private void copyFilesFromSrc(String path, String suffix) throws MojoExecutionException {
@@ -126,10 +126,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
           throw new MojoExecutionException("Could not delete resource file for editor plugins");
         }
       }
-      PrintWriter pw = null;
-      try {
-        FileWriter fw = new FileWriter(resource, true);
-        pw = new PrintWriter(fw);
+
+      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
+
         for (EditorPluginDescriptor editorPlugin : editorPlugins) {
           if (null == editorPlugin.getMainClass()) {
             getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
@@ -155,12 +154,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
           pw.println("});");
         }
       } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to sencha config of package");
-      } finally {
-        if (null != pw) {
-          pw.close();
-        }
+        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");
       }
+
     }
   }
 

@@ -27,14 +27,14 @@ try
     File target = new File( basedir, "target" );
     if ( !target.exists() || !target.isDirectory() )
     {
-        System.err.println( "target file is missing or a directory." );
+        print( "target file is missing or a directory." );
         return false;
     }
 
     File artifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
     if ( !artifact.exists() )
     {
-        System.err.println( "artifact file is missing or a directory." );
+        print( "artifact file is missing or a directory." );
         return false;
     }
 
@@ -42,7 +42,7 @@ try
     File sourceartifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
     if ( !sourceartifact.exists() )
     {
-        System.err.println( "sourceartifact file is missing or a directory." );
+        print( "sourceartifact file is missing or a directory." );
         return false;
     }
 
@@ -50,28 +50,28 @@ try
     File jsDir = new File ( target, "jangaroo-output/META-INF/resources/joo/classes" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        System.err.println( "jangaroo-output/META-INF/resources/joo/classes directory is missing or not a directory." );
+        print( "jangaroo-output/META-INF/resources/joo/classes directory is missing or not a directory." );
         return false;
     }
 
     File helloWorldJs = new File ( jsDir, "net/jangaroo/example/HelloWorld.js" );
     if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
     {
-        System.err.println( "HelloWorld.js output file is missing or not a file." );
+        print( "HelloWorld.js output file is missing or not a file." );
         return false;
     }
 
     File testClassJs = new File ( jsDir, "net/jangaroo/example/TestClass.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
-        System.err.println( "TestClass.js output file is missing or not a file." );
+        print( "TestClass.js output file is missing or not a file." );
         return false;
     }
 
     File classRuntimeJs = new File ( target, "jangaroo-output/META-INF/resources/joo/test.simple-lib-with-test.classes.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
-        System.err.println( "jangaroo-output/META-INF/resources/joo/test.simple-lib-with-test.classes.js runtime file is missing or not a file." );
+        print( "jangaroo-output/META-INF/resources/joo/test.simple-lib-with-test.classes.js runtime file is missing or not a file." );
         return false;
     }
 
@@ -79,35 +79,35 @@ try
     File testJsDir = new File ( target, "jangaroo-output-test/joo" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
-        System.err.println( "jangaroo-output-test/joo directory is missing or not a directory." );
+        print( "jangaroo-output-test/joo directory is missing or not a directory." );
         return false;
     }
 
     testClassJs = new File ( testJsDir, "classes/net/jangaroo/example/HelloWorldTest.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
-        System.err.println( testClassJs + " output file is missing or not a file." );
+        print( testClassJs + " output file is missing or not a file." );
         return false;
     }
 
     testClassJs = new File ( testJsDir, "classes/suite/TestSuite.js" );
     if ( !testClassJs.exists() || !testClassJs.isFile() )
     {
-        System.err.println( testClassJs + " output file is missing or not a file." );
+        print( testClassJs + " output file is missing or not a file." );
         return false;
     }
 
     File jarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
     if ( !jarFile.isFile() )
     {
-        System.err.println( "JAR file is missing" );
+        print( "JAR file is missing" );
         return false;
     }
 
     File sourcesJarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
     if ( !sourcesJarFile.isFile() )
     {
-        System.err.println( "Sources JAR file is missing" );
+        print( "Sources JAR file is missing" );
         return false;
     }
 

@@ -11,11 +11,17 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>net.jangaroo.com.sencha</groupId>
+      <artifactId>ext-js</artifactId>
+      <type>pkg</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>2.1-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>
@@ -78,40 +84,69 @@
                   <fileset dir="src/main/joo-js" />
                 </copy>
                 <!-- sencha package -->
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime">
-                  <fileset dir="sencha" />
+                <property name="maven.project.version" value="${project.version}"/>
+                <loadresource property="sencha.package.version">
+                  <propertyresource name="maven.project.version"/>
+                  <filterchain>
+                    <tokenfilter>
+                      <filetokenizer/>
+                      <replaceregex pattern="([0-9\.]+)(-?.*)" replace="\1"/>
+                    </tokenfilter>
+                  </filterchain>
+                </loadresource>
+                <mkdir dir="target/workspace" />
+                <copy todir="target/workspace">
+                  <fileset dir="src/main/sencha" />
+                  <filterset>
+                    <filter token="PROJECT_VERSION" value="${sencha.package.version}"/>
+                  </filterset>
                 </copy>
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/resources/joo" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/resources/joo">
+                <mkdir dir="target/workspace/packages/local/package/resources/joo" />
+                <copy todir="target/workspace/packages/local/package/resources/joo">
                   <filelist dir="target/classes/META-INF/resources/joo">
                     <file name="jangaroo-runtime.module.js" />
                     <file name="AS3.js" />
                   </filelist>
                 </copy>
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/src" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/src">
+                <mkdir dir="target/workspace/packages/local/package/src" />
+                <copy todir="target/workspace/packages/local/package/src">
                   <fileset dir="target/classes/META-INF/resources/joo/classes"/>
                 </copy>
-                <mkdir dir="target/net.jangaroo__jangaroo-runtime/packages/local/package/overrides" />
-                <copy todir="target/net.jangaroo__jangaroo-runtime/packages/local/package/overrides">
+                <mkdir dir="target/workspace/packages/local/package/overrides" />
+                <copy todir="target/workspace/packages/local/package/overrides">
                   <fileset dir="target/classes/META-INF/resources/joo/overrides"/>
                 </copy>
-                <!-- execute sencha package build -->
                 <exec executable="sencha"
-                      dir="target/net.jangaroo__jangaroo-runtime/packages/local/package">
+                      dir="target/workspace/packages/local/package"><!-- execute sencha package build -->
                   <arg value="package" />
                   <arg value="build" />
                 </exec>
-                <!-- put to classes folder so sencha folder is included in artifact -->
-                <mkdir dir="target/classes/net.jangaroo__jangaroo-runtime" />
-                <unzip src="target/net.jangaroo__jangaroo-runtime/build/${project.groupId}__${project.artifactId}/${project.groupId}__${project.artifactId}.pkg"
-                       dest="target/classes/net.jangaroo__jangaroo-runtime" />
               </target>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-pkg</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>target/workspace/packages/local/package/build/${project.groupId}__${project.artifactId}.pkg</file>
+                  <type>pkg</type>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

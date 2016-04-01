@@ -24,17 +24,6 @@ import static net.jangaroo.exml.api.Exmlc.EXML_CONFIG_URI_PREFIX;
 @Mojo(name = "generate-manifest", requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class ManifestMojo extends AbstractJangarooMojo {
 
-  /**
-   * The Maven project object
-   */
-  @Parameter(defaultValue = "${project}")
-  private MavenProject project;
-
-  @Override
-  protected MavenProject getProject() {
-    return project;
-  }
-
   @Override
   public void execute() throws MojoExecutionException {
     String configClassPackage = getNamespaces()[0].getUri().substring(EXML_CONFIG_URI_PREFIX.length());

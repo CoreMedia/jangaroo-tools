@@ -72,7 +72,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
     result.put(PATH, path);
     result.put(BUNDLE, bundle);
     result.put(INCLUDE_IN_BUNDLE, includeInBundle);
-    // special case for ant variable specifying the generated css (should not be added if sencha fashion is active)
+    // special case for ant variable specifying the generated css (should not be added if Sencha fashion is active)
     if (BUILD_OUT_CSS_PATH.equals(path)) {
       result.put(EXCLUDE, Collections.singletonList(FASHION));
     }

@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -31,7 +32,7 @@ public class MavenPluginHelper {
     SourceInclusionScanner scanner = createSourceInclusionScanner(includes, excludes, inputFileSuffix, staleMillis);
     scanner.addSourceMapping(new SuffixMapping(inputFileSuffix, outputFileSuffix));
     log.debug("Searching for");
-    Set<File> staleSources = new LinkedHashSet<File>();
+    Set<File> staleSources = new LinkedHashSet<>();
 
     for (File rootFile : compileSourceRoots) {
       if (!rootFile.isDirectory()) {
@@ -42,13 +43,12 @@ public class MavenPluginHelper {
         log.debug("scanner.getIncludedSources(" + rootFile + ", " + outputDirectory + ")");
         //noinspection unchecked
         staleSources.addAll(scanner.getIncludedSources(rootFile, outputDirectory));
-      }
-      catch (InclusionScanException e) {
+      } catch (InclusionScanException e) {
         throw new MojoExecutionException(
-          "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
+                "Error scanning source root: \'" + rootFile.getAbsolutePath() + "\' " + "for stale files to recompile.", e);
       }
     }
-    return Collections.unmodifiableList(new ArrayList<File>(staleSources));
+    return Collections.unmodifiableList(new ArrayList<>(staleSources));
   }
 
   private SourceInclusionScanner createSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileSuffix, int staleMillis) {
@@ -67,13 +67,15 @@ public class MavenPluginHelper {
   }
 
   public List<File> getActionScriptClassPath(boolean includeTestScope) {
-    List<File> classPath = new ArrayList<File>();
+    List<File> classPath = new ArrayList<>();
     Collection<Artifact> dependencies = getArtifacts();
     for (Artifact dependency : dependencies) {
       if (log.isDebugEnabled()) {
         log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + " type: " + dependency.getType());
       }
-      if (!dependency.isOptional() && ("compile".equals(dependency.getScope()) || includeTestScope && "test".equals(dependency.getScope())) && "jar".equals(dependency.getType())) {
+      if (!dependency.isOptional()
+              && (Artifact.SCOPE_COMPILE.equals(dependency.getScope()) || includeTestScope && Artifact.SCOPE_TEST.equals(dependency.getScope()))
+              && Type.JAR_EXTENSION.equals(dependency.getType())) {
         if (log.isDebugEnabled()) {
           log.debug("adding to classpath: compile dependency [" + dependency.toString() + "]");
         }
@@ -92,4 +94,5 @@ public class MavenPluginHelper {
   public Set<Artifact> getArtifacts() {
     return project.getArtifacts();
   }
+
 }

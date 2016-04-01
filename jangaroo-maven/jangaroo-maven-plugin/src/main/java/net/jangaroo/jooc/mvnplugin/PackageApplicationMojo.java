@@ -143,9 +143,10 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private static final String JOO_FLUSH_STYLE_SHEETS = "\njoo.flushStyleSheets();\n";
 
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
-    Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
-    Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js");
-    try {
+
+    try ( Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
+          Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js")) {
+
       jangarooApplicationWriter.write("// This file loads all collected JavaScript code from dependent Jangaroo modules.\n\n");
       jangarooApplicationAllWriter.write("// This file contains all collected JavaScript code from dependent Jangaroo modules.\n\n");
 
@@ -156,14 +157,9 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
       jangarooApplicationWriter.write(JOO_FLUSH_STYLE_SHEETS);
       jangarooApplicationAllWriter.write(JOO_FLUSH_STYLE_SHEETS);
-    } finally {
-      try {
-        jangarooApplicationWriter.close();
-        jangarooApplicationAllWriter.close();
-      } catch (IOException e) {
-        getLog().warn("IOException on close ignored.", e);
-      }
+
     }
+
   }
 
   protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
@@ -299,7 +295,7 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   private Map<String, Artifact> artifactByInternalId() {
     final Map<String, Artifact> internalId2Artifact = new HashMap<String, Artifact>();
     for (Artifact artifact : getArtifacts()) {
-      if ("jar".equals(artifact.getType())) {
+      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
         String internalId = getInternalId(artifact);
         internalId2Artifact.put(internalId, artifact);
       }
@@ -324,8 +320,8 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
     List<String> deps = new LinkedList<String>();
     for (Dependency dep : getDependencies( projectBuildingResult.getProject() )) {
-      if ("jar".equals(dep.getType()) &&
-        ("compile".equals(dep.getScope()) || "runtime".equals(dep.getScope()))) {
+      if (Type.JAR_EXTENSION.equals(dep.getType()) &&
+        (Artifact.SCOPE_COMPILE.equals(dep.getScope()) || Artifact.SCOPE_RUNTIME.equals(dep.getScope()))) {
         deps.add(getInternalId(dep));
       }
     }

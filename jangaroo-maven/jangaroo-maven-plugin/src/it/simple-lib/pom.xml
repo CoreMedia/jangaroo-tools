@@ -23,7 +23,7 @@ under the License.
   <modelVersion>4.0.0</modelVersion>
   <groupId>testwar</groupId>
   <artifactId>simple-project</artifactId>
-  <packaging>jangaroo</packaging>
+  <packaging>jangaroo-pkg</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
@@ -43,15 +43,13 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
         <configuration>
-          <senchaConfiguration>
-            <enabled>false</enabled>
-          </senchaConfiguration>
           <namespaces>
             <namespace>
               <uri>library://testNamespace</uri>
               <manifest>${project.build.sourceDirectory}/manifest.xml</manifest>
             </namespace>
           </namespaces>
+          <skipRemotePackaging>true</skipRemotePackaging>
         </configuration>
       </plugin>
     </plugins>
@@ -61,7 +59,13 @@ under the License.
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-runtime</artifactId>
-      <version>0.9.14</version>
+      <version>@project.version@</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-runtime</artifactId>
+      <version>@project.version@</version>
+      <type>pkg</type>
     </dependency>
   </dependencies>
 

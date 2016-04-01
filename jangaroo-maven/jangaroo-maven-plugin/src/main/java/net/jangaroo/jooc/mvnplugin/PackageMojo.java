@@ -1,10 +1,9 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaModuleHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -75,7 +74,7 @@ public class PackageMojo extends AbstractMojo {
   /**
    * Plexus archiver.
    */
-  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = "jar")
+  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
   private JarArchiver archiver;
 
   /**
@@ -128,14 +127,17 @@ public class PackageMojo extends AbstractMojo {
   private String moduleClassesJsFile;
 
   /**
-   * The sencha configuration to use.
+   * The Sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
   private MavenSenchaConfiguration senchaConfiguration;
 
+  @Component
+  private ArtifactHandlerManager artifactHandlerManager;
+
   public void execute()
       throws MojoExecutionException {
-    File jarFile = new File(targetDir, finalName + "." + Types.JAVASCRIPT_EXTENSION);
+    File jarFile = new File(targetDir, finalName + ".jar");
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);
@@ -163,17 +165,15 @@ public class PackageMojo extends AbstractMojo {
       archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
               + "/pom.xml");
 
-      SenchaHelper senchaHelper = new SenchaModuleHelper(project, senchaConfiguration, getLog());
-      // for now:
-      senchaHelper.createModule();
-      senchaHelper.prepareModule();
-      senchaHelper.packageModule(archiver);
-
       mavenArchiver.createArchive(mavenSession, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
-    project.getArtifact().setFile(jarFile);
+
+    Artifact mainArtifact = project.getArtifact();
+    mainArtifact.setFile(jarFile);
+    // workaround for MNG-1682: force maven to install artifact using the "jar" handler
+    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
   }
 
   private File getModuleJsFile() {
@@ -189,14 +189,8 @@ public class PackageMojo extends AbstractMojo {
       }
     }
     getLog().info("Creating Jangaroo module classes loader script '" + jsFile.getAbsolutePath() + "'.");
-    OutputStreamWriter writer = null;
-    try {
-      writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8");
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8")) {
       writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
     }
   }
 
@@ -223,14 +217,8 @@ public class PackageMojo extends AbstractMojo {
 
     File mf = File.createTempFile("maven", ".mf");
     mf.deleteOnExit();
-    PrintWriter writer = null;
-    try {
-      writer = new PrintWriter(new FileWriter(mf));
+    try (PrintWriter writer = new PrintWriter(new FileWriter(mf))) {
       manifest.write(writer);
-    } finally {
-      if (writer != null) {
-        writer.close();
-      }
     }
     return mf;
   }
@@ -240,8 +228,13 @@ public class PackageMojo extends AbstractMojo {
     StringBuilder sb = new StringBuilder();
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if ("jar".equals(artifact.getType())) {
-        sb.append(artifact.getArtifactId()).append("-").append(artifact.getVersion()).append(".jar ");
+      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
+        sb.append(artifact.getArtifactId())
+                .append('-')
+                .append(artifact.getVersion())
+                .append('.')
+                .append(Type.JAR_EXTENSION)
+                .append(' ');
       }
     }
     return sb.toString();

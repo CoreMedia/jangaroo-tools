@@ -38,23 +38,23 @@ public class SenchaCmdExecutor {
     try {
       CommandLine cmdLine = getCommandLine(line);
       do {
-        log.info("executing sencha cmd - attempt: " + currentAttempt + " of " + MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS);
+        log.debug(String.format("Executing Sencha Cmd '%s'", line));
         try {
           internalExecute(cmdLine);
         } catch (RecoverableExecuteException e) {
-          log.info("execution of sencha cmd was not successfully");
           if (currentAttempt >= MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS) {
+            log.error("Execution of Sencha Cmd failed.");
             throw e;
           }
-          log.info("trying again...");
           currentAttempt++;
+          log.debug(String.format("Execution failed. Trying again - Attempt: %s of %s", currentAttempt, MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS));
           continue;
         }
         break;
       } while (currentAttempt <= MAX_ATTEMPTS_TO_HANDLE_BIND_FAILS);
-      log.info("execution of sencha cmd was successful");
+      log.debug("Executed Sencha Cmd successfully");
     } catch (IOException e) {
-      throw new MojoExecutionException("execution of sencha cmd was not successful", e);
+      throw new MojoExecutionException("Execution of Sencha Cmd failed.", e);
     }
   }
 
@@ -72,7 +72,7 @@ public class SenchaCmdExecutor {
       throw outputStream.getExecuteException();
     }
     if (watchdog.killedProcess()) {
-      throw new ExecuteException("Watchdog killed process after " + MAX_EXECUTION_TIME + "ms", 0);
+      throw new ExecuteException(String.format("Watchdog killed Sencha Cmd process after %s ms.", MAX_EXECUTION_TIME), 0);
     }
   }
 
