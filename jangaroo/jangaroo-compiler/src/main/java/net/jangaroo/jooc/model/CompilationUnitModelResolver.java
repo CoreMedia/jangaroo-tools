@@ -1,5 +1,8 @@
 package net.jangaroo.jooc.model;
 
+import javax.annotation.Nonnull;
+
 public interface CompilationUnitModelResolver {
-  CompilationUnitModel resolveCompilationUnit(String qName);
+  @Nonnull
+  CompilationUnitModel resolveCompilationUnit(@Nonnull String qName);
 }

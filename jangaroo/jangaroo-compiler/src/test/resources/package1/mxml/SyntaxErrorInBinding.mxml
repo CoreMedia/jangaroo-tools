@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TestComponentBase
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        property_1="{default murks}"
+        xmlns="package1.mxml.pkg.*"
+>
+</TestComponentBase>

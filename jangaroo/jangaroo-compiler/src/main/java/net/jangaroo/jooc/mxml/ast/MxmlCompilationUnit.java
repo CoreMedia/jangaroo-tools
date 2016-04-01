@@ -150,14 +150,14 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
-      IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n"));
+      IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
       AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ, applyExpr);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
     mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.consumeConstructorCode()));
-    classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(mxmlToModelParser.getClassBodyCode()).getDirectives());
+    constructorBodyDirectives.addAll(mxmlToModelParser.getConstructorBodyDirectives());
+    classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
@@ -220,7 +220,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
       mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
     }
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(mxmlToModelParser.consumeConstructorCode()));
+    Collection<Directive> directives = mxmlToModelParser.getConstructorBodyDirectives();
+    this.constructorBodyDirectives.addAll(directives);
+    directives.clear();
   }
 
   List<Directive> getClassBodyDirectives() {
@@ -266,14 +268,20 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  public void addImport(@Nonnull String classQName) {
+  @Nullable
+  public Ide addImport(@Nonnull String classQName) {
+    Ide ide = null;
     // do not import top-level classes
     if(classQName.contains(".")) {
       ImportDirective importDirective = mxmlParserHelper.parseImport(classQName);
-      if (null != importDirective && isNotYetImported(importDirective.getIde())) {
-        getDirectives().add(importDirective);
+      if (null != importDirective) {
+        ide = importDirective.getIde();
+        if (isNotYetImported(ide)) {
+          getDirectives().add(importDirective);
+        }
       }
     }
+    return ide;
   }
 
   @Nonnull

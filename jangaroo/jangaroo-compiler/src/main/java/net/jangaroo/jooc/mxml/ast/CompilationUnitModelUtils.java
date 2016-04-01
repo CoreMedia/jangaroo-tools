@@ -12,17 +12,15 @@ import java.util.Iterator;
 class CompilationUnitModelUtils {
   static boolean constructorSupportsConfigOptionsParameter(String classQName, CompilationUnitModelResolver resolver) {
     CompilationUnitModel compilationUnitModel = getCompilationUnitModel(classQName, resolver);
-    if (compilationUnitModel != null) {
-      ClassModel classModel = compilationUnitModel.getClassModel();
-      if (classModel != null) {
-        MethodModel constructorModel = classModel.getConstructor();
-        if (constructorModel != null) {
-          Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
-          if (constructorParams.hasNext()) {
-            ParamModel firstParam = constructorParams.next();
-            if (MxmlUtils.CONFIG.equals(firstParam.getName())) {
-              return true;
-            }
+    ClassModel classModel = compilationUnitModel.getClassModel();
+    if (classModel != null) {
+      MethodModel constructorModel = classModel.getConstructor();
+      if (constructorModel != null) {
+        Iterator<ParamModel> constructorParams = constructorModel.getParams().iterator();
+        if (constructorParams.hasNext()) {
+          ParamModel firstParam = constructorParams.next();
+          if (MxmlUtils.CONFIG.equals(firstParam.getName())) {
+            return true;
           }
         }
       }
@@ -31,9 +29,6 @@ class CompilationUnitModelUtils {
   }
 
   static CompilationUnitModel getCompilationUnitModel(String fullClassName, CompilationUnitModelResolver resolver) {
-    if (fullClassName == null) {
-      return null;
-    }
     return resolver.resolveCompilationUnit(fullClassName);
   }
 }

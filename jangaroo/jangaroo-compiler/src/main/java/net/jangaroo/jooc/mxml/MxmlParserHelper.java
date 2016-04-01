@@ -5,16 +5,20 @@ import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
+import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.mxml.ast.XmlAttribute;
@@ -31,6 +35,7 @@ public class MxmlParserHelper {
 
   private static final String TPL_CLASS_BODY = "package{class ___${\n%s\n}}";
   private static final String TPL_CONSTRUCTOR_BODY = "package{class ___${function ___$(){\n%s\n}}}";
+  private static final String TPL_EXPRESSION = "package{class ___${x= %s}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
   private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
   private static final String TPL_EXTENDS = "package{class ___$ extends %s {}}";
@@ -83,15 +88,8 @@ public class MxmlParserHelper {
   }
 
   @Nonnull
-  public ClassBody parseClassBody(@Nonnull String text) {
-    Symbol parsed = parser.parseEmbedded(String.format(TPL_CLASS_BODY, text), 0, 0, false);
-    CompilationUnit unit = (CompilationUnit) parsed.value;
-    return ((ClassDeclaration)unit.getPrimaryDeclaration()).getBody();
-  }
-
-  @Nonnull
   public List<Directive> parseConstructorBody(@Nonnull String text) {
-    Symbol parsed = parser.parseEmbedded(String.format(TPL_CONSTRUCTOR_BODY, text), 0, 0, false);
+    Symbol parsed = parser.parseEmbedded(String.format(TPL_CONSTRUCTOR_BODY, text), 0, 0);
     CompilationUnit unit = (CompilationUnit) parsed.value;
     List<Directive> directives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
     if(null != directives) {
@@ -116,11 +114,8 @@ public class MxmlParserHelper {
   public Extends parseExtends(@Nonnull JangarooParser parser, @Nonnull XmlElement rootNode, @Nonnull String classQName) {
     JooSymbol rootNodeSymbol = rootNode.getSymbol();
     String superClassName = getClassNameForElement(parser, rootNode);
-    if (null == superClassName) {
-      throw JangarooParser.error(rootNodeSymbol, "Could not resolve super class from node " + rootNode);
-    }
     if (superClassName.equals(classQName)) {
-      throw JangarooParser.error(rootNodeSymbol, "Cyclic inheritance error: Super class and this component are the same. There is something wrong!");
+      throw JangarooParser.error(rootNodeSymbol, "Cyclic inheritance error: Super class and this component are the same.");
     }
 
     String template = TPL_EXTENDS;
@@ -134,10 +129,11 @@ public class MxmlParserHelper {
     String text = symbol.getText();
     String template = TPL_IMPORT;
     int[] position = position(symbol, template);
-    Symbol parsed = parser.parseEmbedded(String.format(template, text), position[0], position[1], true);
-    if(null != parsed) {
+    try {
+      Symbol parsed = parser.silent().parseEmbedded(String.format(template, text), position[0], position[1]);
       CompilationUnit unit = (CompilationUnit) parsed.value;
       return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
+    } catch (Exception ignored) {
     }
     return null;
   }
@@ -145,7 +141,7 @@ public class MxmlParserHelper {
   @Nullable
   public ImportDirective parseImport(@Nonnull String text) {
     String template = TPL_IMPORT;
-    Symbol parsed = parser.parseEmbedded(String.format(template, text), 0, 0, true);
+    Symbol parsed = parser.parseEmbedded(String.format(template, text), 0, 0);
     CompilationUnit unit = (CompilationUnit) parsed.value;
     return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
   }
@@ -168,11 +164,12 @@ public class MxmlParserHelper {
     throw new IllegalStateException("cannot find %s in template string '" + template + "'");
   }
 
+  @Nonnull
   public String getClassNameForElement(JangarooParser parser, XmlElement xmlElement){
     String name = xmlElement.getLocalName();
     String uri = xmlElement.getNamespaceURI();
     if (uri != null) {
-      String packageName = MxmlUtils.parsePackageFromNamespace(uri);
+      String packageName = parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
         if (qName.equals(CompilerUtils.qNameFromRelativPath(getInputSource().getRelativePath()))) {
@@ -182,10 +179,36 @@ public class MxmlParserHelper {
           return qName;
         }
       } else {
-        return parser.getMxmlComponentRegistry().getClassName(uri, name);
+        String className = parser.getMxmlComponentRegistry().getClassName(uri, name);
+        if(null != className) {
+          return className;
+        }
       }
     }
-    return null;
+    throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node " + xmlElement);
   }
 
+  static String parsePackageFromNamespace(String uri) {
+    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
+            : uri.equals("*") || MxmlUtils.isMxmlNamespace(uri) ? "" : null;
+  }
+
+  @Nonnull
+  public Expr parseExpression(@Nonnull JooSymbol symbol) {
+    String text = symbol.getText();
+    String template = TPL_EXPRESSION;
+    int[] position = position(symbol, template);
+    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
+    List<Directive> classBodyDirectives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
+    if(null != classBodyDirectives) {
+      Directive directive = Iterables.getFirst(classBodyDirectives, null);
+      if(directive instanceof SemicolonTerminatedStatement) {
+        AstNode astNode = ((SemicolonTerminatedStatement) directive).getOptStatement();
+        if(astNode instanceof AssignmentOpExpr) {
+          return ((AssignmentOpExpr) astNode).getArg2();
+        }
+      }
+    }
+    throw new IllegalStateException("AAAAAAAA");
+  }
 }
