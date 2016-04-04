@@ -445,6 +445,7 @@ final class MxmlToModelParser {
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
     }
+    String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
     String variable = ide.getName();
     String eventHandlerName = "$on_" + variable + "_" + eventName.replace('-', '_');
     StringBuilder classBodyCode = new StringBuilder();
@@ -455,12 +456,12 @@ final class MxmlToModelParser {
             .append('}');
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
 
-    compilationUnit.addImport("joo.addEventListener");
     StringBuilder constructorCode = new StringBuilder();
-    constructorCode.append("    ").append("joo.addEventListener(").append(variable).append(", ")
-            .append(CompilerUtils.quote(eventName)).append(", ")
-            .append(eventHandlerName).append(", ")
-            .append(eventTypeStr).append(");");
+    constructorCode.append("    ").append(variable).append("." + MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME + "(").append(eventTypeStr)
+            .append(".").append(eventNameConstant)
+            .append(", ")
+            .append(eventHandlerName)
+            .append(");");
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 

@@ -52,7 +52,7 @@
   </defaults>
   <items exml:mode="append">
     <other-ns:SomeOtherClass bla="23"/>
-    <other-ns:SomeOtherClass clack="var test=0;" bla="1"/>
+    <other-ns:SomeOtherClass clickClack="var test=0;" bla="1"/>
     <other-ns:SomeOtherClass bla="42">
       <other-ns:mixins>
         <ConfigClass number="24"/>

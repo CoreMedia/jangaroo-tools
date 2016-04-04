@@ -22,6 +22,9 @@ public class MxmlUtils {
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
 
+  public static final String EVENT_DISPATCHER_INTERFACE = "ext.mixin.IObservable";
+  public static final String ADD_EVENT_LISTENER_METHOD_NAME = "addEventListener";
+
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
 

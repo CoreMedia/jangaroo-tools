@@ -22,7 +22,7 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
     return {
       extend: "AS3.package1.ConfigClass",
       mixins: ["AS3.package1.mxml.SimpleInterface"],
-      field1$2: null,
+      field1$3: null,
       doIt: doIt,
       constructor: ScriptCdataMxmlClass$,
       requires: [

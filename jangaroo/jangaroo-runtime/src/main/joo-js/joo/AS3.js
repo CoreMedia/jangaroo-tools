@@ -136,5 +136,23 @@ AS3 = {
       return accessorName;
     }
     return null;
+  },
+  addEventListener: function(eventDispatcher, flexEventClass, flexEventName, flexEventListener, extEventOptions) {
+    var extEventName = flexEventClass[flexEventName].substr(2).toLowerCase();
+    var extEventListener = function() {
+      return flexEventListener(new flexEventClass(flexEventName, arguments));
+    };
+    if (eventDispatcher.isInstance) {
+      var args = Array.prototype.slice.call(arguments, 4);
+      args.splice(0, 0, extEventName, extEventListener);
+      eventDispatcher.addListener.apply(eventDispatcher, args);
+    } else {
+      if (!eventDispatcher.listeners) {
+        eventDispatcher.listeners = {};
+      }
+      eventDispatcher.listeners[extEventName] = extEventOptions
+              ? Ext.apply({ fn: extEventListener }, extEventOptions)
+              : extEventListener;
+    }
   }
 };

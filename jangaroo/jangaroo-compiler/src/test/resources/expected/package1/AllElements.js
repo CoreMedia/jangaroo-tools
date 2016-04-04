@@ -31,18 +31,18 @@ public class AllElements extends Panel{
     private var myVar4:Array;
 
     private*/ function __initialize__(config/*:AllElements*/)/*:void*/ {
-      this.myVar$2 = config.myProperty$2 + '_suffix';
-      this.myVar2$2 = {
-        prop: config.myProperty$2
+      this.myVar$3 = config.myProperty$3 + '_suffix';
+      this.myVar2$3 = {
+        prop: config.myProperty$3
       };
     }/*
 
-    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$2(config);
+    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$3(config);
     var config_$1/*:AllElements*/ =AS3.cast(AllElements,{});
     var defaults_$1/*:AllElements*/ ={};
     var myVar3_50_5_$1/*: ext.config.button*/ =AS3.cast(AS3.ext.config.button,{});
     myVar3_50_5_$1.text = "Foo";
-    this.myVar3$2 = new AS3.ext.config.button(myVar3_50_5_$1);
+    this.myVar3$3 = new AS3.ext.config.button(myVar3_50_5_$1);
     var object_54_7_$1/*:Object*/ = {};
     object_54_7_$1.header = "a";
     object_54_7_$1.sortable = false;
@@ -51,7 +51,7 @@ public class AllElements extends Panel{
     object_55_7_$1.header = "b";
     object_55_7_$1.sortable = true;
     object_55_7_$1.menuDisabled = false;
-    this.myVar4$2 = [object_54_7_$1, object_55_7_$1];
+    this.myVar4$3 = [object_54_7_$1, object_55_7_$1];
     config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var panel_59_3_$1/*: ext.config.panel*/ =AS3.cast(AS3.ext.config.panel,{});
     panel_59_3_$1.title = "I am a panel";
@@ -108,12 +108,12 @@ public class AllElements extends Panel{
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.ext.Panel",
-      myProperty$2: null,
-      myVar$2: null,
-      myVar2$2: null,
-      myVar3$2: null,
-      myVar4$2: null,
-      __initialize__$2: __initialize__,
+      myProperty$3: null,
+      myVar$3: null,
+      myVar2$3: null,
+      myVar3$3: null,
+      myVar4$3: null,
+      __initialize__$3: __initialize__,
       constructor: AllElements$,
       config: {gear: null},
       statics: {

@@ -3,6 +3,9 @@ import package1.ConfigClass;
 
 public class SomeEvent {
 
+  public static const CLICK:String = "click";
+  public static const CLICK_CLACK:String = "clack";
+
   public function SomeEvent(arguments:Array) {
     this['source'] = arguments[0];
   }

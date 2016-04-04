@@ -1,8 +1,9 @@
 package package1{
+import ext.mixin.Observable;
 
 [Event(name="click", type="package1.someOtherPackage.SomeEvent")]
 
-public class ConfigClass {
+public class ConfigClass extends Observable {
 
   public function ConfigClass(config:ConfigClass = null) {
   }
