@@ -2,18 +2,24 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
 import javax.inject.Inject;
 import java.io.File;
 
-@Mojo(name = "sencha-package", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+/**
+ * Generates and packages Sencha package modules of type "test" and "code"
+ */
+@Mojo(name = "sencha-package", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
 public class SenchaPackageMojo extends AbstractSenchaMojo {
 
   @Inject
@@ -22,17 +28,25 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
+
   /**
-   * Skip the build process of the Sencha module.
+   * Skips the build process of the Sencha package which results in a separate <em>pkg</em>
+   * artifact. The <em>pkg</em> artifact is required if any other non-local Maven module
+   * depends on this project.
+   * <p />
+   * Enabling this option speeds up the build process.
    *
-   * Only use this for local development to speed up the build process of the maven app.
-   * For deployment the build process is required otherwise remote packages will have no contents.
+   * @since 4.0
    */
-  @Parameter(defaultValue = "false")
-  private boolean skipRemotePackaging;
+  @Parameter(property = "skipPkg", defaultValue = "false")
+  private boolean skipPkg;
 
   /**
    * Defines the packageType of the Sencha package that will be generated. Possible values are "code" (default) and "theme".
+   *
+   * @since 4.0
    */
   @Parameter(defaultValue = Type.CODE)
   private String packageType;
@@ -54,7 +68,7 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
     senchaHelper.createModule();
     senchaHelper.prepareModule();
 
-    if (!skipRemotePackaging) {
+    if (!skipPkg) {
       File pkg = senchaHelper.packageModule();
       helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
     }

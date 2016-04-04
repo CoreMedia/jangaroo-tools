@@ -23,7 +23,9 @@ import java.io.File;
 
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
-
+/**
+ * Generates and packages Sencha app module.
+ */
 @Mojo(name = "sencha-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class SenchaAppMojo extends AbstractSenchaMojo {
 
@@ -33,10 +35,7 @@ public class SenchaAppMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  /**
-   * The Maven session
-   */
-  @Parameter(defaultValue = "${session}", readonly = true)
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession mavenSession;
 
   /**

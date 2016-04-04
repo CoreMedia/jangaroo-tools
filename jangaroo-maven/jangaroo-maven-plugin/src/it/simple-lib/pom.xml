@@ -49,7 +49,7 @@ under the License.
               <manifest>${project.build.sourceDirectory}/manifest.xml</manifest>
             </namespace>
           </namespaces>
-          <skipRemotePackaging>true</skipRemotePackaging>
+          <skipPkg>true</skipPkg>
         </configuration>
       </plugin>
     </plugins>

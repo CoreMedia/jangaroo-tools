@@ -54,7 +54,7 @@ under the License.
         <extensions>true</extensions>
         <version>@project.version@</version>
         <configuration>
-          <skipRemotePackaging>true</skipRemotePackaging>
+          <skipPkg>true</skipPkg>
         </configuration>
       </plugin>
     </plugins>

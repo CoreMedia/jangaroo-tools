@@ -43,7 +43,7 @@ under the License.
           </execution>
         </executions>
         <configuration>
-          <skipRemotePackaging>true</skipRemotePackaging>
+          <skipPkg>true</skipPkg>
         </configuration>
       </plugin>
       <plugin>
