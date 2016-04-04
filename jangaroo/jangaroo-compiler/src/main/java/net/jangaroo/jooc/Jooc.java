@@ -145,11 +145,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       if (getConfig().isGenerateApi()) {
         apiSinkFactory = createSinkFactory(getConfig(), true);
       }
+      ImplementedMembersAnalyzer implementedMembersAnalyzer = new ImplementedMembersAnalyzer(this);
       for (CompilationUnit unit : compileQueue) {
         unit.analyze(null);
         if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
           reportPublicApiViolations(unit);
         }
+
+        implementedMembersAnalyzer.analzyeImplementedMembers(unit);
       }
 
       analyzeDependencies();

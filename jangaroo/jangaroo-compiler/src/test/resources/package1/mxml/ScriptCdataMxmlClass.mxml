@@ -10,11 +10,10 @@
     protected var field2:Vector.<String> = new <String>["a", "b"];
     public var field3:Vector.<int> = new <int>[1, 2, 3];
 
-    internal function doIt(...values):void {
+    public function doIt(...values):void {
       for (var v:Object in values) {
         throw "cannot do it with " + v;
       }
     }
-
     ]]></fx:Script>
 </ConfigClass>

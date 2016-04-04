@@ -10,14 +10,20 @@ import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
 public class JoocMxmlTest extends AbstractJoocTest {
 
-  @org.junit.Ignore
   @Test
   public void testInterfaceImplementingMxml() throws Exception {
-    File sourceFile = getFile("/package1/mxml/InterfaceImplementingMxmlClass.mxml");
+    File sourceFile = getFile("/package1/mxml/DoesNotImplementMethodFromInterface.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
+    String expected = "Does not implement [doIt]";
     assertTrue("Expected error (does not implement function) did not occur",
-            testLog.hasError("Does not implement function: doIt"));
+            testLog.hasError(expected));
+    assertErrorAt(expected, 4, 15);
+  }
+
+  @Test
+  public void testInterfaceImplementingMxmlClass() throws Exception {
+    assertCompilationResult("package1/mxml/InterfaceImplementingMxmlClass", ".mxml");
   }
 
   @Test

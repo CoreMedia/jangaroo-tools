@@ -18,9 +18,12 @@ public final class ImplementsInterface implements Interface {
     // nothing really
   }
 
-  public function doSomething():void {
+  public function doSomething():String {
     // also nothing
   }
 
+  public function get property():String {
+    return "prefix" + foo;
+  }
 }
 }

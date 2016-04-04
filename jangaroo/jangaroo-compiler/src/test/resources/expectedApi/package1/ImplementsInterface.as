@@ -18,6 +18,8 @@ public final class ImplementsInterface implements package1.Interface {
     super();
   }
 
-  public native function doSomething():void;
+  public native function doSomething():String;
+
+  public native function get property():String;
 }
 }
