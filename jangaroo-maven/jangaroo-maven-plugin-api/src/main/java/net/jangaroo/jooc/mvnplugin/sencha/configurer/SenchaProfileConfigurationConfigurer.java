@@ -30,9 +30,19 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
-    config.put(CSS, getAdditionalResources(senchaProfileConfiguration.getAdditionalCssNonBundle(), senchaProfileConfiguration.getAdditionalCssBundle(), senchaProfileConfiguration.getAdditionalCssIncludeInBundle()));
-    List<Object> js = new ArrayList<Object>();
-    js.addAll(getAdditionalResources(senchaProfileConfiguration.getAdditionalJsNonBundle(), senchaProfileConfiguration.getAdditionalJsBundle(), senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
+    List<Object> additionalCss = getAdditionalResources(
+            senchaProfileConfiguration.getAdditionalCssNonBundle(),
+            senchaProfileConfiguration.getAdditionalCssBundle(),
+            senchaProfileConfiguration.getAdditionalCssIncludeInBundle());
+    if (!additionalCss.isEmpty()) {
+      config.put(CSS, additionalCss);
+    }
+
+    List<Object> js = new ArrayList<>();
+    js.addAll(getAdditionalResources(
+            senchaProfileConfiguration.getAdditionalJsNonBundle(),
+            senchaProfileConfiguration.getAdditionalJsBundle(),
+            senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
     List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
     if (null != editorPlugins && !editorPlugins.isEmpty()) {
       String profileFolder = "";
@@ -41,11 +51,13 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
       }
       js.add(getResourceEntry(SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
     }
-    config.put(JS, js);
+    if (!additionalCss.isEmpty()) {
+      config.put(JS, js);
+    }
   }
 
   private List<Object> getAdditionalResources(List<String> resourcesNonBundle, List<String> resourcesBundle, List<String> resourcesIncludeInBundle) {
-    List<Object> resources = new ArrayList<Object>();
+    List<Object> resources = new ArrayList<>();
 
     if (null != resourcesNonBundle) {
       for (String resource : resourcesNonBundle) {
@@ -67,7 +79,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   }
 
   private Map<String, Object> getResourceEntry(String path, boolean bundle, boolean includeInBundle) {
-    Map<String, Object> result = new LinkedHashMap<String, Object>();
+    Map<String, Object> result = new LinkedHashMap<>();
 
     result.put(PATH, path);
     result.put(BUNDLE, bundle);

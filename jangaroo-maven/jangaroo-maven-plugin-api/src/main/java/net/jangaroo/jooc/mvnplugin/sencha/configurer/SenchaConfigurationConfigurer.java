@@ -41,18 +41,18 @@ public class SenchaConfigurationConfigurer implements Configurer {
     configureAdditionalResourcesForProfile(config, TESTING, senchaConfiguration.getTesting());
     configureAdditionalResourcesForProfile(config, DEVELOPMENT, senchaConfiguration.getDevelopment());
 
-    String themePackageName = getThemePackageName();
-
+    String themeAttribute = THEME;
     if (Type.CODE.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
-      config.put(THEME, themePackageName);
     }
     if (Type.THEME.equals(senchaConfiguration.getType())) {
       config.put(TOOLKIT, senchaConfiguration.getToolkit());
-      config.put(EXTEND, themePackageName);
+      themeAttribute = EXTEND;
     }
-    if (Type.APP.equals(senchaConfiguration.getType())) {
-      config.put(THEME, themePackageName);
+
+    String themePackageName = getThemePackageName();
+    if (StringUtils.isNotBlank(themePackageName)) {
+      config.put(themeAttribute, themePackageName);
     }
   }
 
