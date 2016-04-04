@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser implements CompilationUnitModelResolver, CompilationUnitRegistry {
+public class JangarooParser extends CompilationUnitModelResolver implements CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
   static final String UTF_8 = "UTF-8";
 
