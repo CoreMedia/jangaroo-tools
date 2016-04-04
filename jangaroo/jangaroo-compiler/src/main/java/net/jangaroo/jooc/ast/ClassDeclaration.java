@@ -114,8 +114,6 @@ public class ClassDeclaration extends IdeDeclaration {
     if (constructor != null) {
       throw JangarooParser.error(methodDeclaration, "Only one constructor allowed per class");
     }
-//     if (methodDeclaration != body.declararations.get(0))
-//       JangarooParser.error(methodDeclaration, "Constructor declaration must be the first declaration in a class");
     constructor = methodDeclaration;
   }
 
