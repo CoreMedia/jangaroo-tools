@@ -1,7 +1,7 @@
 package package1 {
 
 [Uses("package1.Interface")]
-public final class ImplementsInterface implements Interface {
+public final class ImplementsInterface implements package1.Interface {
   /**
    * Field with ASDoc.
    * Second line.
