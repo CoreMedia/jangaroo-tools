@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
@@ -13,18 +14,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.archiver.jar.Manifest;
-import org.codehaus.plexus.archiver.jar.ManifestException;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.util.Set;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
@@ -142,7 +137,7 @@ public class PackageMojo extends AbstractMojo {
           getLog().info( "Adding existing MANIFEST to archive. Found under: " + defaultManifestFile.getPath() );
           archive.setManifestFile( defaultManifestFile );
         } else {
-          archive.setManifestFile(createDefaultManifest(project));
+          archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
         }
       }
       JarArchiver archiver = mavenArchiver.getArchiver();
@@ -185,52 +180,6 @@ public class PackageMojo extends AbstractMojo {
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8")) {
       writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
     }
-  }
-
-  private static File createDefaultManifest(MavenProject project)
-      throws ManifestException, IOException, ArchiverException {
-    Manifest manifest = new Manifest();
-    Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
-    manifest.addConfiguredAttribute(attr);
-    attr = new Manifest.Attribute("Implementation-Title", project.getName());
-    manifest.addConfiguredAttribute(attr);
-    attr = new Manifest.Attribute("Implementation-Version", project.getVersion());
-    manifest.addConfiguredAttribute(attr);
-    attr = new Manifest.Attribute("Implementation-Vendor-Id", project.getGroupId());
-    manifest.addConfiguredAttribute(attr);
-    if (project.getOrganization() != null) {
-      String vendor = project.getOrganization().getName();
-      attr = new Manifest.Attribute("Implementation-Vendor", vendor);
-      manifest.addConfiguredAttribute(attr);
-    }
-    attr = new Manifest.Attribute("Built-By", System.getProperty("user.name"));
-    manifest.addConfiguredAttribute(attr);
-    attr = new Manifest.Attribute("Class-Path", jangarooDependencies(project));
-    manifest.addConfiguredAttribute(attr);
-
-    File mf = File.createTempFile("maven", ".mf");
-    mf.deleteOnExit();
-    try (PrintWriter writer = new PrintWriter(new FileWriter(mf))) {
-      manifest.write(writer);
-    }
-    return mf;
-  }
-
-  @SuppressWarnings({"unchecked"})
-  private static String jangarooDependencies(MavenProject project) {
-    StringBuilder sb = new StringBuilder();
-    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
-    for (Artifact artifact : dependencyArtifacts) {
-      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
-        sb.append(artifact.getArtifactId())
-                .append('-')
-                .append(artifact.getVersion())
-                .append('.')
-                .append(Type.JAR_EXTENSION)
-                .append(' ');
-      }
-    }
-    return sb.toString();
   }
 
 }

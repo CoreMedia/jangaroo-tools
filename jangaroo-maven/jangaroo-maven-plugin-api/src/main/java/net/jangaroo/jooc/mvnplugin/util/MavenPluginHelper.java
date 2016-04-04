@@ -5,13 +5,20 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.jar.Manifest;
+import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
+import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +33,61 @@ public class MavenPluginHelper {
   public MavenPluginHelper(MavenProject project, Log log) {
     this.project = project;
     this.log = log;
+  }
+
+  /**
+   * Creates a default manifest file for any Jangaroo-packaged Maven project
+   * @param project the Maven project with packaging type "jangaroo-app" or "jangaroo-pkg"
+   * @return the default manifest file
+   * @throws ManifestException
+   * @throws IOException
+   * @throws ArchiverException
+   */
+  @Nonnull
+  public static File createDefaultManifest(MavenProject project)
+      throws ManifestException, IOException, ArchiverException {
+    Manifest manifest = new Manifest();
+    Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Title", project.getName());
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Version", project.getVersion());
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Implementation-Vendor-Id", project.getGroupId());
+    manifest.addConfiguredAttribute(attr);
+    if (project.getOrganization() != null) {
+      String vendor = project.getOrganization().getName();
+      attr = new Manifest.Attribute("Implementation-Vendor", vendor);
+      manifest.addConfiguredAttribute(attr);
+    }
+    attr = new Manifest.Attribute("Built-By", System.getProperty("user.name"));
+    manifest.addConfiguredAttribute(attr);
+    attr = new Manifest.Attribute("Class-Path", jangarooDependencies(project));
+    manifest.addConfiguredAttribute(attr);
+
+    File mf = File.createTempFile("maven", ".mf");
+    mf.deleteOnExit();
+    try (PrintWriter writer = new PrintWriter(new FileWriter(mf))) {
+      manifest.write(writer);
+    }
+    return mf;
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private static String jangarooDependencies(MavenProject project) {
+    StringBuilder sb = new StringBuilder();
+    Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
+    for (Artifact artifact : dependencyArtifacts) {
+      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
+        sb.append(artifact.getArtifactId())
+                .append('-')
+                .append(artifact.getVersion())
+                .append('.')
+                .append(Type.JAR_EXTENSION)
+                .append(' ');
+      }
+    }
+    return sb.toString();
   }
 
   public List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, String outputFileSuffix, int staleMillis) throws MojoExecutionException {
