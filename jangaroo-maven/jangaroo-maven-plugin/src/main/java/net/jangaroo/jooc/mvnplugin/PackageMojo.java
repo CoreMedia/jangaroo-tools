@@ -77,11 +77,6 @@ public class PackageMojo extends AbstractMojo {
   @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
   private JarArchiver archiver;
 
-  /**
-   * @deprecated use <code>defaultManifestFile</code>
-   */
-  @Parameter
-  private File manifest;
 
   /**
    * The archive configuration to use.
@@ -146,8 +141,6 @@ public class PackageMojo extends AbstractMojo {
         if (useDefaultManifestFile && defaultManifestFile.exists()) {
           getLog().info( "Adding existing MANIFEST to archive. Found under: " + defaultManifestFile.getPath() );
           archive.setManifestFile( defaultManifestFile );
-        } else if (manifest != null) {
-          archive.setManifestFile(manifest);
         } else {
           archive.setManifestFile(createDefaultManifest(project));
         }
