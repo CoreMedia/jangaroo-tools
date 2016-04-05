@@ -3,6 +3,8 @@ package net.jangaroo.jooc.mxml;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,9 @@ public class MxmlUtils {
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";
+
+  public static final String EVENT_DISPATCHER_INTERFACE = "ext.mixin.IObservable";
+  public static final String ADD_EVENT_LISTENER_METHOD_NAME = "addEventListener";
 
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
@@ -88,11 +93,6 @@ public class MxmlUtils {
     return endPos + 1;
   }
 
-  public static String parsePackageFromNamespace(String uri) {
-    return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
-            : uri.equals("*") || isMxmlNamespace(uri) ? "" : null;
-  }
-
   public static Object getAttributeValue(String attributeValue, String type) {
     if (!MxmlUtils.isBindingExpression(attributeValue)) {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
@@ -124,7 +124,8 @@ public class MxmlUtils {
    * @param value        The value to be serialized.
    * @return a stringified representation of the object value
    */
-  public static String valueToString(Object value) {
+  @Nonnull
+  public static String valueToString(@Nullable Object value) {
     if (value == null) {
       return "null";
     }

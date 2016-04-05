@@ -4,6 +4,7 @@ import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 
+import javax.annotation.Nonnull;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.regex.Pattern;
@@ -19,7 +20,7 @@ public class JooParser extends parser {
   }
 
   private SemicolonInsertionMode semicolonInsertionMode;
-  private CompileLog log;
+  private CompileLog log = SILENT_LOG;
   private boolean eofSeen = false;
 
   // pattern for line terminator characters according to ECMA-262:
@@ -185,28 +186,21 @@ public class JooParser extends parser {
     //if that fails, unrecovered_syntax_error() will be called and report the error
   }
 
+  @Nonnull
   public Symbol parseEmbedded(String string, int line, int column) {
-    return parseEmbedded(string, line, column, false);
-  }
-
-  public Symbol parseEmbedded(String string, int line, int column, boolean silent) {
     Reader reader = new StringReader(string);
     scanner.prepareEmbedded(reader, line, column);
-    CompileLog oldLog = this.log;
-    if(silent) {
-      this.log = SILENT_LOG;
-    }
     try {
       return parse();
-    } catch (Scanner.ScanError se) {
-      return null;
-    } catch (FatalSyntaxError e) {
-      return null;
+    } catch (RuntimeException e) {
+      throw e;
     } catch (Exception e) {
       throw new IllegalArgumentException("could not parse Jangaroo source", e);
-    } finally {
-      this.log = oldLog;
     }
+  }
+
+  public JooParser silent() {
+    return new JooParser(scanner);
   }
 
   public ScannerBase getScannerBase() {

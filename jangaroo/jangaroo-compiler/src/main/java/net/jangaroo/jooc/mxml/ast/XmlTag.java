@@ -9,12 +9,10 @@ import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NodeImplBase;
-import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.w3c.dom.Node;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +21,9 @@ import java.util.Objects;
 
 public class XmlTag extends NodeImplBase {
 
-  public static final String XMLNS = "xmlns";
+  static final String XMLNS = "xmlns";
 
-  private static final List<String> TAGS = Arrays.asList(MxmlUtils.MXML_DECLARATIONS, MxmlUtils.MXML_METADATA, MxmlUtils.MXML_SCRIPT);
-
-  private final Map<String, String> xmlNamespaces = new HashMap<String, String>();
+  private final Map<String, String> xmlNamespaces = new HashMap<>();
 
   private final String defaultXmlNamespace;
 
@@ -94,7 +90,12 @@ public class XmlTag extends NodeImplBase {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append(lt.getText()).append(tagName.getName());
+    builder.append(lt.getText());
+    String prefix = getPrefix();
+    if(null != prefix) {
+      builder.append(prefix).append(':');
+    }
+    builder.append(getLocalName());
     if (attributes != null) {
       for (XmlAttribute attribute : attributes) {
         builder.append(" ").append(attribute);
@@ -102,10 +103,6 @@ public class XmlTag extends NodeImplBase {
     }
     builder.append(gt.getText());
     return builder.toString();
-  }
-
-  public String getName() {
-    return tagName.getName();
   }
 
   public String getLocalName() {
@@ -122,7 +119,7 @@ public class XmlTag extends NodeImplBase {
     return null;
   }
 
-  public XmlAttribute getAttribute(final String name) {
+  XmlAttribute getAttribute(final String name) {
     return Iterables.getFirst(
             Iterables.filter(attributes, new Predicate<XmlAttribute>() {
               @Override
@@ -132,7 +129,7 @@ public class XmlTag extends NodeImplBase {
             }), null);
   }
 
-  public XmlAttribute getAttribute(final String namespaceUri, final String localName) {
+  XmlAttribute getAttribute(final String namespaceUri, final String localName) {
     return Iterables.getFirst(
             Iterables.filter(attributes, new Predicate<XmlAttribute>() {
               @Override

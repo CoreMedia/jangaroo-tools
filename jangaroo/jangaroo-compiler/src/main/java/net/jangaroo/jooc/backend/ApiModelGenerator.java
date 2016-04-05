@@ -231,7 +231,7 @@ public class ApiModelGenerator {
   public void visitImplements(Implements anImplements) throws IOException {
     CommaSeparatedList<Ide> superTypes = anImplements.getSuperTypes();
     while (superTypes != null) {
-      getCurrent(ClassModel.class).addInterface(superTypes.getHead().getQualifiedNameStr());
+      getCurrent(ClassModel.class).addInterface(superTypes.getHead().getDeclaration().getQualifiedNameStr());
       superTypes = superTypes.getTail();
     }
   }

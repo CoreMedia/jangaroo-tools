@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser implements CompilationUnitModelResolver, CompilationUnitRegistry {
+public class JangarooParser extends CompilationUnitModelResolver implements CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
   static final String UTF_8 = "UTF-8";
 
@@ -288,10 +288,8 @@ public class JangarooParser implements CompilationUnitModelResolver, Compilation
 
 
   @Override
-  public CompilationUnitModel resolveCompilationUnit(String fullClassName) {
-    if (fullClassName == null) {
-      return null;
-    }
+  @Nonnull
+  public CompilationUnitModel resolveCompilationUnit(@Nonnull String fullClassName) {
     CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
     if (compilationUnitModel == null) {
       // Use a marker in the lookup table to identify infinite loops.

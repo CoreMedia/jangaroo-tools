@@ -1,9 +1,16 @@
 package ext {
+import ext.mixin.Observable;
 
-public class Panel {
+[Event(name="onFlipFlop", type="ext.events.PanelEvent")]
+
+public class Panel extends Observable {
 
   public function Panel(config:Object) {
   }
+
+  public native function get title():String;
+
+  public native function set title(value:String):void;
 
   [DefaultProperty]
   public native function get items():Array;

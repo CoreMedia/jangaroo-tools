@@ -1018,22 +1018,65 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
-    if (applyExpr.getArgs() != null && applyExpr.getFun() instanceof IdeExpr &&
-            SyntacticKeywords.ASSERT.equals(applyExpr.getFun().getSymbol().getText())) {
-      applyExpr.getFun().visit(this);
-      JooSymbol symKeyword = applyExpr.getFun().getSymbol();
-      out.writeSymbol(applyExpr.getArgs().getLParen());
-      applyExpr.getArgs().getExpr().visit(this);
-      out.writeToken(", ");
-      out.writeString(new File(symKeyword.getFileName()).getName());
-      out.writeToken(", ");
-      out.writeInt(symKeyword.getLine());
-      out.write(", ");
-      out.writeInt(symKeyword.getColumn());
-      out.writeSymbol(applyExpr.getArgs().getRParen());
-    } else {
-      generateFunJsCode(applyExpr);
+    if (applyExpr.getArgs() != null && applyExpr.getFun() instanceof IdeExpr) {
+      Ide funIde = ((IdeExpr) applyExpr.getFun()).getIde();
+      JooSymbol lParen = applyExpr.getArgs().getLParen();
+      CommaSeparatedList<Expr> arguments = applyExpr.getArgs().getExpr();
+      if (SyntacticKeywords.ASSERT.equals(funIde.getName())) {
+        applyExpr.getFun().visit(this);
+        JooSymbol symKeyword = applyExpr.getFun().getSymbol();
+        out.writeSymbol(lParen);
+        arguments.visit(this);
+        out.writeToken(", ");
+        out.writeString(new File(symKeyword.getFileName()).getName());
+        out.writeToken(", ");
+        out.writeInt(symKeyword.getLine());
+        out.write(", ");
+        out.writeInt(symKeyword.getColumn());
+        out.writeSymbol(applyExpr.getArgs().getRParen());
+        return;
+      } else if (isAddEventListenerMethod(funIde)) {
+        out.writeSymbolWhitespace(funIde.getSymbol());
+        out.writeToken("AS3.");
+        out.writeSymbol(funIde.getIde());
+        out.writeSymbol(lParen, false);
+        funIde.getQualifier().visit(this);
+        writeSymbolReplacement(((QualifiedIde) funIde).getSymDot(), ",");
+        out.writeSymbolWhitespace(lParen);
+        Expr eventConstant = arguments.getHead();
+        if (!(eventConstant instanceof IdeExpr)) {
+          throw Jooc.error(eventConstant, String.format("'%s' must be used with event constant.", MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME));
+        }
+        Ide eventConstantIde = ((IdeExpr) eventConstant).getIde();
+        if (eventConstantIde.getQualifier() == null) {
+          throw Jooc.error(eventConstant, String.format("'%s' must be used with event constant from event class.", MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME));
+        }
+        visitInExpressionMode(eventConstantIde.getQualifier());
+        writeSymbolReplacement(((QualifiedIde) eventConstantIde).getSymDot(), ",");
+        out.writeToken("\"");
+        out.writeSymbol(eventConstantIde.getIde());
+        out.writeToken("\"");
+        out.writeSymbol(arguments.getSymComma());
+        arguments.getTail().visit(this);
+        out.writeSymbol(applyExpr.getArgs().getRParen());
+        return;
+      }
     }
+    generateFunJsCode(applyExpr);
+  }
+
+  private boolean isAddEventListenerMethod(Ide funIde) {
+    if (MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME.equals(funIde.getName())) {
+      IdeDeclaration qualifierDeclaration = funIde.getQualifier().resolveDeclaration();
+      if (qualifierDeclaration instanceof ClassDeclaration) {
+        CompilationUnitModel type = compilationUnitModelResolver.resolveCompilationUnit(qualifierDeclaration.getQualifiedNameStr());
+        if (type != null && type.getClassModel() != null) {
+          // check whether the type implements IObservable:
+          return compilationUnitModelResolver.implementsInterface(type, MxmlUtils.EVENT_DISPATCHER_INTERFACE);
+        }
+      }
+    }
+    return false;
   }
 
   private void generateFunJsCode(ApplyExpr applyExpr) throws IOException {

@@ -2,9 +2,6 @@ package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
-import net.jangaroo.jooc.json.Code;
-import net.jangaroo.jooc.json.JsonArray;
-import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigAttribute;
 import net.jangaroo.exml.model.ConfigClass;
@@ -14,9 +11,12 @@ import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
-import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.json.Code;
+import net.jangaroo.jooc.json.JsonArray;
+import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 import org.w3c.dom.Attr;
@@ -74,14 +74,8 @@ public final class ExmlToModelParser {
     model.setConfigClass(configClassByName);
     model.setPackageName(CompilerUtils.packageName(qName));
 
-    BufferedInputStream inputStream = null;
-    try {
-      inputStream = new BufferedInputStream(new FileInputStream(file));
+    try (BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
       parse(inputStream, model);
-    } finally {
-      if (inputStream != null) {
-        inputStream.close();
-      }
     }
 
     return model;
@@ -178,7 +172,7 @@ public final class ExmlToModelParser {
     String superFullClassName = createFullConfigClassNameFromNode(componentNode);
     if (superFullClassName.equals(model.getConfigClass().getFullName())) {
       int lineNumber = getLineNumber(componentNode);
-      throw  new ExmlcException("Cyclic inheritance error: super class and this component are the same!. There is something wrong!", lineNumber);
+      throw new ExmlcException("Cyclic inheritance error: super class and this component are the same.", lineNumber);
     }
     ConfigClass superConfigClass = getConfigClassByName(superFullClassName, componentNode);
     String superComponentClassName = superConfigClass.getComponentClassName();
@@ -272,7 +266,7 @@ public final class ExmlToModelParser {
     return attributeValue;
   }
 
-  private static final Map<String, Code> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, Code>(); static {
+  private static final Map<String, Code> CONFIG_MODE_TO_AT_VALUE = new HashMap<>(); static {
     CONFIG_MODE_TO_AT_VALUE.put("append",  JsonObject.code("net.jangaroo.ext.Exml.APPEND"));
     CONFIG_MODE_TO_AT_VALUE.put("prepend", JsonObject.code("net.jangaroo.ext.Exml.PREPEND"));
   }
@@ -428,7 +422,7 @@ public final class ExmlToModelParser {
   }
 
   private static List<Element> getChildElements(Element element) {
-    List<Element> result = new ArrayList<Element>();
+    List<Element> result = new ArrayList<>();
     NodeList propertyChildNotes = element.getChildNodes();
     for (int j = 0; j < propertyChildNotes.getLength(); j++) {
       Node childNode = propertyChildNotes.item(j);
@@ -456,7 +450,7 @@ public final class ExmlToModelParser {
   }
 
   private List<Object> parseChildObjects(ExmlModel model, List<Element> elements) {
-    List<Object> childObjects = new ArrayList<Object>();
+    List<Object> childObjects = new ArrayList<>();
     for (Element arrayItemNode : elements) {
       Object value;
       if (ExmlUtils.isExmlNamespace(arrayItemNode.getNamespaceURI()) && Exmlc.EXML_OBJECT_NODE_NAME.equals(arrayItemNode.getLocalName())) {

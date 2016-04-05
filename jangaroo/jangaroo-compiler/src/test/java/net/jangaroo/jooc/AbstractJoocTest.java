@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -39,12 +40,12 @@ public class AbstractJoocTest {
   static class TestLog implements CompileLog {
 
     private boolean hasErrors = false;
-    private List<String> errors = new ArrayList<String>();
+    private LinkedHashMap<String, FilePosition> errors = new LinkedHashMap<>();
 
     @Override
     public void error(FilePosition position, String msg) {
       hasErrors = true;
-      errors.add(msg);
+      errors.put(msg, position);
       System.out.println(String.format("[ERROR] %s (%d:%d): %s", position.getFileName(), position.getLine(), position.getColumn(), msg));
     }
 
@@ -52,7 +53,7 @@ public class AbstractJoocTest {
     public void error(String msg) {
       hasErrors = true;
       System.out.println(String.format("[ERROR] %s", msg));
-      errors.add(msg);
+      errors.put(msg, null);
     }
 
     @Override
@@ -71,7 +72,11 @@ public class AbstractJoocTest {
     }
 
     public boolean hasError(String expected) {
-      return errors.contains(expected);
+      return errors.keySet().contains(expected);
+    }
+
+    public FilePosition getPosition(String error) {
+      return errors.get(error);
     }
 
     public void reset() {

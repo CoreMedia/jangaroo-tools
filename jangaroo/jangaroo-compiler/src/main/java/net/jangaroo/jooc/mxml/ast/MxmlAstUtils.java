@@ -3,12 +3,15 @@ package net.jangaroo.jooc.mxml.ast;
 import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.Directive;
+import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
@@ -49,10 +52,12 @@ class MxmlAstUtils {
   static final JooSymbol SYM_FUNCTION = new JooSymbol(sym.FUNCTION, "function");
   static final JooSymbol SYM_IMPORT = new JooSymbol(sym.IMPORT, "import").withWhitespace("\n");
   static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
+  static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
   static final JooSymbol SYM_NULL = new JooSymbol(sym.NULL_LITERAL, "null");
   static final JooSymbol SYM_PUBLIC = new JooSymbol(sym.PUBLIC, "public");
   static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
+  static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
   static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
@@ -83,7 +88,7 @@ class MxmlAstUtils {
   @Nonnull
   static FunctionDeclaration createConstructor(@Nonnull Ide ide, @Nonnull List<Directive> constructorBodyDirectives) {
     BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
-    TypeRelation typeRelation = createTypeRelation(ide.getIde());
+    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(ide));
     Parameters params = new Parameters(new Parameter(null, new Ide(MxmlUtils.CONFIG), typeRelation, new Initializer(SYM_EQ, new LiteralExpr(SYM_NULL))));
     return new FunctionDeclaration(Collections.singletonList(SYM_PUBLIC), SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
   }
@@ -102,20 +107,14 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static TypeRelation createTypeRelation(@Nonnull JooSymbol typeIde) {
-    return new TypeRelation(SYM_COLON, new Type(typeIde));
-  }
-
-  @Nonnull
   static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type, boolean useCast) {
-    JooSymbol typeIde = type.getIde();
-    TypeRelation typeRelation = createTypeRelation(typeIde);
+    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
     Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
     if(useCast) {
       value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     }
     Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n"), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
   }
 
   @Nonnull
@@ -127,5 +126,24 @@ class MxmlAstUtils {
   static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
     CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar));
     return new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
+  }
+
+  @Nonnull
+  static Directive createPropertyAssignment(@Nonnull Ide variable, @Nonnull Expr rightHandSide, @Nonnull String propertyName, boolean untypedAccess) {
+    Expr leftHandSide;
+    Ide varWithWhitespace = new Ide(variable.getIde().withWhitespace("\n    "));
+    if (untypedAccess) {
+      leftHandSide = new ArrayIndexExpr(new IdeExpr(varWithWhitespace), SYM_LBRACK, new LiteralExpr(new JooSymbol('"' + propertyName + '"')), SYM_RBRACK);
+    } else {
+      Ide propertyNameIde = new Ide(propertyName);
+      if(Ide.THIS.equals(varWithWhitespace.getName())) {
+        leftHandSide = new IdeExpr(propertyNameIde);
+      } else {
+        leftHandSide = new DotExpr(new IdeExpr(varWithWhitespace), SYM_DOT, propertyNameIde);
+      }
+    }
+
+    AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(leftHandSide, SYM_EQ.withWhitespace(" "), rightHandSide);
+    return createSemicolonTerminatedStatement(assignmentOpExpr);
   }
 }

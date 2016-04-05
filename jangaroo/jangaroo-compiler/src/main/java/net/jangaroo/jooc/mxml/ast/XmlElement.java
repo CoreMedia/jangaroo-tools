@@ -18,7 +18,7 @@ import java.util.List;
 
 public class XmlElement extends NodeImplBase {
 
-  private final List<XmlElement> elements = new LinkedList<XmlElement>();
+  private final List<XmlElement> elements = new LinkedList<>();
 
   private final XmlTag openingMxmlTag;
   private final List children;
@@ -45,7 +45,7 @@ public class XmlElement extends NodeImplBase {
   }
 
   public String getName() {
-    return openingMxmlTag.getName();
+    return openingMxmlTag.getLocalName();
   }
 
   public String getPrefix() {
@@ -64,7 +64,7 @@ public class XmlElement extends NodeImplBase {
     return Lists.newLinkedList(filter);
   }
 
-  public List<JooSymbol> getTextNodes() {
+  List<JooSymbol> getTextNodes() {
     //noinspection unchecked
     return Lists.newLinkedList(Iterables.filter(children, JooSymbol.class));
   }
@@ -104,6 +104,8 @@ public class XmlElement extends NodeImplBase {
         }
         builder.append(child);
       }
+    }
+    if(null != closingMxmlTag) {
       builder.append(closingMxmlTag);
     }
     return builder.toString();
@@ -113,12 +115,9 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getAttributes();
   }
 
-  /**
-   * @see Element#getAttribute
-   */
-  public String getAttribute(String name) {
-    XmlAttribute attribute = openingMxmlTag.getAttribute(name);
-    return null != attribute ? attribute.getValue().getText() : "";
+  @Nullable
+  XmlAttribute getAttribute(String name) {
+    return openingMxmlTag.getAttribute(name);
   }
 
   public String getLocalName() {
@@ -129,7 +128,7 @@ public class XmlElement extends NodeImplBase {
     return getNamespaceUri(getPrefix());
   }
 
-  public String getNamespaceUri(@Nullable String prefix) {
+  String getNamespaceUri(@Nullable String prefix) {
     String localResult = openingMxmlTag.getNamespaceUri(prefix);
     if(null != localResult) {
       return localResult;
@@ -143,7 +142,7 @@ public class XmlElement extends NodeImplBase {
   /**
    * @see Element#getAttributeNS(String, String)
    */
-  public String getAttributeNS(String namespaceUri, String localName) {
+  String getAttributeNS(String namespaceUri, String localName) {
     XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
     return null != attribute ? attribute.getValue().getText() : "";
   }

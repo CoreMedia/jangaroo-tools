@@ -1,8 +1,9 @@
 package package1.someOtherPackage {
+import ext.mixin.Observable;
 
-[Event(name="clack", type="package1.someOtherPackage.SomeEvent")]
+[Event(name="clickClack", type="package1.someOtherPackage.SomeEvent")]
 [ExtConfig]
-public class SomeOtherClass {
+public class SomeOtherClass extends Observable {
   public static const xtype:String = "someotherclass";
   public static const BLA:int = 0;
   private var _bla:int = BLA;
