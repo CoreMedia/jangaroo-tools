@@ -21,6 +21,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,14 +43,14 @@ public class ClassDeclaration extends IdeDeclaration {
 
   private JooSymbol symClass;
   private Extends optExtends;
-  private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<String, TypedIdeDeclaration>();
-  private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<String, TypedIdeDeclaration>();
-  private Set<String> classInit = new LinkedHashSet<String>();
+  private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<>();
+  private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<>();
+  private Set<String> classInit = new LinkedHashSet<>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
   private Type thisType;
   private Type superType;
-  private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<VariableDeclaration>();
+  private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private int inheritanceLevel = -1;
 
@@ -202,6 +203,7 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
   public void analyze(AstNode parentNode) {
+    analyzeSymModifiers();
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
@@ -216,6 +218,23 @@ public class ClassDeclaration extends IdeDeclaration {
     body.analyze(this);
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
       secondaryDeclaration.analyze(this);
+    }
+  }
+
+  /**
+   * Check if interfaces have only modifiers public or internal as described
+   * <a href="http://help.adobe.com/en_US/ActionScript/3.0_ProgrammingAS3/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f41.html">here</a>.
+   */
+  private void analyzeSymModifiers() {
+    if(isInterface()) {
+      //noinspection LoopStatementThatDoesntLoop
+      for (JooSymbol symModifier : getSymModifiers()) {
+        switch (symModifier.sym) {
+          case sym.PUBLIC: ;
+          case sym.INTERNAL: break;
+          default: throw JangarooParser.error(symModifier, "illegal modifier: " + symModifier.getText());
+        }
+      }
     }
   }
 

@@ -1,12 +1,10 @@
 package net.jangaroo.jooc;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 
 import static junit.framework.Assert.assertTrue;
-import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
 public class JoocMxmlTest extends AbstractJoocTest {
 
@@ -154,10 +152,6 @@ public class JoocMxmlTest extends AbstractJoocTest {
             testLog.hasError("Unexpected text inside MXML element: 'Blablabla'."));
 
     assertErrorAt("Unexpected text inside MXML element: 'Blablabla'.", 8, 30);
-  }
-
-  private void assertErrorAt(String expected, int line, int column) {
-    Assert.assertThat(testLog.getPosition(expected), matchesPosition(line, column));
   }
 
   @Test

@@ -11,6 +11,7 @@ import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
 public class AbstractJoocTest {
 
@@ -110,6 +112,10 @@ public class AbstractJoocTest {
     MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
     mxmlComponentRegistry.add(componentPackageModel);
     new CatalogGenerator(mxmlComponentRegistry).generateCatalog(catalogFile);
+  }
+
+  void assertErrorAt(String expected, int line, int column) {
+    Assert.assertThat(testLog.getPosition(expected), matchesPosition(line, column));
   }
 
   void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
