@@ -85,7 +85,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     String expected = "Undefined type: ext.config.UnknownClass";
     assertTrue("Expected error (undefined type) did not occur",
             testLog.hasError(expected));
-//    assertErrorAt(expected, 0, 0); TODO
+    assertErrorAt(expected, 12, 7);
   }
 
   @Test
