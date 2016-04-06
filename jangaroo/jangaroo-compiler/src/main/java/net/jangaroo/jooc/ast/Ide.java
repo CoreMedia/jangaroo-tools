@@ -198,7 +198,7 @@ public class Ide extends NodeImplBase {
    */
   public IdeDeclaration getDeclaration(boolean errorIfUndeclared) {
     if (declaration == null) {
-      declaration = getScope().lookupDeclaration(this);
+      declaration = lookupDeclaration(errorIfUndeclared);
       if (declaration != null) {
         if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
           if (declaration.isPrivate()) {
@@ -227,6 +227,20 @@ public class Ide extends NodeImplBase {
     }
     return result;
   }
+
+  private IdeDeclaration lookupDeclaration(boolean errorIfUndeclared) {
+    IdeDeclaration ideDeclaration = null;
+    try {
+      ideDeclaration = getScope().lookupDeclaration(this);
+    } catch (CompilerError e) {
+      if(errorIfUndeclared) {
+        throw e;
+      }
+      JangarooParser.warning(getSymbol(), e.getMessage());
+    }
+    return ideDeclaration;
+  }
+
 
   public Ide qualify(final JooSymbol symQualifier, final JooSymbol symDot) {
     return new QualifiedIde(new Ide(symQualifier), symDot, getIde());
