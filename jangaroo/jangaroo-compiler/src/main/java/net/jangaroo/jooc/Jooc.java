@@ -152,7 +152,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           reportPublicApiViolations(unit);
         }
 
-        implementedMembersAnalyzer.analzyeImplementedMembers(unit);
+        implementedMembersAnalyzer.analyzeImplementedMembers(unit);
       }
 
       analyzeDependencies();

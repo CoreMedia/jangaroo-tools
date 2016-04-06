@@ -8,14 +8,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.Implements;
-import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.model.ClassModel;
+import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.NamespacedModel;
@@ -43,51 +40,53 @@ class ImplementedMembersAnalyzer {
     this.jooc = jooc;
   }
 
-  void analzyeImplementedMembers(CompilationUnit compilationUnit) {
+  void analyzeImplementedMembers(CompilationUnit compilationUnit) {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     String qName = primaryDeclaration.getQualifiedNameStr();
     if (primaryDeclaration instanceof ClassDeclaration && inspected.add(qName)) {
-      visitClassDeclaration((ClassDeclaration) primaryDeclaration);
+      CompilationUnitModel compilationUnitModel = jooc.resolveCompilationUnit(qName);
+
+      analyzeImplementedMembers(compilationUnitModel, qName);
     }
   }
 
-  void visitClassDeclaration(ClassDeclaration classDeclaration) {
-    String qName = classDeclaration.getQualifiedNameStr();
-    boolean isInterface = classDeclaration.isInterface();
+  private void analyzeImplementedMembers(CompilationUnitModel compilationUnitModel, String qName) {
+    ClassModel classModel = compilationUnitModel.getClassModel();
+    if(null != classModel) {
+      analyzeImplementedMembers(classModel, qName);
+    }
+  }
+
+  private void analyzeImplementedMembers(ClassModel classModel, String qName) {
+    boolean isInterface = classModel.isInterface();
 
     Collection<MethodModel> toBeImplemented = new LinkedHashSet<>();
 
-    Implements optImplements = classDeclaration.getOptImplements();
-    if (null != optImplements) {
-      for (CommaSeparatedList<Ide> localSuperTypes = optImplements.getSuperTypes(); localSuperTypes != null; localSuperTypes = localSuperTypes.getTail()) {
-        Ide interfaceIde = localSuperTypes.getHead();
-        String superClassQName = getClassQName(interfaceIde);
+    for (String superClassQName : classModel.getInterfaces()) {
+      this.analyzeImplementedMembers(jooc.resolveCompilationUnit(superClassQName), superClassQName);
 
-        analzyeImplementedMembers(jooc.getCompilationUnit(superClassQName));
-
-        Collection<MethodModel> superClassMembers = membersByInterfaceQName.get(superClassQName);
-        if (isInterface) {
-          // add inherited methods to current methods
-          membersByInterfaceQName.putAll(qName, superClassMembers);
-        } else {
-          toBeImplemented.addAll(superClassMembers);
-        }
+      Collection<MethodModel> superClassMembers = membersByInterfaceQName.get(superClassQName);
+      if (isInterface) {
+        // add inherited methods to current methods
+        membersByInterfaceQName.putAll(qName, superClassMembers);
+      } else {
+        toBeImplemented.addAll(superClassMembers);
       }
     }
 
-    Extends optExtends = classDeclaration.getOptExtends();
-    if (null != optExtends) {
-      String superClassQName = getClassQName(optExtends.getSuperClass());
-      analzyeImplementedMembers(jooc.getCompilationUnit(superClassQName));
+    String superClassQName = classModel.getSuperclass();
+    if (null != superClassQName) {
+      analyzeImplementedMembers(jooc.getCompilationUnit(superClassQName));
 
       // add inherited methods to current methods
       membersByClassQName.putAll(qName, membersByClassQName.get(superClassQName));
     }
 
-    ClassModel classModel = jooc.resolveCompilationUnit(qName).getClassModel();
     Iterable<MethodModel> methodModels = Iterables.filter(classModel.getMembers(), MethodModel.class);
 
-    Scope scope = classDeclaration.getIde().getScope();
+    IdeDeclaration primaryDeclaration = jooc.getCompilationUnit(qName).getPrimaryDeclaration();
+    Ide className = primaryDeclaration.getIde();
+    Scope scope = className.getScope();
     if (isInterface) {
       membersByInterfaceQName.putAll(qName, fullyQualifiedTypes(methodModels, scope));
     } else {
@@ -109,7 +108,7 @@ class ImplementedMembersAnalyzer {
       toBeImplemented.addAll(membersByInterfaceQName.get(qName));
       toBeImplemented.removeAll(Lists.newLinkedList(fullyQualifiedTypes(implemented, scope)));
       if (!toBeImplemented.isEmpty()) {
-        throw JangarooParser.error(optImplements, "Does not implement " + Iterables.transform(toBeImplemented, new Function<MemberModel, String>() {
+        throw JangarooParser.error(((ClassDeclaration)primaryDeclaration).getOptImplements(), "Does not implement " + Iterables.transform(toBeImplemented, new Function<MemberModel, String>() {
           @Nullable
           @Override
           public String apply(@Nullable MemberModel input) {
@@ -125,23 +124,9 @@ class ImplementedMembersAnalyzer {
     return Iterables.transform(methodModels, new TypeAndParameterTransformer(scope));
   }
 
-  private String getClassQName(Ide classIde) {
-    String superClassQName;
-    if (classIde instanceof QualifiedIde) {
-      superClassQName = classIde.getQualifiedNameStr();
-    } else {
-      Scope scope = classIde.getScope();
-      superClassQName = getClassQName(classIde, scope);
-    }
-    return superClassQName;
-  }
-
   private String getClassQName(Ide classIde, Scope scope) {
     IdeDeclaration ideDeclaration = scope.lookupDeclaration(classIde);
-    if(null != ideDeclaration) {
-      return ideDeclaration.getQualifiedNameStr();
-    }
-    return classIde.getQualifiedNameStr();
+    return ideDeclaration.getQualifiedNameStr();
   }
 
   private class TypeAndParameterTransformer implements Function<MethodModel, MethodModel> {
@@ -156,15 +141,13 @@ class ImplementedMembersAnalyzer {
     @Nullable
     @Override
     public MethodModel apply(@Nullable MethodModel input) {
-      if(null != input) {
-        String type = input.getType();
-        if (null != type && !type.contains(".")) {
-          type = getClassQName(new Ide(type), scope);
-        }
-        List<ParamModel> params = Lists.transform(input.getParams(), paramModelTypeTransformer);
-        return new MethodModel(input.getName(), type, params);
+      //noinspection ConstantConditions
+      String type = input.getType();
+      if (null != type && !type.contains(".")) {
+        type = getClassQName(new Ide(type), scope);
       }
-      return input;
+      List<ParamModel> params = Lists.transform(input.getParams(), paramModelTypeTransformer);
+      return new MethodModel(input.getName(), type, params);
     }
 
   }
