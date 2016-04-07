@@ -40,18 +40,6 @@ directory.
     [...]
     <build>
       <plugins>
-        <plugin>
-          <groupId>net.jangaroo</groupId>
-          <artifactId>exml-maven-plugin</artifactId>
-          <version>${jangaroo_version}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>exml</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
 
         <plugin>
           <groupId>net.jangaroo</groupId>

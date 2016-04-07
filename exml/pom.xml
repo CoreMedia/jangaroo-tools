@@ -12,7 +12,6 @@
   <modules>
     <module>ext-as-api-generator</module>
     <module>exml-compiler</module>
-    <module>exml-maven-plugin</module>
     <module>properties-compiler</module>
   </modules>
   <build>
