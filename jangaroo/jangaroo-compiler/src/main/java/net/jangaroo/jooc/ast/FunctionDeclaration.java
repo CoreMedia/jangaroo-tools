@@ -202,6 +202,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   public void analyze(AstNode parentNode) {
+    analyzeSymModifiers();
     super.analyze(parentNode); // computes modifiers
     fun.analyze(this);
 
@@ -218,6 +219,20 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       }
 
       addPublicApiDependencyOn(fun.getOptTypeRelation());
+    }
+  }
+
+  /**
+   * Check if methods defined in interfaces do not have any modifiers as described
+   * <a href="http://help.adobe.com/en_US/ActionScript/3.0_ProgrammingAS3/WS5b3ccc516d4fbf351e63e3d118a9b90204-7f41.html">here</a>.
+   */
+  private void analyzeSymModifiers() {
+    ClassDeclaration classDeclaration = getClassDeclaration();
+    if(null != classDeclaration && classDeclaration.isInterface()) {
+      //noinspection LoopStatementThatDoesntLoop
+      for (JooSymbol symModifier : getSymModifiers()) {
+        throw JangarooParser.error(symModifier, "illegal modifier: " + symModifier.getText());
+      }
     }
   }
 

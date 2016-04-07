@@ -198,7 +198,8 @@ public class MxmlParserHelper {
     String text = symbol.getText();
     String template = TPL_EXPRESSION;
     int[] position = position(symbol, template);
-    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
+    String input = String.format(template, text);
+    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(input, position[0], position[1]).value;
     List<Directive> classBodyDirectives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
     if(null != classBodyDirectives) {
       Directive directive = Iterables.getFirst(classBodyDirectives, null);
@@ -209,6 +210,6 @@ public class MxmlParserHelper {
         }
       }
     }
-    throw new IllegalStateException("AAAAAAAA");
+    throw new IllegalStateException("Unexpected AST obtained when parsing '" + input + "'");
   }
 }
