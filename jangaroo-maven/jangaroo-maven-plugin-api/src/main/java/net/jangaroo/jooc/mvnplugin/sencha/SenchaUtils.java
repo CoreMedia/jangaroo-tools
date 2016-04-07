@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -148,7 +149,7 @@ public class SenchaUtils {
    */
   public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
     // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
-    relativePath = relativePath.replace("\\", "/");
+    relativePath = FilenameUtils.separatorsToUnix(relativePath);
     String result = PLACEHOLDERS.get(packageType);
     if (!StringUtils.isEmpty(relativePath)
             && !relativePath.startsWith(SEPARATOR)) {

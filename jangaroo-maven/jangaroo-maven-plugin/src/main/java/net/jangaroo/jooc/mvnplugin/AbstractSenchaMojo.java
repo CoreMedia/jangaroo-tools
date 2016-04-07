@@ -48,10 +48,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   @Parameter
   private MavenSenchaProfileConfigurationDevelopment development;
 
-  @Parameter(defaultValue = "${project.build.directory}/ext")
+  @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)
   private String extFrameworkDir;
 
-  @Parameter(defaultValue = "${project.build.directory}/packages")
+  @Parameter(defaultValue = "${project.build.directory}/packages", readonly = true)
   private String packagesDir;
 
   @Parameter(defaultValue = "false")

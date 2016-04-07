@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -55,7 +56,7 @@ public class AppConfigurer implements Configurer {
 
         Path path = Paths.get(senchaApp.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
         Path relativePath = rootPath.relativize(path);
-        String relativePathString = relativePath.toString();
+        String relativePathString = FilenameUtils.separatorsToUnix(relativePath.toString());
 
         if (relativePathString.isEmpty()) {
           throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");

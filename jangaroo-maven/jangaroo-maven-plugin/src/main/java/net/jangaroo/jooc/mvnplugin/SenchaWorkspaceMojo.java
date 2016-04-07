@@ -13,6 +13,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaWorkspaceHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import net.jangaroo.jooc.mvnplugin.util.PomManipulator;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -311,7 +312,9 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
           throws MojoExecutionException {
     Path absolutePathToCurrentProject = project.getBasedir().toPath().normalize();
     Path absolutePathFromProperty = Paths.get(remotePackagePath).normalize();
-    return absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString();
+    return FilenameUtils.separatorsToUnix(
+            absolutePathToCurrentProject.relativize(absolutePathFromProperty).toString()
+    );
   }
 
   private boolean isRemoteAggregator(@Nonnull MavenProject project) {
