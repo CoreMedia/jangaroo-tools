@@ -2,6 +2,7 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -37,6 +38,7 @@ import net.jangaroo.jooc.ast.ForStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.IfStatement;
@@ -135,6 +137,8 @@ public class ApiModelGenerator {
   private StringBuilder code;
   private StringBuilder asdoc = new StringBuilder();
   private List<AnnotationModel> annotationModels = new ArrayList<AnnotationModel>();
+  private Scope scope;
+  private boolean isInConstructor;
 
     public ApiModelGeneratingAstVisitor(CompilationUnitModel compilationUnitModel) {
       this.compilationUnitModel = compilationUnitModel;
@@ -185,6 +189,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
+    scope = compilationUnit.getPrimaryDeclaration().getIde().getScope();
     modelStack = new ArrayDeque<ActionScriptModel>();
     code = null;
     modelStack.push(compilationUnitModel);
@@ -202,10 +207,24 @@ public class ApiModelGenerator {
   @Override
   public void visitIde(Ide ide) throws IOException {
     if (code != null) {
-      recordCode(ide.getQualifiedNameStr());
+      String qualifiedNameStr = resolveQualifiedTypeName(ide);
+      recordCode(qualifiedNameStr);
     } else {
-      ((NamedModel)modelStack.peek()).setName(ide.getQualifiedNameStr());
+      ((NamedModel) modelStack.peek()).setName(ide.getQualifiedNameStr());
     }
+  }
+
+  String resolveQualifiedTypeName(Ide ide) {
+    ActionScriptModel actionScriptModel = modelStack.peek();
+    if(!isInConstructor) {
+      if(actionScriptModel instanceof MethodModel || actionScriptModel instanceof ParamModel) {
+        IdeDeclaration ideDeclaration = scope.lookupDeclaration(ide);
+        if(null != ideDeclaration) {
+          return ideDeclaration.getQualifiedNameStr();
+        }
+      }
+    }
+    return ide.getQualifiedNameStr();
   }
 
   @Override
@@ -546,10 +565,13 @@ public class ApiModelGenerator {
       methodModel.setMethodType(functionDeclaration.isGetter() ? MethodType.GET
         : functionDeclaration.isSetter() ? MethodType.SET
         : null);
+
+      isInConstructor = functionDeclaration.isConstructor();
+
       functionDeclaration.getIde().visit(this);
       generateSignatureAsApiCode(functionDeclaration.getFun());
 
-      if (functionDeclaration.isConstructor() && !functionDeclaration.isNative()) {
+      if (isInConstructor && !functionDeclaration.isNative()) {
         // ASDoc does not allow a native constructor if the super class constructor needs parameters!
         StringBuilder superCallCode = new StringBuilder();
         superCallCode.append("super(");
@@ -575,6 +597,7 @@ public class ApiModelGenerator {
         superCallCode.append(");");
         ((MethodModel)modelStack.peek()).setBody(superCallCode.toString());
       }
+      isInConstructor = false;
       popMember();
     }
   }

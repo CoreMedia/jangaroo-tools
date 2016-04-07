@@ -30,6 +30,7 @@ public class QualifiedIde extends Ide {
 
   private Ide qualifier;
   private JooSymbol symDot;
+  private String qualifiedNameStr;
 
   public QualifiedIde(Ide qualifier, JooSymbol symDot, JooSymbol symIde) {
     super(symIde);
@@ -70,7 +71,10 @@ public class QualifiedIde extends Ide {
 
   @Override
   public String getQualifiedNameStr() {
-    return constructQualifiedNameStr(getQualifiedName(), ".");
+    if (null == qualifiedNameStr) {
+      qualifiedNameStr = constructQualifiedNameStr(getQualifiedName(), ".");
+    }
+    return qualifiedNameStr;
   }
 
   @Override
@@ -82,7 +86,7 @@ public class QualifiedIde extends Ide {
     return qualifier.getSymbol();
   }
 
-  public static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
+  static String constructQualifiedNameStr(String[] qualifiedName, String separator) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < qualifiedName.length; i++) {
       if (i > 0) {

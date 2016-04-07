@@ -137,8 +137,9 @@ Ext.apply(Ext.ns("AS3"), {
     }
     return null;
   },
-  addEventListener: function(eventDispatcher, flexEventClass, flexEventName, flexEventListener, extEventOptions) {
-    var extEventName = flexEventClass[flexEventName].substr(2).toLowerCase();
+  addEventListener: function(eventDispatcher, flexEventClass, flexEventConstantName, flexEventListener, extEventOptions) {
+    var flexEventName = flexEventClass[flexEventConstantName];
+    var extEventName = flexEventName.substr(2).toLowerCase();
     var extEventListener = function() {
       return flexEventListener(new flexEventClass(flexEventName, arguments));
     };

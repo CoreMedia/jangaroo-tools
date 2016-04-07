@@ -29,7 +29,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   private Ide namespace;
   private TypeRelation optTypeRelation;
 
-  public TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
+  TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
     super(modifiers, ide);
     this.namespace = findNamespace(modifiers);
     this.optTypeRelation = optTypeRelation;
@@ -59,11 +59,6 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   }
 
   @Override
-  public String getName() {
-    return NamespacedIde.getNamespacePrefix(namespace) + super.getName();
-  }
-
-  @Override
   public void scope(Scope scope) {
     if (namespace != null) {
       namespace.scope(scope);
@@ -80,7 +75,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     }
   }
 
-  protected void addPublicApiDependencyOn(TypeRelation optTypeRelation) {
+  void addPublicApiDependencyOn(TypeRelation optTypeRelation) {
     if (optTypeRelation != null) {
       optTypeRelation.getType().getIde().addPublicApiDependency();
     }

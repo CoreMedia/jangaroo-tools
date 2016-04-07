@@ -9,7 +9,7 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
     protected var field2:Vector$object.<String> =*/function field2_(){this.field2=(/* new <String>*/["a", "b"]);}/*;
     public var field3:Vector$object.<int> =*/function field3_(){this.field3=(/* new <int>*/[1, 2, 3]);}/*;
 
-    internal*/ function doIt(/*...values*/)/*:void*/ {var values=Array.prototype.slice.call(arguments);
+    public*/ function doIt(/*...values*/)/*:void*/ {var values=Array.prototype.slice.call(arguments);
       for (var v/*:Object*/ in values) {
         throw "cannot do it with " + v;
       }

@@ -254,7 +254,13 @@ final class MxmlToModelParser {
 
   @Nullable
   String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
-    String className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
+    String className;
+    try {
+      className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
+    } catch (CompilerError e) {
+      // rewrite compiler error so that the source is the current symbol
+      throw JangarooParser.error(objectElement.getSymbol(), e.getMessage(), e.getCause());
+    }
     Ide typeIde = compilationUnit.addImport(className);
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {

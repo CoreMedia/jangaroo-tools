@@ -376,7 +376,7 @@ XmlComment = "<!--" ~"-->"
   "\\\\"                          { pushMultiStateText(yytext()); }
 \\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
   \\.                             { pushMultiStateText(yytext()); }
-  {WhiteSpace}                    { pushWhitespace(yytext()); }
+  {WhiteSpace}                    { pushMultiStateText(yytext()); pushWhitespace(yytext()); }
 }
 
 <XML_ATTRIBUTE_VALUE_SQ> {
@@ -393,7 +393,7 @@ XmlComment = "<!--" ~"-->"
   "\\\\"                          { pushMultiStateText(yytext()); }
 \\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
   \\.                             { pushMultiStateText(yytext()); }
-  {WhiteSpace}                    { pushWhitespace(yytext()); }
+  {WhiteSpace}                    { pushMultiStateText(yytext()); pushWhitespace(yytext()); }
 }
 
 <XML_TEXT_CONTENT> {

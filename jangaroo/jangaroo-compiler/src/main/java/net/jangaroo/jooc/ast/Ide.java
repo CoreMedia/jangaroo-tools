@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public class Ide extends NodeImplBase {
 
-  static final Pattern IDE_PATTERN = Pattern.compile("[a-zA-Z$_@]([a-zA-Z0-9$_@])*");
+  private static final Pattern IDE_PATTERN = Pattern.compile("[a-zA-Z$_@]([a-zA-Z0-9$_@])*");
 
   public static final String THIS = "this";
   private JooSymbol ide;
@@ -38,7 +38,6 @@ public class Ide extends NodeImplBase {
   private Ide qualified;
   private boolean bound;
   private boolean rewriteThis;
-  private String packagePrefix = "";
 
   private static final IdeDeclaration NULL_DECL = new VariableDeclaration(null, null, null, null);
 
@@ -61,10 +60,6 @@ public class Ide extends NodeImplBase {
 
   public JooSymbol getIde() {
     return ide;
-  }
-
-  public String getPackagePrefix() {
-    return packagePrefix;
   }
 
   public boolean isThis() {
@@ -110,7 +105,7 @@ public class Ide extends NodeImplBase {
     return getIde();
   }
 
-  public boolean isQualifier() {
+  private boolean isQualifier() {
     return qualified != null;
   }
 
@@ -198,7 +193,7 @@ public class Ide extends NodeImplBase {
    */
   public IdeDeclaration getDeclaration(boolean errorIfUndeclared) {
     if (declaration == null) {
-      declaration = getScope().lookupDeclaration(this);
+      declaration = lookupDeclaration(errorIfUndeclared);
       if (declaration != null) {
         if (declaration.getClassDeclaration() != getScope().getClassDeclaration()) {
           if (declaration.isPrivate()) {
@@ -227,6 +222,20 @@ public class Ide extends NodeImplBase {
     }
     return result;
   }
+
+  private IdeDeclaration lookupDeclaration(boolean errorIfUndeclared) {
+    IdeDeclaration ideDeclaration = null;
+    try {
+      ideDeclaration = getScope().lookupDeclaration(this);
+    } catch (CompilerError e) {
+      if(errorIfUndeclared) {
+        throw e;
+      }
+      JangarooParser.warning(getSymbol(), e.getMessage());
+    }
+    return ideDeclaration;
+  }
+
 
   public Ide qualify(final JooSymbol symQualifier, final JooSymbol symDot) {
     return new QualifiedIde(new Ide(symQualifier), symDot, getIde());
@@ -368,12 +377,6 @@ public class Ide extends NodeImplBase {
             (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
   }
 
-  public boolean usePrivateMemberName(IdeDeclaration memberDeclaration) {
-    return isQualifiedBySuper()
-            && scope.getClassDeclaration().getMemberDeclaration(getName()) != null
-            || memberDeclaration.isPrivate();
-  }
-
   public static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
     IdeDeclaration declaration = null;
     if (type != null) {
@@ -425,7 +428,7 @@ public class Ide extends NodeImplBase {
     return rewriteThis;
   }
 
-  public void setRewriteThis(boolean rewriteThis) {
+  void setRewriteThis(boolean rewriteThis) {
     this.rewriteThis = rewriteThis;
   }
 

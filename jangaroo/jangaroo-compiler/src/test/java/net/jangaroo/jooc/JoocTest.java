@@ -65,6 +65,39 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInterfaceStaticMethod() throws Exception {
+    File sourcefile = getFile("/package1/InterfaceStaticMethod.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    String expected = "illegal modifier: static";
+    assertTrue("Expected error (illegal modifier) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 4, 3);
+  }
+
+  @Test
+  public void testInterfaceInvalidModifier1() throws Exception {
+    File sourcefile = getFile("/package1/InterfaceInvalidModifier1.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    String expected = "illegal modifier: private";
+    assertTrue("Expected error (illegal modifier) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 3, 1);
+  }
+
+  @Test
+  public void testInterfaceInvalidModifier2() throws Exception {
+    File sourcefile = getFile("/package1/InterfaceInvalidModifier2.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    String expected = "illegal modifier: internal";
+    assertTrue("Expected error (illegal modifier) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 4, 3);
+  }
+
+  @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
   }

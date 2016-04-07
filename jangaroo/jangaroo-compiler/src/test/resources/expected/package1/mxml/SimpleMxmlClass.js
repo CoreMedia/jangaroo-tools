@@ -6,7 +6,7 @@ import net.jangaroo.ext.Exml;
   My config class subclass, authored in MXML.
 * /
 
-public class SimpleMxmlClass extends ConfigClass implements package1.Interface{
+public class SimpleMxmlClass extends ConfigClass{
 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
@@ -131,7 +131,6 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "AS3.package1.ConfigClass",
-      mixins: ["AS3.package1.Interface"],
       alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
       blub$3: undefined,
@@ -158,10 +157,7 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
       statics: {__initStatics__: function() {
           static$0();
         }},
-      requires: [
-        "AS3.package1.ConfigClass",
-        "AS3.package1.Interface"
-      ],
+      requires: ["AS3.package1.ConfigClass"],
       uses: [
         "AS3.net.jangaroo.ext.Exml",
         "AS3.package1.someOtherPackage.SomeEvent",

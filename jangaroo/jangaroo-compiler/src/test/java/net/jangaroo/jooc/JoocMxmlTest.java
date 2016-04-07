@@ -1,23 +1,27 @@
 package net.jangaroo.jooc;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 
 import static junit.framework.Assert.assertTrue;
-import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
 public class JoocMxmlTest extends AbstractJoocTest {
 
-  @org.junit.Ignore
   @Test
   public void testInterfaceImplementingMxml() throws Exception {
-    File sourceFile = getFile("/package1/mxml/InterfaceImplementingMxmlClass.mxml");
+    File sourceFile = getFile("/package1/mxml/DoesNotImplementMethodFromInterface.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
+    String expected = "Does not implement [doIt]";
     assertTrue("Expected error (does not implement function) did not occur",
-            testLog.hasError("Does not implement function: doIt"));
+            testLog.hasError(expected));
+    assertErrorAt(expected, 4, 15);
+  }
+
+  @Test
+  public void testInterfaceImplementingMxmlClass() throws Exception {
+    assertCompilationResult("package1/mxml/InterfaceImplementingMxmlClass", ".mxml");
   }
 
   @Test
@@ -85,7 +89,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     String expected = "Undefined type: ext.config.UnknownClass";
     assertTrue("Expected error (undefined type) did not occur",
             testLog.hasError(expected));
-//    assertErrorAt(expected, 0, 0); TODO
+    assertErrorAt(expected, 12, 7);
   }
 
   @Test
@@ -93,8 +97,10 @@ public class JoocMxmlTest extends AbstractJoocTest {
     File sourceFile = getFile("/package1/mxml/UndefinedTypeInBinding.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
-    assertTrue("Expected error (undefined type) did not occur",
-            testLog.hasError("Unable to import package1.mxml.UndefinedType: error while parsing its source (see below)."));
+    String expected = "undeclared identifier 'UndefinedType'";
+    assertTrue("Expected error (undefined identifier) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 4, 86);
   }
 
   @Test
@@ -114,6 +120,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     jooc.run();
     assertTrue("Expected error (syntax error) did not occur",
             testLog.hasError("Syntax error: '|'"));
+    assertErrorAt("Syntax error: '|'", 7, 9);
   }
 
   @Test
@@ -145,10 +152,6 @@ public class JoocMxmlTest extends AbstractJoocTest {
             testLog.hasError("Unexpected text inside MXML element: 'Blablabla'."));
 
     assertErrorAt("Unexpected text inside MXML element: 'Blablabla'.", 8, 30);
-  }
-
-  private void assertErrorAt(String expected, int line, int column) {
-    Assert.assertThat(testLog.getPosition(expected), matchesPosition(line, column));
   }
 
   @Test
