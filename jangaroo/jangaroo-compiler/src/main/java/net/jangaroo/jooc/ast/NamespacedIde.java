@@ -28,6 +28,7 @@ public class NamespacedIde extends Ide {
 
   private Ide namespace;
   private JooSymbol symNamespaceSep;
+  private String qualifiedNameStr;
 
   public NamespacedIde(JooSymbol namespace, JooSymbol symNamespaceSep, JooSymbol symIde) {
     super(symIde);
@@ -48,22 +49,16 @@ public class NamespacedIde extends Ide {
     super.analyze(parentNode);
   }
 
-  static String getNamespacePrefix(Ide namespace) {
-    return ""; // TODO: namespace==null || namespace.sym!=sym.IDE ? "" : namespace.getText()+"::";
-  }
-
-  @Override
-  public String getName() {
-    return getNamespacePrefix(namespace) + super.getName();
-  }
-
   public String[] getQualifiedName() {
     return new String[]{namespace.getQualifiedNameStr(), getIde().getText()};
   }
 
   @Override
   public String getQualifiedNameStr() {
-    return QualifiedIde.constructQualifiedNameStr(getQualifiedName(), "::");
+    if (null == qualifiedNameStr) {
+      qualifiedNameStr = QualifiedIde.constructQualifiedNameStr(getQualifiedName(), "::");
+    }
+    return qualifiedNameStr;
   }
 
   public JooSymbol getSymbol() {
