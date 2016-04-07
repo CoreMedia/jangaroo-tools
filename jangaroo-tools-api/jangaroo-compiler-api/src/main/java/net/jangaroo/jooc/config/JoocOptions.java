@@ -12,6 +12,8 @@ public interface JoocOptions {
 
   boolean isGenerateApi();
 
+  boolean isGenerateOverrides();
+
   PublicApiViolationsMode getPublicApiViolationsMode();
 
   /**

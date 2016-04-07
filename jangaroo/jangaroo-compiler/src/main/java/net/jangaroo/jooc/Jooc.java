@@ -60,6 +60,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
+  public static final String OVERRIDE_ANNOTATION_NAME = "Override";
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
   public static final String USES_ANNOTATION_NAME = "Uses";
   public static final String MIXIN_ANNOTATION_NAME = "Mixin";
@@ -141,9 +142,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
+      CompilationUnitSinkFactory overridesSinkFactory = null;
       CompilationUnitSinkFactory apiSinkFactory = null;
       if (getConfig().isGenerateApi()) {
         apiSinkFactory = createSinkFactory(getConfig(), true);
+      }
+      if (getConfig().isGenerateOverrides()) {
+        overridesSinkFactory = createOverridesSinkFactory(getConfig());
       }
       for (CompilationUnit unit : compileQueue) {
         unit.analyze(null);
@@ -158,10 +163,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         InputSource source = getInputSource(unit);
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
+        boolean isOverride = false;
         // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
-          outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+          isOverride = unit.getAnnotation(OVERRIDE_ANNOTATION_NAME) != null;
+          outputFile = writeOutput(sourceFile, unit,
+                  isOverride ? overridesSinkFactory : codeSinkFactory,
+                  getConfig().isVerbose());
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {
@@ -305,6 +314,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this, this);
     }
     return codeSinkFactory;
+  }
+
+  private CompilationUnitSinkFactory createOverridesSinkFactory(JoocConfiguration config) {
+    return new SingleFileCompilationUnitSinkFactory(config, config.getOverridesOutputDirectory(), false, OUTPUT_FILE_SUFFIX, this, this);
   }
 
   public static String getResultCodeDescription(int resultCode) {

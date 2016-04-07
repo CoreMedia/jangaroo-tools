@@ -23,16 +23,17 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean allowDuplicateLocalVariables;
 
+  private File overridesOutputDirectory;
   private File apiOutputDirectory;
 
   private boolean mergeOutput = false;
   private String outputFileName;
+
   private boolean generateSourceMaps = false;
 
   private File keepGeneratedActionScriptDirectory;
 
   private List<NamespaceConfiguration> namespaces = new ArrayList<NamespaceConfiguration>();
-
   private File catalogOutputDirectory;
   private File reportOutputDirectory;
 
@@ -86,6 +87,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Override
   public boolean isGenerateApi() {
     return apiOutputDirectory != null;
+  }
+
+  @Override
+  public boolean isGenerateOverrides() {
+    return overridesOutputDirectory != null;
   }
 
   @Override
@@ -151,6 +157,15 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Override
   public boolean isGenerateSourceMaps() {
     return generateSourceMaps;
+  }
+
+  public File getOverridesOutputDirectory() {
+    return overridesOutputDirectory;
+  }
+
+  @Option(name="-overrides", aliases = "--overridesDir", usage = "destination directory where to generate ExtJS overrides")
+  public void setOverridesOutputDirectory(File overridesOutputDirectory) {
+    this.overridesOutputDirectory = overridesOutputDirectory;
   }
 
   public File getApiOutputDirectory() {
