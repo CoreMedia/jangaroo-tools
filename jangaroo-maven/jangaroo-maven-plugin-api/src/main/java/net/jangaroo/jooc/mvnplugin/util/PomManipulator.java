@@ -39,6 +39,7 @@ import java.util.List;
  */
 public class PomManipulator {
 
+  private static final String PROJECT_QUERY = "/project";
   private static final String DEPENDENCIES_QUERY = "/project/dependencies";
 
   private PomManipulator() {
@@ -72,26 +73,7 @@ public class PomManipulator {
 
     Document doc = initDocument(project.getFile());
 
-    NodeList nodes = queryForDependencies(doc);
-    addDependencies(doc, nodes, dependencies, log);
-    writeUpdatedPom(project.getFile(), doc);
-  }
-
-  /**
-   * Sets the dependencies of the project.
-   * After adding the dependencies the pom file will be rewritten.
-   *
-   * @param project - the project to manipulate
-   * @param dependencies - the dependencies which should be added
-   * @param log -Maven Logger to Log what happens
-   */
-  public static void updateDependencies(@Nonnull MavenProject project, List<Dependency> dependencies, Log log)
-          throws MojoExecutionException { //NOSONAR
-
-    Document doc = initDocument(project.getFile());
-
-    NodeList nodes = queryForDependencies(doc);
-    setDependencies(doc, nodes, dependencies, log);
+    addDependencies(doc, dependencies, log);
     writeUpdatedPom(project.getFile(), doc);
   }
 
@@ -110,8 +92,18 @@ public class PomManipulator {
     }
   }
 
-  private static NodeList queryForDependencies(Document doc) throws MojoExecutionException {
-    return performXPathQuery(doc, DEPENDENCIES_QUERY);
+  @Nonnull
+  private static Node getDependenciesNode(Document doc) throws MojoExecutionException {
+    NodeList dependenciesNodeList = performXPathQuery(doc, DEPENDENCIES_QUERY);
+    //Only one dependencies tag allowed in maven, so we can assume we want this node.
+    return dependenciesNodeList == null || dependenciesNodeList.getLength() == 0 ?
+            createDependenciesNode(doc) : dependenciesNodeList.item(0);
+  }
+
+  private static Node getProjectNode(Document document) throws MojoExecutionException {
+    NodeList projectNodeList = performXPathQuery(document, PROJECT_QUERY);
+    //Only one project tag allowed in maven, so we can assume we want this node.
+    return projectNodeList.item(0);
   }
 
   private static NodeList performXPathQuery(Document doc, String query) throws MojoExecutionException {
@@ -143,23 +135,8 @@ public class PomManipulator {
     }
   }
 
-  private static void addDependencies(Document document, NodeList nodes, List<Dependency> dependencies, Log log) { //NOSONAR
-    //Only one dependencies tag allowed in maven, so we can assume we want this node.
-    Node dependencyNodes = nodes.item(0);
-    for (Dependency dependency: dependencies) {
-      Node dependencyNode = createDependencyNode(document, dependency);
-      dependencyNodes.appendChild(dependencyNode);
-      log.info("Append dependency to dependency management: " + dependency);
-    }
-  }
-
-  private static void setDependencies(Document document, NodeList nodes, List<Dependency> dependencies, Log log) { //NOSONAR
-    //Only one dependencies tag allowed in maven, so we can assume we want this node.
-    Node dependenciesNode = nodes.item(0);
-
-    // XmlHelper.removeEmptyText(dependenciesNode, log);
-
-    // add all the new dependencies
+  private static void addDependencies(Document document, List<Dependency> dependencies, Log log) throws MojoExecutionException { //NOSONAR
+    Node dependenciesNode = getDependenciesNode(document);
     for (Dependency dependency: dependencies) {
       Node dependencyNode = createDependencyNode(document, dependency);
       dependenciesNode.appendChild(dependencyNode);
@@ -167,7 +144,7 @@ public class PomManipulator {
     }
   }
 
-  private static Node createDependencyNode(Document document, Dependency dependency) {
+    private static Node createDependencyNode(Document document, Dependency dependency) {
     return createDependencyNode(document, dependency.getArtifactId(), dependency.getGroupId(), dependency.getVersion(), dependency.getType(), dependency.getScope());
   }
 
@@ -196,6 +173,15 @@ public class PomManipulator {
     }
 
     return dependencyNode;
+  }
+
+  private static Node createDependenciesNode(Document document) throws MojoExecutionException {
+
+    Node projectNode = getProjectNode(document);
+    Element dependencies = createElement(document, "dependencies", null);
+    projectNode.appendChild(dependencies);
+
+    return dependencies;
   }
 
   private static Element createElement(Document document, String tagname, String textContent) {

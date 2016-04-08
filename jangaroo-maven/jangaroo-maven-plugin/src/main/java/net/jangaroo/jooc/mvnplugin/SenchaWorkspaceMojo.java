@@ -137,10 +137,6 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
     // we need to use projects in this set, because the class dependency does not have an equals method
     Set<MavenProject> remotePackagesProjects = new TreeSet<>(new MavenProjectComparator());
-    for (Artifact artifact : remoteAggregatorProject.getDependencyArtifacts()) {
-      MavenProject project = createProjectFromArtifact(artifact);
-    }
-
     List<MavenProject> localProjects = session.getProjects();
 
     // check all collected projects for packaging type jangaroo
@@ -161,7 +157,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
             createDependencies(ImmutableList.copyOf(remotePackagesProjects), remoteAggregatorProject));
 
     // update the dependencies part of the project pom
-    PomManipulator.updateDependencies(remoteAggregatorProject, dependencies, getLog());
+    PomManipulator.addDependencies(remoteAggregatorProject, dependencies, getLog());
 
     getLog().debug(String.format("Needed %d ns to update remotes for project %s", System.nanoTime() - startTime, project));
   }
