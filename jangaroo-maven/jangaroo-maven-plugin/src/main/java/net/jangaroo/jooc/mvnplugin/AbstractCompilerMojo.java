@@ -85,7 +85,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * debugging.
    * Set to <code>false</code> to disable this feature to decrease build time and artifact size.
    */
-  @Parameter(property = "maven.compiler.generateSourceMaps", defaultValue = "true")
+  @Parameter(property = "maven.compiler.generateSourceMaps", defaultValue = "false")
   private boolean generateSourceMaps;
 
   /**
@@ -211,7 +211,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
       result = compile(jooc);
       if (result == CompilationResult.RESULT_CODE_OK) {
-        buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
+        // TODO remove completely
+        // buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
       }
 
       compilationError = (result != CompilationResult.RESULT_CODE_OK);
