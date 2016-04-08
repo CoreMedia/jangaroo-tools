@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -15,25 +16,33 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+
 /**
  * A set of helper functions for handling Sencha package structure.
  */
-abstract class AbstractSenchaHelper implements SenchaHelper {
+abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements SenchaHelper {
 
   private static final String SENCHA_SRC_PATH = "/src/main/sencha/";
+  protected static final String SENCHA_CLASS_PATH = "/src";
+  protected static final String SENCHA_APP_CLASS_PATH = "/app";
 
   private final MavenProject project;
-  private final SenchaConfiguration senchaConfiguration;
+  private final T senchaConfiguration;
   private final Log log;
 
   private final String senchaModuleName;
 
-  public AbstractSenchaHelper(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
+  public AbstractSenchaHelper(MavenProject project, T senchaConfiguration, Log log) {
     this.project = project;
     this.senchaConfiguration = senchaConfiguration;
     this.log = log;
 
-    this.senchaModuleName = SenchaUtils.getSenchaPackageName(project.getGroupId(), project.getArtifactId());
+    this.senchaModuleName = getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
   protected void copyFilesFromSrc(String path) throws MojoExecutionException {
@@ -50,36 +59,37 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
 
   private void copyFilesFromJoo(String path) throws MojoExecutionException {
     File jangarooResourcesDir = new File(project.getBuild().getDirectory() + "/classes/META-INF/resources");
-    File senchaResourcesDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
+    File senchaResourcesDir = new File(path + File.separator + SENCHA_RESOURCES_PATH);
     if (jangarooResourcesDir.exists()) {
       try {
         FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not copy resources", e);
+        throw new MojoExecutionException(String.format("Could not copy resources from %s to %s", jangarooResourcesDir, senchaResourcesDir), e);
       }
     }
 
     File jangarooClassDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/classes");
     if (jangarooClassDir.exists()) {
-      File senchaClassDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_CLASS_PATH);
+      String senchaClassPath = Type.APP.equals(getSenchaConfiguration().getType()) ? SENCHA_APP_CLASS_PATH : SENCHA_CLASS_PATH;
+      File senchaClassDir = new File(path + senchaClassPath);
       try {
         // FileUtils.move fails if directory already exists
         FileUtils.copyDirectory(jangarooClassDir, senchaClassDir);
         FileUtils.deleteDirectory(jangarooClassDir);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not copy classes", e);
+        throw new MojoExecutionException(String.format("Could not copy classes from %s to %s", jangarooClassDir, senchaClassDir), e);
       }
     }
 
     File jangarooOverridesDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/overrides");
     if (jangarooOverridesDir.exists()) {
-      File senchaOverridesDir = new File(path + File.separator + SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
+      File senchaOverridesDir = new File(path + File.separator + SENCHA_OVERRIDES_PATH);
       try {
         // FileUtils.move fails if directory already exists
         FileUtils.copyDirectory(jangarooOverridesDir, senchaOverridesDir);
         FileUtils.deleteDirectory(jangarooOverridesDir);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not copy overrides", e);
+        throw new MojoExecutionException(String.format("Could not copy overrides from %s to %s", jangarooOverridesDir, senchaOverridesDir), e);
       }
     }
   }
@@ -107,9 +117,9 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     if (null != editorPlugins && !editorPlugins.isEmpty()) {
       String profileFolder = "";
       if (null != senchaProfileConfiguration.getProfileName()) {
-        profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
+        profileFolder = senchaProfileConfiguration.getProfileName() + SEPARATOR;
       }
-      File resource = new File(modulePath + File.separator + SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + File.separator + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME);
+      File resource = new File(modulePath + File.separator + SENCHA_RESOURCES_PATH + File.separator + profileFolder + EDITOR_PLUGIN_RESOURCE_FILENAME);
       if (resource.exists()) {
         getLog().warn("resource file for editor plugins already exists, deleting...");
         if (!resource.delete()) {
@@ -163,7 +173,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     return project;
   }
 
-  protected SenchaConfiguration getSenchaConfiguration() {
+  protected T getSenchaConfiguration() {
     return senchaConfiguration;
   }
 

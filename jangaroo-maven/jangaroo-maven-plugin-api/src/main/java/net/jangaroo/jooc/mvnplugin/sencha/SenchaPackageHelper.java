@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class SenchaPackageHelper extends AbstractSenchaHelper {
+public class SenchaPackageHelper extends AbstractSenchaHelper<MavenSenchaConfiguration> {
 
   private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 

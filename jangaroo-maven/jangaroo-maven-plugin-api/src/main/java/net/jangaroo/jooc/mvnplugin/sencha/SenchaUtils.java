@@ -42,23 +42,20 @@ public class SenchaUtils {
    * So to avoid compatiblity issues the max length for the path is:
    *
    * 43 - SENCHA_BASE_BATH.length - SENCHA_PACKAGES.length - SENCHA_PACKAGE_LOCAL.length
-   *    - SENCHA_RELATIVE_CLASS_PATH.length - 4 (Separator)
+   *    - SENCHA_CLASS_PATH.length - 4 (Separator)
    */
-  public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
-  public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
-  public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
-  public static final String SENCHA_RELATIVE_PRODUCTION_PATH = "production";
+  public static final String SENCHA_OVERRIDES_PATH = "overrides";
+  public static final String SENCHA_RESOURCES_PATH = "resources";
 
-  public static final String SENCHA_DIRECTORYNAME = ".sencha";
-  public static final String SENCHA_CFG = "sencha.cfg";
 
+  private static final String SENCHA_CFG = "sencha.cfg";
+  private static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "workspace" + SEPARATOR + SENCHA_CFG;
   public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "package" + SEPARATOR + SENCHA_CFG;
   public static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "app" + SEPARATOR + SENCHA_CFG;
 
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
-  public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
   public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "editorPlugins.js";
 

@@ -59,7 +59,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
       if (null != senchaProfileConfiguration.getProfileName()) {
         profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
       }
-      additionalJs.add(getResourceEntry(SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
+      additionalJs.add(getResourceEntry(SenchaUtils.SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
     }
     if (!additionalJs.isEmpty()) {
       config.put(JS, additionalJs);

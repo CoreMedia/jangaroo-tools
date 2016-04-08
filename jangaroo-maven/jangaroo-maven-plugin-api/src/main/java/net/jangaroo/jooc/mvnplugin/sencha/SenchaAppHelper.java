@@ -1,7 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.MavenSenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
@@ -9,6 +9,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -18,18 +19,23 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 
-public class SenchaAppHelper extends AbstractSenchaHelper {
+public class SenchaAppHelper extends AbstractSenchaHelper<MavenSenchaAppConfiguration> {
 
-  private static final String SENCHA_APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
-  private static final String SENCHA_APP_ID_ATTRIBUTE = "id";
+  private static final String APP_JSON_FILENAME = "/app.json";
+  private static final String PRODUCTION_BUILD_PATH = "/build/production";
+  private static final String APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
+  private static final String APP_ID_ATTRIBUTE = "id";
 
   private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
-  public SenchaAppHelper(MavenProject project, MavenSenchaConfiguration senchaConfiguration, Log log) {
+  public SenchaAppHelper(MavenProject project, MavenSenchaAppConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
     this.senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;
@@ -71,6 +77,14 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
     senchaCmdExecutor.execute();
 
+    // remove example resources from application's classpath directory
+    File appDir = new File(workingDirectory.getAbsolutePath() + SENCHA_APP_CLASS_PATH);
+    try {
+      FileUtils.cleanDirectory(appDir);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not delete example app directory: " + appDir, e);
+    }
+
     // sencha.cfg should be recreated
     // for normal packages skip generating css and slices
     if (senchaCfg.exists()) {
@@ -102,8 +116,9 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File workingDirectory = new File(senchaAppPath);
 
     writeAppJson(workingDirectory);
+    writeAppJs(workingDirectory);
 
-    File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + SENCHA_APP_BUILD_PROPERTIES_FILE);
+    File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
     FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
             "build.dir", "${app.dir}/build/${build.environment}",
             "build.temp.dir", "${app.dir}/build/temp/${build.environment}"
@@ -127,7 +142,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
       throw new MojoExecutionException("Could not find Sencha workspace directory ");
     }
 
-    File productionDirectory = new File(senchaAppPath + "/build/" + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
+    File productionDirectory = new File(senchaAppPath + PRODUCTION_BUILD_PATH);
     if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
       throw new MojoExecutionException("Could not find production directory for Sencha app " + productionDirectory);
     }
@@ -135,16 +150,31 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     return productionDirectory;
   }
 
+  private void writeAppJs(File workingDirectory) throws MojoExecutionException {
+    Path appJs = Paths.get(workingDirectory.getAbsolutePath() + "/resources/app.js");
+    if (Files.exists(appJs)) {
+      getLog().info(String.format("Using existing %s to define the main application class.", appJs));
+    } else {
+      String applicationClass = getSenchaConfiguration().getApplicationClass();
+      getLog().info(String.format("Generating %s with main application class %s.", appJs, applicationClass));
+      try {
+        String defineAppJsStatement = String.format("Ext.application(\"AS3.%s\");", applicationClass);
+        Files.write(appJs, defineAppJsStatement.getBytes());
+      } catch (IOException e) {
+        throw new MojoExecutionException("An error occurred during creation of " + appJs, e);
+      }
+    }
+  }
 
   private void writeAppJson(File workingDirectory) throws MojoExecutionException {
     Map<String, Object> appConfig = getAppConfig();
-    appConfig.put(SENCHA_APP_ID_ATTRIBUTE, generateSenchaAppId());
+    appConfig.put(APP_ID_ATTRIBUTE, generateSenchaAppId());
 
-    File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_FILENAME);
+    File fAppJson = new File(workingDirectory.getAbsolutePath() + APP_JSON_FILENAME);
     try {
       SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
     } catch (IOException e) {
-      throw new MojoExecutionException("Could not write " + SenchaUtils.SENCHA_APP_FILENAME, e);
+      throw new MojoExecutionException("Could not write " + fAppJson, e);
     }
   }
 

@@ -27,7 +27,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
  * Generates and packages Sencha app module.
  */
 @Mojo(name = "sencha-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaAppMojo extends AbstractSenchaMojo {
+public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppConfiguration {
 
   @Inject
   private MavenProjectHelper helper;
@@ -37,6 +37,9 @@ public class SenchaAppMojo extends AbstractSenchaMojo {
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession mavenSession;
+
+  @Parameter(required = true)
+  private String applicationClass;
 
   /**
    * Plexus archiver.
@@ -50,6 +53,11 @@ public class SenchaAppMojo extends AbstractSenchaMojo {
   @Override
   public String getType() {
     return Type.APP;
+  }
+
+  @Override
+  public String getApplicationClass() {
+    return applicationClass;
   }
 
   @Override

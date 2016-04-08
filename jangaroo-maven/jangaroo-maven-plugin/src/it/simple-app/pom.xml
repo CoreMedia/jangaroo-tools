@@ -48,6 +48,9 @@ under the License.
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <applicationClass>net.jangaroo.example.HelloWorld</applicationClass>
+        </configuration>
       </plugin>
     </plugins>
   </build>

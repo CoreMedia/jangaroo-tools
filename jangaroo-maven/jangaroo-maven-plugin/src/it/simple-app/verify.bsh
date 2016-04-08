@@ -45,7 +45,14 @@ try
         return false;
     }
 
-    File helloWorldJs = new File ( appDir, "src/net/jangaroo/example/HelloWorld.js" );
+    File appJs = new File ( appDir, "resources/app.js" );
+    if ( !appJs.exists() || !appJs.isFile() )
+    {
+        print( "resources/app.js output file is missing or not a file." );
+        return false;
+    }
+
+    File helloWorldJs = new File ( appDir, "app/net/jangaroo/example/HelloWorld.js" );
     if ( !helloWorldJs.exists() || !helloWorldJs.isFile() )
     {
         print( "HelloWorld.js output file is missing or not a file." );
