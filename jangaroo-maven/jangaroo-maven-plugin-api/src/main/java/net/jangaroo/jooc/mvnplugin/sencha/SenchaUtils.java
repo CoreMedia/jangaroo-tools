@@ -25,8 +25,6 @@ public class SenchaUtils {
 
   public static final String SEPARATOR = "/";
 
-  public static final String SENCHA_BASE_PATH = "sencha";
-
   public static final String LOCAL_PACKAGES_PATH = "/packages/local/";
 
   public static final String LOCAL_PACKAGE_PATH = LOCAL_PACKAGES_PATH + "package/";
@@ -49,16 +47,7 @@ public class SenchaUtils {
   public static final String SENCHA_RELATIVE_CLASS_PATH = "src";
   public static final String SENCHA_RELATIVE_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_RELATIVE_RESOURCES_PATH = "resources";
-  public static final String SENCHA_RELATIVE_SASS_PATH = "sass";
-  public static final String SENCHA_RELATIVE_SASS_ETC_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "etc";
-  public static final String SENCHA_RELATIVE_SASS_SRC_MIXINS_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "mixins";
-  public static final String SENCHA_RELATIVE_SASS_SRC_INCLUDES_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "src";
-  public static final String SENCHA_RELATIVE_SASS_VAR_PATH = SENCHA_RELATIVE_SASS_PATH + SEPARATOR + "var";
-  public static final String SENCHA_RELATIVE_CLASSIC_PATH = "classic";
-  public static final String SENCHA_RELATIVE_MODERN_PATH = "modern";
   public static final String SENCHA_RELATIVE_PRODUCTION_PATH = "production";
-  public static final String SENCHA_RELATIVE_TESTING_PATH = "testing";
-  public static final String SENCHA_RELATIVE_DEVELOPMENT_PATH = "development";
 
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_CFG = "sencha.cfg";
@@ -71,7 +60,6 @@ public class SenchaUtils {
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
-  public static final String SENCHA_SASS_ETC_IMPORTS = "imports.scss";
   public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "editorPlugins.js";
 
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??

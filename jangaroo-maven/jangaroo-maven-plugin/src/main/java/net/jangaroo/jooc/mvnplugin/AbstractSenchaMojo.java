@@ -54,9 +54,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   @Parameter(defaultValue = "${project.build.directory}/packages", readonly = true)
   private String packagesDir;
 
-  @Parameter(defaultValue = "false")
-  private boolean scssFromSrc;
-
   @Parameter(defaultValue = "${project.groupId}:${project.artifactId}")
   private String remotePackagesArtifact;
 
@@ -106,11 +103,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   @Override
   public String getPackagesDir() {
     return packagesDir;
-  }
-
-  @Override
-  public boolean isScssFromSrc() {
-    return scssFromSrc;
   }
 
   @Override
@@ -170,11 +162,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   @Override
   public void setPackagesDir(String packagesDir) {
     this.packagesDir = packagesDir;
-  }
-
-  @Override
-  public void setScssFromSrc(boolean scssFromSrc) {
-    this.scssFromSrc = scssFromSrc;
   }
 
 }

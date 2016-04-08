@@ -45,24 +45,8 @@ public interface SenchaConfiguration extends SenchaProfileConfiguration {
    */
   String getPackagesDir();
 
-  /**
-   * Specifies if scss paths should map to the maven
-   * projects base Sencha folder instead of to the generated module.
-   *
-   * Included paths:
-   * - sass.etc
-   * - sass.var
-   * - sass.src
-   *
-   * When performaing packaging these paths will be removed temporarily as packages modules may not contain relative
-   * paths outside the generated module folder.
-   */
-  boolean isScssFromSrc();
-
   void setExtFrameworkDir(String extFrameworkDir);
 
   void setPackagesDir(String packagesDir);
-
-  void setScssFromSrc(boolean scssFromSrc);
 
 }

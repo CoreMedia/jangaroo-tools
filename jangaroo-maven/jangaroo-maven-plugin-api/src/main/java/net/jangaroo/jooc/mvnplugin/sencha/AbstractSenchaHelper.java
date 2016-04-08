@@ -20,6 +20,8 @@ import java.util.Map;
  */
 abstract class AbstractSenchaHelper implements SenchaHelper {
 
+  private static final String SENCHA_SRC_PATH = "/src/main/sencha/";
+
   private final MavenProject project;
   private final SenchaConfiguration senchaConfiguration;
   private final Log log;
@@ -34,28 +36,16 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
     this.senchaModuleName = SenchaUtils.getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
-  private void copyFilesFromSrc(String path, String suffix) throws MojoExecutionException {
-    File srcDir = new File(project.getBasedir() + File.separator + SenchaUtils.SENCHA_BASE_PATH + File.separator + suffix);
-    File senchaDir = new File(path + File.separator + suffix);
+  protected void copyFilesFromSrc(String path) throws MojoExecutionException {
+    File srcDir = new File(project.getBasedir() + SENCHA_SRC_PATH);
+    File targetDir = new File(path);
     if (srcDir.exists()) {
       try {
-        FileUtils.copyDirectory(srcDir, senchaDir);
+        FileUtils.copyDirectory(srcDir, targetDir);
       } catch (IOException e) {
-        throw new MojoExecutionException("could not copy " + suffix, e);
+        throw new MojoExecutionException(String.format("Copying sencha sources from %s to %s failed.", srcDir, targetDir ), e);
       }
     }
-  }
-
-  protected void copyFilesFromSrc(String path) throws MojoExecutionException {
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_CLASS_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_OVERRIDES_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_SASS_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_CLASSIC_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_MODERN_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_TESTING_PATH);
-    copyFilesFromSrc(path, SenchaUtils.SENCHA_RELATIVE_DEVELOPMENT_PATH);
   }
 
   private void copyFilesFromJoo(String path) throws MojoExecutionException {
@@ -186,7 +176,7 @@ abstract class AbstractSenchaHelper implements SenchaHelper {
   }
 
   protected Map<String, Object> getConfig(Configurer[] configurers) throws MojoExecutionException {
-    Map<String, Object> config = new LinkedHashMap<String, Object>();
+    Map<String, Object> config = new LinkedHashMap<>();
 
     for (Configurer configurer : configurers) {
       configurer.configure(config);

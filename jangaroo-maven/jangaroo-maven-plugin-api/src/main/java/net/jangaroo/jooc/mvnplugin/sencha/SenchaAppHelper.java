@@ -5,7 +5,6 @@ import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -27,7 +26,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
   private static final String SENCHA_APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
   private static final String SENCHA_APP_ID_ATTRIBUTE = "id";
 
-  private final PathConfigurer pathConfigurer;
   private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
@@ -39,14 +37,12 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration, log);
-    pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     this.appConfigurers = new Configurer[]{
             DefaultSenchaApplicationConfigurer.getInstance(),
             metadataConfigurer,
             requiresConfigurer,
-            senchaConfigurationConfigurer,
-            pathConfigurer
+            senchaConfigurationConfigurer
     };
   }
 
@@ -123,14 +119,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
 
-    if (getSenchaConfiguration().isScssFromSrc()) {
-      // rewrite package.json so the src path is removed in build
-      getSenchaConfiguration().setScssFromSrc(false);
-      File workingDirectory = new File(senchaAppPath);
-      writeAppJson(workingDirectory);
-      getSenchaConfiguration().setScssFromSrc(true);
-    }
-
     buildSenchaApp(senchaAppDirectory);
 
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
@@ -142,14 +130,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper {
     File productionDirectory = new File(senchaAppPath + "/build/" + SenchaUtils.SENCHA_RELATIVE_PRODUCTION_PATH);
     if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
       throw new MojoExecutionException("Could not find production directory for Sencha app " + productionDirectory);
-    }
-
-
-    if (getSenchaConfiguration().isScssFromSrc()) {
-      // rewrite package.json so the src path is removed in build
-      getSenchaConfiguration().setScssFromSrc(true);
-      writeAppJson(senchaAppDirectory);
-      getSenchaConfiguration().setScssFromSrc(false);
     }
 
     return productionDirectory;

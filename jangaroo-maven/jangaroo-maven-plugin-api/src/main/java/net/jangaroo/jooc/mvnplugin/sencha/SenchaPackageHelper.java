@@ -7,7 +7,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.PathConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -28,7 +27,6 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
 
   private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 
-  private final PathConfigurer pathConfigurer;
   private final Configurer[] packageConfigurers;
   private final String senchaPackagePath;
   private final String senchaPackageBuildOutputDir;
@@ -39,7 +37,6 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration, log);
-    pathConfigurer = new PathConfigurer(senchaConfiguration);
 
     senchaPackagePath = project.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGE_PATH;
     senchaPackageBuildOutputDir = project.getBuild().getDirectory() +  SenchaUtils.LOCAL_PACKAGE_BUILD_PATH;
@@ -55,8 +52,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
             defaultSenchaPackageConfigurer,
             metadataConfigurer,
             requiresConfigurer,
-            senchaConfigurationConfigurer,
-            pathConfigurer
+            senchaConfigurationConfigurer
     };
   }
 
@@ -151,25 +147,11 @@ public class SenchaPackageHelper extends AbstractSenchaHelper {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaPackageDirectory.getPath());
     }
 
-    if (getSenchaConfiguration().isScssFromSrc()) {
-      // rewrite package.json so the src path is removed in build
-      getSenchaConfiguration().setScssFromSrc(false);
-      writePackageJson(senchaPackageDirectory);
-      getSenchaConfiguration().setScssFromSrc(true);
-    }
-
     buildSenchaPackage(senchaPackageDirectory);
 
     File pkg = new File(senchaPackageBuildOutputDir + getSenchaModuleName() + SenchaUtils.SENCHA_PKG_EXTENSION);
     if (!pkg.exists()) {
       throw new MojoExecutionException("Could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaModuleName());
-    }
-
-    if (getSenchaConfiguration().isScssFromSrc()) {
-      // rewrite package.json so the src path is removed in build
-      getSenchaConfiguration().setScssFromSrc(true);
-      writePackageJson(senchaPackageDirectory);
-      getSenchaConfiguration().setScssFromSrc(false);
     }
 
     return pkg;

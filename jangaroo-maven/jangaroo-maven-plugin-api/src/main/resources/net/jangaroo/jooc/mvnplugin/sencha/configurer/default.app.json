@@ -21,6 +21,101 @@
     }
   },
 
+  /**
+   * Sass configuration properties.
+   */
+  "sass": {
+    /**
+     * The root namespace to use when mapping *.scss files to classes in the
+     * sass/src and sass/var directories. For example, "foo2.view.Foo" would
+     * map to "sass/src/view/Foo.scss". If we changed this to "foo2.view" then
+     * it would map to "sass/src/Foo.scss". To style classes outside the app's
+     * root namespace, change this to "". Doing so would change the mapping of
+     * "foo2.view.Foo" to "sass/src/foo2/view/Foo.scss".
+     */
+    "namespace": "",
+
+    /**
+     * File used to save sass variables edited via Sencha Inspector. This file
+     * will automatically be applied to the end of the scss build.
+     *
+     *      "save": "sass/save.scss"
+     *
+     */
+
+    /**
+     * Comma-separated list of files or folders containing extra Sass. These
+     * files are automatically included in the Sass compilation. By default this
+     * is just "etc/all.scss" to allow import directives to control the order
+     * other files are included.
+     *
+     * All "etc" files are included at the top of the Sass compilation in their
+     * dependency order:
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     */
+    "etc": [
+      // "sass/etc/all.scss",
+      // "${toolkit.name}/sass/etc/all.scss",
+      "sass/etc/imports.scss"
+    ],
+
+    /**
+     * Comma-separated list of folders containing Sass variable definitions
+     * files. These file can also define Sass mixins for use by components.
+     *
+     * All "var" files are included after "etc" files in the Sass compilation in
+     * dependency order:
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     *
+     * The "sass/var/all.scss" file is always included at the start of the var
+     * block before any files associated with JavaScript classes.
+     */
+    "var": [
+      // "sass/var/all.scss",
+      // "${toolkit.name}/sass/var",
+      "sass/var"
+    ],
+
+    /**
+     * Comma-separated list of folders containing Sass rule files.
+     *
+     * All "src" files are included after "var" files in the Sass compilation in
+     * dependency order (the same order as "etc"):
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     */
+    "src": [
+      // "${toolkit.name}/sass/src",
+      "sass/mixins",
+      "sass/src"
+    ]
+  },
 
   "js": [],
 
