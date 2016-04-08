@@ -73,12 +73,23 @@ public class AnnotationParameter extends NodeImplBase {
       if (value instanceof Ide) {
         ((Ide) value).analyzeAsExpr(this, null);
       }
+      JooSymbol valueSymbol = value.getSymbol();
       String metaName = parentAnnotation.getMetaName();
       if (Jooc.EMBED_ANNOTATION_NAME.equals(metaName) && getOptName() != null && Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(getOptName().getName())) {
-        JooSymbol valueSymbol = value.getSymbol();
         if (valueSymbol.sym != sym.STRING_LITERAL) {
           throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
         }
+      } else if (Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME.equals(metaName) && getOptName() == null) {
+        if (valueSymbol.sym != sym.STRING_LITERAL) {
+          throw new CompilerError(valueSymbol, "The parameter of a [ResourceBundle] annotation must be a string literal");
+        }
+        Scope scope = parentAnnotation.getIde().getScope();
+        String resourceBundleName = (String) valueSymbol.getJooValue();
+        CompilationUnit resourceBundleCompilationUnit = scope.getCompiler().getCompilationUnit(resourceBundleName + "_properties");
+        if (resourceBundleCompilationUnit == null) {
+          throw new CompilerError(valueSymbol, "unable to resolve resource bundle " + resourceBundleName);
+        }
+        scope.getCompilationUnit().addDependency(resourceBundleCompilationUnit, true);
       }
     }
   }

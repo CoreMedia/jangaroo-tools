@@ -281,6 +281,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testRequireResourceBundle() throws Exception {
+    assertCompilationResult("package2/TestRequireResourceBundle");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");

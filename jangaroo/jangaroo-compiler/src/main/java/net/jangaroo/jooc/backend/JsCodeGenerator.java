@@ -124,6 +124,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.EMBED_ANNOTATION_NAME,
           Jooc.BINDABLE_ANNOTATION_NAME,
           Jooc.EXT_CONFIG_ANNOTATION_NAME,
+          Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
           Jooc.MIXIN_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
