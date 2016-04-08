@@ -68,13 +68,14 @@ try
         return false;
     }
 
+/** TODO remove
     File classRuntimeJs = new File ( target, "jangaroo-output/META-INF/resources/joo/test.simple-lib-with-test.classes.js" );
     if ( !classRuntimeJs.exists() || !classRuntimeJs.isFile() )
     {
         print( "jangaroo-output/META-INF/resources/joo/test.simple-lib-with-test.classes.js runtime file is missing or not a file." );
         return false;
     }
-
+*/
 
     File testJsDir = new File ( target, "jangaroo-output-test/joo" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )

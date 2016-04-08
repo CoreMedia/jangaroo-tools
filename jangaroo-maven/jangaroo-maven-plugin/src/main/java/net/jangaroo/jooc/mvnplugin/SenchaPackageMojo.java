@@ -18,7 +18,7 @@ import java.io.File;
 /**
  * Generates and packages Sencha package modules of type "test" and "code"
  */
-@Mojo(name = "sencha-package", defaultPhase = LifecyclePhase.PACKAGE,
+@Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
 public class SenchaPackageMojo extends AbstractSenchaMojo {
 
@@ -63,6 +63,10 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (!Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging())) {
+      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\"");
+    }
+
     SenchaHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
     // for now:
     senchaHelper.createModule();

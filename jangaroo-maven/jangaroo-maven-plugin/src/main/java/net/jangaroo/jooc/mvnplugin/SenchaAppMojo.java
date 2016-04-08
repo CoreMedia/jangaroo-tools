@@ -26,7 +26,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 /**
  * Generates and packages Sencha app module.
  */
-@Mojo(name = "sencha-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
+@Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppConfiguration {
 
   @Inject
@@ -62,6 +62,9 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppC
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
+      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
+    }
 
     SenchaHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
     senchaHelper.createModule();
