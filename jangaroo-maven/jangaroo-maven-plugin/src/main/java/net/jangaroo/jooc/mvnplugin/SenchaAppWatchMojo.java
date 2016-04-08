@@ -34,7 +34,7 @@ public class SenchaAppWatchMojo extends AbstractSenchaMojo{
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
     }
 
-    String arguments = "sencha app watch";
+    String arguments = "app watch";
     getLog().info("Starting \"sencha app watch\"");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(appTargetDir, arguments, getLog());
     senchaCmdExecutor.execute();
