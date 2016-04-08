@@ -30,18 +30,28 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
-    List<Object> additionalCss = getAdditionalResources(
+    @SuppressWarnings("unchecked") // the css attribute is statically defined as a list of objects in the default.app.json
+    List<Object> cssFromDefault = (List<Object>)config.get(CSS);
+    List<Object> additionalCss = new ArrayList<>();
+    if (cssFromDefault != null) {
+      additionalCss.addAll(cssFromDefault);
+    }
+    additionalCss.addAll(getAdditionalResources(
             senchaProfileConfiguration.getAdditionalCssNonBundle(),
-            senchaProfileConfiguration.getAdditionalCssBundle(),
-            senchaProfileConfiguration.getAdditionalCssIncludeInBundle());
+            senchaProfileConfiguration.getAdditionalCssIncludeInBundle()));
     if (!additionalCss.isEmpty()) {
       config.put(CSS, additionalCss);
     }
 
-    List<Object> js = new ArrayList<>();
-    js.addAll(getAdditionalResources(
+    @SuppressWarnings("unchecked") // the js attribute is statically defined as a list of objects in the default.app.json
+    List<Object> jsFromDefault = (List<Object>)config.get(JS);
+    List<Object> additionalJs = new ArrayList<>();
+    if (jsFromDefault != null) {
+      additionalJs.addAll(jsFromDefault);
+    }
+
+    additionalJs.addAll(getAdditionalResources(
             senchaProfileConfiguration.getAdditionalJsNonBundle(),
-            senchaProfileConfiguration.getAdditionalJsBundle(),
             senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
     List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
     if (null != editorPlugins && !editorPlugins.isEmpty()) {
@@ -49,14 +59,14 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
       if (null != senchaProfileConfiguration.getProfileName()) {
         profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
       }
-      js.add(getResourceEntry(SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
+      additionalJs.add(getResourceEntry(SenchaUtils.SENCHA_RELATIVE_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
     }
-    if (!js.isEmpty()) {
-      config.put(JS, js);
+    if (!additionalJs.isEmpty()) {
+      config.put(JS, additionalJs);
     }
   }
 
-  private List<Object> getAdditionalResources(List<String> resourcesNonBundle, List<String> resourcesBundle, List<String> resourcesIncludeInBundle) {
+  private List<Object> getAdditionalResources(List<String> resourcesNonBundle, List<String> resourcesIncludeInBundle) {
     List<Object> resources = new ArrayList<>();
 
     if (null != resourcesNonBundle) {
@@ -64,11 +74,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
         resources.add(getResourceEntry(resource, false, false));
       }
     }
-    if (null != resourcesBundle) {
-      for (String resource : resourcesBundle) {
-        resources.add(getResourceEntry(resource, true, false));
-      }
-    }
+
     if (null != resourcesIncludeInBundle) {
       for (String resource : resourcesIncludeInBundle) {
         resources.add(getResourceEntry(resource, false, true));

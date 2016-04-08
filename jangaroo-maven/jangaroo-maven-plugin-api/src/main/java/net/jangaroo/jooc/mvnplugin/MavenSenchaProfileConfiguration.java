@@ -22,18 +22,6 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   private List<String> additionalJsNonBundle;
 
   /**
-   * @see SenchaProfileConfiguration#getAdditionalCssBundle()
-   */
-  @Parameter
-  private List<String> additionalCssBundle;
-
-  /**
-   * @see SenchaProfileConfiguration#getAdditionalJsBundle()
-   */
-  @Parameter
-  private List<String> additionalJsBundle;
-
-  /**
    * @see SenchaProfileConfiguration#getAdditionalCssIncludeInBundle()
    */
   @Parameter
@@ -64,16 +52,6 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   @Override
   public List<String> getAdditionalJsNonBundle() {
     return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : null;
-  }
-
-  @Override
-  public List<String> getAdditionalCssBundle() {
-    return additionalCssBundle != null ? ImmutableList.copyOf(additionalCssBundle) : null;
-  }
-
-  @Override
-  public List<String> getAdditionalJsBundle() {
-    return additionalJsBundle != null ? ImmutableList.copyOf(additionalJsBundle) : null;
   }
 
   @Override

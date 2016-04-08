@@ -117,7 +117,15 @@
     ]
   },
 
-  "js": [],
+  "js": [{
+    /**
+     * app.js is generated automatically. It contains the definition of
+     * the main application class
+     */
+    "path" : "resources/app.js",
+    "bundle" : true,
+    "includeInBundle" : false
+  }],
 
   "classic": {},
 

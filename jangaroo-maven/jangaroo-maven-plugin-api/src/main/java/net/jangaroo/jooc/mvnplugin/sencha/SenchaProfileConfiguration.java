@@ -27,18 +27,6 @@ public interface SenchaProfileConfiguration {
 
   /**
    * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to true, "includeInBundle" will be set to false.
-   */
-  List<String> getAdditionalCssBundle();
-
-  /**
-   * A list of paths to JS files to include that are not loaded via the class loader (usually in resources folder).
-   * "bundle" option will be set to true, "includeInBundle" will be set to false.
-   */
-  List<String> getAdditionalJsBundle();
-
-  /**
-   * A list of paths to CSS files to include that are not loaded via the class loader (usually in resources folder).
    * "bundle" option will be set to false, "includeInBundle" will be set to true.
    */
   List<String> getAdditionalCssIncludeInBundle();

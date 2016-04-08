@@ -19,12 +19,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   private List<String> additionalJsNonBundle;
 
   @Parameter
-  private List<String> additionalCssBundle;
-
-  @Parameter
-  private List<String> additionalJsBundle;
-
-  @Parameter
   private List<String> additionalCssIncludeInBundle;
 
   @Parameter
@@ -118,16 +112,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSe
   @Override
   public List<String> getAdditionalJsNonBundle() {
     return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
-  }
-
-  @Override
-  public List<String> getAdditionalCssBundle() {
-    return additionalCssBundle != null ? ImmutableList.copyOf(additionalCssBundle) : Collections.<String>emptyList();
-  }
-
-  @Override
-  public List<String> getAdditionalJsBundle() {
-    return additionalJsBundle != null ? ImmutableList.copyOf(additionalJsBundle) : Collections.<String>emptyList();
   }
 
   @Override
