@@ -16,7 +16,8 @@ import ${import};
 </#if>
  * @see ${resourceBundle.className}_properties#INSTANCE
  */
-public class ${resourceBundle.className}_properties<#if locale??>_${locale} extends ${resourceBundle.className}_properties<#else> extends joo.JavaScriptObject</#if> {
+<#if locale??>[Override]
+</#if>public class ${resourceBundle.className}_properties<#if locale??>_${locale} extends ${resourceBundle.className}_properties<#else> extends joo.JavaScriptObject</#if> {
 
 <#if !locale??>
 /**
