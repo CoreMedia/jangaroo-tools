@@ -510,7 +510,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     JsonObject classDefinition = new JsonObject();
     if (classDeclaration.getInheritanceLevel() > 1) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
+      boolean isOverride = classDeclaration.getCompilationUnit().getAnnotation(Jooc.OVERRIDE_ANNOTATION_NAME) != null;
+      classDefinition.set(
+              isOverride ? "override" : "extend",
+              compilationUnitAccessCode(superTypeDeclaration));
     }
     addOptImplements(classDeclaration, classDefinition);
     return classDefinition;

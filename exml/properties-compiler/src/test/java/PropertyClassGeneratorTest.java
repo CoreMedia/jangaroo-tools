@@ -8,13 +8,14 @@ import net.jangaroo.properties.model.ResourceBundleClass;
 import net.jangaroo.utils.FileLocations;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static org.junit.Assert.assertEquals;
 
 public class PropertyClassGeneratorTest {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -89,6 +90,7 @@ public class PropertyClassGeneratorTest {
         " * Properties class for ResourceBundle \"PropertiesTest\" and Locale \"en\".\n" +
         " * @see PropertiesTest_properties#INSTANCE\n" +
         " */\n" +
+        "[Override]\n" +
         "public class PropertiesTest_properties_en extends PropertiesTest_properties {\n" +
         "\n" +
         "\n" +

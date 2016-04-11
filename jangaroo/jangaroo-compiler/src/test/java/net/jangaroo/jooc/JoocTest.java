@@ -17,6 +17,11 @@ import static junit.framework.Assert.assertTrue;
 public class JoocTest extends AbstractJoocTest {
 
   @Test
+  public void testOverrides() throws Exception {
+    assertOverridesCompilationResult("package1/Override");
+  }
+
+  @Test
   public void testEqualDeclarationVariableType() throws Exception {
     File sourcefile = getFile("/package1/SomeClass.as");
     config.addSourceFile(sourcefile);
@@ -145,7 +150,7 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testImportReductionExcludeClass() throws Exception {
     config.setExcludeClassByDefault(true);
-    assertApiCompilationResult("package1/someOtherPackage/ImportReduction", "withExclude/");
+    assertApiCompilationResult("package1/someOtherPackage/ImportReduction", "/withExclude");
   }
 
   @Test

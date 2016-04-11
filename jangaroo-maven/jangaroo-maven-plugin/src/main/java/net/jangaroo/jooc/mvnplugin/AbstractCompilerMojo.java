@@ -135,6 +135,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
 
+  /**
+   * Output directory for overrides, relative to the outputDirectory.
+   */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/joo-overrides")
+  private String overridesOutputDirectory;
+
   public abstract String getModuleClassesJsFileName();
 
   public File getModuleClassesJsFile() {
@@ -156,6 +162,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   }
 
   protected abstract File getApiOutputDirectory();
+
+  public File getOverridesOutputDirectory() {
+    return isJangarooPackaging() ? new File(overridesOutputDirectory) : null;
+  }
 
   protected File getCatalogOutputDirectory() {
     return catalogOutputDirectory;
@@ -290,6 +300,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setClassPath(getActionScriptClassPath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
+    configuration.setOverridesOutputDirectory(getOverridesOutputDirectory());
 
     List<NamespaceConfiguration> allNamespaces = new ArrayList<NamespaceConfiguration>();
     if (getNamespaces() != null) {
@@ -424,6 +435,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     List<File> staleFiles = new ArrayList<File>();
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
+    //todo aga add stale files from overrides?!
     return staleFiles;
   }
 

@@ -35,6 +35,7 @@ public class AbstractJoocTest {
 
   protected File outputFolder;
   protected File apiOutputFolder;
+  protected File overridesOutputFolder;
   protected Jooc jooc;
 
   protected JoocConfiguration config;
@@ -90,16 +91,18 @@ public class AbstractJoocTest {
   public void setup() throws Exception{
     outputFolder = tmpFolder.newFolder("jangaroo-output");
     apiOutputFolder = tmpFolder.newFolder("joo-api");
+    overridesOutputFolder = tmpFolder.newFolder("joo-overrides");
     config = new JoocConfiguration();
     config.setVerbose(true);
     File sourceDir = getFile("/");
-    List<File> sourcepath = new ArrayList<File>();
+    List<File> sourcepath = new ArrayList<>();
     sourcepath.add(sourceDir);
     config.setSourcePath(sourcepath);
     config.setDebugMode(DebugMode.SOURCE);
     config.setOutputDirectory(outputFolder);
     //noinspection ResultOfMethodCallIgnored
     config.setApiOutputDirectory(apiOutputFolder);
+    config.setOverridesOutputDirectory(overridesOutputFolder);
     testLog.reset();
     jooc = new Jooc(config, testLog);
     jooc.getMxmlComponentRegistry().registerElement("library://test.namespace", "someOtherClass",
@@ -118,28 +121,25 @@ public class AbstractJoocTest {
     Assert.assertThat(testLog.getPosition(expected), matchesPosition(line, column));
   }
 
-  void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
-    File sourcefile = getFile("/" + path + ".as");
-    config.addSourceFile(sourcefile);
-    //noinspection ResultOfMethodCallIgnored
-    apiOutputFolder.mkdirs(); // NOSONAR
-    jooc.run();
+  void assertApiCompilationResult(String relativeClassFileName, String expectPath) throws URISyntaxException, IOException {
+    assertCompilationResult(relativeClassFileName, ".as", apiOutputFolder, "expectedApi" + expectPath, ".as");
 
-    File destFile = new File(apiOutputFolder, path + ".as");
-    assertTrue(destFile.exists());
 
-    String result = readFileToString(destFile);
-    String expected = readFileToString(getFile("/expectedApi/" + expectPath + path + ".as"));
-    assertEquals("Result file not equal", expected, result);
+  void assertOverridesCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
+    assertCompilationResult(relativeClassFileName, ".as", overridesOutputFolder, "expectedOverrides", ".js");
   }
-
 
   void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as");
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
-    File destFile = compile(relativeClassFileName, extension);
+    assertCompilationResult(relativeClassFileName, extension, outputFolder, "expected", ".js");
+  }
+
+  private void assertCompilationResult(String relativeClassFileName, String extension, File outputFolder, String expectedResultsBaseDir, String outputFileExtension)
+          throws URISyntaxException, IOException {
+    File destFile = compile(relativeClassFileName, extension, outputFolder, outputFileExtension);
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
@@ -147,7 +147,7 @@ public class AbstractJoocTest {
     if (sourceMappingUrlPos != -1) {
       result = result.substring(0, sourceMappingUrlPos);
     }
-    File expectedFile = getFile("/expected/" + relativeClassFileName + ".js");
+    File expectedFile = getFile("/" + expectedResultsBaseDir + "/" + relativeClassFileName + outputFileExtension);
     String expected = readFileToString(expectedFile);
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
@@ -158,14 +158,14 @@ public class AbstractJoocTest {
   }
 
   File compile(String relativeClassFileName) throws URISyntaxException {
-    return compile(relativeClassFileName, ".as");
+    return compile(relativeClassFileName, ".as", outputFolder, ".js");
   }
 
-  private File compile(String relativeClassFileName, String extension) throws URISyntaxException {
+  private File compile(String relativeClassFileName, String extension, File outputFolder, String outputFileExtension) throws URISyntaxException {
     File sourceFile = getFile("/" + relativeClassFileName + extension);
     config.addSourceFile(sourceFile);
     jooc.run();
-    return new File(outputFolder, relativeClassFileName + ".js");
+    return new File(outputFolder, relativeClassFileName + outputFileExtension);
   }
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
