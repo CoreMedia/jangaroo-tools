@@ -164,7 +164,9 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   protected abstract File getApiOutputDirectory();
 
   public File getOverridesOutputDirectory() {
-    return isJangarooPackaging() ? new File(overridesOutputDirectory) : null;
+    return overridesOutputDirectory != null && Type.containsJangarooSources(getProject())
+            ? new File(overridesOutputDirectory)
+            : null;
   }
 
   protected File getCatalogOutputDirectory() {

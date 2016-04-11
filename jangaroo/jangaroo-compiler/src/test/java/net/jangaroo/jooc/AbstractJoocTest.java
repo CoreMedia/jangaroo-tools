@@ -123,7 +123,7 @@ public class AbstractJoocTest {
 
   void assertApiCompilationResult(String relativeClassFileName, String expectPath) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as", apiOutputFolder, "expectedApi" + expectPath, ".as");
-
+  }
 
   void assertOverridesCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as", overridesOutputFolder, "expectedOverrides", ".js");
