@@ -168,6 +168,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           isOverride = unit.getAnnotation(OVERRIDE_ANNOTATION_NAME) != null;
+          if (isOverride && overridesSinkFactory == null) {
+            throw new CompilerError("overrides destination directory must be set to compile [Override] annotated classes");
+          }
           outputFile = writeOutput(sourceFile, unit,
                   isOverride ? overridesSinkFactory : codeSinkFactory,
                   getConfig().isVerbose());
