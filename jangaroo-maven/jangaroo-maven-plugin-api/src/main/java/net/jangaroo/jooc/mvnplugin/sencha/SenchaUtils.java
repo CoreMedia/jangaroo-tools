@@ -166,7 +166,7 @@ public class SenchaUtils {
                                                    @Nonnull MavenDependency extFrameworkDependency) {
     return !dependency.equalsGroupIdAndArtifactId(remotePackageDependency)
             && !dependency.equalsGroupIdAndArtifactId(extFrameworkDependency)
-            && !"pom".equals(dependency.getType())
+            && Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && !Artifact.SCOPE_TEST.equals(dependency.getScope());
   }
