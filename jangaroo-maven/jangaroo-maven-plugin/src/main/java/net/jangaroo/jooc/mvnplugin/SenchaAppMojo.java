@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
@@ -38,7 +39,13 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppC
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession mavenSession;
 
-  @Parameter(required = true)
+  /**
+   * The full qualified name of the application class of the Sencha app, e.g.:
+   * <pre>
+   * &lt;applicationClass>net.jangaroo.acme.MainApllication&lt;/applicationClass>
+   * </pre>
+   */
+  @Parameter
   private String applicationClass;
 
   /**
@@ -64,6 +71,10 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppC
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
+    }
+    // parameter can not just be required="true" as this would also apply for the other packaging types and mojos
+    if (StringUtils.isBlank(applicationClass)) {
+      throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
 
     SenchaHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
