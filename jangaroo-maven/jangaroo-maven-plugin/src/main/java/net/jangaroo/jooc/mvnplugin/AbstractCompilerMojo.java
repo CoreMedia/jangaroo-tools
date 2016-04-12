@@ -138,7 +138,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   /**
    * Output directory for overrides, relative to the outputDirectory.
    */
-  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/joo-overrides")
+  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/resources/joo/overrides")
   private String overridesOutputDirectory;
 
   public abstract String getModuleClassesJsFileName();
