@@ -17,7 +17,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -37,8 +36,7 @@ import java.util.Objects;
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "generate-sencha-workspace",
-        defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-        requiresDependencyCollection = ResolutionScope.COMPILE, // TEST needed when using pkgs for testing. see SenchaUtils#isRequireSenchaDependency
+        requiresDependencyCollection = ResolutionScope.TEST,
         threadSafe = true)
 public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
