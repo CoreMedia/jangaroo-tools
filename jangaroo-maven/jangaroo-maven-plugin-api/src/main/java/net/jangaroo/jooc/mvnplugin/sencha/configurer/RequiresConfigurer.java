@@ -2,7 +2,7 @@ package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
 import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -33,12 +33,12 @@ public class RequiresConfigurer implements Configurer {
   private Set<Map<String, Object>> getRequiredDependencies() throws MojoExecutionException {
     Set<Map<String, Object>> requiredDependencies = new HashSet<>();
 
-    MavenDependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
+    Dependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
 
     List<Dependency> projectDependencies = project.getDependencies();
 
-    MavenDependency remotePackageDependency = MavenDependency.fromKey(senchaConfiguration.getRemotePackagesArtifact());
-    MavenDependency extFrameworkDependency = MavenDependency.fromKey(senchaConfiguration.getExtFrameworkArtifact());
+    Dependency remotePackageDependency = MavenDependencyHelper.fromKey(senchaConfiguration.getRemotePackagesArtifact());
+    Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(senchaConfiguration.getExtFrameworkArtifact());
     for (Dependency dependency : projectDependencies) {
 
       // TODO we should not assume that #getSenchaPackageNameForArtifact and #getSenchaPackageNameForTheme use the same string format
@@ -46,9 +46,8 @@ public class RequiresConfigurer implements Configurer {
               dependency.getGroupId(), dependency.getArtifactId()
       );
 
-      MavenDependency projectDependency = MavenDependency.fromDependency(dependency);
-      if (SenchaUtils.isRequiredSenchaDependency(projectDependency, remotePackageDependency, extFrameworkDependency)
-              && !projectDependency.equalsGroupIdAndArtifactId(themeDependency)) {
+      if (SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency, extFrameworkDependency)
+              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency)) {
 
         Map<String, Object> require = new HashMap<>();
         require.put("name", senchaPackageNameForArtifact);

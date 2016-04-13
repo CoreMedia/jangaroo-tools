@@ -4,10 +4,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.Type;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
@@ -89,13 +90,13 @@ public class SenchaUtils {
   }
 
   @Nullable
-  public static MavenDependency getThemeDependency(@Nullable String theme, @Nonnull MavenProject project) {
-    MavenDependency themeDependency = MavenDependency.fromKey(theme);
+  public static Dependency getThemeDependency(@Nullable String theme, @Nonnull MavenProject project) {
+    Dependency themeDependency = MavenDependencyHelper.fromKey(theme);
     // verify that provided artifact is under project dependencies
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      MavenDependency artifactDependency = MavenDependency.fromArtifact(artifact);
-      if (artifactDependency.equalsGroupIdAndArtifactId(themeDependency)) {
+      Dependency artifactDependency = MavenDependencyHelper.fromArtifact(artifact);
+      if (MavenDependencyHelper.equalsGroupIdAndArtifactId(artifactDependency, themeDependency)) {
         return artifactDependency;
       }
     }
@@ -161,11 +162,11 @@ public class SenchaUtils {
     return workspacePath.relativize(workingDirectoryPath);
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull MavenDependency dependency,
-                                                   @Nonnull MavenDependency remotePackageDependency,
-                                                   @Nonnull MavenDependency extFrameworkDependency) {
-    return !dependency.equalsGroupIdAndArtifactId(remotePackageDependency)
-            && !dependency.equalsGroupIdAndArtifactId(extFrameworkDependency)
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,
+                                                   @Nonnull Dependency remotePackageDependency,
+                                                   @Nonnull Dependency extFrameworkDependency) {
+    return !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency, remotePackageDependency)
+            && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,extFrameworkDependency)
             && Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && !Artifact.SCOPE_TEST.equals(dependency.getScope());

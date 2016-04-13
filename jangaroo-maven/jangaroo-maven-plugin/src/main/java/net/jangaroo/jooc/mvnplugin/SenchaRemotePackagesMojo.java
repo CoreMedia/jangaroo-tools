@@ -4,8 +4,9 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -70,9 +71,9 @@ public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
       unArchiver.setSourceFile(artifact.getFile());
 
       File packageTargetDir;
-      MavenDependency extFrameworkDependency = MavenDependency.fromKey(getExtFrameworkArtifact());
-      MavenDependency currentArtifactDependency = MavenDependency.fromArtifact(artifact);
-      if (currentArtifactDependency.equalsGroupIdAndArtifactId(extFrameworkDependency)) {
+      Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
+      Dependency currentArtifactDependency = MavenDependencyHelper.fromArtifact(artifact);
+      if (MavenDependencyHelper.equalsGroupIdAndArtifactId(currentArtifactDependency, extFrameworkDependency)) {
         packageTargetDir = new File( getExtFrameworkDirectory(project) );
       } else {
         packageTargetDir = new File(remotePackagesTargetDir
