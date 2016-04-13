@@ -333,7 +333,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory.", file);
     }
-    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true));
+    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true), true);
     if (unit != null) {
       compileQueue.add(unit);
     }
