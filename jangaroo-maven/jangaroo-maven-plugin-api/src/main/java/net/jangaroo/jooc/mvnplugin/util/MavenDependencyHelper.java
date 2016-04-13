@@ -67,13 +67,22 @@ public class MavenDependencyHelper {
 
   }
 
-  public static boolean containsWithGroupIdAndArtifactId(Collection<Dependency> dependencies, final Dependency dependency) {
+  public static boolean contains(Collection<Dependency> dependencies, final Dependency dependency) {
     return Iterables.tryFind(dependencies, new Predicate<Dependency>() {
       @Override
       public boolean apply(@Nullable Dependency input) {
         return MavenDependencyHelper.equalsGroupIdAndArtifactId(input, dependency);
       }
     }).isPresent();
+  }
+
+  public static boolean remove(Collection<Dependency> dependencies, final Dependency dependency) {
+    return Iterables.removeIf(dependencies, new Predicate<Dependency>() {
+      @Override
+      public boolean apply(@Nullable Dependency input) {
+        return MavenDependencyHelper.equalsGroupIdAndArtifactId(input, dependency);
+      }
+    });
   }
 
 }

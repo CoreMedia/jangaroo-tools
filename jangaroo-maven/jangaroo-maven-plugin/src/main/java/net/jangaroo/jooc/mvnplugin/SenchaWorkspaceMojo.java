@@ -149,8 +149,8 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
     // remove those dependencies that are already in the remote aggregator
     for (Artifact artifact : remoteAggregatorProject.getDependencyArtifacts()) {
-      Dependency pkgDependency = convertToPkgDependency( MavenDependencyHelper.fromArtifact(artifact), remoteAggregatorProject );
-      remotePackagesDependencies.remove( pkgDependency );
+      final Dependency pkgDependency = convertToPkgDependency( MavenDependencyHelper.fromArtifact(artifact), remoteAggregatorProject );
+      MavenDependencyHelper.remove(remotePackagesDependencies, pkgDependency);
     }
 
     // update the dependencies part of the project pom
@@ -174,7 +174,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
         Dependency pkgDependency = convertToPkgDependency(dependency, remoteAggregator);
         MavenProject projectFromArtifact = createProjectFromArtifact(artifact);
 
-        if (!MavenDependencyHelper.containsWithGroupIdAndArtifactId(remotePackages, pkgDependency)
+        if (!MavenDependencyHelper.contains(remotePackages, pkgDependency)
                 && !localProjects.contains(projectFromArtifact)) {
           // add dependency to this project for remote packaging
           getLog().info(String.format("Using remote dependency \"%s\" from project \"%s\"", artifact.getId(), currentProject.getId()));
