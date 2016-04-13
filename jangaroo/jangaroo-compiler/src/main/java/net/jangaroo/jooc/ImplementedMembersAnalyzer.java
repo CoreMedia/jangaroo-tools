@@ -107,6 +107,9 @@ class ImplementedMembersAnalyzer {
           @Override
           public String apply(@Nullable MemberModel input) {
             //noinspection ConstantConditions
+            if (input.isAccessor()) {
+              return ((MethodModel)input).getMethodType() + " " + input.getName();
+            }
             return input.getName();
           }
         }));
