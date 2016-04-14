@@ -79,6 +79,7 @@ import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
+import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
@@ -87,6 +88,7 @@ import net.jangaroo.jooc.model.FieldModel;
 import net.jangaroo.jooc.model.MemberModel;
 import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
+import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
@@ -99,6 +101,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -106,6 +109,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -364,7 +368,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String[] dependencies = collectDependencies(compilationUnit, null);
     String[] requires = collectDependencies(compilationUnit, true);
     String[] uses = collectDependencies(compilationUnit, false);
-    String moduleName = CompilerUtils.quote(getModuleName(compilationUnit));
+    String moduleName = CompilerUtils.quote(getModuleName(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr()));
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     out.write("Ext.define(");
     out.write(moduleName);
@@ -439,24 +443,31 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private String[] collectDependencies(CompilationUnit compilationUnit, Boolean required) throws IOException {
     Set<String> requires = new TreeSet<String>();
-    Collection<CompilationUnit> dependentCompilationUnits = compilationUnit.getDependenciesAsCompilationUnits();
-    for (CompilationUnit dependentCU : dependentCompilationUnits) {
-      if (required != null && compilationUnit.isRequiredDependency(dependentCU) != required) {
+    Collection<String> dependentCompilationUnits = compilationUnit.getDependencies();
+    for (String dependentCUId : dependentCompilationUnits) {
+      if (required != null && compilationUnit.isRequiredDependency(dependentCUId) != required) {
         continue;
       }
-      IdeDeclaration dependentDeclaration = dependentCU.getPrimaryDeclaration();
+
       String javaScriptName;
       String javaScriptNameToRequire;
-      Annotation nativeAnnotation = dependentCU.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      if (nativeAnnotation == null) {
-        javaScriptName = getModuleName(dependentDeclaration);
+      CompilationUnitModel dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+
+      NamedModel primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
+
+      List<AnnotationModel> nativeAnnotations = primaryDeclaration instanceof AnnotatedModel ?
+              ((AnnotatedModel)primaryDeclaration).getAnnotations(Jooc.NATIVE_ANNOTATION_NAME) :
+              Collections.<AnnotationModel>emptyList();
+      if (nativeAnnotations.isEmpty()) {
+        javaScriptName = getModuleName(dependentCUId);
         javaScriptNameToRequire = javaScriptName;
       } else {
+        AnnotationModel nativeAnnotation = nativeAnnotations.get(0);
         String javaScriptAlias = getNativeAnnotationValue(nativeAnnotation);
         if (javaScriptAlias != null) {
           javaScriptName = javaScriptAlias;
         } else {
-          javaScriptName = dependentDeclaration.getQualifiedNameStr();
+          javaScriptName = dependentCUId;
         }
         javaScriptNameToRequire = getNativeAnnotationRequireValue(nativeAnnotation);
         if ("".equals(javaScriptNameToRequire)) {
@@ -466,43 +477,34 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (javaScriptNameToRequire != null) {
         requires.add(javaScriptNameToRequire);
       }
-      imports.put(dependentCU.getPrimaryDeclaration().getQualifiedNameStr(), javaScriptName);
+      imports.put(dependentCUId, javaScriptName);
     }
 
     return requires.toArray(new String[requires.size()]);
   }
 
-  private String getNativeAnnotationValue(Annotation nativeAnnotation) {
+  private String getNativeAnnotationValue(AnnotationModel nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
   }
 
-  private String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+  private String getNativeAnnotationRequireValue(AnnotationModel nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 
-  private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
+  private static Object getAnnotationParameterValue(AnnotationModel nativeAnnotation, String name,
                                                     Object defaultValue) {
-    CommaSeparatedList<AnnotationParameter> annotationParameters = nativeAnnotation.getOptAnnotationParameters();
-    while (annotationParameters != null) {
-      AnnotationParameter annotationParameter = annotationParameters.getHead();
-      Ide optName = annotationParameter.getOptName();
-      if (optName != null && name != null && name.equals(optName.getName())
-              || optName == null && name == null) {
-        AstNode value = annotationParameter.getValue();
-        return value == null ? defaultValue : value.getSymbol().getJooValue();
+    Map<String, AnnotationPropertyModel> propertiesByName = nativeAnnotation.getPropertiesByName();
+    for (Map.Entry<String, AnnotationPropertyModel> entry : propertiesByName.entrySet()) {
+      if (Objects.equals(entry.getKey(), name)) {
+        String stringValue = entry.getValue().getStringValue();
+        return stringValue == null ? defaultValue : stringValue;
       }
-      annotationParameters = annotationParameters.getTail();
     }
     return null;
   }
 
-  private static String getModuleName(CompilationUnit compilationUnit) {
-    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    return getModuleName(primaryDeclaration);
-  }
-
-  private static String getModuleName(IdeDeclaration primaryDeclaration) {
-    return AS3_NAMESPACE_DOT + primaryDeclaration.getQualifiedNameStr();
+  private static String getModuleName(String qName) {
+    return AS3_NAMESPACE_DOT + qName;
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
