@@ -19,6 +19,9 @@ public class PropertiesCompilerTest {
   @Rule
   public TemporaryFolder outputFolder = new TemporaryFolder();
   
+  @Rule
+  public TemporaryFolder apiFolder = new TemporaryFolder();
+
   @Test
   public void testMain() throws Exception {
     File root = new File(getClass().getResource("/").toURI());
@@ -27,37 +30,42 @@ public class PropertiesCompilerTest {
     List<String> args = new ArrayList<String>();
     args.add("-d");
     args.add(outputFolder.getRoot().getAbsolutePath());
+    args.add("-api");
+    args.add(apiFolder.getRoot().getAbsolutePath());
     args.add("-sourcepath");
     args.add(root.getAbsolutePath());
+    args.add("-defaultLocale");
+    args.add("en_gb");
     args.add(getFile("/testPackage/subPackage/Proberties.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest_de.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest_es_ES.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest_it_VA_WIN.properties").getAbsolutePath());
 
-
     PropertiesCompiler.main(args.toArray(new String[args.size()]));
 
-    File defaultProp = new File(out,"testPackage/PropertiesTest_properties.as");
-    assertTrue(defaultProp.exists());
+    File api = new File(apiFolder.getRoot(), "testPackage/PropertiesTest_properties.as");
+    assertTrue(api.getAbsolutePath() + " exists", api.exists());
+    assertTrue(api.length() > 100);
+
+    File defaultProp = new File(out,"en_gb/testPackage/PropertiesTest_properties.js");
+    assertTrue(defaultProp.getAbsolutePath() + " exists", defaultProp.exists());
     assertTrue(defaultProp.length() > 100);
 
-    File deProp = new File(out, "testPackage/PropertiesTest_properties_de.as");
-
-    assertTrue(deProp.exists());
+    File deProp = new File(out, "de/testPackage/PropertiesTest_properties.js");
+    assertTrue(deProp.getAbsolutePath() + " exists", deProp.exists());
     assertTrue(deProp.length() > 100);
 
-    File it_VA_WINProp = new File(out, "testPackage/PropertiesTest_properties_it_VA_WIN.as");
-    assertTrue(it_VA_WINProp.exists());
+    File es_ESNProp = new File(out, "es_ES/testPackage/PropertiesTest_properties.js");
+    assertTrue(es_ESNProp.getAbsolutePath() + " exists", es_ESNProp.exists());
+    assertTrue(es_ESNProp.length() > 100);
+
+    File it_VA_WINProp = new File(out, "it_VA_WIN/testPackage/PropertiesTest_properties.js");
+    assertTrue(it_VA_WINProp.getAbsolutePath() + " exists", it_VA_WINProp.exists());
     assertTrue(it_VA_WINProp.length() > 100);
 
-    File es_ESNProp = new File(out, "testPackage/PropertiesTest_properties_es_ES.as");
-    assertTrue(es_ESNProp.exists());
-    assertTrue(es_ESNProp.length() > 100);    
-
-
-    File subPackageProp = new File(out, "testPackage/subPackage/Proberties_properties.as");
-    assertTrue(subPackageProp.exists());
+    File subPackageProp = new File(out, "en_gb/testPackage/subPackage/Proberties_properties.js");
+    assertTrue(subPackageProp.getAbsolutePath() + " exists", subPackageProp.exists());
     assertTrue(subPackageProp.length() > 100);
   }
 
