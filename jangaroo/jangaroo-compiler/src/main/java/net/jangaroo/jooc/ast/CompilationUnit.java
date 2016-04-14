@@ -42,7 +42,7 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
-  private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
+  private Set<String> dependenciesInModule = new LinkedHashSet<>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Scope scope;
@@ -150,7 +150,7 @@ public class CompilationUnit extends NodeImplBase {
     return dependenciesAsCompilationUnits.get(dependency);
   }
 
-  public Set<CompilationUnit> getDependenciesInModule() {
+  public Set<String> getDependenciesInModule() {
     return dependenciesInModule;
   }
 
@@ -228,7 +228,8 @@ public class CompilationUnit extends NodeImplBase {
       boolean inModule = otherUnit.isInSourcePath();
       dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
       if (inModule) {
-        dependenciesInModule.add(otherUnit);
+        String qName = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
+        dependenciesInModule.add(qName);
       } else {
         for (Annotation annotation : otherUnit.getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
           for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
