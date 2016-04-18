@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -189,7 +190,15 @@ public class SenchaAppHelper extends AbstractSenchaHelper<MavenSenchaAppConfigur
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
     getLog().info("Building Sencha app module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
+    StringBuilder args = new StringBuilder();
+    args.append("app build --locale ");
+    List<String> locales = getSenchaConfiguration().getLocales();
+    args.append(locales.isEmpty() ? LocalesConfigurer.DEFAULT_LOCALE : locales.get(0));
+    for (int i = 1; i < locales.size(); i++) {
+      args.append(" then app refresh --locale ");
+      args.append(locales.get(i));
+    }
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog());
     senchaCmdExecutor.execute();
   }
 
