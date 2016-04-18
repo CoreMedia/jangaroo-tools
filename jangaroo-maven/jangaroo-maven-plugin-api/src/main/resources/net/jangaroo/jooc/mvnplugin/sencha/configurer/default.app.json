@@ -179,7 +179,7 @@
 
   "bootstrap": {
     "base": "${app.dir}",
-    "manifest": "bootstrap.json",
+    "manifest": "bootstrap-${app.locale}.json",
     "microloader": "bootstrap.js",
     "css": "bootstrap.css"
   },
