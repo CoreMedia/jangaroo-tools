@@ -7,7 +7,7 @@
 </#if>
 */
 Ext.define("AS3.${resourceBundle.fullClassName}_properties<#if locale??>_${locale}</#if>", {
-  <#if locale??>override: "AS3.${resourceBundle.fullClassName}_properties"</#if>
+  <#if locale??>override: "AS3.${resourceBundle.fullClassName}_properties"<#if props?has_content>,</#if></#if>
 <#list props as property>
   <#if property.comment??>
   /**${property.comment}
