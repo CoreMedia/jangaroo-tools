@@ -8,8 +8,10 @@ import java.util.Map;
 
 public class LocalesConfigurer implements Configurer {
 
-  static final String LOCALES = "locales";
-  static final String DEFAULT_LOCALE = "defaultLocale";
+  public static final String DEFAULT_LOCALE = "en";
+
+  static final String LOCALES_LABEL = "locales";
+  static final String DEFAULT_LOCALE_LABEL = "defaultLocale";
 
   private List<String> locales;
 
@@ -19,8 +21,8 @@ public class LocalesConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
-    config.put(DEFAULT_LOCALE, locales.isEmpty() ? "en" : locales.get(0));
-    config.put(LOCALES, locales);
+    config.put(DEFAULT_LOCALE_LABEL, locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+    config.put(LOCALES_LABEL, locales);
   }
 
 }
