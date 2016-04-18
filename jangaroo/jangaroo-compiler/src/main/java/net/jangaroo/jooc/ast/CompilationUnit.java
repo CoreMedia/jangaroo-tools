@@ -41,8 +41,8 @@ public class CompilationUnit extends NodeImplBase {
   protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
-  private Map<CompilationUnit, Boolean> dependenciesAsCompilationUnits = new LinkedHashMap<CompilationUnit, Boolean>();
-  private Set<CompilationUnit> dependenciesInModule = new LinkedHashSet<CompilationUnit>();
+  private Map<String, Boolean> dependencies = new LinkedHashMap<>();
+  private Set<String> dependenciesInModule = new LinkedHashSet<>();
   private List<String> resourceDependencies = new ArrayList<String>();
   private Set<String> publicApiDependencies = new LinkedHashSet<String>();
   private Scope scope;
@@ -142,15 +142,15 @@ public class CompilationUnit extends NodeImplBase {
     return publicApiDependencies;
   }
 
-  public Set<CompilationUnit> getDependenciesAsCompilationUnits() {
-    return dependenciesAsCompilationUnits.keySet();
+  public Set<String> getDependencies() {
+    return dependencies.keySet();
   }
 
-  public boolean isRequiredDependency(CompilationUnit dependency) {
-    return dependenciesAsCompilationUnits.get(dependency);
+  public boolean isRequiredDependency(String qName) {
+    return dependencies.get(qName);
   }
 
-  public Set<CompilationUnit> getDependenciesInModule() {
+  public Set<String> getDependenciesInModule() {
     return dependenciesInModule;
   }
 
@@ -222,17 +222,18 @@ public class CompilationUnit extends NodeImplBase {
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
+      String qName = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
-      boolean alreadyRequired = Boolean.TRUE.equals(dependenciesAsCompilationUnits.get(otherUnit));
+      boolean alreadyRequired = Boolean.TRUE.equals(dependencies.get(qName));
       boolean inModule = otherUnit.isInSourcePath();
-      dependenciesAsCompilationUnits.put(otherUnit, required || alreadyRequired || !inModule);
+      dependencies.put(qName, required || alreadyRequired || !inModule);
       if (inModule) {
-        dependenciesInModule.add(otherUnit);
+        dependenciesInModule.add(qName);
       } else {
         for (Annotation annotation : otherUnit.getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
           for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
-            dependenciesAsCompilationUnits.put(scope.getCompiler().getCompilationUnit(value), true);
+            dependencies.put(scope.getCompiler().getCompilationUnit(value).getPrimaryDeclaration().getQualifiedNameStr(), true);
           }
         }
       }

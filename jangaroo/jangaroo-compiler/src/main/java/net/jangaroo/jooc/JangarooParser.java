@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private InputSource sourcePathInputSource;
   private InputSource classPathInputSource;
   private ParserOptions config;
-  private BiMap<InputSource, CompilationUnit> compilationUnitsByInputSource = HashBiMap.create();
+  private Map<InputSource, CompilationUnit> compilationUnitsByInputSource = new HashMap<>();
+  private Map<CompilationUnit, InputSource> inputSourceByCompilationUnit = new HashMap<>();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
   private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
   private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
@@ -208,10 +210,12 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
   }
 
-  public CompilationUnit importSource(InputSource source) {
-    CompilationUnit unit = compilationUnitsByInputSource.get(source);
-    if (unit != null) {
-      return unit;
+  public CompilationUnit importSource(InputSource source, boolean forceParse) {
+    if (!forceParse) {
+      CompilationUnit unit = compilationUnitsByInputSource.get(source);
+      if (unit != null) {
+        return unit;
+      }
     }
 
     String fileName = source.getName();
@@ -221,7 +225,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     if(!suffixes.contains(fileExtension)) {
       throw error("Input file must end with one of '" + suffixes + "': " + fileName);
     }
-    unit = doParse(source, log, config.getSemicolonInsertionMode());
+    CompilationUnit unit = doParse(source, log, config.getSemicolonInsertionMode());
     if (null != unit) {
       unit.scope(globalScope);
     }
@@ -235,6 +239,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
+    inputSourceByCompilationUnit.put(unit, source);
     return unit;
   }
 
@@ -263,7 +268,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
       if (source == null) {
         return null;
       }
-      compilationUnit = importSource(source);
+      compilationUnit = importSource(source, false);
     }
     return compilationUnit;
   }
@@ -394,7 +399,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   public InputSource getInputSource(final CompilationUnit compilationUnit) {
-    return compilationUnitsByInputSource.inverse().get(compilationUnit);
+    return inputSourceByCompilationUnit.get(compilationUnit);
   }
 
   private static class FilePositionImpl implements FilePosition {

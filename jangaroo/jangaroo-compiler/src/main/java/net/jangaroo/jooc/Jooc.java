@@ -273,7 +273,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   }
 
   private void reportPublicApiViolations(CompilationUnit unit) {
-    for (CompilationUnit compilationUnit : unit.getDependenciesAsCompilationUnits()) {
+    for (String qName : unit.getDependencies()) {
+      CompilationUnit compilationUnit = getCompilationUnit(qName);
       if (getInputSource(compilationUnit) instanceof ZipEntryInputSource
         && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
@@ -334,7 +335,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory.", file);
     }
-    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true));
+    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true), true);
     if (unit != null) {
       compileQueue.add(unit);
     }
