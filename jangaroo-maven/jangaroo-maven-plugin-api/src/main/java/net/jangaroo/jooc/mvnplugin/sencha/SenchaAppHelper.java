@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.MavenSenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.LocalesConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
@@ -42,12 +43,14 @@ public class SenchaAppHelper extends AbstractSenchaHelper<MavenSenchaAppConfigur
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
+    LocalesConfigurer localesConfigurer = new LocalesConfigurer(senchaConfiguration);
     SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration, log);
 
     this.appConfigurers = new Configurer[]{
             DefaultSenchaApplicationConfigurer.getInstance(),
             metadataConfigurer,
             requiresConfigurer,
+            localesConfigurer,
             senchaConfigurationConfigurer
     };
   }
