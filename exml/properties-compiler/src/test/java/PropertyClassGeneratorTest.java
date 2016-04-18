@@ -93,7 +93,7 @@ public class PropertyClassGeneratorTest {
             "* Properties class for ResourceBundle \"PropertiesTest\" and Locale \"en\".\n" +
             "*/\n" +
             "Ext.define(\"AS3.testPackage.PropertiesTest_properties_en\", {\n" +
-            "  override: \"AS3.testPackage.PropertiesTest_properties\"\n" +
+            "  override: \"AS3.testPackage.PropertiesTest_properties\",\n" +
             "   \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
             "   \"key2\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
             "});").replaceAll("\n", LINE_SEPARATOR), writer.toString());
