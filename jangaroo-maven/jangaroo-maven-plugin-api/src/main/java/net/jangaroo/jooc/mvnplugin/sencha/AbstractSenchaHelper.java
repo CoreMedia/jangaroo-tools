@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_LOCALE_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -41,7 +42,6 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
     this.project = project;
     this.senchaConfiguration = senchaConfiguration;
     this.log = log;
-
     this.senchaModuleName = getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
@@ -67,29 +67,22 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
         throw new MojoExecutionException(String.format("Could not copy resources from %s to %s", jangarooResourcesDir, senchaResourcesDir), e);
       }
     }
+    String senchaClassPath = Type.APP.equals(getSenchaConfiguration().getType()) ? SENCHA_APP_CLASS_PATH : SENCHA_CLASS_PATH;
+    move(senchaResourcesDir, "joo/classes", path, senchaClassPath);
+    move(senchaResourcesDir, "joo/overrides", path, SENCHA_OVERRIDES_PATH);
+    move(senchaResourcesDir, "joo/locale", path, SENCHA_LOCALE_PATH);
+  }
 
-    File jangarooClassDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/classes");
-    if (jangarooClassDir.exists()) {
-      String senchaClassPath = Type.APP.equals(getSenchaConfiguration().getType()) ? SENCHA_APP_CLASS_PATH : SENCHA_CLASS_PATH;
-      File senchaClassDir = new File(path + senchaClassPath);
+  private void move(File sourceBaseDir, String subdir, String targetBasePath, String targetSubdir) throws MojoExecutionException {
+    File sourceDir = new File(sourceBaseDir.getAbsolutePath() + File.separator + subdir);
+    if (sourceDir.exists()) {
+      File targetDir = new File(targetBasePath + File.separator + targetSubdir);
       try {
         // FileUtils.move fails if directory already exists
-        FileUtils.copyDirectory(jangarooClassDir, senchaClassDir);
-        FileUtils.deleteDirectory(jangarooClassDir);
+        FileUtils.copyDirectory(sourceDir, targetDir);
+        FileUtils.deleteDirectory(sourceDir);
       } catch (IOException e) {
-        throw new MojoExecutionException(String.format("Could not copy classes from %s to %s", jangarooClassDir, senchaClassDir), e);
-      }
-    }
-
-    File jangarooOverridesDir = new File(senchaResourcesDir.getAbsolutePath() + File.separator + "joo/overrides");
-    if (jangarooOverridesDir.exists()) {
-      File senchaOverridesDir = new File(path + File.separator + SENCHA_OVERRIDES_PATH);
-      try {
-        // FileUtils.move fails if directory already exists
-        FileUtils.copyDirectory(jangarooOverridesDir, senchaOverridesDir);
-        FileUtils.deleteDirectory(jangarooOverridesDir);
-      } catch (IOException e) {
-        throw new MojoExecutionException(String.format("Could not copy overrides from %s to %s", jangarooOverridesDir, senchaOverridesDir), e);
+        throw new MojoExecutionException(String.format("Could not move files from %s to %s", sourceDir, targetDir), e);
       }
     }
   }
