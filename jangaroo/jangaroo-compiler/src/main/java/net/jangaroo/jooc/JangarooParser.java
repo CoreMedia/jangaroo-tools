@@ -62,6 +62,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   {
     declareType(globalScope, AS3Type.VOID.toString());
     declareType(globalScope, AS3Type.ANY.toString());
+    declareValues(globalScope, new String[]{Ide.THIS});
   }
 
   public JangarooParser(@Nonnull ParserOptions config, @Nonnull CompileLog log) {
@@ -381,17 +382,10 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     }
   }
 
-  private void buildGlobalScope() {
-    //todo declare this depending on context
-    declareValues(globalScope, new String[]{Ide.THIS});
-  }
-
   public void setUp(InputSource sourcePathInputSource, InputSource classPathInputSource) {
     defaultLog.set(log);
     this.sourcePathInputSource = sourcePathInputSource;
     this.classPathInputSource = classPathInputSource;
-
-    buildGlobalScope();
   }
 
   public void tearDown() {
