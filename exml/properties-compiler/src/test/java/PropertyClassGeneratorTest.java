@@ -42,8 +42,8 @@ public class PropertyClassGeneratorTest {
     PropertiesConfiguration p = new PropertiesConfiguration();
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key2", "Die Platte \"{1}\" enthält {0}.");
-    p.setProperty("key3", "Resource(key='the_other_key'\\, bundle='testPackage.otherpackage.OtherProperties_properties')");
-    p.setProperty("key4", "Resource(key='the.other.key'\\, bundle='testPackage.otherpackage.OtherProperties_properties')");
+    p.setProperty("key3", "Resource( key = 'the_other_key'\\, bundle=\"testPackage.otherpackage.OtherProperties\")  ");
+    p.setProperty("key4", "  Resource(bundle=\"testPackage.otherpackage.OtherProperties\"\\,key = 'the.other.key'  )");
     PropertiesClass pc = new PropertiesClass(rbc, null,p, null);
 
     generator.generatePropertiesClass(pc, writer);
