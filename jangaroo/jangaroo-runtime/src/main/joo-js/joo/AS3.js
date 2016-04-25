@@ -93,10 +93,23 @@ Ext.apply(Ext.ns("AS3"), {
     var typePrototype = type.prototype;
     if (type.$className && typePrototype &&
             typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
-      if (typePrototype.hasOwnProperty("xtype") && typePrototype.xtype) {
+      if (typePrototype.hasOwnProperty("xtype")
+              && Ext.isString(typePrototype.xtype)) {
         value.xtype = typePrototype.xtype;
-      } else if (typePrototype.hasOwnProperty("type") && typePrototype.type) {
-        value.type = typePrototype.type;
+      } else {
+        var alias;
+        var aliasType;
+        if (typePrototype.hasOwnProperty("type")
+                && Ext.isString(typePrototype.type)) {
+          aliasType = typePrototype.type;
+        } else if (typePrototype.hasOwnProperty("alias")
+                && Ext.isArray(typePrototype.alias)
+                && Ext.isString(alias = typePrototype.alias[0])) {
+          aliasType = alias.substr(alias.indexOf(".") + 1);
+        }
+        if (aliasType) {
+          value.type = aliasType;
+        }
       }
       value.xclass = type.$className;
     } else if (!AS3.is(value, type)) {
