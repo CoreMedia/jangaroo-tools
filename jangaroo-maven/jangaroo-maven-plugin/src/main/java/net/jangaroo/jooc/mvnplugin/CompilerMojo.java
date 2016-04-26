@@ -1,6 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.OrFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -10,6 +14,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +29,8 @@ import java.util.Set;
         requiresDependencyResolution = ResolutionScope.COMPILE,
         threadSafe = true)
 public class CompilerMojo extends AbstractCompilerMojo {
+
+  private static final OrFileFilter PROPERTIES_FILE_FILTER = new OrFileFilter(DirectoryFileFilter.DIRECTORY, new RegexFileFilter("[^_]*\\.properties"));
 
   /**
    * Output directory into whose META-INF/resources/joo/classes sub-directory compiled classes are generated.
@@ -127,4 +134,16 @@ public class CompilerMojo extends AbstractCompilerMojo {
     return joocConfiguration;
   }
 
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
+    if (getSourceDirectory() != null && getApiOutputDirectory() != null && getSourceDirectory().exists()) {
+      try {
+        getLog().info(String.format("Copying properties source files from %s to API output directory %s...", getSourceDirectory().getPath(), getApiOutputDirectory().getPath()));
+        FileUtils.copyDirectory(getSourceDirectory(), getApiOutputDirectory(), PROPERTIES_FILE_FILTER);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Failed to copy properties source files to API output directory.", e);
+      }
+    }
+  }
 }
