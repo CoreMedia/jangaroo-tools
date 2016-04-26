@@ -106,10 +106,7 @@ Ext.apply(Ext.ns("AS3"), {
   },
   getBindable: function (object, property) {
     if (object.isInstance) {
-      var getterName = this._checkConfig(object, property, "get");
-      if (getterName) {
-        return object[getterName]();
-      }
+      this._checkConfig(object, property, "get");
       return object.getConfig(property);
     } else {
       return object[property];
@@ -117,12 +114,8 @@ Ext.apply(Ext.ns("AS3"), {
   },
   setBindable: function (object, property, value) {
     if (object.isInstance) {
-      var setterName = this._checkConfig(object, property, "set");
-      if (setterName) {
-        object[setterName](property, value);
-      } else {
-        object.setConfig(property, value);
-      }
+      this._checkConfig(object, property, "set");
+      object.setConfig(property, value);
     } else {
       object[property] = value;
     }
@@ -133,9 +126,10 @@ Ext.apply(Ext.ns("AS3"), {
       var accessorName = accessPrefix + Ext.String.capitalize(property);
       this.trace("[WARN]", "AS3." + accessPrefix + "Bindable() called on " + Ext.getClassName(object) + "#" + property +
               ", which is not registered as a config. Still using method " + accessorName + "().");
-      return accessorName;
+      //this is a workaround: Ext seems not to manage some config properties properly. E.g. Button#menu
+      //we do this by our own
+      Ext.Config.get(property);
     }
-    return null;
   },
   addEventListener: function(eventDispatcher, flexEventClass, flexEventConstantName, flexEventListener, extEventOptions) {
     var flexEventName = flexEventClass[flexEventConstantName];
