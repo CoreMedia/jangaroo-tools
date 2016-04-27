@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
+import net.jangaroo.jooc.mvnplugin.MavenSenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
@@ -11,7 +12,10 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SenchaConfigurationConfigurer implements Configurer {
@@ -22,6 +26,10 @@ public class SenchaConfigurationConfigurer implements Configurer {
   static final String TOOLKIT = "toolkit";
   static final String EXTEND = "extend";
   static final String THEME = "theme";
+  static final String RESOURCES = "resources";
+
+  static final String RESOURCE_PATH = "path";
+  static final String RESOURCE_OUTPUT = "output";
 
   private MavenProject project;
   private Log log;
@@ -54,6 +62,11 @@ public class SenchaConfigurationConfigurer implements Configurer {
     if (StringUtils.isNotBlank(themePackageName)) {
       config.put(themeAttribute, themePackageName);
     }
+
+    if (Type.CODE.equals(senchaConfiguration.getType())
+            || Type.THEME.equals(senchaConfiguration.getType())) {
+      configureResourcesEntry(config);
+    }
   }
 
   @Nonnull
@@ -81,6 +94,24 @@ public class SenchaConfigurationConfigurer implements Configurer {
       SenchaProfileConfigurationConfigurer profileConfigurationConfigurer = new SenchaProfileConfigurationConfigurer(senchaProfileConfiguration);
       profileConfigurationConfigurer.configure(profileConfig);
     }
+  }
+
+  private void configureResourcesEntry(Map<String, Object> config) {
+    List<Map<String, Object>> resources = new ArrayList<>();
+    Map<String, Object> resource = new HashMap<>();
+
+    resource.put(RESOURCE_PATH, SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
+
+    if (senchaConfiguration instanceof MavenSenchaPackageConfiguration) {
+      MavenSenchaPackageConfiguration packageConfiguration = (MavenSenchaPackageConfiguration) senchaConfiguration;
+      if (Type.CODE.equals(senchaConfiguration.getType()) && packageConfiguration.isShareResources()
+              || Type.THEME.equals(senchaConfiguration.getType()) && !packageConfiguration.isIsolateResources()) {
+        resource.put(RESOURCE_OUTPUT, "shared");
+      }
+    }
+    resources.add(resource);
+
+    config.put(RESOURCES, resources);
   }
 
 }

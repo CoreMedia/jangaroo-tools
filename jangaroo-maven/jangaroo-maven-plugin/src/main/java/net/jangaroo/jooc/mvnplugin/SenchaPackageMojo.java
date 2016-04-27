@@ -20,7 +20,7 @@ import java.io.File;
  */
 @Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
-public class SenchaPackageMojo extends AbstractSenchaMojo {
+public class SenchaPackageMojo extends AbstractSenchaMojo implements MavenSenchaPackageConfiguration {
 
   @Inject
   private MavenProjectHelper helper;
@@ -51,6 +51,28 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = Type.CODE)
   private String packageType;
 
+  /**
+   * Defines if the resources of this package will be shared between different profiles of an application production
+   * build.
+   *
+   * Due to restrictions in Sencha CMD only usable if {@link #packageType} is set to {@link Type#CODE}
+   *
+   * @since 4.0
+   */
+  @Parameter(defaultValue = "false")
+  private boolean shareResources;
+
+  /**
+   * Defines if the resources of this package will isolated in an application production build.
+   *
+   * Due to restrictions in Sencha CMD only usable if {@link #packageType} is set to {@link Type#THEME}
+   *
+   * @since 4.0
+   */
+  @Parameter(defaultValue = "false")
+  private boolean isolateResources;
+
+
   @Override
   public String getType() {
     if (Type.CODE.equals(packageType) || Type.THEME.equals(packageType)) {
@@ -59,6 +81,16 @@ public class SenchaPackageMojo extends AbstractSenchaMojo {
     getLog().error(String.format("%s is not a valid packaging packageType. Using \"code\" instead.", packageType));
     packageType = Type.CODE;
     return packageType;
+  }
+
+  @Override
+  public boolean isIsolateResources() {
+    return isolateResources;
+  }
+
+  @Override
+  public boolean isShareResources() {
+    return shareResources;
   }
 
   @Override
