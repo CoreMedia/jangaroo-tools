@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.model.Dependency;
@@ -18,9 +18,9 @@ public class RequiresConfigurer implements Configurer {
   static final String REQUIRES = "requires";
 
   private MavenProject project;
-  private MavenSenchaConfiguration senchaConfiguration;
+  private SenchaConfiguration senchaConfiguration;
 
-  public RequiresConfigurer(MavenProject project, MavenSenchaConfiguration senchaConfiguration) {
+  public RequiresConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration) {
     this.project = project;
     this.senchaConfiguration = senchaConfiguration;
   }

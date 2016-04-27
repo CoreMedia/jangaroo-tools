@@ -1,6 +1,6 @@
-package net.jangaroo.jooc.mvnplugin;
+package net.jangaroo.jooc.mvnplugin.sencha;
 
-public interface MavenSenchaPackageConfiguration extends MavenSenchaConfiguration {
+public interface SenchaPackageConfiguration extends SenchaConfiguration {
 
 
   /**

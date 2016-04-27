@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaPackageConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
@@ -102,8 +102,8 @@ public class SenchaConfigurationConfigurer implements Configurer {
 
     resource.put(RESOURCE_PATH, SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
 
-    if (senchaConfiguration instanceof MavenSenchaPackageConfiguration) {
-      MavenSenchaPackageConfiguration packageConfiguration = (MavenSenchaPackageConfiguration) senchaConfiguration;
+    if (senchaConfiguration instanceof SenchaPackageConfiguration) {
+      SenchaPackageConfiguration packageConfiguration = (SenchaPackageConfiguration) senchaConfiguration;
       if (Type.CODE.equals(senchaConfiguration.getType()) && packageConfiguration.isShareResources()
               || Type.THEME.equals(senchaConfiguration.getType()) && !packageConfiguration.isIsolateResources()) {
         resource.put(RESOURCE_OUTPUT, "shared");

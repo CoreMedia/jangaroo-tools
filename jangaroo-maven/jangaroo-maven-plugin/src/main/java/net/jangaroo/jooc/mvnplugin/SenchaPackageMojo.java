@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
 import org.apache.maven.execution.MavenSession;
@@ -20,7 +21,7 @@ import java.io.File;
  */
 @Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
-public class SenchaPackageMojo extends AbstractSenchaMojo implements MavenSenchaPackageConfiguration {
+public class SenchaPackageMojo extends AbstractSenchaMojo implements SenchaPackageConfiguration {
 
   @Inject
   private MavenProjectHelper helper;

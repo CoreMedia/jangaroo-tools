@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -113,7 +114,7 @@ public class PackageMojo extends AbstractMojo {
    * The Sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
-  private MavenSenchaConfiguration senchaConfiguration;
+  private SenchaConfiguration senchaConfiguration;
 
   @Component
   private ArtifactHandlerManager artifactHandlerManager;
