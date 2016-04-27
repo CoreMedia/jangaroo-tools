@@ -9,6 +9,8 @@ import java.util.List;
 public interface AnnotatedModel extends ActionScriptModel {
   List<AnnotationModel> getAnnotations();
 
+  List<AnnotationModel> getAnnotations(String name);
+
   void setAnnotations(List<AnnotationModel> annotations);
 
   void addAnnotation(AnnotationModel annotation);

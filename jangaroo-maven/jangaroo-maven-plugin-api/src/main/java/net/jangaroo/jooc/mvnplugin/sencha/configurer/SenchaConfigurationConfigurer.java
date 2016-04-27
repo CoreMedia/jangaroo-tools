@@ -4,8 +4,8 @@ import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependency;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -58,7 +58,7 @@ public class SenchaConfigurationConfigurer implements Configurer {
 
   @Nonnull
   private String getThemePackageName() {
-    MavenDependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
+    Dependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
     String themePackageName;
     if (themeDependency == null) {
       themePackageName = StringUtils.defaultString(senchaConfiguration.getTheme());
@@ -76,7 +76,7 @@ public class SenchaConfigurationConfigurer implements Configurer {
 
   private void configureAdditionalResourcesForProfile(Map<String, Object> config, String profileName, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
     if (senchaProfileConfiguration != null) {
-      LinkedHashMap<String, Object> profileConfig = new LinkedHashMap<String, Object>();
+      LinkedHashMap<String, Object> profileConfig = new LinkedHashMap<>();
       config.put(profileName, profileConfig);
       SenchaProfileConfigurationConfigurer profileConfigurationConfigurer = new SenchaProfileConfigurationConfigurer(senchaProfileConfiguration);
       profileConfigurationConfigurer.configure(profileConfig);

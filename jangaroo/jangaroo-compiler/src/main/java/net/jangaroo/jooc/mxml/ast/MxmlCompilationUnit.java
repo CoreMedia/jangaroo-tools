@@ -4,10 +4,10 @@ import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -109,10 +109,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     // handle annotations
     for (JooSymbol jooSymbol : rootElementProcessor.getMetadata()) {
-      ClassBody classBody = mxmlParserHelper.parseClassBody(jooSymbol);
-      List<Directive> directives = classBody.getDirectives();
-      if(null != directives) {
-        getDirectives().addAll(directives);
+      List<Annotation> annotations = mxmlParserHelper.parseMetadata(jooSymbol);
+      if(null != annotations) {
+        getDirectives().addAll(annotations);
       }
     }
 

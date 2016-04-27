@@ -271,6 +271,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testPrototypeConstants() throws Exception {
+    assertCompilationResult("package2/TestPrototypeConstants");
+  }
+
+  @Test
   public void testPrivateMemberAccess() throws Exception {
     assertCompilationResult("package1/PrivateMemberAccess");
   }

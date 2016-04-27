@@ -66,8 +66,7 @@ joo.getRelativeClassUrl = function getRelativeClassUrl(fullClassName) {
   return "joo/classes/" + fullClassName.replace(/\./g,"/") + ".js";
 };
 joo.loadModule = function loadModule(groupId/*:String*/, artifactId/*:String*/) {
-  // TODO: reactivate?
-  // joo.loadScript("joo/" + groupId + "." + artifactId + ".classes.js", null);
+  // do nothing; rely on SenchaCmd for application bundling.
 };
 /*@cc_on
 (function() {

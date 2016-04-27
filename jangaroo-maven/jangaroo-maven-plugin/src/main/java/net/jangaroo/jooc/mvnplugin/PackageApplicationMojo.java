@@ -18,13 +18,10 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
 import org.codehaus.plexus.util.IOUtil;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -34,8 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -72,8 +67,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
   @SuppressWarnings("UnusedDeclaration")
   @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
   private List<ArtifactRepository> remoteRepositories;
-
-  public abstract File getPackageSourceDirectory();
 
   /**
    * Create the Jangaroo Web app in the given Web app directory.
@@ -144,34 +137,17 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private void concatModuleScripts(File scriptDirectory) throws IOException, ProjectBuildingException {
 
-    try ( Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js");
-          Writer jangarooApplicationAllWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application-all.js")) {
+    try ( Writer jangarooApplicationWriter = createJangarooModulesFile(scriptDirectory, "jangaroo-application.js")) {
 
       jangarooApplicationWriter.write("// This file loads all collected JavaScript code from dependent Jangaroo modules.\n\n");
-      jangarooApplicationAllWriter.write("// This file contains all collected JavaScript code from dependent Jangaroo modules.\n\n");
 
       for (Artifact artifact : getLinearizedDependencies()) {
-        includeJangarooModuleScript(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
+        includeJangarooModuleScript(artifact, jangarooApplicationWriter);
       }
-      writeThisJangarooModuleScript(scriptDirectory, jangarooApplicationWriter, jangarooApplicationAllWriter);
 
       jangarooApplicationWriter.write(JOO_FLUSH_STYLE_SHEETS);
-      jangarooApplicationAllWriter.write(JOO_FLUSH_STYLE_SHEETS);
-
     }
 
-  }
-
-  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    ModuleSource jooModuleSource = null;
-    File packageSourceDirectory = getPackageSourceDirectory();
-    if (packageSourceDirectory != null) {
-      File jangarooModuleFile = new File(packageSourceDirectory, computeModuleJsFileName(project.getArtifactId()));
-      if (jangarooModuleFile.exists()) {
-        jooModuleSource = new FileModuleSource(jangarooModuleFile);
-      }
-    }
-    writeJangarooModuleScript(scriptDirectory, project.getArtifact(), jooModuleSource, jangarooApplicationWriter, jangarooApplicationAllWriter);
   }
 
   private static String computeModuleJsFileName(String artifactId) {
@@ -188,15 +164,12 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     return new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
   }
 
-  private void includeJangarooModuleScript(File scriptDirectory, Artifact artifact, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
+  private void includeJangarooModuleScript(Artifact artifact, Writer jangarooApplicationWriter) throws IOException {
     ZipFile zipFile = new ZipFile(artifact.getFile());
     ZipEntry zipEntry = zipFile.getEntry(computeModuleJsFileName(artifact.getArtifactId()));
     ModuleSource jooModuleSource = zipEntry != null ? new ZipEntryModuleSource(zipFile, zipEntry) : null;
-    writeJangarooModuleScript(scriptDirectory, artifact, jooModuleSource, jangarooApplicationWriter, jangarooApplicationAllWriter);
+    writeJangarooModuleScript(artifact, jooModuleSource, jangarooApplicationWriter);
   }
-
-  private static final Pattern LOAD_SCRIPT_CODE_PATTERN = Pattern.compile("\\s*joo\\.loadScript\\(['\"]([^'\"]+)['\"]\\s*[,)].*");
-  private static final Pattern LOAD_MODULE_CODE_PATTERN = Pattern.compile("\\s*joo\\.loadModule\\(['\"]([^'\"]+)['\"]\\s*,\\s*['\"]([^'\"]+)['\"].*");
 
   private static String fromArtifactMessage(Artifact artifact) {
     return fromArtifactMessage(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
@@ -214,77 +187,16 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
     return String.format("%s:%s:%s", groupId, artifactId, version);
   }
 
-  private void writeJangarooModuleScript(File scriptDirectory, Artifact artifact, ModuleSource jooModuleSource, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
+  private void writeJangarooModuleScript(Artifact artifact, ModuleSource jooModuleSource, Writer jangarooApplicationWriter) throws IOException {
     String fullArtifactName = fullArtifactName(artifact);
     if (jooModuleSource == null) {
       getLog().debug("No " + artifact.getArtifactId() + ".module.js in " + fullArtifactName + ".");
-      writeModule(scriptDirectory, artifact, jangarooApplicationWriter, jangarooApplicationAllWriter);
     } else {
       getLog().info("Appending " + artifact.getArtifactId() + ".module.js from " + fullArtifactName);
       String fromMessage = fromArtifactMessage(artifact);
       jangarooApplicationWriter.write(fromMessage);
       appendFromInputStream(jangarooApplicationWriter, jooModuleSource.getInputStream());
-      jangarooApplicationAllWriter.write(fromMessage);
-      writeModuleWithInlineScripts(scriptDirectory, jooModuleSource, jangarooApplicationAllWriter);
     }
-  }
-
-  private void writeModuleWithInlineScripts(File scriptDirectory, ModuleSource jooModuleSource, Writer jangarooApplicationAllWriter) throws IOException {
-    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(jooModuleSource.getInputStream(), "UTF-8"));
-    while (true) {
-      String line = bufferedReader.readLine();
-      if (line == null) {
-        break;
-      }
-      String scriptFilename = null;
-      Matcher loadModuleMatcher = LOAD_MODULE_CODE_PATTERN.matcher(line);
-      if (loadModuleMatcher.matches()) {
-        String groupId = loadModuleMatcher.group(1);
-        String artifactId = loadModuleMatcher.group(2);
-        scriptFilename = "joo/" + groupId + "." + artifactId + ".classes.js";
-        getLog().debug(" found loadModule: " + groupId + " / " + artifactId);
-      } else {
-        Matcher loadScriptMatcher = LOAD_SCRIPT_CODE_PATTERN.matcher(line);
-        if (loadScriptMatcher.matches()) {
-          scriptFilename = loadScriptMatcher.group(1);
-          getLog().debug(" found loadScript: " + scriptFilename);
-        }
-      }
-      File scriptFile = null;
-      if (scriptFilename != null) {
-        scriptFile = new File(scriptDirectory.getParent(), scriptFilename);
-        if (!scriptFile.exists()) {
-          scriptFile = null;
-        }
-      }
-      if (scriptFile == null) {
-        jangarooApplicationAllWriter.write(line + '\n');
-      } else {
-        appendFile(jangarooApplicationAllWriter, scriptFile);
-      }
-    }
-  }
-
-  private void writeModule(File scriptDirectory, Artifact artifact, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    writeModule(scriptDirectory, artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(),
-      jangarooApplicationWriter, jangarooApplicationAllWriter);
-  }
-
-  protected void writeModule(File scriptDirectory, String groupId, String artifactId, String version, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    File classesJsFile = new File(scriptDirectory, groupId + "." + artifactId + ".classes.js");
-    if (classesJsFile.exists()) {
-      getLog().debug("Creating joo.loadModule(...) code for / appending .classes.js of " + fullArtifactName(groupId, artifactId, version) + ".");
-      jangarooApplicationWriter.write(fromArtifactMessage(groupId, artifactId, version));
-      jangarooApplicationWriter.write("joo.loadModule(\"" + groupId + "\",\"" + artifactId + "\");\n");
-      jangarooApplicationAllWriter.write(fromArtifactMessage(groupId, artifactId, version));
-      appendFile(jangarooApplicationAllWriter, classesJsFile);
-    } else {
-      getLog().debug("No file " + classesJsFile.getAbsolutePath() + " in module " + fullArtifactName(groupId, artifactId, version) +".");
-    }
-  }
-
-  private void appendFile(Writer writer, File file) throws IOException {
-    appendFromInputStream(writer, new BOMStripperInputStream(new FileInputStream(file)));
   }
 
   private void appendFromInputStream(Writer writer, InputStream inputStream) throws IOException {
@@ -334,19 +246,6 @@ public abstract class PackageApplicationMojo extends AbstractMojo {
 
   private interface ModuleSource {
     InputStream getInputStream() throws IOException;
-  }
-
-  private static class FileModuleSource implements ModuleSource {
-    private final File file;
-
-    private FileModuleSource(File file) {
-      this.file = file;
-    }
-
-    @Override
-    public InputStream getInputStream() throws IOException {
-      return new BOMStripperInputStream(new FileInputStream(file));
-    }
   }
 
   private static class ZipEntryModuleSource implements ModuleSource {

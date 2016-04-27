@@ -76,13 +76,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private File tempTestClassesOutputDirectory;
 
   /**
-   * This parameter specifies the path and name of the output file containing all
-   * compiled classes, relative to the testOutputDirectory.
-   */
-  @Parameter(defaultValue = "joo/${project.groupId}.${project.artifactId}-test.classes.js")
-  private String moduleTestClassesJsFile;
-
-  /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
@@ -120,10 +113,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   @Override
   protected Set<String> getExcludes() {
     return testExcludes;
-  }
-
-  public String getModuleClassesJsFileName() {
-    return moduleTestClassesJsFile;
   }
 
   @Override

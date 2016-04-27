@@ -51,35 +51,6 @@
                   <include name="**/*.as" />
                   <src path="src/main/joo" />
                 </jooc>
-                <concat destfile="target/classes/META-INF/resources/joo/net.jangaroo.jangaroo-runtime.classes.js">
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="int.js" />
-                    <file name="uint.js" />
-                    <file name="E4X.js" />
-                    <file name="Vector.js" />
-                    <file name="joo/BootstrapClassLoader.js" />
-                    <file name="joo/assert.js" />
-                    <file name="joo/Class.js" />
-                    <file name="joo/trace.js" />
-                  </filelist>
-                  <filelist dir="target/temp/">
-                    <file name="joo/MemberDeclaration.js" />
-                    <file name="joo/NativeClassDeclaration.js" />
-                    <file name="joo/JooClassDeclaration.js" />
-                    <file name="joo/SystemClassLoader.js" />
-                    <file name="ArgumentError.js" />
-                    <file name="DefinitionError.js" />
-                    <file name="SecurityError.js" />
-                    <file name="Array.js" />
-                    <file name="Date.js" />
-                    <file name="joo/StandardClassLoader.js" />
-                    <file name="joo/DynamicClassLoader.js" />
-                    <file name="joo/ResourceBundleAwareClassLoader.js" />
-                  </filelist>
-                  <filelist dir="src/main/joo-js/joo/classes">
-                    <file name="joo/_createClassLoader.js" />
-                  </filelist>
-                </concat>
                 <copy todir="target/classes/META-INF/resources">
                   <fileset dir="src/main/joo-js" />
                 </copy>

@@ -93,10 +93,23 @@ Ext.apply(Ext.ns("AS3"), {
     var typePrototype = type.prototype;
     if (type.$className && typePrototype &&
             typeof value === "object" && !value.isInstance && !value.xclass && !value.xtype) {
-      if (typePrototype.hasOwnProperty("xtype") && typePrototype.xtype) {
+      if (typePrototype.hasOwnProperty("xtype")
+              && Ext.isString(typePrototype.xtype)) {
         value.xtype = typePrototype.xtype;
-      } else if (typePrototype.hasOwnProperty("type") && typePrototype.type) {
-        value.type = typePrototype.type;
+      } else {
+        var alias;
+        var aliasType;
+        if (typePrototype.hasOwnProperty("type")
+                && Ext.isString(typePrototype.type)) {
+          aliasType = typePrototype.type;
+        } else if (typePrototype.hasOwnProperty("alias")
+                && Ext.isArray(typePrototype.alias)
+                && Ext.isString(alias = typePrototype.alias[0])) {
+          aliasType = alias.substr(alias.indexOf(".") + 1);
+        }
+        if (aliasType) {
+          value.type = aliasType;
+        }
       }
       value.xclass = type.$className;
     } else if (!AS3.is(value, type)) {
@@ -106,10 +119,7 @@ Ext.apply(Ext.ns("AS3"), {
   },
   getBindable: function (object, property) {
     if (object.isInstance) {
-      var getterName = this._checkConfig(object, property, "get");
-      if (getterName) {
-        return object[getterName]();
-      }
+      this._checkConfig(object, property, "get");
       return object.getConfig(property);
     } else {
       return object[property];
@@ -117,12 +127,8 @@ Ext.apply(Ext.ns("AS3"), {
   },
   setBindable: function (object, property, value) {
     if (object.isInstance) {
-      var setterName = this._checkConfig(object, property, "set");
-      if (setterName) {
-        object[setterName](property, value);
-      } else {
-        object.setConfig(property, value);
-      }
+      this._checkConfig(object, property, "set");
+      object.setConfig(property, value);
     } else {
       object[property] = value;
     }
@@ -133,9 +139,10 @@ Ext.apply(Ext.ns("AS3"), {
       var accessorName = accessPrefix + Ext.String.capitalize(property);
       this.trace("[WARN]", "AS3." + accessPrefix + "Bindable() called on " + Ext.getClassName(object) + "#" + property +
               ", which is not registered as a config. Still using method " + accessorName + "().");
-      return accessorName;
+      //this is a workaround: Ext seems not to manage some config properties properly. E.g. Button#menu
+      //we do this by our own
+      Ext.Config.get(property);
     }
-    return null;
   },
   addEventListener: function(eventDispatcher, flexEventClass, flexEventConstantName, flexEventListener, extEventOptions) {
     var flexEventName = flexEventClass[flexEventConstantName];

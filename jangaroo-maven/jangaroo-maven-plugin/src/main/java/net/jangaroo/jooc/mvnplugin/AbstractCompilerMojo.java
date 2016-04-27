@@ -135,12 +135,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
 
-  public abstract String getModuleClassesJsFileName();
-
-  public File getModuleClassesJsFile() {
-    return new File(getOutputDirectory(), getModuleClassesJsFileName());
-  }
-
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
@@ -200,40 +194,16 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     });
 
     int result = compile(jooc);
-    boolean compilationError = (result != CompilationResult.RESULT_CODE_OK);
 
-    if (!compilationError) {
-      // for now, always set debug mode to "false" for concatenated file:
-      configuration.setDebugMode(null);
-      configuration.setOutputDirectory(getTempClassesOutputDirectory());
-      configuration.setApiOutputDirectory(null);
-
-
-      result = compile(jooc);
-      if (result == CompilationResult.RESULT_CODE_OK) {
-        // TODO remove completely
-        // buildOutputFile(getTempClassesOutputDirectory(), getModuleClassesJsFile());
-      }
-
-      compilationError = (result != CompilationResult.RESULT_CODE_OK);
-    }
-
-    List<CompilerMessage> messages = Collections.emptyList();
-
-    if (compilationError && failOnError) {
+    if ((result != CompilationResult.RESULT_CODE_OK) && failOnError) {
       log.info("-------------------------------------------------------------");
-      log.error("COMPILATION ERROR : ");
-      log.info("-------------------------------------------------------------");
-      for (CompilerMessage message : messages) {
-        log.error(message.toString());
+      if (result == CompilationResult.RESULT_CODE_COMPILATION_FAILED) {
+        log.error("There were compile errors (see log above).");
+      } else {
+        log.error("Internal Jangaroo compiler error: " + result + "\nSee log for error details.");
       }
-      log.info(messages.size() + ((messages.size() > 1) ? " errors " : "error"));
       log.info("-------------------------------------------------------------");
       throw new MojoFailureException("Compilation failed");
-    } else {
-      for (CompilerMessage message : messages) {
-        log.warn(message.toString());
-      }
     }
   }
 

@@ -5,6 +5,7 @@ import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassBody;
@@ -38,6 +39,7 @@ public class MxmlParserHelper {
   private static final String TPL_EXPRESSION = "package{class ___${x= %s}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
   private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
+  private static final String TPL_METADATA = "package{\n%s\nclass ___$ {}}";
   private static final String TPL_EXTENDS = "package{class ___$ extends %s {}}";
   private static final String TPL_PACKAGE = "package %s {class ___$ {}}";
 
@@ -133,6 +135,20 @@ public class MxmlParserHelper {
       Symbol parsed = parser.silent().parseEmbedded(String.format(template, text), position[0], position[1]);
       CompilationUnit unit = (CompilationUnit) parsed.value;
       return (ImportDirective) Iterables.getFirst(unit.getDirectives(), null);
+    } catch (Exception ignored) {
+    }
+    return null;
+  }
+
+  @Nullable
+  public List<Annotation> parseMetadata(@Nonnull JooSymbol symbol) {
+    String text = symbol.getText();
+    String template = TPL_METADATA;
+    int[] position = position(symbol, template);
+    try {
+      Symbol parsed = parser.silent().parseEmbedded(String.format(template, text), position[0], position[1]);
+      CompilationUnit unit = (CompilationUnit) parsed.value;
+      return unit.getAnnotations();
     } catch (Exception ignored) {
     }
     return null;

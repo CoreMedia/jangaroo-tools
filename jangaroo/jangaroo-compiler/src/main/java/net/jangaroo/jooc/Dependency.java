@@ -1,11 +1,18 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.utils.CompilerUtils;
 
 class Dependency {
   private String compilationUnitId;
   private final String name;
   private DependencyLevel level;
+
+  public Dependency(String compilationUnitId, DependencyLevel level) {
+    this.compilationUnitId = compilationUnitId;
+    this.name = CompilerUtils.className(compilationUnitId);
+    this.level = level;
+  }
 
   public Dependency(CompilationUnit compilationUnit, DependencyLevel level) {
     this.compilationUnitId = getCompilationUnitId(compilationUnit);

@@ -55,10 +55,6 @@ public class WarPackageMojo extends PackageApplicationMojo {
   @Parameter(defaultValue = "${project.resources}")
   private List<Resource> resources;
 
-  public File getPackageSourceDirectory() {
-    return resources.isEmpty() ? null : new File(resources.get(0).getDirectory());
-  }
-
   /**
    * {@inheritDoc}
    *

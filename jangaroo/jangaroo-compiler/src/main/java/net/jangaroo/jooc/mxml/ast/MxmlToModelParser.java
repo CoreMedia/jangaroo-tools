@@ -88,11 +88,6 @@ final class MxmlToModelParser {
         if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
           if (propertyModel == null) {
-            if (generatingConfig && hasIdAttribute) {
-              // Only generate config-event-listeners when config has no ID, because otherwise it will be instantiated
-              // immediately, anyway, and it is safer to attach event listeners to the actual object.
-              continue;
-            }
             AnnotationModel eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
               createEventHandlerCode(variable, value, eventModel);
