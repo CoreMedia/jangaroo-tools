@@ -73,13 +73,6 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private Set<String> excludes = new HashSet<String>();
 
   /**
-   * This parameter specifies the path and name of the output file containing all
-   * compiled classes, relative to the outputDirectory.
-   */
-  @Parameter(defaultValue = "joo/${project.groupId}.${project.artifactId}.classes.js")
-  private String moduleClassesJsFile;
-
-  /**
    * Output directory for generated API stubs, relative to the outputDirectory.
    */
   @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/joo-api")
@@ -118,10 +111,6 @@ public class CompilerMojo extends AbstractCompilerMojo {
   @Override
   protected Set<String> getExcludes() {
     return excludes;
-  }
-
-  public String getModuleClassesJsFileName() {
-    return moduleClassesJsFile;
   }
 
   @Override

@@ -9,8 +9,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 
 /**
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression of jangaroo
@@ -79,10 +77,4 @@ public class JooGenerateTestResourcesMojo extends PackageApplicationMojo {
     }
   }
 
-  @Override
-  protected void writeThisJangarooModuleScript(File scriptDirectory, Writer jangarooApplicationWriter, Writer jangarooApplicationAllWriter) throws IOException {
-    super.writeThisJangarooModuleScript(new File(outputDirectory, "META-INF/resources/joo"), jangarooApplicationWriter, jangarooApplicationAllWriter);
-    writeModule(scriptDirectory, project.getGroupId(), project.getArtifactId() + "-test", project.getVersion(),
-            jangarooApplicationWriter, jangarooApplicationAllWriter);
-  }
 }

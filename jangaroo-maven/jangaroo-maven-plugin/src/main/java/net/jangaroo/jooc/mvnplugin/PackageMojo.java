@@ -110,13 +110,6 @@ public class PackageMojo extends AbstractMojo {
   private String moduleJsFile;
 
   /**
-   * This parameter specifies the path and name of the output file containing all
-   * compiled classes, relative to the outputDirectory.
-   */
-  @Parameter(defaultValue = "META-INF/resources/joo/${project.groupId}.${project.artifactId}.classes.js")
-  private String moduleClassesJsFile;
-
-  /**
    * The Sencha configuration to use.
    */
   @Parameter(property = "senchaConfiguration")
@@ -143,9 +136,6 @@ public class PackageMojo extends AbstractMojo {
       JarArchiver archiver = mavenArchiver.getArchiver();
       if (outputDirectory.exists()) {
         archiver.addDirectory(outputDirectory);
-        if (!getModuleJsFile().exists() && new File(outputDirectory, moduleClassesJsFile).exists()) {
-          createDefaultModuleJsFile();
-        }
       }
 
       String groupId = project.getGroupId();
