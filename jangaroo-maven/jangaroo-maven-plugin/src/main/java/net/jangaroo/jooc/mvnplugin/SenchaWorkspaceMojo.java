@@ -36,9 +36,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Mojo to compile properties files to ActionScript3 files
- */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "generate-sencha-workspace",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,

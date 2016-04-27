@@ -31,7 +31,7 @@ public class RequiresConfigurer implements Configurer {
   }
 
   private Set<Map<String, Object>> getRequiredDependencies() throws MojoExecutionException {
-    Set<Map<String, Object>> requiredDependencies = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> requiredDependencies = new HashSet<>();
 
     MavenDependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
 
