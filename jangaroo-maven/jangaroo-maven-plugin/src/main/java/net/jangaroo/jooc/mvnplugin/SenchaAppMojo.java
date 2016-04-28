@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
@@ -28,7 +29,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
  * Generates and packages Sencha app module.
  */
 @Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaAppMojo extends AbstractSenchaMojo implements MavenSenchaAppConfiguration {
+public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfiguration {
 
   @Inject
   private MavenProjectHelper helper;

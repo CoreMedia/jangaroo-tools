@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
 import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -10,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-public abstract class AbstractSenchaMojo extends AbstractMojo implements MavenSenchaConfiguration {
+public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaConfiguration {
 
   @Parameter
   private List<String> additionalCssNonBundle;
