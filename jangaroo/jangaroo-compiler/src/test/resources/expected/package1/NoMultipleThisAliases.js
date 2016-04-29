@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.NoMultipleThisAliases", function(NoMultipleThisAliases) {/*package package1{
+Ext.define("package1.NoMultipleThisAliases", function(NoMultipleThisAliases) {/*package package1{
 public class NoMultipleThisAliases {
   public*/ function NoMultipleThisAliases$() {var this$=this;
     function foo1()/*:void*/ {

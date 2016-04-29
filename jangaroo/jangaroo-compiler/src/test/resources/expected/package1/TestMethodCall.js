@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.TestMethodCall", function(TestMethodCall) {/* /*
+Ext.define("package1.TestMethodCall", function(TestMethodCall) {/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 

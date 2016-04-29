@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.ChainedConstants", function(ChainedConstants) {/*package package1 {
+Ext.define("package1.ChainedConstants", function(ChainedConstants) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -11,7 +11,7 @@ public class ChainedConstants {
 
   public static const ANOTHER_METHOD_TYPE : String =*/function ANOTHER_METHOD_TYPE$static_(){ChainedConstants.ANOTHER_METHOD_TYPE=( ChainedConstants.METHOD_TYPE_GET.substr(0));}/*;
 
-  public static const THE_BLA : String =*/function THE_BLA$static_(){ChainedConstants.THE_BLA=( AS3.package1.someOtherPackage.SomeOtherClass.BLA);}/*;
+  public static const THE_BLA : String =*/function THE_BLA$static_(){ChainedConstants.THE_BLA=( package1.someOtherPackage.SomeOtherClass.BLA);}/*;
 }*/function ChainedConstants$() {}/*
 }
 
@@ -31,6 +31,6 @@ public class ChainedConstants {
           THE_BLA$static_();
         }
       },
-      requires: ["AS3.package1.someOtherPackage.SomeOtherClass"]
+      requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });

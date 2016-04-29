@@ -53,18 +53,18 @@ public class PropertyClassGeneratorTest {
                     " * some comment \n" +
                     " * \t [PublicApi]\n" +
                     "*/\n" +
-                    "Ext.define(\"AS3.testPackage.PropertiesTest_properties\", {\n" +
+                    "Ext.define(\"testPackage.PropertiesTest_properties\", {\n" +
                     "  \n" +
                     "  requires: [\n" +
-                    "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
-                    "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
+                    "    \"net.jangaroo.icons.SomeBundle_properties\",\n" +
+                    "    \"net.jangaroo.SomeOtherBundle_properties\"\n" +
                     "  ],\n" +
                     "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
                     "}, function() {\n" +
-                    "  this.prototype[\"key2\"] =  AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
-                    "  this.prototype[\"key3\"] =  AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
+                    "  this.prototype[\"key2\"] =  net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
+                    "  this.prototype[\"key3\"] =  net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
                     "\n" +
-                    "  AS3.testPackage.PropertiesTest_properties.INSTANCE = new AS3.testPackage.PropertiesTest_properties();\n" +
+                    "  testPackage.PropertiesTest_properties.INSTANCE = new testPackage.PropertiesTest_properties();\n" +
                     "});"
             ).replaceAll("\n", LINE_SEPARATOR), writer.toString());
 
@@ -78,7 +78,7 @@ public class PropertyClassGeneratorTest {
                     "*/ [PublicApi] /*\n" +
                     " * @see PropertiesTest_properties#INSTANCE\n" +
                     " */\n" +
-                    "[Native(\"AS3.testPackage.PropertiesTest_properties\", require)]\n" +
+                    "[Native(\"testPackage.PropertiesTest_properties\", require)]\n" +
                     "public class PropertiesTest_properties {\n" +
                     "\n" +
                     "/**\n" +
@@ -104,16 +104,16 @@ public class PropertyClassGeneratorTest {
             " * some comment \n" +
             " * \t [PublicApi]\n" +
             "*/\n" +
-            "Ext.define(\"AS3.testPackage.PropertiesTest_properties_en\", {\n" +
-            "  override: \"AS3.testPackage.PropertiesTest_properties\",\n" +
+            "Ext.define(\"testPackage.PropertiesTest_properties_en\", {\n" +
+            "  override: \"testPackage.PropertiesTest_properties\",\n" +
             "  requires: [\n" +
-            "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
-            "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
+            "    \"net.jangaroo.icons.SomeBundle_properties\",\n" +
+            "    \"net.jangaroo.SomeOtherBundle_properties\"\n" +
             "  ],\n" +
             "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
             "}, function() {\n" +
-            "  this.prototype[\"key2\"] =  AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
-            "  this.prototype[\"key3\"] =  AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
+            "  this.prototype[\"key2\"] =  net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
+            "  this.prototype[\"key3\"] =  net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
             "});").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
 }

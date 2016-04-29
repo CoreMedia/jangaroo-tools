@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.WithStaticReference", function(WithStaticReference) {/*package package1{
+Ext.define("package1.WithStaticReference", function(WithStaticReference) {/*package package1{
 public class WithStaticReference {
   public static const BLA = "bla";
   public*/ function WithStaticReference$() {

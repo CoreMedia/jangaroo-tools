@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.somePackageGlobal", function(somePackageGlobal) {/*package package1 {
+Ext.define("package1.somePackageGlobal", function(somePackageGlobal) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -7,13 +7,13 @@ import package1.someOtherPackage.SomeOtherClass;
  * Some package-global documentation;
  * /
 public var somePackageGlobal:SomeOtherClass
-  =*/function somePackageGlobal_(){return( new AS3.package1.someOtherPackage.SomeOtherClass());}/*;
+  =*/function somePackageGlobal_(){return( new package1.someOtherPackage.SomeOtherClass());}/*;
 
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       __factory__: somePackageGlobal_,
-      requires: ["AS3.package1.someOtherPackage.SomeOtherClass"]
+      requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });

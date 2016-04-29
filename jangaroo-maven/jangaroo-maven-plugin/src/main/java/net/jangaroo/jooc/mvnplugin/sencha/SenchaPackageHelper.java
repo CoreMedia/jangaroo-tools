@@ -5,6 +5,7 @@ import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -163,12 +164,12 @@ public class SenchaPackageHelper extends SenchaPackageOrAppHelper<SenchaPackageC
       try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
 
         for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
-          if (null == editorPlugin.getMainClass()) {
+          String editorPluginMainClass = editorPlugin.getMainClass();
+          if (null == editorPluginMainClass) {
             getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
             continue;
           }
-          String editorPluginCompiledClassName = "AS3." + editorPlugin.getMainClass();
-          pw.println("Ext.require(\"" + StringUtils.escape(editorPluginCompiledClassName) + "\");");
+          pw.printf("Ext.require(%s);%n", CompilerUtils.quote(editorPluginMainClass));
         }
       } catch (IOException e) {
         throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");

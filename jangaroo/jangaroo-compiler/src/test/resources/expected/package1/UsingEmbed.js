@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.UsingEmbed", function(UsingEmbed) {/*package package1 {
+Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*package package1 {
 
 [SomeRuntimeAnnotation]
 /**
@@ -14,7 +14,7 @@ public class UsingEmbed {
   private static*/ var anotherText$static/*:Class*/=function(){return new String($resource_1)};/*
 
   [Embed(source="package1/jooley.png")]
-  private static*/ var jooley$static/*:Class*/=function(){return AS3.flash.display.Bitmap.fromImg($resource_2)};/*
+  private static*/ var jooley$static/*:Class*/=function(){return flash.display.Bitmap.fromImg($resource_2)};/*
 
   [SomeRuntimeAnnotation]
   public var annotated1;
@@ -116,6 +116,6 @@ public class UsingEmbed {
       annotated4: annotated4,
       annotated5: annotated5,
       constructor: UsingEmbed$,
-      uses: ["AS3.flash.display.Bitmap"]
+      uses: ["flash.display.Bitmap"]
     };
 });

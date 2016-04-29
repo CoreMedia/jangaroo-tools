@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -89,7 +90,7 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       String applicationClass = getSenchaConfiguration().getApplicationClass();
       getLog().info(String.format("Generating %s with main application class %s.", appJs, applicationClass));
       try {
-        String defineAppJsStatement = String.format("Ext.application(\"AS3.%s\");", applicationClass);
+        String defineAppJsStatement = String.format("Ext.application(%s);", CompilerUtils.quote(applicationClass));
         Files.write(appJs, defineAppJsStatement.getBytes());
       } catch (IOException e) {
         throw new MojoExecutionException("An error occurred during creation of " + appJs, e);

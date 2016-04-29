@@ -1,4 +1,4 @@
-Ext.define("AS3.package2.TestPrototypeConstants", function(TestPrototypeConstants) {/*package package2 {
+Ext.define("package2.TestPrototypeConstants", function(TestPrototypeConstants) {/*package package2 {
 
 public class TestPrototypeConstants {
 

@@ -119,10 +119,10 @@ joo.getQualifiedObject = (function(theGlobalObject) {
   };
 })(this);
 joo.getOrCreatePackage = function(name) {
-  return Ext.ns("AS3." + name);
+  return Ext.ns(name);
 };
 Ext.ns("joo.localization");
 
-Ext.require("AS3.joo.DynamicClassLoader", function() {
-  new AS3.joo.DynamicClassLoader();
+Ext.require("joo.DynamicClassLoader", function() {
+  new joo.DynamicClassLoader();
 });

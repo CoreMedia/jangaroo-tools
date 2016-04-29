@@ -102,7 +102,7 @@ public class DynamicClassLoader extends StandardClassLoader {
    */
   public override function import_(fullClassName : String) : void {
     var Ext:* = getQualifiedObject("Ext");
-    Ext.require("AS3." + fullClassName);
+    Ext.require(fullClassName);
   }
 
   override public function run(mainClassName : String, ...args):void {

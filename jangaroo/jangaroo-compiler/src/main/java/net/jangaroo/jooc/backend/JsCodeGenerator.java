@@ -134,7 +134,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
-  public static final String AS3_NAMESPACE_DOT = "AS3.";
 
   static {
     PRIMITIVES.add("Boolean");
@@ -369,7 +368,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String[] dependencies = collectDependencies(compilationUnit, null);
     String[] requires = collectDependencies(compilationUnit, true);
     String[] uses = collectDependencies(compilationUnit, false);
-    String moduleName = CompilerUtils.quote(getModuleName(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr()));
+    String moduleName = CompilerUtils.quote(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr());
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     out.write("Ext.define(");
     out.write(moduleName);
@@ -460,7 +459,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
               ((AnnotatedModel)primaryDeclaration).getAnnotations(Jooc.NATIVE_ANNOTATION_NAME) :
               Collections.<AnnotationModel>emptyList();
       if (nativeAnnotations.isEmpty()) {
-        javaScriptName = getModuleName(dependentCUId);
+        javaScriptName = dependentCUId;
         javaScriptNameToRequire = javaScriptName;
       } else {
         AnnotationModel nativeAnnotation = nativeAnnotations.get(0);
@@ -502,10 +501,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
     }
     return null;
-  }
-
-  private static String getModuleName(String qName) {
-    return AS3_NAMESPACE_DOT + qName;
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {

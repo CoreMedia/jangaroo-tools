@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.uninitializedPackageGlobal", function(uninitializedPackageGlobal) {/*package package1 {
+Ext.define("package1.uninitializedPackageGlobal", function(uninitializedPackageGlobal) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 

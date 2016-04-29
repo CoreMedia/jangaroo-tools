@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*package package1.mxml{
+Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*package package1.mxml{
 import package1.*;
 
     /**
@@ -7,13 +7,13 @@ import package1.*;
      * /
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
-public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){AS3.package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;
+public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;
     var config_$1/*:MetadataCdataMxmlClass*/ =AS3.cast(MetadataCdataMxmlClass,{});
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "AS3.package1.ConfigClass",
+      extend: "package1.ConfigClass",
       metadata: {"": [
         "ThisIsJustATest",
         "Deprecated",
@@ -23,6 +23,6 @@ public class MetadataCdataMxmlClass extends ConfigClass{public*/function Metadat
         ]
       ]},
       constructor: MetadataCdataMxmlClass$,
-      requires: ["AS3.package1.ConfigClass"]
+      requires: ["package1.ConfigClass"]
     };
 });

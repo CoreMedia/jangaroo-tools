@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.somePackageGlobalFun", function(somePackageGlobalFun) {/*package package1 {
+Ext.define("package1.somePackageGlobalFun", function(somePackageGlobalFun) {/*package package1 {
 
 import package1.someOtherPackage.SomeOtherClass;
 
@@ -7,7 +7,7 @@ import package1.someOtherPackage.SomeOtherClass;
  * Some package-global documentation;
  * /
 public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
-  return new AS3.package1.someOtherPackage.SomeOtherClass();
+  return new package1.someOtherPackage.SomeOtherClass();
 }/*
 
 }
@@ -17,6 +17,6 @@ public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
       __factory__: function() {
         return somePackageGlobalFun;
       },
-      uses: ["AS3.package1.someOtherPackage.SomeOtherClass"]
+      uses: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });

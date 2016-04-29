@@ -10,7 +10,7 @@ ${as3Comment}
 </#if>
  * @see ${resourceBundle.className}_properties#INSTANCE
  */
-[Native("AS3.${resourceBundle.fullClassName}_properties", require)]
+[Native("${resourceBundle.fullClassName}_properties", require)]
 public class ${resourceBundle.className}_properties {
 
 /**

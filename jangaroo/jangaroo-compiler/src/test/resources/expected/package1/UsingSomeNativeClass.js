@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
+Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
 import package1.someOtherPackage.SomeNativeClass;
 
 /**
@@ -11,7 +11,7 @@ public class UsingSomeNativeClass {
   public native function get someNative2():package1.SomeNativeClass;
 
   public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
-    new AS3.package1.someOtherPackage.SomeNativeClass();
+    new package1.someOtherPackage.SomeNativeClass();
     AS3.setBindable(this.someNative,"baz" , "foo");
     AS3.setBindable(this.someNative2,"baz" , "foo");
     var local = function()/*:void*/ {
@@ -50,8 +50,8 @@ public class UsingSomeNativeClass {
       isMonkey: get$monkey,
       setMonkey: set$monkey,
       uses: [
-        "AS3.package1.someOtherPackage.SomeNativeClass",
-        "SomeOtherNativeClass"
+        "SomeOtherNativeClass",
+        "package1.someOtherPackage.SomeNativeClass"
       ]
     };
 });

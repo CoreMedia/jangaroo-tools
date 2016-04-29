@@ -1,4 +1,4 @@
-Ext.define("AS3.package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*package package1.mxml{
+Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*package package1.mxml{
 import package1.*;
 import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;
@@ -25,52 +25,52 @@ public class SimpleMxmlClass extends ConfigClass{
     AS3.setBindable(defaults_$1,"joe" , { name: "Joe" });
     var object_39_7_$1/*:Object*/ = {};
     object_39_7_$1.name = "Joe";
-    var configClass_40_7_$1/*: package1.ConfigClass*/ =AS3.cast(AS3.package1.ConfigClass,{});
-    var other$ns_SomeOtherClass_41_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var configClass_40_7_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
+    var other$ns_SomeOtherClass_41_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_41_9_$1,"bla" , 123);
-    configClass_40_7_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_41_9_$1)];
-    AS3.setBindable(defaults_$1,"list" , [object_39_7_$1, new AS3.package1.ConfigClass(configClass_40_7_$1)]);
+    configClass_40_7_$1.items = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_41_9_$1)];
+    AS3.setBindable(defaults_$1,"list" , [object_39_7_$1, new package1.ConfigClass(configClass_40_7_$1)]);
     AS3.setBindable(defaults_$1,"otherByExpression" , { foo: 'bar'});
-    var other_45_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var other_45_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other_45_5_$1,"bla" , 3);
     other_45_5_$1["blubb_config"] = 'blub config expression';
     other_45_5_$1["blubb_accessor"] = 'blub accessor expression';
-    AS3.setBindable(defaults_$1,"other" , new AS3.package1.someOtherPackage.SomeOtherClass(other_45_5_$1));
-    config= AS3.net.jangaroo.ext.Exml.apply(defaults_$1,config);
+    AS3.setBindable(defaults_$1,"other" , new package1.someOtherPackage.SomeOtherClass(other_45_5_$1));
+    config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1.foo = "bar";
     config_$1.number = 1 < 2  ? 1 + 1 : 3;
-    AS3.addEventListener(config_$1,AS3.package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
-    var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
+    var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_50_5_$1,"bla" , 99);
     other$ns_SomeOtherClass_50_5_$1["known-unknown"] = true;
     config_$1.defaultType = other$ns_SomeOtherClass_50_5_$1['xtype'];
     delete other$ns_SomeOtherClass_50_5_$1['xtype'];
     delete other$ns_SomeOtherClass_50_5_$1['xclass'];
     config_$1.defaults = other$ns_SomeOtherClass_50_5_$1;
-    var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_54_5_$1,"bla" , 23);
-    var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
-    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,AS3.package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$3"));
+    var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
+    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$3"));
     AS3.setBindable(other$ns_SomeOtherClass_55_5_$1,"bla" , 1);
-    var other$ns_SomeOtherClass_56_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var other$ns_SomeOtherClass_56_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_56_5_$1,"bla" , 42);
     other$ns_SomeOtherClass_56_5_$1.number = 24;
-    var configClass_61_5_$1/*: package1.ConfigClass*/ =AS3.cast(AS3.package1.ConfigClass,{});
-    var other$ns_SomeOtherClass_63_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var configClass_61_5_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
+    var other$ns_SomeOtherClass_63_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_63_9_$1.doodle = "non-bound";
     AS3.setBindable(other$ns_SomeOtherClass_63_9_$1,"bla" , AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed"));
-    configClass_61_5_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_63_9_$1)];
+    configClass_61_5_$1.items = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_63_9_$1)];
     configClass_61_5_$1.number = 12;
-    var configClass_67_5_$1/*: package1.ConfigClass*/ =AS3.cast(AS3.package1.ConfigClass,{});
-    var other$ns_SomeOtherClass_69_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var configClass_67_5_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
+    var other$ns_SomeOtherClass_69_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_69_9_$1,"bla" , 12);
-    var no_config_70_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(AS3.package1.someOtherPackage.SomeOtherClass,{});
+    var no_config_70_9_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(no_config_70_9_$1,"bla" , 13);
-    AS3.setBindable(this,"no_config" , new AS3.package1.someOtherPackage.SomeOtherClass(no_config_70_9_$1));
-    configClass_67_5_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_69_9_$1), AS3.getBindable(this,"no_config")];
-    configClass_67_5_$1.items$at = AS3.net.jangaroo.ext.Exml.APPEND;
-    config_$1.items = [new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new AS3.package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new AS3.package1.ConfigClass(configClass_61_5_$1), new AS3.package1.ConfigClass(configClass_67_5_$1)];
-    config_$1.items$at = AS3.net.jangaroo.ext.Exml.APPEND; AS3.net.jangaroo.ext.Exml.apply(config_$1,config);AS3.package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
+    AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass(no_config_70_9_$1));
+    configClass_67_5_$1.items = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_69_9_$1), AS3.getBindable(this,"no_config")];
+    configClass_67_5_$1.items$at = net.jangaroo.ext.Exml.APPEND;
+    config_$1.items = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new package1.ConfigClass(configClass_61_5_$1), new package1.ConfigClass(configClass_67_5_$1)];
+    config_$1.items$at = net.jangaroo.ext.Exml.APPEND; net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
 
     private var blub:*;*/function static$0(){
 
@@ -130,7 +130,7 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "AS3.package1.ConfigClass",
+      extend: "package1.ConfigClass",
       alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
       blub$3: undefined,
@@ -157,11 +157,11 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
       statics: {__initStatics__: function() {
           static$0();
         }},
-      requires: ["AS3.package1.ConfigClass"],
+      requires: ["package1.ConfigClass"],
       uses: [
-        "AS3.net.jangaroo.ext.Exml",
-        "AS3.package1.someOtherPackage.SomeEvent",
-        "AS3.package1.someOtherPackage.SomeOtherClass"
+        "net.jangaroo.ext.Exml",
+        "package1.someOtherPackage.SomeEvent",
+        "package1.someOtherPackage.SomeOtherClass"
       ]
     };
 });

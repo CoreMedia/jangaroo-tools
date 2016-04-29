@@ -7,12 +7,12 @@ ${comment}
 * Properties class for ResourceBundle "${resourceBundle.className}"<#if locale??> and Locale "${locale}"</#if>.
 </#if>
 */
-Ext.define("AS3.${resourceBundle.fullClassName}_properties<#if locale??>_${locale}</#if>", {
-  <#if locale??>override: "AS3.${resourceBundle.fullClassName}_properties"<#if props?has_content>,</#if></#if>
+Ext.define("${resourceBundle.fullClassName}_properties<#if locale??>_${locale}</#if>", {
+  <#if locale??>override: "${resourceBundle.fullClassName}_properties"<#if props?has_content>,</#if></#if>
 <#if imports?has_content>
   requires: [
  <#list imports as import>
-    "AS3.${import}"<#sep>,
+    "${import}"<#sep>,
 </#list>
 
   ],
@@ -33,10 +33,10 @@ Ext.define("AS3.${resourceBundle.fullClassName}_properties<#if locale??>_${local
   ${property.comment}
   */
   </#if>
-  this.prototype["${property.key}"] =  AS3.${property.value};
+  this.prototype["${property.key}"] =  ${property.value};
 </#list>
   <#if !locale??>
 
-  AS3.${resourceBundle.fullClassName}_properties.INSTANCE = new AS3.${resourceBundle.fullClassName}_properties();
+  ${resourceBundle.fullClassName}_properties.INSTANCE = new ${resourceBundle.fullClassName}_properties();
   </#if>
 });

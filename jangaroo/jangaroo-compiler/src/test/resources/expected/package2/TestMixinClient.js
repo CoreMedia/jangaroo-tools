@@ -1,4 +1,4 @@
-Ext.define("AS3.package2.TestMixinClient", function(TestMixinClient) {/*package package2 {
+Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*package package2 {
 
 public class TestMixinClient implements ITestMixin {
 
@@ -13,8 +13,8 @@ public class TestMixinClient implements ITestMixin {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      mixins: ["AS3.package2.TestMixin"],
+      mixins: ["package2.TestMixin"],
       constructor: TestMixinClient$,
-      requires: ["AS3.package2.TestMixin"]
+      requires: ["package2.TestMixin"]
     };
 });
