@@ -14,7 +14,6 @@ import java.io.File;
  * Prepares the Javascript Testenvironment including generation of the HTML page and decompression of jangaroo
  * dependencies. This plugin is executed in the <code>generate-test-resources</code> phase of the jangaroo lifecycle.
  */
-@SuppressWarnings({"UnusedDeclaration"})
 @Mojo(name = "unpack-jangaroo-test-dependencies",
         defaultPhase = LifecyclePhase.TEST_COMPILE,
         requiresDependencyResolution = ResolutionScope.TEST,
