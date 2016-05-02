@@ -6,8 +6,9 @@ import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.ProfileConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.SenchaConfigurationConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configurer.ModuleConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,7 +36,12 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfi
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
     RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
-    SenchaConfigurationConfigurer senchaConfigurationConfigurer = new SenchaConfigurationConfigurer(project, senchaConfiguration, log);
+    ModuleConfigurer moduleConfigurer = new ModuleConfigurer(project, senchaConfiguration, log);
+
+    ProfileConfigurer commonProfileConfigurer = new ProfileConfigurer(getCommonProfileConfiguration());
+    ProfileConfigurer productionProfileConfigurer = new ProfileConfigurer(getProductionProfileConfiguration(), PRODUCTION);
+    ProfileConfigurer testingProfileConfigurer = new ProfileConfigurer(getTestingProfileConfiguration(), TESTING);
+    ProfileConfigurer developmentProfileConfigurer = new ProfileConfigurer(getDevelopmentProfileConfiguration(), DEVELOPMENT);
 
     senchaPackagePath = project.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGE_PATH;
     senchaPackageBuildOutputDir = project.getBuild().getDirectory() +  SenchaUtils.LOCAL_PACKAGE_BUILD_PATH;
@@ -51,7 +57,11 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfi
             defaultSenchaPackageConfigurer,
             metadataConfigurer,
             requiresConfigurer,
-            senchaConfigurationConfigurer
+            moduleConfigurer,
+            commonProfileConfigurer,
+            productionProfileConfigurer,
+            testingProfileConfigurer,
+            developmentProfileConfigurer
     };
   }
 
@@ -123,7 +133,8 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfi
     }
 
     copyFiles(senchaPackagePath);
-    addRegisterEditorPluginsResource(senchaPackagePath);
+    addRegisterEditorPluginsResources(senchaPackagePath);
+    addRequireEditorPluginsResource(senchaPackagePath);
 
     File workingDirectory = new File(senchaPackagePath);
 

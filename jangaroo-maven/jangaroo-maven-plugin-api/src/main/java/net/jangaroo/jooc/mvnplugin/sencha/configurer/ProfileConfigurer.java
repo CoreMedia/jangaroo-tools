@@ -1,17 +1,16 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-class SenchaProfileConfigurationConfigurer implements Configurer {
+public class ProfileConfigurer implements Configurer {
 
   static final String CSS = "css";
   static final String JS = "js";
@@ -23,13 +22,29 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   static final String FASHION = "fashion";
 
   private SenchaProfileConfiguration senchaProfileConfiguration;
+  private String profileName;
 
-  public SenchaProfileConfigurationConfigurer(SenchaProfileConfiguration senchaProfileConfiguration) {
+  public ProfileConfigurer(SenchaProfileConfiguration senchaProfileConfiguration) {
     this.senchaProfileConfiguration = senchaProfileConfiguration;
+  }
+
+  public ProfileConfigurer(SenchaProfileConfiguration senchaProfileConfiguration, String profileName) {
+    this.senchaProfileConfiguration = senchaProfileConfiguration;
+    this.profileName = profileName;
   }
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
+    if (null == profileName) {
+      configureProfile(config);
+    } else {
+      Map<String, Object> profileConfig = new HashMap<>();
+      configureProfile(profileConfig);
+      config.put(profileName, profileConfig);
+    }
+  }
+
+  protected void configureProfile(Map<String, Object> config) throws MojoExecutionException {
     @SuppressWarnings("unchecked") // the css attribute is statically defined as a list of objects in the default.app.json
     List<Object> cssFromDefault = (List<Object>)config.get(CSS);
     List<Object> additionalCss = new ArrayList<>();
@@ -53,14 +68,7 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
     additionalJs.addAll(getAdditionalResources(
             senchaProfileConfiguration.getAdditionalJsNonBundle(),
             senchaProfileConfiguration.getAdditionalJsIncludeInBundle()));
-    List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
-    if (null != editorPlugins && !editorPlugins.isEmpty()) {
-      String profileFolder = "";
-      if (null != senchaProfileConfiguration.getProfileName()) {
-        profileFolder = senchaProfileConfiguration.getProfileName() + SenchaUtils.SEPARATOR;
-      }
-      additionalJs.add(getResourceEntry(SenchaUtils.SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + profileFolder + SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME, false, true));
-    }
+
     if (!additionalJs.isEmpty()) {
       config.put(JS, additionalJs);
     }
@@ -69,16 +77,12 @@ class SenchaProfileConfigurationConfigurer implements Configurer {
   private List<Object> getAdditionalResources(List<String> resourcesNonBundle, List<String> resourcesIncludeInBundle) {
     List<Object> resources = new ArrayList<>();
 
-    if (null != resourcesNonBundle) {
-      for (String resource : resourcesNonBundle) {
-        resources.add(getResourceEntry(resource, false, false));
-      }
+    for (String resource : resourcesNonBundle) {
+      resources.add(getResourceEntry(resource, false, false));
     }
 
-    if (null != resourcesIncludeInBundle) {
-      for (String resource : resourcesIncludeInBundle) {
-        resources.add(getResourceEntry(resource, false, true));
-      }
+    for (String resource : resourcesIncludeInBundle) {
+      resources.add(getResourceEntry(resource, false, true));
     }
 
     return resources;

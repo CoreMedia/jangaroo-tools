@@ -58,7 +58,8 @@ public class SenchaUtils {
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
-  public static final String EDITOR_PLUGIN_RESOURCE_FILENAME = "editorPlugins.js";
+  public static final String REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME = "registerEditorPlugins.js";
+  public static final String REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME = "requireEditorPlugins.js";
 
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??
           Type.APP, "${app.dir}",
