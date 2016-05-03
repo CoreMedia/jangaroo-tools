@@ -26,7 +26,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 /**
  * A set of helper functions for handling Sencha package structure.
  */
-abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements SenchaHelper {
+abstract class AbstractSenchaHelper<T extends SenchaConfiguration> {
 
   static final String PRODUCTION = "production";
   static final String TESTING = "testing";

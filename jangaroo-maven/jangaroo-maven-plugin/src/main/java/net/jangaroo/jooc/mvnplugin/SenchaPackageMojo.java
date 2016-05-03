@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageHelper;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -100,7 +99,7 @@ public class SenchaPackageMojo extends AbstractSenchaMojo implements SenchaPacka
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\"");
     }
 
-    SenchaHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
+    SenchaPackageHelper senchaHelper = new SenchaPackageHelper(project, this, getLog());
     // for now:
     senchaHelper.createModule();
     senchaHelper.prepareModule();

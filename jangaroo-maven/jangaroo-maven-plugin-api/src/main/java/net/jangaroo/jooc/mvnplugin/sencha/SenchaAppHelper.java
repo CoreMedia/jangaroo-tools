@@ -61,7 +61,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     };
   }
 
-  @Override
   public void createModule() throws MojoExecutionException {
     File workingDirectory = new File(senchaAppPath);
 
@@ -111,7 +110,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     }
   }
 
-  @Override
   public void prepareModule() throws MojoExecutionException {
     File senchaDirectory = new File(senchaAppPath);
 
@@ -134,7 +132,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     ));
   }
 
-  @Override
   @Nonnull
   public File packageModule() throws MojoExecutionException {
     File senchaAppDirectory = new File(senchaAppPath);

@@ -46,7 +46,6 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper<SenchaConfigurat
     };
   }
 
-  @Override
   public void createModule() throws MojoExecutionException {
     File workingDirectory;
     try {
@@ -110,7 +109,6 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper<SenchaConfigurat
   }
 
 
-  @Override
   public void prepareModule() throws MojoExecutionException {
     File workingDirectory;
     workingDirectory = new File(senchaWorkspacePath);
@@ -125,12 +123,6 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper<SenchaConfigurat
     } else {
       getLog().info("Skipping preparation of workspace because there already is a workspace in the directory hierarchy");
     }
-  }
-
-  @Override
-  public File packageModule() throws MojoExecutionException {
-    // nothing to do
-    return null;
   }
 
 

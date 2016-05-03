@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -78,7 +77,7 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
       throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
 
-    SenchaHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
+    SenchaAppHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
     File appProductionBuildDir = senchaHelper.packageModule();
