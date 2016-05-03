@@ -1,9 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Dependency;
@@ -14,15 +13,11 @@ import org.apache.maven.project.MavenProject;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SenchaConfigurationConfigurer implements Configurer {
+public class ModuleConfigurer implements Configurer {
 
-  static final String PRODUCTION = "production";
-  static final String TESTING = "testing";
-  static final String DEVELOPMENT = "development";
   static final String TOOLKIT = "toolkit";
   static final String EXTEND = "extend";
   static final String THEME = "theme";
@@ -35,7 +30,7 @@ public class SenchaConfigurationConfigurer implements Configurer {
   private Log log;
   private SenchaConfiguration senchaConfiguration;
 
-  public SenchaConfigurationConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
+  public ModuleConfigurer(MavenProject project, SenchaConfiguration senchaConfiguration, Log log) {
     this.project = project;
     this.log = log;
     this.senchaConfiguration = senchaConfiguration;
@@ -43,11 +38,6 @@ public class SenchaConfigurationConfigurer implements Configurer {
 
   @Override
   public void configure(Map<String, Object> config) throws MojoExecutionException {
-    SenchaProfileConfigurationConfigurer profileConfigurationConfigurer = new SenchaProfileConfigurationConfigurer(senchaConfiguration);
-    profileConfigurationConfigurer.configure(config);
-    configureAdditionalResourcesForProfile(config, PRODUCTION, senchaConfiguration.getProduction());
-    configureAdditionalResourcesForProfile(config, TESTING, senchaConfiguration.getTesting());
-    configureAdditionalResourcesForProfile(config, DEVELOPMENT, senchaConfiguration.getDevelopment());
 
     String themeAttribute = THEME;
     if (Type.CODE.equals(senchaConfiguration.getType())) {
@@ -85,15 +75,6 @@ public class SenchaConfigurationConfigurer implements Configurer {
       log.info(String.format("Setting theme to \"%s\"", themePackageName));
     }
     return themePackageName;
-  }
-
-  private void configureAdditionalResourcesForProfile(Map<String, Object> config, String profileName, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
-    if (senchaProfileConfiguration != null) {
-      LinkedHashMap<String, Object> profileConfig = new LinkedHashMap<>();
-      config.put(profileName, profileConfig);
-      SenchaProfileConfigurationConfigurer profileConfigurationConfigurer = new SenchaProfileConfigurationConfigurer(senchaProfileConfiguration);
-      profileConfigurationConfigurer.configure(profileConfig);
-    }
   }
 
   private void configureResourcesEntry(Map<String, Object> config) {

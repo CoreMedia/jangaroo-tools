@@ -7,6 +7,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,13 +36,13 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaC
   private String theme;
 
   @Parameter
-  private MavenSenchaProfileConfigurationProduction production;
+  private MavenSenchaProfileConfiguration production;
 
   @Parameter
-  private MavenSenchaProfileConfigurationTesting testing;
+  private MavenSenchaProfileConfiguration testing;
 
   @Parameter
-  private MavenSenchaProfileConfigurationDevelopment development;
+  private MavenSenchaProfileConfiguration development;
 
   @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)
   private String extFrameworkDir;
@@ -100,34 +101,34 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaC
     return packagesDir;
   }
 
-  @Override
-  public String getProfileName() {
-    return null;
-  }
-
+  @Nonnull
   @Override
   public List<String> getAdditionalCssNonBundle() {
     return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalJsNonBundle() {
     return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalCssIncludeInBundle() {
     return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalJsIncludeInBundle() {
     return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<? extends EditorPluginDescriptor> getEditorPlugins() {
-    return editorPlugins != null ? editorPlugins : Collections.<EditorPluginDescriptor>emptyList();
+    return editorPlugins != null ? ImmutableList.copyOf(editorPlugins) : Collections.<EditorPluginDescriptor>emptyList();
   }
 
   @Override

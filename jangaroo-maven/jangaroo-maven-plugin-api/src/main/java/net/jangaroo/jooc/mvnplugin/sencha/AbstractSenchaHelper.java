@@ -12,20 +12,25 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EDITOR_PLUGIN_RESOURCE_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
  * A set of helper functions for handling Sencha package structure.
  */
 abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements SenchaHelper {
+
+  static final String PRODUCTION = "production";
+  static final String TESTING = "testing";
+  static final String DEVELOPMENT = "development";
 
   private static final String SENCHA_SRC_PATH = "/src/main/sencha/";
   protected static final String SENCHA_CLASS_PATH = "/src";
@@ -36,6 +41,10 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
   private final Log log;
 
   private final String senchaModuleName;
+  private final ExtendableProfileConfiguration commonProfileConfiguration;
+  private final ExtendableProfileConfiguration productionProfileConfiguration;
+  private final ExtendableProfileConfiguration testingProfileConfiguration;
+  private final ExtendableProfileConfiguration developmentProfileConfiguration;
 
   public AbstractSenchaHelper(MavenProject project, T senchaConfiguration, Log log) {
     this.project = project;
@@ -43,6 +52,10 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
     this.log = log;
 
     this.senchaModuleName = getSenchaPackageName(project.getGroupId(), project.getArtifactId());
+    this.commonProfileConfiguration = new ExtendableProfileConfiguration(senchaConfiguration);
+    this.productionProfileConfiguration = new ExtendableProfileConfiguration(senchaConfiguration.getProduction());
+    this.testingProfileConfiguration = new ExtendableProfileConfiguration(senchaConfiguration.getTesting());
+    this.developmentProfileConfiguration = new ExtendableProfileConfiguration(senchaConfiguration.getDevelopment());
   }
 
   protected void copyFilesFromSrc(String path) throws MojoExecutionException {
@@ -99,27 +112,17 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
     copyFilesFromJoo(path);
   }
 
-  protected void addRegisterEditorPluginsResource(String modulePath) throws MojoExecutionException {
-    addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration());
-    if (null != getSenchaConfiguration().getProduction()) {
-      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getProduction());
-    }
-    if (null != getSenchaConfiguration().getTesting()) {
-      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getTesting());
-    }
-    if (null != getSenchaConfiguration().getDevelopment()) {
-      addRegisterEditorPluginsResource(modulePath, getSenchaConfiguration().getDevelopment());
-    }
+  protected void addRegisterEditorPluginsResources(String modulePath) throws MojoExecutionException {
+    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH, commonProfileConfiguration);
+    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "production", productionProfileConfiguration);
+    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "testing", testingProfileConfiguration);
+    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "development", developmentProfileConfiguration);
   }
 
-  protected void addRegisterEditorPluginsResource(String modulePath, SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
+  private void addRegisterEditorPluginsResource(String modulePath, String resourcesPath, ExtendableProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
     List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
-    if (null != editorPlugins && !editorPlugins.isEmpty()) {
-      String profileFolder = "";
-      if (null != senchaProfileConfiguration.getProfileName()) {
-        profileFolder = senchaProfileConfiguration.getProfileName() + SEPARATOR;
-      }
-      File resource = new File(modulePath + File.separator + SENCHA_RESOURCES_PATH + File.separator + profileFolder + EDITOR_PLUGIN_RESOURCE_FILENAME);
+    if (!editorPlugins.isEmpty()) {
+      File resource = new File(modulePath + File.separator + resourcesPath + File.separator + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
       if (resource.exists()) {
         getLog().warn("resource file for editor plugins already exists, deleting...");
         if (!resource.delete()) {
@@ -138,8 +141,6 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
           if (null == name) {
             name = getPluginName(editorPlugin.getMainClass());
           }
-          String editorPluginCompiledClassName = "AS3." + editorPlugin.getMainClass();
-          pw.println("Ext.require(\"" + StringUtils.escape(editorPluginCompiledClassName) + "\");");
           pw.println("coremediaEditorPlugins.push({");
           // optional parameters are added first so they can always be followed by a comma
           if (null != editorPlugin.getRequiredLicenseFeature()) {
@@ -154,9 +155,43 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
           pw.println("});");
         }
       } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");
+        throw new MojoExecutionException("could not create editor plugins resource");
+      }
+      senchaProfileConfiguration.addAdditionalJsIncludeInBundle(resourcesPath + SenchaUtils.SEPARATOR + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
+    }
+  }
+
+  protected void addRequireEditorPluginsResource(String modulePath) throws MojoExecutionException {
+    // collect normal and build editor plugins
+    List<EditorPluginDescriptor> relevantEditorPlugins = new ArrayList<>();
+    relevantEditorPlugins.addAll(getSenchaConfiguration().getEditorPlugins());
+    if (null != getSenchaConfiguration().getProduction()) {
+      relevantEditorPlugins.addAll(getSenchaConfiguration().getProduction().getEditorPlugins());
+    }
+    if (!relevantEditorPlugins.isEmpty()) {
+
+      File resource = new File(modulePath + File.separator + SENCHA_RESOURCES_PATH + File.separator + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
+      if (resource.exists()) {
+        getLog().warn("resource file for require editor plugins already exists, deleting...");
+        if (!resource.delete()) {
+          throw new MojoExecutionException("Could not delete resource file for require editor plugins");
+        }
       }
 
+      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
+
+        for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
+          if (null == editorPlugin.getMainClass()) {
+            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
+            continue;
+          }
+          String editorPluginCompiledClassName = "AS3." + editorPlugin.getMainClass();
+          pw.println("Ext.require(\"" + StringUtils.escape(editorPluginCompiledClassName) + "\");");
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");
+      }
+      productionProfileConfiguration.addAdditionalJsIncludeInBundle(SenchaUtils.SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
     }
   }
 
@@ -195,4 +230,19 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration> implements Se
     return config;
   }
 
+  protected SenchaProfileConfiguration getCommonProfileConfiguration() {
+    return commonProfileConfiguration;
+  }
+
+  public SenchaProfileConfiguration getProductionProfileConfiguration() {
+    return productionProfileConfiguration;
+  }
+
+  public SenchaProfileConfiguration getTestingProfileConfiguration() {
+    return testingProfileConfiguration;
+  }
+
+  public SenchaProfileConfiguration getDevelopmentProfileConfiguration() {
+    return developmentProfileConfiguration;
+  }
 }

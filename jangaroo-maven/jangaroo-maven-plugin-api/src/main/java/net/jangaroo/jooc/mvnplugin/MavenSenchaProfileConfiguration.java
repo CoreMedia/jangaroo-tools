@@ -5,6 +5,8 @@ import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 
 public class MavenSenchaProfileConfiguration implements SenchaProfileConfiguration {
@@ -39,33 +41,33 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   @Parameter
   private List<MavenEditorPluginDescriptor> editorPlugins;
 
-  @Override
-  public String getProfileName() {
-    return null;
-  }
-
+  @Nonnull
   @Override
   public List<String> getAdditionalCssNonBundle() {
-    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : null;
+    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalJsNonBundle() {
-    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : null;
+    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalCssIncludeInBundle() {
-    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : null;
+    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<String> getAdditionalJsIncludeInBundle() {
-    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : null;
+    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.<String>emptyList();
   }
 
+  @Nonnull
   @Override
   public List<? extends EditorPluginDescriptor> getEditorPlugins() {
-    return editorPlugins;
+    return editorPlugins != null ? ImmutableList.copyOf(editorPlugins) : Collections.<EditorPluginDescriptor>emptyList();
   }
 }
