@@ -75,7 +75,7 @@ public class PropertyClassGenerator implements Propc {
     File outputFile = PropcHelper.computeGeneratedPropertiesJsFile(config, pl.getResourceBundle().getFullClassName(), pl.getLocale());
     generateCode(pl, outputFile, false);
     if (pl.getLocale() == null && config.isGenerateApi()) {
-      // generate API from base bundle
+      // generate API from default locale bundle
       File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(config, pl.getResourceBundle().getFullClassName());
       generateCode(pl, apiOutputFile, true);
     }

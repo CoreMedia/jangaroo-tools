@@ -42,7 +42,8 @@ public class PropertyClassGeneratorTest {
     ResourceBundleClass rbc = new ResourceBundleClass("testPackage.PropertiesTest");
     PropertiesConfiguration p = new PropertiesConfiguration();
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
-    p.setProperty("key2", "Die Platte \"{1}\" enthält {0}.");
+    p.setProperty("key2", "Resource(key='someKey'\\, bundle='net.jangaroo.icons.SomeBundle')");
+    p.setProperty("key3", "Resource(key='someOtherKey'\\, bundle='net.jangaroo.SomeOtherBundle')");
     PropertiesClass pc = new PropertiesClass(rbc, null,p, null);
 
     generator.generatePropertiesClass(pc, writer, false);
@@ -52,8 +53,13 @@ public class PropertyClassGeneratorTest {
                     "*/\n" +
                     "Ext.define(\"AS3.testPackage.PropertiesTest_properties\", {\n" +
                     "  \n" +
-                    "   \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
-                    "   \"key2\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
+                    "  requires: [\n" +
+                    "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
+                    "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
+                    "  ],\n" +
+                    "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
+                    "  \"key2\": AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey,\n" +
+                    "  \"key3\": AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey\n" +
                     "}, function() {\n" +
                     "  AS3.testPackage.PropertiesTest_properties.INSTANCE = new AS3.testPackage.PropertiesTest_properties();\n" +
                     "});"
@@ -79,6 +85,7 @@ public class PropertyClassGeneratorTest {
                     "\n" +
                     "public native function get key():String;\n" +
                     "public native function get key2():String;\n" +
+                    "public native function get key3():String;\n" +
                     "\n" +
                     "}\n" +
                     "}"
@@ -94,8 +101,13 @@ public class PropertyClassGeneratorTest {
             "*/\n" +
             "Ext.define(\"AS3.testPackage.PropertiesTest_properties_en\", {\n" +
             "  override: \"AS3.testPackage.PropertiesTest_properties\",\n" +
-            "   \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
-            "   \"key2\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
+            "  requires: [\n" +
+            "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
+            "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
+            "  ],\n" +
+            "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
+            "  \"key2\": AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey,\n" +
+            "  \"key3\": AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey\n" +
             "});").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
 }
