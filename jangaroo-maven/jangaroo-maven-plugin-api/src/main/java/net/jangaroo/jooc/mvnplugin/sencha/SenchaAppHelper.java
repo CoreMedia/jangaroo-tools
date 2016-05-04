@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.LocalesConfigurer;
@@ -27,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SenchaAppHelper extends AbstractSenchaHelper<MavenSenchaAppConfiguration> {
+public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration> {
 
   private static final String APP_JSON_FILENAME = "/app.json";
   private static final String PRODUCTION_BUILD_PATH = "/build/production";
@@ -37,7 +36,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper<MavenSenchaAppConfigur
   private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
-  public SenchaAppHelper(MavenProject project, MavenSenchaAppConfiguration senchaConfiguration, Log log) {
+  public SenchaAppHelper(MavenProject project, SenchaAppConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
     this.senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;

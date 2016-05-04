@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.MavenSenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
 import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
@@ -23,7 +22,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class SenchaPackageHelper extends AbstractSenchaHelper<MavenSenchaConfiguration> {
+public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfiguration> {
 
   private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 
@@ -31,7 +30,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<MavenSenchaConfigu
   private final String senchaPackagePath;
   private final String senchaPackageBuildOutputDir;
 
-  public SenchaPackageHelper(MavenProject project, MavenSenchaConfiguration senchaConfiguration, Log log) {
+  public SenchaPackageHelper(MavenProject project, SenchaPackageConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
     MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
