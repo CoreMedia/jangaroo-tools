@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configurer;
 
-import net.jangaroo.jooc.mvnplugin.MavenSenchaAppConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.util.HashSet;
@@ -20,7 +20,7 @@ public class LocalesConfigurer implements Configurer {
 
   private List<String> locales;
 
-  public LocalesConfigurer(MavenSenchaAppConfiguration config) {
+  public LocalesConfigurer(SenchaAppConfiguration config) {
     locales = config.getLocales();
   }
 

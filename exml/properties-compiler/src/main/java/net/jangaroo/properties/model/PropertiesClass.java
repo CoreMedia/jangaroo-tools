@@ -74,8 +74,14 @@ public class PropertiesClass {
     return props;
   }
 
-  private String adjustComment(String canonicalComment) {
-    return canonicalComment == null ? null : canonicalComment.replaceAll("(^|\\n)#", "\n *");
+  private String adjustComment(String comment) {
+    if (comment == null) {
+      return null;
+    }
+    // take care for directives:
+    String result = comment.replaceAll("(^|\\n)#([^]]*])", "\n*/ $1 /*");
+    result = result.replaceAll("(^|\\n)#", "\n *");
+    return result;
   }
 
   private static boolean isIdentifier(String str) {

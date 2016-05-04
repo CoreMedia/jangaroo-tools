@@ -83,7 +83,7 @@ public interface ILocaleSupport {
    * language. If the locale still is not determined, the <code>defaultLocale</code> is used.
    * This value if stored using <code>setLocale()</code>.
    *
-   * @return the locale currently used for resource bundle class loading.
+   * @return the locale currently used for resource bundle loading.
    *
    * @see #ILocaleSupport
    * @see #setLocale
