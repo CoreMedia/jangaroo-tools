@@ -1,14 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.Type;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaCodePackageConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaThemePackageConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.ProfileConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.ModuleConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -23,46 +16,18 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfiguration> {
+public class SenchaPackageHelper extends SenchaPackageOrAppHelper<SenchaPackageConfiguration, SenchaPackageConfigBuilder> {
 
   private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 
-  private final Configurer[] packageConfigurers;
   private final String senchaPackagePath;
   private final String senchaPackageBuildOutputDir;
 
   public SenchaPackageHelper(MavenProject project, SenchaPackageConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
-    MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
-    RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
-    ModuleConfigurer moduleConfigurer = new ModuleConfigurer(project, senchaConfiguration, log);
-
-    ProfileConfigurer commonProfileConfigurer = new ProfileConfigurer(getCommonProfileConfiguration());
-    ProfileConfigurer productionProfileConfigurer = new ProfileConfigurer(getProductionProfileConfiguration(), PRODUCTION);
-    ProfileConfigurer testingProfileConfigurer = new ProfileConfigurer(getTestingProfileConfiguration(), TESTING);
-    ProfileConfigurer developmentProfileConfigurer = new ProfileConfigurer(getDevelopmentProfileConfiguration(), DEVELOPMENT);
-
     senchaPackagePath = project.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGE_PATH;
     senchaPackageBuildOutputDir = project.getBuild().getDirectory() +  SenchaUtils.LOCAL_PACKAGE_BUILD_PATH;
-
-    Configurer defaultSenchaPackageConfigurer;
-    if (Type.THEME.equals(senchaConfiguration.getType())) {
-      defaultSenchaPackageConfigurer = DefaultSenchaThemePackageConfigurer.getInstance();
-    } else {
-      defaultSenchaPackageConfigurer = DefaultSenchaCodePackageConfigurer.getInstance();
-    }
-
-    this.packageConfigurers = new Configurer[]{
-            defaultSenchaPackageConfigurer,
-            metadataConfigurer,
-            requiresConfigurer,
-            moduleConfigurer,
-            commonProfileConfigurer,
-            productionProfileConfigurer,
-            testingProfileConfigurer,
-            developmentProfileConfigurer
-    };
   }
 
   public void createModule() throws MojoExecutionException {
@@ -165,7 +130,7 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfi
   }
 
   private void writePackageJson(File workingDirectory) throws MojoExecutionException {
-    Map<String, Object> packageConfig = getPackageConfig();
+    Map<String, Object> packageConfig = getConfig();
 
     File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME);
     try {
@@ -181,8 +146,14 @@ public class SenchaPackageHelper extends AbstractSenchaHelper<SenchaPackageConfi
     senchaCmdExecutor.execute();
   }
 
-  private Map<String, Object> getPackageConfig() throws MojoExecutionException {
-    return getConfig(packageConfigurers);
+  @Override
+  protected SenchaPackageConfigBuilder createSenchaConfigBuilder() {
+    return new SenchaPackageConfigBuilder();
+  }
+
+  @Override
+  protected String getDefaultsJsonFileName() {
+    return "default.package.json";
   }
 
 }
