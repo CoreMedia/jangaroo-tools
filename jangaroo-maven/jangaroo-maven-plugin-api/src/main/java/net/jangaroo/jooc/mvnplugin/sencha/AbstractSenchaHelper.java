@@ -1,12 +1,14 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 
 /**
@@ -45,6 +47,24 @@ abstract class AbstractSenchaHelper<T extends SenchaConfiguration, U extends Sen
     }
     configure(configBuilder);
     return configBuilder.build();
+  }
+
+  protected void writeJson(File jsonFile) throws MojoExecutionException {
+    writeJson(jsonFile, null);
+  }
+
+  protected void writeJson(File jsonFile, String comment) throws MojoExecutionException {
+    try {
+      PrintWriter pw = new PrintWriter(new FileWriter(jsonFile), false);
+      if (comment != null) {
+        pw.println("/**");
+        pw.println(" * " + comment);
+        pw.println(" */");
+      }
+      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(pw, getConfig());
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not write " + jsonFile, e);
+    }
   }
 
   protected abstract U createSenchaConfigBuilder();

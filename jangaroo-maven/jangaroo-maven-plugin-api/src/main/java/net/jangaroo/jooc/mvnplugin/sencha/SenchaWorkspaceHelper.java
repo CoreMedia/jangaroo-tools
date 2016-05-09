@@ -9,9 +9,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class SenchaWorkspaceHelper extends AbstractSenchaHelper<SenchaConfiguration, SenchaWorkspaceConfigBuilder> {
@@ -110,24 +107,9 @@ public class SenchaWorkspaceHelper extends AbstractSenchaHelper<SenchaConfigurat
     }
 
     if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
-      writeWorkspaceJson(workingDirectory);
+      writeJson(new File(workingDirectory, SenchaUtils.SENCHA_WORKSPACE_FILENAME), AUTO_CONTENT_COMMENT);
     } else {
       getLog().info("Skipping preparation of workspace because there already is a workspace in the directory hierarchy");
-    }
-  }
-
-
-  private void writeWorkspaceJson(File workingDirectory) throws MojoExecutionException {
-    Map<String, Object> workspaceConfig = getConfig();
-
-    File fWorkspaceJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME);
-    try (PrintWriter pw = new PrintWriter(new FileWriter(fWorkspaceJson), false)) {
-      pw.println("/**");
-      pw.println(" * " + AUTO_CONTENT_COMMENT);
-      pw.println(" */");
-      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(pw, workspaceConfig);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not write " + SenchaUtils.SENCHA_WORKSPACE_FILENAME, e);
     }
   }
 

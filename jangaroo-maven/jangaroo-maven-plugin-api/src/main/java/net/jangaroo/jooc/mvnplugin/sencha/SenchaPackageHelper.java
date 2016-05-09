@@ -14,7 +14,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class SenchaPackageHelper extends SenchaPackageOrAppHelper<SenchaPackageConfiguration, SenchaPackageConfigBuilder> {
 
@@ -130,14 +129,7 @@ public class SenchaPackageHelper extends SenchaPackageOrAppHelper<SenchaPackageC
   }
 
   private void writePackageJson(File workingDirectory) throws MojoExecutionException {
-    Map<String, Object> packageConfig = getConfig();
-
-    File fAppJson = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME);
-    try {
-      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, packageConfig);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not write " + SenchaUtils.SENCHA_PACKAGE_FILENAME, e);
-    }
+    writeJson(new File(workingDirectory, SenchaUtils.SENCHA_PACKAGE_FILENAME));
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {

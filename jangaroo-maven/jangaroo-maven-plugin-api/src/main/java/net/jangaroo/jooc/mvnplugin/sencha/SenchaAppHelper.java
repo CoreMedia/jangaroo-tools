@@ -17,7 +17,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 
 public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfiguration, SenchaAppConfigBuilder> {
@@ -97,7 +96,7 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
 
     File workingDirectory = new File(senchaAppPath);
 
-    writeAppJson(workingDirectory);
+    writeJson(new File(workingDirectory, APP_JSON_FILENAME));
     writeAppJs(workingDirectory);
 
     File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
@@ -144,17 +143,6 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       } catch (IOException e) {
         throw new MojoExecutionException("An error occurred during creation of " + appJs, e);
       }
-    }
-  }
-
-  private void writeAppJson(File workingDirectory) throws MojoExecutionException {
-    Map<String, Object> appConfig = getConfig();
-
-    File fAppJson = new File(workingDirectory.getAbsolutePath() + APP_JSON_FILENAME);
-    try {
-      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not write " + fAppJson, e);
     }
   }
 
