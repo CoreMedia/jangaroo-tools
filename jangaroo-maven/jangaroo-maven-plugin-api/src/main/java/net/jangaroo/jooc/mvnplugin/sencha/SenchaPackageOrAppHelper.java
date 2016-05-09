@@ -13,16 +13,11 @@ import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -101,115 +96,23 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
     copyFilesFromJoo(path);
   }
 
-  protected void addRegisterEditorPluginsResources(String modulePath) throws MojoExecutionException {
-    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH, commonProfileConfiguration);
-    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "production", productionProfileConfiguration);
-    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "testing", testingProfileConfiguration);
-    addRegisterEditorPluginsResource(modulePath, SENCHA_RESOURCES_PATH + File.separator + "development", developmentProfileConfiguration);
-  }
-
-  private void addRegisterEditorPluginsResource(String modulePath, String resourcesPath, ExtendableProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
-    List<? extends EditorPluginDescriptor> editorPlugins = senchaProfileConfiguration.getEditorPlugins();
-    if (!editorPlugins.isEmpty()) {
-      File resource = new File(modulePath + File.separator + resourcesPath + File.separator + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (resource.exists()) {
-        getLog().warn("resource file for editor plugins already exists, deleting...");
-        if (!resource.delete()) {
-          throw new MojoExecutionException("Could not delete resource file for editor plugins");
-        }
-      }
-
-      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
-
-        for (EditorPluginDescriptor editorPlugin : editorPlugins) {
-          if (null == editorPlugin.getMainClass()) {
-            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-            continue;
-          }
-          String name = editorPlugin.getName();
-          if (null == name) {
-            name = getPluginName(editorPlugin.getMainClass());
-          }
-          pw.println("coremediaEditorPlugins.push({");
-          // optional parameters are added first so they can always be followed by a comma
-          if (null != editorPlugin.getRequiredLicenseFeature()) {
-            pw.println("\trequiredLicenseFeature: \"" + StringUtils.escape(editorPlugin.getRequiredLicenseFeature()) + "\",");
-          }
-          if (null != editorPlugin.getRequiredGroup()) {
-            pw.println("\trequiredGroup: \"" + StringUtils.escape(editorPlugin.getRequiredGroup()) + "\",");
-          }
-          pw.println("\tname: \"" + StringUtils.escape(name) + "\",");
-          pw.println("\tmainClass: \"" + StringUtils.escape(editorPlugin.getMainClass()) + "\"");
-
-          pw.println("});");
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not create editor plugins resource");
-      }
-      senchaProfileConfiguration.addAdditionalJsIncludeInBundle(resourcesPath + SenchaUtils.SEPARATOR + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
-    }
-  }
-
-  protected void addRequireEditorPluginsResource(String modulePath) throws MojoExecutionException {
-    // collect normal and build editor plugins
-    List<EditorPluginDescriptor> relevantEditorPlugins = new ArrayList<>();
-    relevantEditorPlugins.addAll(getSenchaConfiguration().getEditorPlugins());
-    if (null != getSenchaConfiguration().getProduction()) {
-      relevantEditorPlugins.addAll(getSenchaConfiguration().getProduction().getEditorPlugins());
-    }
-    if (!relevantEditorPlugins.isEmpty()) {
-
-      File resource = new File(modulePath + File.separator + SENCHA_RESOURCES_PATH + File.separator + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (resource.exists()) {
-        getLog().warn("resource file for require editor plugins already exists, deleting...");
-        if (!resource.delete()) {
-          throw new MojoExecutionException("Could not delete resource file for require editor plugins");
-        }
-      }
-
-      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
-
-        for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
-          if (null == editorPlugin.getMainClass()) {
-            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-            continue;
-          }
-          String editorPluginCompiledClassName = "AS3." + editorPlugin.getMainClass();
-          pw.println("Ext.require(\"" + StringUtils.escape(editorPluginCompiledClassName) + "\");");
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package");
-      }
-      productionProfileConfiguration.addAdditionalJsIncludeInBundle(SenchaUtils.SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
-    }
-  }
-
-  private String getPluginName(String editorPlugin) {
-    String editorPluginName = "No name";
-    String[] parts = editorPlugin.split("\\.");
-    if (parts.length > 0) {
-      editorPluginName = parts[parts.length - 1];
-    }
-    return editorPluginName;
-  }
-
   protected String getSenchaModuleName() {
     return senchaModuleName;
   }
 
-  protected SenchaProfileConfiguration getCommonProfileConfiguration() {
+  protected ExtendableProfileConfiguration getCommonProfileConfiguration() {
     return commonProfileConfiguration;
   }
 
-  public SenchaProfileConfiguration getProductionProfileConfiguration() {
+  public ExtendableProfileConfiguration getProductionProfileConfiguration() {
     return productionProfileConfiguration;
   }
 
-  public SenchaProfileConfiguration getTestingProfileConfiguration() {
+  public ExtendableProfileConfiguration getTestingProfileConfiguration() {
     return testingProfileConfiguration;
   }
 
-  public SenchaProfileConfiguration getDevelopmentProfileConfiguration() {
+  public ExtendableProfileConfiguration getDevelopmentProfileConfiguration() {
     return developmentProfileConfiguration;
   }
 
