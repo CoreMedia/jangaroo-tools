@@ -10,7 +10,6 @@
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <modules>
-    <module>jangaroo-maven-plugin-api</module>
     <module>jangaroo-maven-plugin</module>
   </modules>
   <build>
