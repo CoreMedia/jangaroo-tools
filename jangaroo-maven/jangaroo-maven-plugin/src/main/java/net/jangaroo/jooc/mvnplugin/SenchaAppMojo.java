@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
+import com.google.common.collect.Lists;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
@@ -48,6 +50,9 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
   @Parameter
   private String applicationClass;
 
+  @Parameter()
+  private List<String> locales = Lists.newArrayList("en");
+
   /**
    * Plexus archiver.
    */
@@ -65,6 +70,11 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
   @Override
   public String getApplicationClass() {
     return applicationClass;
+  }
+
+  @Override
+  public List<String> getLocales() {
+    return locales;
   }
 
   @Override

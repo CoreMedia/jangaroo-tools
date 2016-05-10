@@ -20,6 +20,7 @@ import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_LOCALE_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
@@ -75,6 +76,7 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
     String senchaClassPath = Type.APP.equals(getSenchaConfiguration().getType()) ? SENCHA_APP_CLASS_PATH : SENCHA_CLASS_PATH;
     move(senchaResourcesDir, "joo/classes", path, senchaClassPath);
     move(senchaResourcesDir, "joo/overrides", path, SENCHA_OVERRIDES_PATH);
+    move(senchaResourcesDir, "joo/locale", path, SENCHA_LOCALE_PATH);
   }
 
   private void move(File sourceBaseDir, String subdir, String targetBasePath, String targetSubdir) throws MojoExecutionException {

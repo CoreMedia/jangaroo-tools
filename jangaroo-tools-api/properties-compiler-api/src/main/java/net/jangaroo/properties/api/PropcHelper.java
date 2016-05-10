@@ -37,19 +37,15 @@ public class PropcHelper {
     return className;
   }
 
-  public static File computeGeneratedPropertiesClassFile(FileLocations locations, String className, Locale locale) {
-    StringBuilder suffix = new StringBuilder("_properties");
-    if (locale != null) {
-      suffix.append("_").append(locale);
-    }
-    suffix.append(".as");
-    String generatedPropertiesClassFileName = CompilerUtils.fileNameFromQName(className, '/', suffix.toString());
-    return new File(locations.getOutputDirectory(), generatedPropertiesClassFileName); 
+  public static File computeGeneratedPropertiesAS3File(PropertiesCompilerConfiguration config, String className) {
+    String generatedPropertiesClassFileName = CompilerUtils.fileNameFromQName(className, '/', "_properties.as");
+    return new File(config.getApiOutputDirectory(), generatedPropertiesClassFileName);
   }
 
-  @SuppressWarnings({"UnusedDeclaration" })
-  public static File computeGeneratedPropertiesClassFile(FileLocations locations, File propertiesFile) {
-    return computeGeneratedPropertiesClassFile(locations, computeBaseClassName(locations, propertiesFile), computeLocale(propertiesFile));
+  public static File computeGeneratedPropertiesJsFile(PropertiesCompilerConfiguration config, String className, Locale locale) {
+    String localeSubDir = locale == null ? config.getDefaultLocale() : locale.toString();
+    String generatedPropertiesClassFileName = localeSubDir + '/' + CompilerUtils.fileNameFromQName(className, '/', "_properties.js");
+    return new File(config.getOutputDirectory(), generatedPropertiesClassFileName);
   }
 
 }

@@ -3,7 +3,7 @@ package net.jangaroo.properties.compiler;/*
  */
 
 import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.utils.FileLocations;
+import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -18,7 +18,7 @@ public final class PropertiesCompiler {
 
   public static int run(String[] args){
 
-    FileLocations config = new FileLocations();
+    PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
 
     CmdLineParser parser = new CmdLineParser(config);
     try {

@@ -4,11 +4,13 @@
   "indexHtmlPath": "index.html",
   "classpath": [
     "app",
-    "${toolkit.name}/src"
+    "${toolkit.name}/src",
+    "locale/${app.defaultLocale}"
   ],
   "overrides": [
     "overrides",
-    "${toolkit.name}/overrides"
+    "${toolkit.name}/overrides",
+    "locale/${app.locale}"
   ],
   "framework": "ext",
   "toolkit": "classic",
@@ -177,7 +179,7 @@
 
   "bootstrap": {
     "base": "${app.dir}",
-    "manifest": "bootstrap.json",
+    "manifest": "bootstrap-${app.locale}.json",
     "microloader": "bootstrap.js",
     "css": "bootstrap.css"
   },

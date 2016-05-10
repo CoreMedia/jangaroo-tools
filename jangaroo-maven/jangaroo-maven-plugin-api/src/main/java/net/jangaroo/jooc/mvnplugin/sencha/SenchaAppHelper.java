@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import java.util.List;
 
 public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfiguration, SenchaAppConfigBuilder> {
 
@@ -156,7 +157,15 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
 
   private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
     getLog().info("Building Sencha app module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, "app build --production", getLog());
+    StringBuilder args = new StringBuilder();
+    args.append("app build --locale ");
+    List<String> locales = getSenchaConfiguration().getLocales();
+    args.append(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+    for (int i = 1; i < locales.size(); i++) {
+      args.append(" then app refresh --locale ");
+      args.append(locales.get(i));
+    }
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog());
     senchaCmdExecutor.execute();
   }
 
@@ -169,6 +178,18 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
   protected void configure(SenchaAppConfigBuilder configBuilder) throws MojoExecutionException {
     super.configure(configBuilder);
     configBuilder.id(generateSenchaAppId());
+    configureLocales(configBuilder);
+  }
+
+  public void configureLocales(SenchaAppConfigBuilder configBuilder) throws MojoExecutionException {
+    List<String> locales = getSenchaConfiguration().getLocales();
+    configBuilder.defaultLocale(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+    for (String locale : locales) {
+      configBuilder.locale(locale);
+    }
+    if (locales.size() > 1) {
+      configBuilder.require("locale");
+    }
   }
 
   @Override

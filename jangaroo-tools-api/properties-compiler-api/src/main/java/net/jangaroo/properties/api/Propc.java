@@ -1,7 +1,5 @@
 package net.jangaroo.properties.api;
 
-import net.jangaroo.utils.FileLocations;
-
 import java.io.File;
 
 /**
@@ -9,9 +7,9 @@ import java.io.File;
  */
 public interface Propc {
 
-  void setConfig(FileLocations config);
+  void setConfig(PropertiesCompilerConfiguration config);
 
-  FileLocations getConfig();
+  PropertiesCompilerConfiguration getConfig();
 
   File generate(File propertiesFile);
 

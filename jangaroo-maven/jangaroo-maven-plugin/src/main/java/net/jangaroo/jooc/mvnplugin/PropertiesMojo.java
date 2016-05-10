@@ -3,9 +3,9 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 import net.jangaroo.properties.PropertyClassGenerator;
 import net.jangaroo.properties.api.PropcException;
-import net.jangaroo.utils.FileLocations;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -60,18 +60,37 @@ public class PropertiesMojo extends AbstractMojo {
   private FileSet properties;
 
   /**
-   * Output directory for all ActionScript3 files generated out of exml components
+   * Output directory into whose compiled property file classes are generated.
+   */
+  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/resources/joo/locale")
+  private File outputDirectory;
+
+  public File getOutputDirectory() {
+    return outputDirectory;
+  }
+
+  /**
+   * Output directory for generated AS3 API classes.
    */
   @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
-  private File generatedSourcesDirectory;
+  private File apiOutputDirectory;
+
+  public File getApiOutputDirectory() {
+    return apiOutputDirectory;
+  }
 
   @Component
   private MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!generatedSourcesDirectory.exists()) {
-      getLog().info("generating sources into: " + generatedSourcesDirectory.getPath());
-      getLog().debug("created " + generatedSourcesDirectory.mkdirs());
+    if (!outputDirectory.exists()) {
+      getLog().info("generating localized JavaScript into: " + outputDirectory.getPath());
+      getLog().debug("created " + outputDirectory.mkdirs());
+    }
+
+    if (!apiOutputDirectory.exists()) {
+      getLog().info("generating AS3 localization api stubs into: " + apiOutputDirectory.getPath());
+      getLog().debug("created " + apiOutputDirectory.mkdirs());
     }
 
     if (properties == null) {
@@ -80,8 +99,9 @@ public class PropertiesMojo extends AbstractMojo {
       properties.addInclude("**/*.properties");
     }
 
-    FileLocations config = new FileLocations();
-    config.setOutputDirectory(generatedSourcesDirectory);
+    PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
+    config.setOutputDirectory(outputDirectory);
+    config.setApiOutputDirectory(apiOutputDirectory);
 
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(properties)) {
       config.addSourceFile(new File(resourceDirectory,srcFileRelativePath));

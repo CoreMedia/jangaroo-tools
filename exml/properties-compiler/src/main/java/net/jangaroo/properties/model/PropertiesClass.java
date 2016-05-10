@@ -22,6 +22,8 @@ public class PropertiesClass {
   private static final Pattern RESOURCE_REFERENCE_PATTERN = Pattern.compile(
           "^\\s*Resource\\s*\\(\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*,\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*\\)\\s*$"
   );
+  private static final String AS3_ANNOTATION_PATTERN = "(^|\\n)\\s*\\*\\s*(\\[[^]]*\\])";
+  private static final String AS3_ANNOTATION_REPLACEMENT = "$1*/ $2 /*";
 
   private ResourceBundleClass resourceBundle;
   private Locale locale;
@@ -49,7 +51,22 @@ public class PropertiesClass {
     return adjustComment(properties.getLayout().getCanonicalHeaderComment(true));
   }
 
+  /**
+   * takes special care of AS3 annotations
+   */
+  public String getAs3Comment() {
+    final String comment = getComment();
+    if (comment == null) {
+      return null;
+    }
+    return comment.replaceAll(AS3_ANNOTATION_PATTERN, AS3_ANNOTATION_REPLACEMENT);
+  }
+
   public List<Property> getProps() {
+    return getProps(true, true);
+  }
+
+  private List<Property> getProps(boolean includeStrings, boolean includeReferences) {
     PropertiesConfigurationLayout layout = properties.getLayout();
     List<Property> props = new ArrayList<Property>();
     Iterator keys = properties.getKeys();
@@ -58,7 +75,7 @@ public class PropertiesClass {
       String value = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       boolean valueIsResourceReference = matcher.find();
-      if (valueIsResourceReference) {
+      if (valueIsResourceReference && includeReferences) {
         boolean bundleFirst = "bundle".equals(matcher.group(1));
         String referenceBundleKey = matcher.group(!bundleFirst ? 2 : 4);
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
@@ -69,13 +86,26 @@ public class PropertiesClass {
           value += "[\"" + referenceBundleKey + "\"]";
         }
       }
-      props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, !valueIsResourceReference));
+      if (valueIsResourceReference ? includeReferences : includeStrings) {
+        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, !valueIsResourceReference));
+      }
     }
     return props;
   }
 
-  private String adjustComment(String canonicalComment) {
-    return canonicalComment == null ? null : canonicalComment.replaceAll("(^|\\n)#", "\n *");
+  public List<Property> getStringProps() {
+    return getProps(true, false);
+  }
+
+  public List<Property> getReferenceProps() {
+    return getProps(false, true);
+  }
+
+  private String adjustComment(String comment) {
+    if (comment == null) {
+      return null;
+    }
+    return comment.replaceAll("(^|\\n)#", "$1 *").replaceAll("(^|\\n)#", "$1 *");
   }
 
   private static boolean isIdentifier(String str) {

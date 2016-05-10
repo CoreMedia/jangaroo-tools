@@ -23,9 +23,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
-/**
- * Mojo to compile properties files to ActionScript3 files
- */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "extract-remote-packages",
         defaultPhase = LifecyclePhase.PROCESS_RESOURCES,

@@ -46,6 +46,7 @@ public class SenchaUtils {
    *    - SENCHA_CLASS_PATH.length - 4 (Separator)
    */
   public static final String SENCHA_OVERRIDES_PATH = "overrides";
+  public static final String SENCHA_LOCALE_PATH = "locale";
   public static final String SENCHA_RESOURCES_PATH = "resources";
 
 

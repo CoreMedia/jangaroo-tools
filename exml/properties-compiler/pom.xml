@@ -6,11 +6,6 @@
   <dependencies>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-utils</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
       <artifactId>properties-compiler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
