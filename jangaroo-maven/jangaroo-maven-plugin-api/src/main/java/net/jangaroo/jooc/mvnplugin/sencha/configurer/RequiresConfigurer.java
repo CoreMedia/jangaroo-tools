@@ -8,7 +8,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class RequiresConfigurer implements Configurer {
   }
 
   private Set<Map<String, Object>> getRequiredDependencies() throws MojoExecutionException {
-    Set<Map<String, Object>> requiredDependencies = new HashSet<>();
+    Set<Map<String, Object>> requiredDependencies = new LinkedHashSet<>();
 
     Dependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
 
