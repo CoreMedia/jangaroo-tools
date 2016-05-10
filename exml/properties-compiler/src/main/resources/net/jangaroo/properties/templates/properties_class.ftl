@@ -1,8 +1,9 @@
 <#-- @ftlvariable name="" type="net.jangaroo.properties.model.PropertiesClass" -->
 package ${resourceBundle.packageName} {
 
-<#if comment??>
-/**${comment}
+<#if as3Comment??>
+/**
+${as3Comment}
 <#else>
 /**
  * AS3 API stub for ResourceBundle "${resourceBundle.className}".
@@ -21,7 +22,8 @@ public static const INSTANCE:${resourceBundle.className}_properties;
 <#list props as property>
 <#if property.keyIsIdentifier>
 <#if property.comment??>
-/**${property.comment}
+/**
+${property.comment}
 */
 </#if>
 public native function get ${property.key}():String;

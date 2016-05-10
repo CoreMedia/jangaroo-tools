@@ -1,6 +1,7 @@
 <#-- @ftlvariable name="" type="net.jangaroo.properties.model.PropertiesClass" -->
 <#if comment??>
-/**${comment}
+/**
+${comment}
 <#else>
 /**
 * Properties class for ResourceBundle "${resourceBundle.className}"<#if locale??> and Locale "${locale}"</#if>.
@@ -16,15 +17,26 @@ Ext.define("AS3.${resourceBundle.fullClassName}_properties<#if locale??>_${local
 
   ],
 </#if>
-<#list props as property>
-  <#if property.comment??>
-  /**${property.comment}
-  */
-  </#if>
-  "${property.key}": <#if property.valueIsString>"${property.value?js_string}"<#else>AS3.${property.value}</#if><#sep>,
+<#list stringProps as property>
+    <#if property.comment??>
+      /**
+      ${property.comment}
+      */
+    </#if>
+  "${property.key}": "${property.value?js_string}"<#sep>,
 </#list>
-<#if !locale??>
 
 }, function() {
-  AS3.${resourceBundle.fullClassName}_properties.INSTANCE = new AS3.${resourceBundle.fullClassName}_properties();</#if>
+<#list referenceProps as property>
+  <#if property.comment??>
+  /**
+  ${property.comment}
+  */
+  </#if>
+  this.prototype["${property.key}"] =  AS3.${property.value};
+</#list>
+  <#if !locale??>
+
+  AS3.${resourceBundle.fullClassName}_properties.INSTANCE = new AS3.${resourceBundle.fullClassName}_properties();
+  </#if>
 });

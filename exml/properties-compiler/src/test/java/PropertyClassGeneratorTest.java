@@ -41,6 +41,7 @@ public class PropertyClassGeneratorTest {
 
     ResourceBundleClass rbc = new ResourceBundleClass("testPackage.PropertiesTest");
     PropertiesConfiguration p = new PropertiesConfiguration();
+    p.getLayout().setHeaderComment("# some comment \n# \t [PublicApi]".replaceAll("\n", LINE_SEPARATOR));
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key2", "Resource(key='someKey'\\, bundle='net.jangaroo.icons.SomeBundle')");
     p.setProperty("key3", "Resource(key='someOtherKey'\\, bundle='net.jangaroo.SomeOtherBundle')");
@@ -49,7 +50,8 @@ public class PropertyClassGeneratorTest {
     generator.generatePropertiesClass(pc, writer, false);
     assertEquals((
             "/**\n" +
-                    "* Properties class for ResourceBundle \"PropertiesTest\".\n" +
+                    " * some comment \n" +
+                    " * \t [PublicApi]\n" +
                     "*/\n" +
                     "Ext.define(\"AS3.testPackage.PropertiesTest_properties\", {\n" +
                     "  \n" +
@@ -57,10 +59,11 @@ public class PropertyClassGeneratorTest {
                     "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
                     "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
                     "  ],\n" +
-                    "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
-                    "  \"key2\": AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey,\n" +
-                    "  \"key3\": AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey\n" +
+                    "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
                     "}, function() {\n" +
+                    "  this.prototype[\"key2\"] =  AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
+                    "  this.prototype[\"key3\"] =  AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
+                    "\n" +
                     "  AS3.testPackage.PropertiesTest_properties.INSTANCE = new AS3.testPackage.PropertiesTest_properties();\n" +
                     "});"
             ).replaceAll("\n", LINE_SEPARATOR), writer.toString());
@@ -71,7 +74,8 @@ public class PropertyClassGeneratorTest {
             "package testPackage {\n" +
                     "\n" +
                     "/**\n" +
-                    " * AS3 API stub for ResourceBundle \"PropertiesTest\".\n" +
+                    " * some comment \n" +
+                    "*/ [PublicApi] /*\n" +
                     " * @see PropertiesTest_properties#INSTANCE\n" +
                     " */\n" +
                     "[Native(\"AS3.testPackage.PropertiesTest_properties\", require)]\n" +
@@ -97,7 +101,8 @@ public class PropertyClassGeneratorTest {
     generator.generatePropertiesClass(psc, writer, false);
 
     assertEquals(("/**\n" +
-            "* Properties class for ResourceBundle \"PropertiesTest\" and Locale \"en\".\n" +
+            " * some comment \n" +
+            " * \t [PublicApi]\n" +
             "*/\n" +
             "Ext.define(\"AS3.testPackage.PropertiesTest_properties_en\", {\n" +
             "  override: \"AS3.testPackage.PropertiesTest_properties\",\n" +
@@ -105,9 +110,10 @@ public class PropertyClassGeneratorTest {
             "    \"AS3.net.jangaroo.icons.SomeBundle_properties\",\n" +
             "    \"AS3.net.jangaroo.SomeOtherBundle_properties\"\n" +
             "  ],\n" +
-            "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\",\n" +
-            "  \"key2\": AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey,\n" +
-            "  \"key3\": AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey\n" +
+            "  \"key\": \"Die Platte \\\"{1}\\\" enthält {0}.\"\n" +
+            "}, function() {\n" +
+            "  this.prototype[\"key2\"] =  AS3.net.jangaroo.icons.SomeBundle_properties.INSTANCE.someKey;\n" +
+            "  this.prototype[\"key3\"] =  AS3.net.jangaroo.SomeOtherBundle_properties.INSTANCE.someOtherKey;\n" +
             "});").replaceAll("\n", LINE_SEPARATOR), writer.toString());
   }
 }
