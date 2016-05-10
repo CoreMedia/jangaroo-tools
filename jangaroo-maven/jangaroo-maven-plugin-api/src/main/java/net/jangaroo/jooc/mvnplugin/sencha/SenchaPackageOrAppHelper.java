@@ -14,7 +14,7 @@ import org.codehaus.plexus.util.StringUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -238,7 +238,7 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
   private Set<String> getRequiredDependencies() throws MojoExecutionException {
     MavenProject project = getProject();
     SenchaConfiguration senchaConfiguration = getSenchaConfiguration();
-    Set<String> requiredDependencies = new HashSet<>();
+    Set<String> requiredDependencies = new LinkedHashSet<>();
 
     Dependency themeDependency = SenchaUtils.getThemeDependency(senchaConfiguration.getTheme(), project);
 
