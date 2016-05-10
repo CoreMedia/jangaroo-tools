@@ -90,7 +90,6 @@ joo.localeSupport = (function() {
     return null;
     },
     readLocaleFromNavigator: function()/*:String*/ {
-      var navigator/*:**/ = joo.getQualifiedObject("navigator");
       if (navigator) {
         var locale/*:String*/ = navigator['language'] || navigator['browserLanguage']
                 || navigator['systemLanguage'] || navigator['userLanguage'];
