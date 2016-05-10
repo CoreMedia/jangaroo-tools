@@ -17,7 +17,6 @@ import java.util.Set;
 /**
  * Mojo to compile Jangaroo sources from during the test-compile phase.
  */
-@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "testCompile",
         defaultPhase = LifecyclePhase.TEST_COMPILE,
         requiresDependencyResolution = ResolutionScope.TEST,

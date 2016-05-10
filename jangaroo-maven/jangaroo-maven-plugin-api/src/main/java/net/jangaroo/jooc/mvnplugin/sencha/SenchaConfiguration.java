@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
-import java.util.List;
-
 public interface SenchaConfiguration extends SenchaProfileConfiguration {
 
   /**

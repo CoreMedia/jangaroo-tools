@@ -5,7 +5,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaWorkspaceHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
@@ -80,7 +79,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
   private void createAndPrepareSenchaModule() throws MojoExecutionException {
     // for now:
-    SenchaHelper senchaHelper = new SenchaWorkspaceHelper(project, this, getLog());
+    SenchaWorkspaceHelper senchaHelper = new SenchaWorkspaceHelper(project, this, getLog());
     senchaHelper.createModule();
     senchaHelper.prepareModule();
   }

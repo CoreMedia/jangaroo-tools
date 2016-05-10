@@ -1,12 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.Configurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.DefaultSenchaApplicationConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.MetadataConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.RequiresConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.ModuleConfigurer;
-import net.jangaroo.jooc.mvnplugin.sencha.configurer.ProfileConfigurer;
+import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.io.FileUtils;
@@ -22,46 +17,24 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.UUID;
 
-public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration> {
+public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfiguration, SenchaAppConfigBuilder> {
+
+  public static final String DEFAULT_LOCALE = "en";
 
   private static final String APP_JSON_FILENAME = "/app.json";
   private static final String PRODUCTION_BUILD_PATH = "/build/production";
   private static final String APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
-  private static final String APP_ID_ATTRIBUTE = "id";
 
-  private final Configurer[] appConfigurers;
   private final String senchaAppPath;
 
   public SenchaAppHelper(MavenProject project, SenchaAppConfiguration senchaConfiguration, Log log) {
     super(project, senchaConfiguration, log);
 
     this.senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;
-
-    MetadataConfigurer metadataConfigurer = new MetadataConfigurer(project);
-    RequiresConfigurer requiresConfigurer = new RequiresConfigurer(project, senchaConfiguration);
-    ModuleConfigurer moduleConfigurer = new ModuleConfigurer(project, senchaConfiguration, log);
-
-    ProfileConfigurer commonProfileConfigurer = new ProfileConfigurer(getCommonProfileConfiguration());
-    ProfileConfigurer productionProfileConfigurer = new ProfileConfigurer(getProductionProfileConfiguration(), PRODUCTION);
-    ProfileConfigurer testingProfileConfigurer = new ProfileConfigurer(getTestingProfileConfiguration(), TESTING);
-    ProfileConfigurer developmentProfileConfigurer = new ProfileConfigurer(getDevelopmentProfileConfiguration(), DEVELOPMENT);
-
-    this.appConfigurers = new Configurer[]{
-            DefaultSenchaApplicationConfigurer.getInstance(),
-            metadataConfigurer,
-            requiresConfigurer,
-            moduleConfigurer,
-            commonProfileConfigurer,
-            productionProfileConfigurer,
-            testingProfileConfigurer,
-            developmentProfileConfigurer
-    };
   }
 
-  @Override
   public void createModule() throws MojoExecutionException {
     File workingDirectory = new File(senchaAppPath);
 
@@ -100,8 +73,10 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
 
       try (PrintWriter pw = new PrintWriter(new FileWriter(senchaCfg.getAbsoluteFile(), true))) {
         pw.println("skip.slice=1");
-        // If true will cause problems with class pre- and postprocessors we use
+        // If true will cause problems with class pre- and post-processors we use
         pw.println("app.output.js.optimize.defines=false");
+        // If 0.99 (default), some deprecated API will not be available in production build:
+        pw.println("build.options.minVersion=0");
       } catch (IOException e) {
         throw new MojoExecutionException("Could not write configuration to " + senchaCfg);
       }
@@ -111,7 +86,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     }
   }
 
-  @Override
   public void prepareModule() throws MojoExecutionException {
     File senchaDirectory = new File(senchaAppPath);
 
@@ -124,7 +98,7 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
 
     File workingDirectory = new File(senchaAppPath);
 
-    writeAppJson(workingDirectory);
+    writeJson(new File(workingDirectory, APP_JSON_FILENAME));
     writeAppJs(workingDirectory);
 
     File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
@@ -134,7 +108,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     ));
   }
 
-  @Override
   @Nonnull
   public File packageModule() throws MojoExecutionException {
     File senchaAppDirectory = new File(senchaAppPath);
@@ -175,18 +148,6 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     }
   }
 
-  private void writeAppJson(File workingDirectory) throws MojoExecutionException {
-    Map<String, Object> appConfig = getAppConfig();
-    appConfig.put(APP_ID_ATTRIBUTE, generateSenchaAppId());
-
-    File fAppJson = new File(workingDirectory.getAbsolutePath() + APP_JSON_FILENAME);
-    try {
-      SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(fAppJson, appConfig);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not write " + fAppJson, e);
-    }
-  }
-
   private String generateSenchaAppId() {
     String appIdString = SenchaUtils.getSenchaPackageName(getProject().getGroupId(), getProject().getArtifactId()) +
             SenchaUtils.getSenchaVersionForMavenVersion(getProject().getVersion());
@@ -199,7 +160,20 @@ public class SenchaAppHelper extends AbstractSenchaHelper<SenchaAppConfiguration
     senchaCmdExecutor.execute();
   }
 
-  private Map<String, Object> getAppConfig() throws MojoExecutionException {
-    return getConfig(appConfigurers);
+  @Override
+  protected SenchaAppConfigBuilder createSenchaConfigBuilder() {
+    return new SenchaAppConfigBuilder();
   }
+
+  @Override
+  protected void configure(SenchaAppConfigBuilder configBuilder) throws MojoExecutionException {
+    super.configure(configBuilder);
+    configBuilder.id(generateSenchaAppId());
+  }
+
+  @Override
+  protected String getDefaultsJsonFileName() {
+    return "default.app.json";
+  }
+
 }
