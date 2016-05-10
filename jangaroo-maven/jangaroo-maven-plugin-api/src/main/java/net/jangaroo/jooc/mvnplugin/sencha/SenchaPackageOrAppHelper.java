@@ -118,8 +118,6 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
 
   @Override
   protected void configure(U configBuilder) throws MojoExecutionException {
-    configBuilder.type(Type.THEME.equals(getSenchaConfiguration().getType()) ? "theme" : "code");
-
     configureMetadata(configBuilder);
 
     configureRequires(configBuilder);
@@ -217,8 +215,6 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
   private void configureResourcesEntry(U configBuilder) {
     T senchaConfiguration = getSenchaConfiguration();
 
-    configBuilder.resource(SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
-
     if (senchaConfiguration instanceof SenchaPackageConfiguration) {
       SenchaPackageConfiguration packageConfiguration = (SenchaPackageConfiguration) senchaConfiguration;
       if (Type.CODE.equals(senchaConfiguration.getType()) && packageConfiguration.isShareResources()
@@ -226,6 +222,8 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
         ((SenchaPackageConfigBuilder)configBuilder).shareResources();
       }
     }
+
+    configBuilder.resource(SenchaUtils.generateAbsolutePathUsingPlaceholder(senchaConfiguration.getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
   }
 
 

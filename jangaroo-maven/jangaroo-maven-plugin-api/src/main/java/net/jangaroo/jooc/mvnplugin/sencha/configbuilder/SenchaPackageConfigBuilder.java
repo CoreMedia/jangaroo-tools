@@ -33,10 +33,10 @@ public class SenchaPackageConfigBuilder extends SenchaPackageOrAppConfigBuilder<
 
   @Override
   void fillResource(String path, Map<String, String> resource) {
-    super.fillResource(path, resource);
     if (shareResources) {
       resource.put(RESOURCE_OUTPUT, RESOURCE_OUTPUT_SHARED);
     }
+    super.fillResource(path, resource);
   }
 
 }

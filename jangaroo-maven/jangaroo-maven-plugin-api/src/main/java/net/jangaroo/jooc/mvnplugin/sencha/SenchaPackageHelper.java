@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.sencha;
 
 import com.google.common.collect.ImmutableMap;
+import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
@@ -245,6 +246,12 @@ public class SenchaPackageHelper extends SenchaPackageOrAppHelper<SenchaPackageC
   @Override
   protected String getDefaultsJsonFileName() {
     return "default.package.json";
+  }
+
+  @Override
+  protected void configure(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
+    configBuilder.type(Type.THEME.equals(getSenchaConfiguration().getType()) ? "theme" : "code");
+    super.configure(configBuilder);
   }
 
 }
