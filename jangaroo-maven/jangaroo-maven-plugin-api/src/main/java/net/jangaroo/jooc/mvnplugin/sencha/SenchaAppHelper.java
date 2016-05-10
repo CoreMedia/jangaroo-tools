@@ -75,6 +75,8 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
         pw.println("skip.slice=1");
         // If true will cause problems with class pre- and post-processors we use
         pw.println("app.output.js.optimize.defines=false");
+        // If 0.99 (default), some deprecated API will not be available in production build:
+        pw.println("build.options.minVersion=0");
       } catch (IOException e) {
         throw new MojoExecutionException("Could not write configuration to " + senchaCfg);
       }
