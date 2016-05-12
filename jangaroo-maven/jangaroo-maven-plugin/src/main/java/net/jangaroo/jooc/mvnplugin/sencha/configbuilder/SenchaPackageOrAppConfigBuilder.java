@@ -11,10 +11,6 @@ import java.util.Map;
  */
 public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigBuilder> extends SenchaConfigBuilder<T> {
 
-  public static final String PRODUCTION = "production";
-  public static final String TESTING = "testing";
-  public static final String DEVELOPMENT = "development";
-
   public static final String CSS = "css";
   public static final String JS = "js";
 
