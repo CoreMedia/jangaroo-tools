@@ -25,13 +25,15 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
   public static final String DEFAULT_LOCALE = "en";
 
   private static final String APP_JSON_FILENAME = "/app.json";
-  private static final String PRODUCTION_BUILD_PATH = "/build/production";
+  private static final String BUILD_PATH = "/build/";
   private static final String APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
 
   private final String senchaAppPath;
+  private final String build;
 
-  public SenchaAppHelper(MavenProject project, SenchaAppConfiguration senchaConfiguration, Log log) {
+  public SenchaAppHelper(MavenProject project, SenchaAppConfiguration senchaConfiguration, Log log, String build) {
     super(project, senchaConfiguration, log);
+    this.build = build;
 
     this.senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;
   }
@@ -43,12 +45,10 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       throw new MojoExecutionException("Could not create working directory.");
     }
 
-    File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_APP_CONFIG);
-    // make sure senchaCfg does not exist
+    File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);
+    // only generate app if senchaCfg does not exist
     if (senchaCfg.exists()) {
-      if (!senchaCfg.delete()) {
-        throw new MojoExecutionException("Could not delete " + senchaCfg);
-      }
+      return;
     }
 
     String arguments = "generate app"
@@ -68,22 +68,20 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       throw new MojoExecutionException("Could not delete example app directory: " + appDir, e);
     }
 
-    // sencha.cfg should be recreated
-    // for normal packages skip generating css and slices
-    if (senchaCfg.exists()) {
+    // sencha.cfg should have been recreated.
+    if (!senchaCfg.exists()) {
+      throw new MojoExecutionException("Could not find sencha.cfg of app");
+    }
 
-      try (PrintWriter pw = new PrintWriter(new FileWriter(senchaCfg.getAbsoluteFile(), true))) {
-        pw.println("skip.slice=1");
-        // If true will cause problems with class pre- and post-processors we use
-        pw.println("app.output.js.optimize.defines=false");
-        // If 0.99 (default), some deprecated API will not be available in production build:
-        pw.println("build.options.minVersion=0");
-      } catch (IOException e) {
-        throw new MojoExecutionException("Could not write configuration to " + senchaCfg);
-      }
-
-    } else {
-      throw new MojoExecutionException("Could not find sencha.cfg of package");
+    try (PrintWriter pw = new PrintWriter(new FileWriter(senchaCfg.getAbsoluteFile(), true))) {
+      // For apps, skip generating slices.
+      pw.println("skip.slice=1");
+      // If true will cause problems with class pre- and post-processors we use.
+      pw.println("app.output.js.optimize.defines=false");
+      // If 0.99 (default), some deprecated API will not be available in production build:
+      pw.println("build.options.minVersion=0");
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not write configuration to " + senchaCfg);
     }
   }
 
@@ -117,7 +115,7 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
 
-    buildSenchaApp(senchaAppDirectory);
+    buildSenchaApp(senchaAppDirectory, build);
 
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(getProject().getBasedir());
 
@@ -125,12 +123,12 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
       throw new MojoExecutionException("Could not find Sencha workspace directory ");
     }
 
-    File productionDirectory = new File(senchaAppPath + PRODUCTION_BUILD_PATH);
-    if (!productionDirectory.isDirectory() && !productionDirectory.exists()) {
-      throw new MojoExecutionException("Could not find production directory for Sencha app " + productionDirectory);
+    File appOutputDirectory = new File(senchaAppPath + BUILD_PATH + build);
+    if (!appOutputDirectory.isDirectory() && !appOutputDirectory.exists()) {
+      throw new MojoExecutionException("Could not find build directory for Sencha app " + appOutputDirectory);
     }
 
-    return productionDirectory;
+    return appOutputDirectory;
   }
 
   private void writeAppJs(File workingDirectory) throws MojoExecutionException {
@@ -155,15 +153,18 @@ public class SenchaAppHelper extends SenchaPackageOrAppHelper<SenchaAppConfigura
     return UUID.nameUUIDFromBytes(appIdString.getBytes()).toString();
   }
 
-  private void buildSenchaApp(File senchaAppDirectory) throws MojoExecutionException {
-    getLog().info("Building Sencha app module");
-    StringBuilder args = new StringBuilder();
-    args.append("app build --locale ");
+  private void buildSenchaApp(File senchaAppDirectory, String buildEnvironment) throws MojoExecutionException {
+    getLog().info("Building Sencha app module for build environment '" + buildEnvironment + "'.");
     List<String> locales = getSenchaConfiguration().getLocales();
-    args.append(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+    StringBuilder args = new StringBuilder();
+    args.append("app build")
+            .append(" --").append(buildEnvironment)
+            .append(" --locale ").append(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+    args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
     for (int i = 1; i < locales.size(); i++) {
-      args.append(" then app refresh --locale ");
-      args.append(locales.get(i));
+      args.append(" then app build")
+              .append(" --").append(buildEnvironment)
+              .append(" --locale ").append(locales.get(i));
     }
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog());
     senchaCmdExecutor.execute();

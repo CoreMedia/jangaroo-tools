@@ -54,6 +54,13 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
   private List<String> locales = Lists.newArrayList("en");
 
   /**
+   * Choose to create a 'development' build of the Sencha App instead of the standard 'production' build.
+   * Note that when you do a 'mvn install -DsenchaAppBuild=development', an incomplete artifact is installed!
+   */
+  @Parameter(defaultValue = "${senchaAppBuild}")
+  private String senchaAppBuild;
+
+  /**
    * Plexus archiver.
    */
   @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
@@ -86,8 +93,14 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
     if (StringUtils.isBlank(applicationClass)) {
       throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
+    if (StringUtils.isEmpty(senchaAppBuild)) {
+      senchaAppBuild = SenchaAppHelper.PRODUCTION;
+    }
+    if (!(SenchaAppHelper.PRODUCTION.equals(senchaAppBuild) || SenchaAppHelper.DEVELOPMENT.equals(senchaAppBuild))) {
+      throw new MojoExecutionException("'senchaAppBuild' must be one of 'production' or 'development'.");
+    }
 
-    SenchaAppHelper senchaHelper = new SenchaAppHelper(project, this, getLog());
+    SenchaAppHelper senchaHelper = new SenchaAppHelper(project, this, getLog(), senchaAppBuild);
     senchaHelper.createModule();
     senchaHelper.prepareModule();
     File appProductionBuildDir = senchaHelper.packageModule();

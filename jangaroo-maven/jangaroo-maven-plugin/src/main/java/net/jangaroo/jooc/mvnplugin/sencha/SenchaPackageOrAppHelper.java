@@ -28,9 +28,9 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
  */
 abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends SenchaPackageOrAppConfigBuilder> extends AbstractSenchaHelper<T, U> {
 
-  static final String PRODUCTION = "production";
-  static final String TESTING = "testing";
-  static final String DEVELOPMENT = "development";
+  public static final String PRODUCTION = "production";
+  public static final String TESTING = "testing";
+  public static final String DEVELOPMENT = "development";
 
   private static final String SENCHA_SRC_PATH = "/src/main/sencha/";
   protected static final String SENCHA_CLASS_PATH = "/src";
