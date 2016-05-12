@@ -179,13 +179,15 @@
 
   "bootstrap": {
     "base": "${app.dir}",
-    "manifest": "bootstrap-${app.locale}.json",
+    "manifest": "${build.id}.json",
     "microloader": "bootstrap.js",
     "css": "bootstrap.css"
   },
 
   "output": {
     "base": "${app.dir}/build/${build.environment}",
+    "manifest": "${build.id}.json",
+    "js": "${build.id}.js",
     "appCache": {
       "enable": false
     }
