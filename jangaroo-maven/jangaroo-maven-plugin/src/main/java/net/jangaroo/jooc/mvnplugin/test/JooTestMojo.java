@@ -49,7 +49,6 @@ public class JooTestMojo extends JooTestMojoBase {
   /**
    * Source directory to scan for files to compile.
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   @Parameter(defaultValue = "${project.build.testSourceDirectory}")
   private File testSourceDirectory;
 
