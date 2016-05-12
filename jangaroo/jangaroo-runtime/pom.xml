@@ -76,7 +76,6 @@
                 <copy todir="target/workspace/packages/local/package/resources/joo">
                   <filelist dir="target/classes/META-INF/resources/joo">
                     <file name="jangaroo-runtime.module.js" />
-                    <file name="AS3.js" />
                     <file name="before-ext-load.js" />
                   </filelist>
                 </copy>

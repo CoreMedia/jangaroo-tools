@@ -17,10 +17,6 @@
     "bundle": false,
     "includeInBundle" : true
   }, {
-    "path" : "resources/joo/AS3.js",
-    "bundle": false,
-    "includeInBundle" : true
-  }, {
     "path" : "resources/joo/before-ext-load.js",
     "bundle": false,
     "includeInBundle" : true

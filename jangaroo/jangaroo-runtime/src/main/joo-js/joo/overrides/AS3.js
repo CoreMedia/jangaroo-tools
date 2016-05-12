@@ -1,3 +1,6 @@
+// @override Ext.namespace
+// Claim to "override" Ext.namespace so that this code is loaded / included right after Ext.namespace has been defined!
+
 Class = {
   $isClass: true,
   $className: "Class",
@@ -7,7 +10,7 @@ Class = {
 };
 Vector$object = Array;
 
-Ext.apply(Ext.ns("AS3"), {
+Ext.apply(Ext.namespace("AS3"), {
   // function assert(cond : Object, file : String, line : uint, column : uint) : void
   assert: function (cond, file, line, column) {
     if (!cond)
