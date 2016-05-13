@@ -1,0 +1,25 @@
+{
+  "name": "testing",
+  "classpath": [
+    "joo"
+  ],
+  "framework": "ext",
+  "requires": [
+  ],
+  "js": [
+    {
+      "path": "run-tests.js",
+      "bundle": true
+    }
+  ],
+  "loader": {
+    "cache": false,
+    "cacheParam": "_dc"
+  },
+  "bootstrap": {
+    "base": "${app.dir}",
+    "manifest": "classic.json",
+    "microloader": "bootstrap.js"
+  },
+  "toolkit": "classic"
+}

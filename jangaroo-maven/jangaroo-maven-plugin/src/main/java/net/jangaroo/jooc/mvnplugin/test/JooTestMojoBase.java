@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import net.jangaroo.jooc.mvnplugin.Type;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaTestAppHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
@@ -155,6 +156,8 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     unArchiver.setSourceFile(appTemplateArtifactFile);
     unArchiver.setDestDirectory(webappDirectory);
     unArchiver.extract();
+
+    new SenchaTestAppHelper(project, getLog()).createApp();
   }
 
   protected String getJettyUrl(Server server) {
