@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin.test;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
+import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -139,6 +140,11 @@ public class JooTestMojo extends JooTestMojoBase {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!skip && !skipTests && !skipJooUnitTests && isTestAvailable()) {
+      super.execute();
+
+      // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
+      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog()).execute();
+
       Server server = jettyRunTest(true);
       String url = getTestUrl(server);
 
@@ -158,7 +164,7 @@ public class JooTestMojo extends JooTestMojoBase {
         try {
           server.stop();
         } catch (Exception e) {
-          // never mind we just couldn't step the selenium server.
+          // never mind we just couldn't stop the selenium server.
           getLog().error("Could not stop test Jetty.", e);
         }
       }

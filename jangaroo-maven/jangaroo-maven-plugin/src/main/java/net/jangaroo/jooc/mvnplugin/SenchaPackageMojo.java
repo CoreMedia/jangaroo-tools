@@ -18,7 +18,7 @@ import java.io.File;
 /**
  * Generates and packages Sencha package modules of type "test" and "code"
  */
-@Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PACKAGE,
+@Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
 public class SenchaPackageMojo extends AbstractSenchaMojo implements SenchaPackageConfiguration {
 

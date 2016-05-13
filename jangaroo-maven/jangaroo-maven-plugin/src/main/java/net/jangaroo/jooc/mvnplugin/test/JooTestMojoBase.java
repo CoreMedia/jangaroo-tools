@@ -1,10 +1,20 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import net.jangaroo.jooc.mvnplugin.Type;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
+import org.codehaus.plexus.archiver.UnArchiver;
+import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -13,6 +23,7 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.mortbay.jetty.plugin.JettyWebAppContext;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,14 +38,12 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   /**
    * The maven project.
    */
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
 
   /**
    * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
 
@@ -45,16 +54,14 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   protected File testOutputDirectory;
 
   /**
-   * the tests.html file relative to the test resources folder
+   * The JavaScript file relative to the test resources folder that runs your test suite.
    */
-  @SuppressWarnings({"UnusedDeclaration"})
-  @Parameter(defaultValue = "tests.html")
-  protected String testsHtml;
+  @Parameter(defaultValue = "run-tests.js")
+  protected String runTestsJs;
 
   /**
    * Whether to load the test application in debug mode (#joo.debug).
    */
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(defaultValue = "false")
   protected boolean debugTests;
 
@@ -71,7 +78,6 @@ public abstract class JooTestMojoBase extends AbstractMojo {
    * Every port is tried until a free one is found or all ports in the range
    * are occupied (which results in the build to fail).
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   @Parameter(property = "jooUnitJettyPortUpperBound", defaultValue = "10200")
   private int jooUnitJettyPortUpperBound;
 
@@ -84,16 +90,72 @@ public abstract class JooTestMojoBase extends AbstractMojo {
    * When using goal <code>jetty-run-tests</code>, this lower bound is
    * always used.
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
   @Parameter(property = "jooUnitJettyPortLowerBound", defaultValue = "10100")
   private int jooUnitJettyPortLowerBound;
 
   /**
    * The host name to use to reach the locally started Jetty listenes, usually the default, "localhost".
    */
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(property = "jooUnitJettyHost", defaultValue = "localhost")
   private String jooUnitJettyHost;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  protected RepositorySystem repositorySystem;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  private ArtifactResolver artifactResolver;
+
+  @Inject
+  private ArchiverManager archiverManager;
+
+  @Parameter(defaultValue = "${localRepository}", required = true)
+  private ArtifactRepository localRepository;
+
+  @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+  private List<ArtifactRepository> remoteRepositories;
+
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    if (isTestAvailable()) {
+      getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
+      createWebapp(testOutputDirectory);
+    } else {
+      getLog().info("Skipping generation of Jangaroo test app: no tests found.");
+    }
+  }
+
+  /**
+   * Create the Jangaroo Web app in the given Web app directory.
+   * @param webappDirectory the directory where to build the Jangaroo Web app.
+   * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
+   */
+  protected void createWebapp(File webappDirectory) throws MojoExecutionException {
+    if (webappDirectory.mkdirs()) {
+      getLog().debug("created app directory " + webappDirectory);
+    }
+    UnArchiver unArchiver;
+    try {
+      unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
+    } catch (NoSuchArchiverException e) {
+      throw new MojoExecutionException("No ZIP UnArchiver?!", e);
+    }
+    ArtifactResolutionRequest artifactResolutionRequest = new ArtifactResolutionRequest();
+    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
+    artifactResolutionRequest.setArtifact(repositorySystem.createArtifact("net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar"));
+    artifactResolutionRequest.setLocalRepository(localRepository);
+    artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
+    ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
+    File appTemplateArtifactFile = result.getArtifacts().iterator().next().getFile();
+
+    unArchiver.setSourceFile(appTemplateArtifactFile);
+    unArchiver.setDestDirectory(webappDirectory);
+    unArchiver.extract();
+  }
 
   protected String getJettyUrl(Server server) {
     return "http://" + jooUnitJettyHost + ":" + server.getConnectors()[0].getPort();
@@ -101,12 +163,12 @@ public abstract class JooTestMojoBase extends AbstractMojo {
 
   protected boolean isTestAvailable() {
     for (org.apache.maven.model.Resource r : testResources) {
-      File testFile = new File(r.getDirectory(), testsHtml);
+      File testFile = new File(r.getDirectory(), runTestsJs);
       if (testFile.exists()) {
         return true;
       }
     }
-    getLog().info("The tests.html file '" + testsHtml + "' could not be found. Skipping.");
+    getLog().info("The JavaScript test run file '" + runTestsJs + "' could not be found. Skipping.");
     return false;
   }
 
@@ -114,17 +176,10 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     JettyWebAppContext handler;
     try {
       handler = new JettyWebAppContext();
-      handler.setWebInfLib(findJars());
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       List<Resource> baseResources = new ArrayList<Resource>();
-      baseResources.add(toResource(new File(outputDirectory, "META-INF/resources")));
-      baseResources.add(toResource(testOutputDirectory));
-      for (org.apache.maven.model.Resource r : testResources) {
-        File testResourceDirectory = new File(r.getDirectory());
-        if (testResourceDirectory.exists()) {
-           baseResources.add(toResource(testResourceDirectory));
-        }
-      }
+      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
+      baseResources.add(toResource(workspaceDir));
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));
       getLog().info("Using base resources " + baseResources);
       ServletHolder servletHolder = new ServletHolder("default", DefaultServlet.class);
@@ -135,20 +190,6 @@ public abstract class JooTestMojoBase extends AbstractMojo {
       throw wrap(e);
     }
     return startJetty(handler, tryPortRange);
-  }
-
-  protected List<File> findJars() throws DependencyResolutionRequiredException {
-    List<File> jars = new ArrayList<File>();
-    for (Object jarUrl : project.getTestClasspathElements()) {
-      File file = new File((String)jarUrl);
-      if (file.isFile()) { // should be a jar--don't add folders!
-        jars.add(file);
-        getLog().info("Test classpath: " + jarUrl);
-      } else {
-        getLog().info("Ignoring test classpath: " + jarUrl);
-      }
-    }
-    return jars;
   }
 
   private Resource toResource(File file) throws MojoExecutionException {
@@ -224,8 +265,13 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   }
 
   protected String getTestUrl(Server server) throws MojoExecutionException {
+    File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
+    if (workspaceDir == null) {
+      throw new MojoExecutionException("No Sencha workspace.json found starting from " + project.getBasedir());
+    }
+    String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
     StringBuilder builder = new StringBuilder(getJettyUrl(server))
-            .append("/").append(testsHtml.replace(File.separatorChar, '/'));
+            .append("/").append(path);
     if (debugTests) {
       builder.append("#joo.debug");
     }

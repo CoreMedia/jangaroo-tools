@@ -130,7 +130,7 @@ public class MavenPluginHelper {
 
   public List<File> getActionScriptClassPath(boolean includeTestScope) {
     List<File> classPath = new ArrayList<>();
-    Collection<Artifact> dependencies = getArtifacts();
+    Collection<Artifact> dependencies = project.getArtifacts();
     for (Artifact dependency : dependencies) {
       if (log.isDebugEnabled()) {
         log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + " type: " + dependency.getType());
@@ -150,11 +150,6 @@ public class MavenPluginHelper {
       classPath.add(0, jooApiDir);
     }
     return classPath;
-  }
-
-  @SuppressWarnings({"unchecked"})
-  public Set<Artifact> getArtifacts() {
-    return project.getArtifacts();
   }
 
 }
