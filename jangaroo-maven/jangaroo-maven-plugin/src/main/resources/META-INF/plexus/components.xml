@@ -64,7 +64,8 @@
         <phases>
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
           </generate-sources>
-          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-app,
+            org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app</package>

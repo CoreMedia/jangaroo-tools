@@ -30,10 +30,6 @@ under the License.
 
   <build>
     <resources>
-      <resource>
-        <directory>src/main/joo-js</directory>
-        <targetPath>META-INF/resources</targetPath>
-      </resource>
     </resources>
     <sourceDirectory>src/main/joo</sourceDirectory>
     <plugins>

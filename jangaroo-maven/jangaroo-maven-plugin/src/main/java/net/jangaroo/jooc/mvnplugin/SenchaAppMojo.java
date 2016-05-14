@@ -1,7 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import com.google.common.collect.Lists;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -17,10 +17,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
@@ -31,9 +29,6 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
  */
 @Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfiguration {
-
-  @Inject
-  private MavenProjectHelper helper;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
@@ -101,7 +96,6 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
     }
 
     SenchaAppHelper senchaHelper = new SenchaAppHelper(project, this, getLog(), senchaAppBuild);
-    senchaHelper.createModule();
     senchaHelper.prepareModule();
     File appProductionBuildDir = senchaHelper.packageModule();
     createJarFromProductionBuild(appProductionBuildDir);

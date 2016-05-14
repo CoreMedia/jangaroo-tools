@@ -25,7 +25,7 @@ import java.util.Set;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "extract-remote-packages",
-        defaultPhase = LifecyclePhase.PROCESS_RESOURCES,
+        defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
         requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
 public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {

@@ -60,9 +60,9 @@ public class PropertiesMojo extends AbstractMojo {
   private FileSet properties;
 
   /**
-   * Output directory into whose compiled property file classes are generated.
+   * Output directory into which compiled property file classes are generated.
    */
-  @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/resources/joo/locale")
+  @Parameter(defaultValue = "${project.build.directory}/packages/local/package/locale")
   private File outputDirectory;
 
   public File getOutputDirectory() {

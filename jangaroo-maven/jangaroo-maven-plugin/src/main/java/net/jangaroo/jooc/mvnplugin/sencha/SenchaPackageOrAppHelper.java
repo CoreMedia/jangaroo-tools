@@ -18,9 +18,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_OVERRIDES_PATH;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_LOCALE_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
@@ -33,8 +30,6 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
   public static final String DEVELOPMENT = "development";
 
   private static final String SENCHA_SRC_PATH = "/src/main/sencha/";
-  protected static final String SENCHA_CLASS_PATH = "/src";
-  protected static final String SENCHA_APP_CLASS_PATH = "/app";
 
   private final String senchaModuleName;
   private final ExtendableProfileConfiguration commonProfileConfiguration;
@@ -51,7 +46,7 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
     this.developmentProfileConfiguration = new ExtendableProfileConfiguration(senchaConfiguration.getDevelopment());
   }
 
-  protected void copyFilesFromSrc(String path) throws MojoExecutionException {
+  protected void copyFiles(String path) throws MojoExecutionException {
     File srcDir = new File(getProject().getBasedir() + SENCHA_SRC_PATH);
     File targetDir = new File(path);
     if (srcDir.exists()) {
@@ -61,41 +56,6 @@ abstract class SenchaPackageOrAppHelper<T extends SenchaConfiguration, U extends
         throw new MojoExecutionException(String.format("Copying sencha sources from %s to %s failed.", srcDir, targetDir ), e);
       }
     }
-  }
-
-  private void copyFilesFromJoo(String path) throws MojoExecutionException {
-    File jangarooResourcesDir = new File(getProject().getBuild().getDirectory() + "/classes/META-INF/resources");
-    File senchaResourcesDir = new File(path + File.separator + SENCHA_RESOURCES_PATH);
-    if (jangarooResourcesDir.exists()) {
-      try {
-        FileUtils.copyDirectory(jangarooResourcesDir, senchaResourcesDir);
-      } catch (IOException e) {
-        throw new MojoExecutionException(String.format("Could not copy resources from %s to %s", jangarooResourcesDir, senchaResourcesDir), e);
-      }
-    }
-    String senchaClassPath = Type.APP.equals(getSenchaConfiguration().getType()) ? SENCHA_APP_CLASS_PATH : SENCHA_CLASS_PATH;
-    move(senchaResourcesDir, "joo/classes", path, senchaClassPath);
-    move(senchaResourcesDir, "joo/overrides", path, SENCHA_OVERRIDES_PATH);
-    move(senchaResourcesDir, "joo/locale", path, SENCHA_LOCALE_PATH);
-  }
-
-  private void move(File sourceBaseDir, String subdir, String targetBasePath, String targetSubdir) throws MojoExecutionException {
-    File sourceDir = new File(sourceBaseDir.getAbsolutePath() + File.separator + subdir);
-    if (sourceDir.exists()) {
-      File targetDir = new File(targetBasePath + File.separator + targetSubdir);
-      try {
-        // FileUtils.move fails if directory already exists
-        FileUtils.copyDirectory(sourceDir, targetDir);
-        FileUtils.deleteDirectory(sourceDir);
-      } catch (IOException e) {
-        throw new MojoExecutionException(String.format("Could not move files from %s to %s", sourceDir, targetDir), e);
-      }
-    }
-  }
-
-  protected void copyFiles(String path) throws MojoExecutionException {
-    copyFilesFromSrc(path);
-    copyFilesFromJoo(path);
   }
 
   protected String getSenchaModuleName() {

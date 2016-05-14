@@ -39,10 +39,10 @@ try
         return false;
     }
 
-    File jsDir = new File ( target, "classes/META-INF/resources/joo/classes" );
+    File jsDir = new File ( target, "packages/local/package/src" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        print( "classes/META-INF/resources/joo/classes directory is missing or not a directory." );
+        print( "packages/local/package/src directory is missing or not a directory." );
         return false;
     }
 

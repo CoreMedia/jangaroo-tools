@@ -100,10 +100,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
 
-  protected File getTempClassesOutputDirectory() {
-    return tempTestClassesOutputDirectory;
-  }
-
   @Override
   protected Set<String> getIncludes() {
     return testIncludes;

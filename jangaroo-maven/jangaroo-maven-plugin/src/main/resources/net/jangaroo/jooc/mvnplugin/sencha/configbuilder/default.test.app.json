@@ -1,7 +1,7 @@
 {
   "name": "testing",
   "classpath": [
-    "joo"
+    "src"
   ],
   "framework": "ext",
   "requires": [

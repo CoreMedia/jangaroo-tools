@@ -33,26 +33,18 @@ public class CompilerMojo extends AbstractCompilerMojo {
   private static final OrFileFilter PROPERTIES_FILE_FILTER = new OrFileFilter(DirectoryFileFilter.DIRECTORY, new RegexFileFilter("[^_]*\\.properties"));
 
   /**
-   * Output directory into whose META-INF/resources/joo/classes sub-directory compiled classes are generated.
-   * This property is used for <code>jangaroo</code> packaging type as {@link #getOutputDirectory}.
+   * Sencha package output directory into whose 'src' sub-directory compiled classes are generated.
+   * This property is used for <code>jangaroo-pkg</code> packaging type as {@link #getOutputDirectory}.
    */
-  @Parameter(defaultValue = "${project.build.outputDirectory}")
-  private File outputDirectory;
+  @Parameter(defaultValue = "${project.build.directory}/packages/local/package")
+  private File packageOutputDirectory;
 
   /**
-   * Location of Jangaroo resources of this module (including compiler output, usually under "joo/") to be added
-   * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
-   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
-   * Defaults to ${project.build.directory}/jangaroo-output/
+   * Sencha app output directory into whose 'app' sub-directory compiled classes are generated.
+   * This property is used for <code>jangaroo-app</code> packaging type as {@link #getOutputDirectory}.
    */
-  @Parameter(defaultValue = "${project.build.directory}/jangaroo-output/")
-  private File packageSourceDirectory;
-
-  /**
-   * Temporary output directory for compiled classes to be packaged into a single *.js file.
-   */
-  @Parameter(defaultValue = "${project.build.directory}/temp/jangaroo-output/classes")
-  private File tempClassesOutputDirectory;
+  @Parameter(defaultValue = "${project.build.directory}/app")
+  private File appOutputDirectory;
 
   /**
    * Output directory for compilation reports like the cyclic classes report.
@@ -92,11 +84,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   protected File getOutputDirectory() {
-    return Type.containsJangarooSources(getProject()) ? new File(outputDirectory, "META-INF/resources") : packageSourceDirectory;
-  }
-
-  protected File getTempClassesOutputDirectory() {
-    return tempClassesOutputDirectory;
+    return Type.JANGAROO_PKG_PACKAGING.equals(getProject().getPackaging()) ? packageOutputDirectory : appOutputDirectory;
   }
 
   public File getReportOutputDirectory() {

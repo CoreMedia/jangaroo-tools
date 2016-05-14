@@ -37,12 +37,6 @@ under the License.
   </profiles>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/joo-js</directory>
-        <targetPath>META-INF/resources</targetPath>
-      </resource>
-    </resources>
     <outputDirectory>target/jangaroo-output</outputDirectory>
     <sourceDirectory>src/main/joo</sourceDirectory>
     <testSourceDirectory>src/test/joo</testSourceDirectory>
