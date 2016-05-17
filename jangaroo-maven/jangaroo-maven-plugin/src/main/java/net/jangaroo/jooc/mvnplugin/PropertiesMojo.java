@@ -61,11 +61,19 @@ public class PropertiesMojo extends AbstractMojo {
 
   /**
    * Output directory into which compiled property file classes are generated.
+   * By default, for packaging type <code>jangaroo-app</code>, the directory
+   * <code>${project.build.directory}/app/locale</code>
+   * is used, for packaging type <code>jangaroo-pkg</code>, it is
+   * <code>${project.build.directory}/packages/local/package/locale</code>.
    */
-  @Parameter(defaultValue = "${project.build.directory}/packages/local/package/locale")
+  @Parameter
   private File outputDirectory;
 
   public File getOutputDirectory() {
+    if (outputDirectory == null) {
+      String modulePath = Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging()) ? "packages/local/package/locale" : "app/locale";
+      return new File(project.getBuild().getDirectory(), modulePath);
+    }
     return outputDirectory;
   }
 
@@ -83,6 +91,7 @@ public class PropertiesMojo extends AbstractMojo {
   private MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
+    File outputDirectory = getOutputDirectory();
     if (!outputDirectory.exists()) {
       getLog().info("generating localized JavaScript into: " + outputDirectory.getPath());
       getLog().debug("created " + outputDirectory.mkdirs());
