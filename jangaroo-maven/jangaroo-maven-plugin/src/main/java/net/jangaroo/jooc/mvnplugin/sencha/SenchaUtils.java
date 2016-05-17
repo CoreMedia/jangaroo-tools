@@ -137,11 +137,10 @@ public class SenchaUtils {
    */
   public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
     // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
-    relativePath = FilenameUtils.separatorsToUnix(relativePath);
+    String normalizedRelativePath = FilenameUtils.separatorsToUnix(relativePath);
     String result = PLACEHOLDERS.get(packageType);
-    if (!StringUtils.isEmpty(relativePath)
-            && !relativePath.startsWith(SEPARATOR)) {
-      result += SEPARATOR + relativePath;
+    if (StringUtils.isNotEmpty(normalizedRelativePath) && !normalizedRelativePath.startsWith(SEPARATOR)) {
+      result += SEPARATOR + normalizedRelativePath;
     }
     return result;
   }
