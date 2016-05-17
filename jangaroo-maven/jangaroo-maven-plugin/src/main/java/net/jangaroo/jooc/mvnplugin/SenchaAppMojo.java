@@ -103,7 +103,12 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
   }
 
   private void createJarFromProductionBuild(File appProductionBuildDir) throws MojoExecutionException {
+
     File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
+
+    // add the Jangaroo compiler resources to the resulting JAR
+    archiver.addFileSet(fileSet( appProductionBuildDir ).prefixed( "META-INF/resources/" ));
+
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);
@@ -111,10 +116,6 @@ public class SenchaAppMojo extends AbstractSenchaMojo implements SenchaAppConfig
 
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
-
-      JarArchiver archiver = mavenArchiver.getArchiver();
-      archiver.addFileSet(fileSet( appProductionBuildDir ).prefixed( "META-INF/resources/" ));
-
       mavenArchiver.createArchive(mavenSession, project, archive);
 
     } catch (Exception e) { // NOSONAR
