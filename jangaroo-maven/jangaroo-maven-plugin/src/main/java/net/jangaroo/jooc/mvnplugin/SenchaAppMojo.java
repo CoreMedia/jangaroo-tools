@@ -177,7 +177,8 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
     ));
   }
 
-  protected void configure(SenchaAppConfigBuilder configBuilder, String workingDirectory) throws IOException, MojoExecutionException {
+  protected void configure(SenchaAppConfigBuilder configBuilder, String workingDirectory)
+          throws IOException, MojoExecutionException {
 
     configBuilder.destFile(workingDirectory + APP_JSON_FILENAME);
     configBuilder.defaults("default.app.json");

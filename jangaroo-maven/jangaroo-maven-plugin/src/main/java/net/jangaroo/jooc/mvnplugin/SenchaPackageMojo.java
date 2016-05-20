@@ -135,16 +135,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
   private void createModule() throws MojoExecutionException {
 
-    File workingDirectory;
-    try {
-      workingDirectory = new File(senchaPackagePath).getCanonicalFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not determine working directory", e);
-    }
-
-    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("Could not create working directory " + workingDirectory);
-    }
+    File workingDirectory = getWorkingDirectory();
 
     File senchaCfg = new File(workingDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
     // make sure senchaCfg does not exist
@@ -181,6 +172,20 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
 
+  }
+
+  private File getWorkingDirectory() throws MojoExecutionException {
+    File workingDirectory;
+    try {
+      workingDirectory = new File(senchaPackagePath).getCanonicalFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not determine working directory", e);
+    }
+
+    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+      throw new MojoExecutionException("Could not create working directory " + workingDirectory);
+    }
+    return workingDirectory;
   }
 
   public void prepareModule() throws MojoExecutionException {
@@ -223,46 +228,53 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   private void addRegisterEditorPluginsResource(SenchaPackageConfigBuilder configBuilder,
                                                 String resourcesPath,
                                                 SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
+
     List<? extends EditorPluginDescriptor> editorPlugins =
             senchaProfileConfiguration == null ? Collections.<EditorPluginDescriptor>emptyList() :
                     senchaProfileConfiguration.getEditorPlugins();
+
     if (!editorPlugins.isEmpty()) {
-      File resource = new File(senchaPackagePath + File.separator + resourcesPath + File.separator + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (resource.exists()) {
-        getLog().warn("resource file for editor plugins already exists, deleting...");
-        if (!resource.delete()) {
-          throw new MojoExecutionException("Could not delete resource file for editor plugins");
+      File registerMainClassFile = new File(senchaPackagePath + File.separator + resourcesPath + File.separator + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
+      if (registerMainClassFile.exists()) {
+        getLog().warn("registerMainClassFile file for editor plugins already exists, deleting...");
+        if (!registerMainClassFile.delete()) {
+          throw new MojoExecutionException("Could not delete registerMainClassFile file for editor plugins");
         }
       }
-
-      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
-
-        for (EditorPluginDescriptor editorPlugin : editorPlugins) {
-          if (null == editorPlugin.getMainClass()) {
-            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-            continue;
-          }
-          String name = editorPlugin.getName();
-          if (null == name) {
-            name = getPluginName(editorPlugin.getMainClass());
-          }
-          pw.println("coremediaEditorPlugins.push({");
-          // optional parameters are added first so they can always be followed by a comma
-          if (null != editorPlugin.getRequiredLicenseFeature()) {
-            pw.println("\trequiredLicenseFeature: \"" + StringUtils.escape(editorPlugin.getRequiredLicenseFeature()) + "\",");
-          }
-          if (null != editorPlugin.getRequiredGroup()) {
-            pw.println("\trequiredGroup: \"" + StringUtils.escape(editorPlugin.getRequiredGroup()) + "\",");
-          }
-          pw.println("\tname: \"" + StringUtils.escape(name) + "\",");
-          pw.println("\tmainClass: \"" + StringUtils.escape(editorPlugin.getMainClass()) + "\"");
-
-          pw.println("});");
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not create editor plugins resource", e);
-      }
+      writeRegisterMainClassesFile(registerMainClassFile, editorPlugins);
       configBuilder.js(resourcesPath + SenchaUtils.SEPARATOR + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME, false, true);
+    }
+  }
+
+  private void writeRegisterMainClassesFile(File registrationFile, List<? extends EditorPluginDescriptor> editorPlugins)
+          throws MojoExecutionException {
+
+    try (PrintWriter pw = new PrintWriter(new FileWriter(registrationFile, true))) {
+
+      for (EditorPluginDescriptor editorPlugin : editorPlugins) {
+        if (null == editorPlugin.getMainClass()) {
+          getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
+          continue;
+        }
+        String name = editorPlugin.getName();
+        if (null == name) {
+          name = getPluginName(editorPlugin.getMainClass());
+        }
+        pw.println("coremediaEditorPlugins.push({");
+        // optional parameters are added first so they can always be followed by a comma
+        if (null != editorPlugin.getRequiredLicenseFeature()) {
+          pw.println("\trequiredLicenseFeature: \"" + StringUtils.escape(editorPlugin.getRequiredLicenseFeature()) + "\",");
+        }
+        if (null != editorPlugin.getRequiredGroup()) {
+          pw.println("\trequiredGroup: \"" + StringUtils.escape(editorPlugin.getRequiredGroup()) + "\",");
+        }
+        pw.println("\tname: \"" + StringUtils.escape(name) + "\",");
+        pw.println("\tmainClass: \"" + StringUtils.escape(editorPlugin.getMainClass()) + "\"");
+
+        pw.println("});");
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not create editor plugins resource", e);
     }
   }
 
@@ -275,31 +287,39 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
     if (!relevantEditorPlugins.isEmpty()) {
 
-      File resource = new File(senchaPackagePath + File.separator + SENCHA_RESOURCES_PATH + File.separator + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (resource.exists()) {
-        getLog().warn("resource file for require editor plugins already exists, deleting...");
-        if (!resource.delete()) {
-          throw new MojoExecutionException("Could not delete resource file for require editor plugins");
+      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_RESOURCES_PATH +
+              File.separator + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
+      if (requireResourceFile.exists()) {
+        getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
+        if (!requireResourceFile.delete()) {
+          throw new MojoExecutionException("Could not delete requireResourceFile file for require editor plugins");
         }
       }
+      // write file
+      writeRequireResourceFile(requireResourceFile, relevantEditorPlugins);
 
-      try (PrintWriter pw = new PrintWriter(new FileWriter(resource, true))) {
-
-        for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
-          String editorPluginMainClass = editorPlugin.getMainClass();
-          if (null == editorPluginMainClass) {
-            getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-            continue;
-          }
-          pw.printf("Ext.require(%s);%n", CompilerUtils.quote(editorPluginMainClass));
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package", e);
-      }
       // require plugin needs to be added to production
       SenchaPackageConfigBuilder productionConfigBuilder = new SenchaPackageConfigBuilder();
-      productionConfigBuilder.js(SenchaUtils.SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME,false, true);
+      productionConfigBuilder.js(SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME, false, true);
       configBuilder.profile(PRODUCTION, productionConfigBuilder.build());
+    }
+  }
+
+  private void writeRequireResourceFile(File requireResourceFile, List<EditorPluginDescriptor> relevantEditorPlugins)
+          throws MojoExecutionException {
+
+    try (PrintWriter pw = new PrintWriter(new FileWriter(requireResourceFile, true))) {
+
+      for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
+        String editorPluginMainClass = editorPlugin.getMainClass();
+        if (null == editorPluginMainClass) {
+          getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
+          continue;
+        }
+        pw.printf("Ext.require(%s);%n", CompilerUtils.quote(editorPluginMainClass));
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package", e);
     }
   }
 
@@ -359,6 +379,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     configure(configBuilder);
   }
 
+  @Override
   protected void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
 
     if (Type.CODE.equals(getType()) && isShareResources()
@@ -369,6 +390,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     super.configureResourcesEntry(configBuilder);
   }
 
+  @Override
   protected SenchaPackageConfigBuilder createSenchaConfigBuilder() {
     return new SenchaPackageConfigBuilder();
   }
