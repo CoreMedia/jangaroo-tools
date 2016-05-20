@@ -183,7 +183,7 @@ public abstract class JooTestMojoBase extends AbstractMojo {
       configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
 
       // require the package to test:
-      configBuilder.require(getSenchaPackageName(project.getGroupId(), project.getArtifactId()));
+      configBuilder.require(getSenchaPackageName(project));
       // add test scope dependencies:
       List<Dependency> projectDependencies = project.getDependencies();
       for (Dependency dependency : projectDependencies) {
@@ -218,7 +218,7 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     try {
       handler = new JettyWebAppContext();
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
-      List<Resource> baseResources = new ArrayList<Resource>();
+      List<Resource> baseResources = new ArrayList<>();
       File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
       baseResources.add(toResource(workspaceDir));
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));

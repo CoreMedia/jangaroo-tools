@@ -1,8 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
-import net.jangaroo.jooc.mvnplugin.sencha.FileUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
@@ -33,6 +33,7 @@ import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
@@ -156,7 +157,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(workingDirectory);
 
     String arguments = "generate package"
-            + " --name=\"" + getSenchaPackageName(project.getGroupId(), project.getArtifactId()) + "\""
+            + " --name=\"" + getSenchaPackageName(project) + "\""
             + " --namespace=\"\""
             + " --type=\"code\""
             + " " + pathToWorkingDirectory;
@@ -167,7 +168,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     // sencha.cfg should be recreated
     // for normal packages skip generating css and slices
     if (senchaCfg.exists()) {
-      addConfigurationToSenchaConfig(senchaCfg);
+      FileHelper.addToConfigFile(senchaCfg, ImmutableList.of("skip.sass=1", "skip.slice=1"));
     } else {
       throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
@@ -196,7 +197,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       getLog().debug("Created " + senchaPackageDirectory.mkdirs());
     }
 
-    FileUtils.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaPackagePath);
+    FileHelper.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaPackagePath);
 
     try {
       SenchaPackageConfigBuilder configBuilder = getConfigBuilder(senchaPackagePath);
@@ -333,9 +334,9 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     buildSenchaPackage(senchaPackageDirectory);
 
-    File pkg = new File(senchaPackageBuildOutputDir + getSenchaPackageName(project.getGroupId(), project.getArtifactId()) + SenchaUtils.SENCHA_PKG_EXTENSION);
+    File pkg = new File(senchaPackageBuildOutputDir + getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
     if (!pkg.exists()) {
-      throw new MojoExecutionException("Could not find " + SenchaUtils.SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project.getGroupId(), project.getArtifactId()));
+      throw new MojoExecutionException("Could not find " + SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project));
     }
 
     return pkg;

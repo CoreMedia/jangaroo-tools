@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import net.jangaroo.jooc.mvnplugin.sencha.FileUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
@@ -155,7 +154,7 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
       getLog().debug("Created " + senchaDirectory.mkdirs());
     }
 
-    FileUtils.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaAppPath);
+    FileHelper.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaAppPath);
 
     File workingDirectory = new File(senchaAppPath);
 
@@ -239,7 +238,7 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
   }
 
   private String generateSenchaAppId() {
-    String appIdString = SenchaUtils.getSenchaPackageName(project.getGroupId(), project.getArtifactId()) +
+    String appIdString = SenchaUtils.getSenchaPackageName(project) +
             SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
     return UUID.nameUUIDFromBytes(appIdString.getBytes()).toString();
   }

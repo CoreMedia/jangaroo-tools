@@ -81,6 +81,10 @@ public class SenchaUtils {
     return groupId + "__" + artifactId;
   }
 
+  public static String getSenchaPackageName(@Nonnull MavenProject project) {
+    return getSenchaPackageName(project.getGroupId(), project.getArtifactId());
+  }
+
   public static String getSenchaVersionForMavenVersion(String version) {
     // Very simple matching for now, maybe needs some adjustment
     version = version.replace("-SNAPSHOT", "").replace("-", ".");

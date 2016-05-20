@@ -12,10 +12,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -169,15 +165,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       editorPluginName = parts[parts.length - 1];
     }
     return editorPluginName;
-  }
-
-  protected static void addConfigurationToSenchaConfig(File senchaCfg) throws MojoExecutionException {
-    try (PrintWriter pw = new PrintWriter(new FileWriter(senchaCfg.getAbsoluteFile(), true)) ) {
-      pw.println("skip.sass=1");
-      pw.println("skip.slice=1");
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not append skip.sass and skip.slice to sencha.cfg of package", e);
-    }
   }
 
   @Nonnull
