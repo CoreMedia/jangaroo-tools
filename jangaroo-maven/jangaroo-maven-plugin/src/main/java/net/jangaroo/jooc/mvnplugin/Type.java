@@ -31,6 +31,7 @@ public final class Type {
   public static final String PACKAGE_EXTENSION = "pkg";
   public static final String ZIP_EXTENSION = "zip";
   public static final String JAR_EXTENSION = "jar";
+  public static final String POM_PACKAGING = "pom";
 
   public static final String JANGAROO_PKG_PACKAGING = "jangaroo-pkg";
   public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";

@@ -5,13 +5,25 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuilder;
+import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectBuildingResult;
 import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,6 +41,15 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
+
+  @Component
+  private ProjectBuilder projectBuilder;
+
+  @Component
+  protected ArtifactHandlerManager artifactHandlerManager;
 
 
   protected void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
@@ -125,13 +146,12 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
     Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
 
-    List<Dependency> projectDependencies = project.getDependencies();
+    List<Dependency> projectDependencies = resolveRequiredDependencies(project);
 
     Dependency remotePackageDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
     Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
     for (Dependency dependency : projectDependencies) {
 
-      // TODO we should not assume that #getSenchaPackageNameForArtifact and #getSenchaPackageNameForTheme use the same string format
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
 
       if (SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency, extFrameworkDependency)
@@ -143,6 +163,43 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
 
     return requiredDependencies;
+  }
+
+  @Nonnull
+  private List<Dependency> resolveRequiredDependencies(@Nonnull MavenProject project) throws MojoExecutionException {
+    List<Dependency> resolvedDependencies = new ArrayList<>();
+    for (Dependency dependency : project.getDependencies()) {
+      if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())) {
+        MavenProject projectFromPom = createProjectFromPomDependency(dependency);
+        List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom);
+        if (!fromPomDependencies.isEmpty()) {
+          resolvedDependencies.addAll(fromPomDependencies);
+        }
+
+      } else {
+        resolvedDependencies.add(dependency);
+      }
+    }
+    return resolvedDependencies;
+  }
+
+  @Nonnull
+  private MavenProject createProjectFromPomDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
+    Artifact artifactFromDependency = new DefaultArtifact(
+            dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
+            dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
+    );
+
+    ProjectBuildingRequest request = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+    request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+    request.setProcessPlugins(false);
+    request.setResolveDependencies(false);
+    try {
+      ProjectBuildingResult result = projectBuilder.build(artifactFromDependency, request);
+      return result.getProject();
+    } catch (ProjectBuildingException e) {
+      throw new MojoExecutionException("Could not resolve required dependencies of POM dependency " + artifactFromDependency, e);
+    }
   }
 
   protected static void addAdditionalResources(SenchaPackageOrAppConfigBuilder configBuilder,
