@@ -13,9 +13,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
@@ -30,7 +28,6 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  @Override
   public String getType() {
     return Type.APP;
   }
@@ -45,10 +42,7 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
 
   public void createModule() throws MojoExecutionException {
     File workingDirectory = new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
-
-    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("Could not create working directory.");
-    }
+    FileHelper.ensureDirectory(workingDirectory);
 
     File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);
     // only generate app if senchaCfg does not exist

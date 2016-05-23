@@ -2,8 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaPackageConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
@@ -18,7 +16,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -27,12 +24,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_PACKAGE_ORDER_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -42,7 +36,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
  */
 @Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
-public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPackageConfigBuilder> implements SenchaPackageConfiguration {
+public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPackageConfigBuilder> {
 
   private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
 
@@ -91,9 +85,14 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   @Parameter(defaultValue = "false")
   private boolean isolateResources;
 
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH)
   private String senchaPackagePath;
+
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_BUILD_PATH)
   private String senchaPackageBuildOutputDir;
 
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH + "/" + SENCHA_RESOURCES_PATH + "/" + REGISTER_PACKAGE_ORDER_FILENAME)
+  private File packageDependencyOrderJsFile;
 
   @Override
   public String getType() {
@@ -106,13 +105,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   @Override
-  public boolean isIsolateResources() {
-    return isolateResources;
-  }
-
-  @Override
-  public boolean isShareResources() {
-    return shareResources;
+  public String getJsonConfigFileName() {
+    return SenchaUtils.SENCHA_PACKAGE_FILENAME;
   }
 
   @Override
@@ -120,10 +114,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     if (!Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\"");
     }
-
-    senchaPackagePath = project.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGE_PATH;
-    senchaPackageBuildOutputDir = project.getBuild().getDirectory() +  SenchaUtils.LOCAL_PACKAGE_BUILD_PATH;
-
     // for now:
     createModule();
     prepareModule();
@@ -172,7 +162,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     } else {
       throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
-
+    writePackageDependencyOrderJs();
   }
 
   private File getWorkingDirectory() throws MojoExecutionException {
@@ -183,9 +173,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       throw new MojoExecutionException("Could not determine working directory", e);
     }
 
-    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("Could not create working directory " + workingDirectory);
-    }
+    FileHelper.ensureDirectory(workingDirectory);
+
     return workingDirectory;
   }
 
@@ -197,14 +186,10 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       getLog().debug("Created " + senchaPackageDirectory.mkdirs());
     }
 
-    FileHelper.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaPackagePath);
+    FileHelper.copyFiles(getSenchaSrcDir(), senchaPackageDirectory);
 
     try {
       SenchaPackageConfigBuilder configBuilder = getConfigBuilder(senchaPackagePath);
-
-      addRegisterEditorPluginsResources(configBuilder);
-      addRequireEditorPluginsResource(configBuilder);
-
       configBuilder.buildFile();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not build package.json for project " + project, e);
@@ -217,111 +202,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
             "pkg.build.dir", "${package.dir}/build",
             "build.temp.dir", "${package.dir}/build/temp"
     ));
-  }
-
-  protected void addRegisterEditorPluginsResources(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-    addRegisterEditorPluginsResource(configBuilder, SENCHA_RESOURCES_PATH, this);
-    addRegisterEditorPluginsResource(configBuilder, SENCHA_RESOURCES_PATH + File.separator + PRODUCTION, getProduction());
-    addRegisterEditorPluginsResource(configBuilder, SENCHA_RESOURCES_PATH + File.separator + TESTING, getTesting());
-    addRegisterEditorPluginsResource(configBuilder, SENCHA_RESOURCES_PATH + File.separator + DEVELOPMENT, getDevelopment());
-  }
-
-  private void addRegisterEditorPluginsResource(SenchaPackageConfigBuilder configBuilder,
-                                                String resourcesPath,
-                                                SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
-
-    List<? extends EditorPluginDescriptor> editorPlugins =
-            senchaProfileConfiguration == null ? Collections.<EditorPluginDescriptor>emptyList() :
-                    senchaProfileConfiguration.getEditorPlugins();
-
-    if (!editorPlugins.isEmpty()) {
-      File registerMainClassFile = new File(senchaPackagePath + File.separator + resourcesPath + File.separator + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (registerMainClassFile.exists()) {
-        getLog().warn("registerMainClassFile file for editor plugins already exists, deleting...");
-        if (!registerMainClassFile.delete()) {
-          throw new MojoExecutionException("Could not delete registerMainClassFile file for editor plugins");
-        }
-      }
-      writeRegisterMainClassesFile(registerMainClassFile, editorPlugins);
-      configBuilder.js(resourcesPath + SenchaUtils.SEPARATOR + REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME, false, true);
-    }
-  }
-
-  private void writeRegisterMainClassesFile(File registrationFile, List<? extends EditorPluginDescriptor> editorPlugins)
-          throws MojoExecutionException {
-
-    try (PrintWriter pw = new PrintWriter(new FileWriter(registrationFile, true))) {
-
-      for (EditorPluginDescriptor editorPlugin : editorPlugins) {
-        if (null == editorPlugin.getMainClass()) {
-          getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-          continue;
-        }
-        String name = editorPlugin.getName();
-        if (null == name) {
-          name = getPluginName(editorPlugin.getMainClass());
-        }
-        pw.println("coremediaEditorPlugins.push({");
-        // optional parameters are added first so they can always be followed by a comma
-        if (null != editorPlugin.getRequiredLicenseFeature()) {
-          pw.println("\trequiredLicenseFeature: \"" + StringUtils.escape(editorPlugin.getRequiredLicenseFeature()) + "\",");
-        }
-        if (null != editorPlugin.getRequiredGroup()) {
-          pw.println("\trequiredGroup: \"" + StringUtils.escape(editorPlugin.getRequiredGroup()) + "\",");
-        }
-        pw.println("\tname: \"" + StringUtils.escape(name) + "\",");
-        pw.println("\tmainClass: \"" + StringUtils.escape(editorPlugin.getMainClass()) + "\"");
-
-        pw.println("});");
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not create editor plugins resource", e);
-    }
-  }
-
-  protected void addRequireEditorPluginsResource(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-    // collect normal and build editor plugins
-    List<EditorPluginDescriptor> relevantEditorPlugins = new ArrayList<>();
-    relevantEditorPlugins.addAll(getEditorPlugins());
-    if (null != getProduction()) {
-      relevantEditorPlugins.addAll(getProduction().getEditorPlugins());
-    }
-    if (!relevantEditorPlugins.isEmpty()) {
-
-      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_RESOURCES_PATH +
-              File.separator + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME);
-      if (requireResourceFile.exists()) {
-        getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
-        if (!requireResourceFile.delete()) {
-          throw new MojoExecutionException("Could not delete requireResourceFile file for require editor plugins");
-        }
-      }
-      // write file
-      writeRequireResourceFile(requireResourceFile, relevantEditorPlugins);
-
-      // require plugin needs to be added to production
-      SenchaPackageConfigBuilder productionConfigBuilder = new SenchaPackageConfigBuilder();
-      productionConfigBuilder.js(SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME, false, true);
-      configBuilder.profile(PRODUCTION, productionConfigBuilder.build());
-    }
-  }
-
-  private void writeRequireResourceFile(File requireResourceFile, List<EditorPluginDescriptor> relevantEditorPlugins)
-          throws MojoExecutionException {
-
-    try (PrintWriter pw = new PrintWriter(new FileWriter(requireResourceFile, true))) {
-
-      for (EditorPluginDescriptor editorPlugin : relevantEditorPlugins) {
-        String editorPluginMainClass = editorPlugin.getMainClass();
-        if (null == editorPluginMainClass) {
-          getLog().warn("EditorPluginDescriptor without mainClass was ignored.");
-          continue;
-        }
-        pw.printf("Ext.require(%s);%n", CompilerUtils.quote(editorPluginMainClass));
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not append skip.sass and skip.slice to Sencha config of package", e);
-    }
   }
 
   @Nonnull
@@ -378,17 +258,78 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     configBuilder.destFile(workingDirectory + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME);
 
     configure(configBuilder);
+
+    addRequiredClasses(configBuilder, null, this);
+    addRequiredClasses(configBuilder, PRODUCTION, getProduction());
+    addRequiredClasses(configBuilder, TESTING, getTesting());
+    addRequiredClasses(configBuilder, DEVELOPMENT, getDevelopment());
+  }
+
+  protected void addRequiredClasses(SenchaPackageConfigBuilder configBuilder,
+                                    String profile,
+                                    SenchaProfileConfiguration configuration) throws MojoExecutionException {
+    if (configuration == null) {
+      return;
+    }
+
+    List<String> requiredClasses = configuration.getRequiredClasses();
+    if (!requiredClasses.isEmpty()) {
+
+      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_RESOURCES_PATH +
+              File.separator + SenchaUtils.REQUIRED_CLASSES_FILENAME);
+      if (requireResourceFile.exists()) {
+        getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
+        if (!requireResourceFile.delete()) {
+          throw new MojoExecutionException("Could not delete requireResourceFile file for require editor plugins");
+        }
+      }
+      // write file
+      writeRequireResourceFile(requireResourceFile, requiredClasses);
+
+      SenchaPackageConfigBuilder requiredCLassesConfigBuilder = new SenchaPackageConfigBuilder();
+      requiredCLassesConfigBuilder.js(SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
+      configBuilder.profile(profile, requiredCLassesConfigBuilder.build());
+    }
+  }
+
+  private static void writeRequireResourceFile(File requireResourceFile, List<String> requiredClasses)
+          throws MojoExecutionException {
+
+    FileHelper.ensureDirectory(requireResourceFile.getParentFile());
+
+    try (PrintWriter pw = new PrintWriter(new FileWriter(requireResourceFile, true))) {
+      for (String requiredClass : requiredClasses) {
+        pw.printf("Ext.require(%s);%n", CompilerUtils.quote(requiredClass));
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not write require resource file", e);
+    }
   }
 
   @Override
   protected void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
 
-    if (Type.CODE.equals(getType()) && isShareResources()
-            || Type.THEME.equals(getType()) && !isIsolateResources()) {
+    if (Type.CODE.equals(getType()) && shareResources
+            || Type.THEME.equals(getType()) && !isolateResources) {
       ((SenchaPackageConfigBuilder)configBuilder).shareResources();
     }
 
     super.configureResourcesEntry(configBuilder);
+  }
+
+
+  private void writePackageDependencyOrderJs() throws MojoExecutionException {
+    if (packageDependencyOrderJsFile.exists()) {
+      getLog().warn("register package dependency order file for module already exists, deleting...");
+      if (!packageDependencyOrderJsFile.delete()) {
+        throw new MojoExecutionException("Could not delete registerPackageDependencyOrder file for module");
+      }
+    }
+    try (PrintWriter pw = new PrintWriter(new FileWriter(packageDependencyOrderJsFile, true))) {
+      pw.printf("Ext.manifest.packageDependencyOrder.push(\"%s\");%n", getSenchaPackageName(project));
+    } catch (IOException e) {
+      throw new MojoExecutionException("could not create package dependency order resource", e);
+    }
   }
 
   @Override

@@ -56,10 +56,6 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
   private MavenProject project;
 
   @Override
-  public String getType() {
-    return Type.WORKSPACE;
-  }
-
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     String remotePackagesFromConfiguration = getRemotePackagesArtifact();
@@ -246,9 +242,9 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
       return session.getCurrentProject();
     }
     List<MavenProject> allReactorProjects = session.getProjects();
-    for (MavenProject project : allReactorProjects) {
-      if (isRemoteAggregator(project)) {
-        return project;
+    for (MavenProject reactorProject : allReactorProjects) {
+      if (isRemoteAggregator(reactorProject)) {
+        return reactorProject;
       }
 
     }
@@ -353,7 +349,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
    * @param project      the project to test
    * @return whether the given dependency is contained in the given dependencies list
    */
-  private boolean containsProject(@Nonnull List<Dependency> dependencies, @Nonnull MavenProject project) {
+  private static boolean containsProject(@Nonnull List<Dependency> dependencies, @Nonnull MavenProject project) {
     for (Dependency dependency : dependencies) {
       if (Objects.equals(dependency.getArtifactId(), project.getArtifactId())
               && Objects.equals(dependency.getGroupId(), project.getGroupId())) {
@@ -370,7 +366,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
    * @return the given dependency as {@link MavenProject}
    */
   @Nonnull
-  private MavenProject createProjectFromArtifact(@Nonnull Artifact artifact) {
+  private static MavenProject createProjectFromArtifact(@Nonnull Artifact artifact) {
     MavenProject mavenProject = new MavenProject();
     mavenProject.setArtifactId(artifact.getArtifactId());
     mavenProject.setGroupId(artifact.getGroupId());
@@ -393,7 +389,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
     return dependency;
   }
 
-  private boolean isDependencyManaged(@Nonnull MavenProject project, @Nonnull final Dependency dependency) {
+  private static boolean isDependencyManaged(@Nonnull MavenProject project, @Nonnull final Dependency dependency) {
     return project.getDependencyManagement() != null
             && Iterables.tryFind(project.getDependencyManagement().getDependencies(), new Predicate<Dependency>() {
       @Override
@@ -419,5 +415,4 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
     Dependency remotePackagesDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
     return MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackagesDependency);
   }
-
 }

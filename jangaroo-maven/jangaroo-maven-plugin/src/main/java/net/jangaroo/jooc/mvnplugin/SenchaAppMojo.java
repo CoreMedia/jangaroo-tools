@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaAppConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -37,7 +36,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
  * Generates and packages Sencha app module.
  */
 @Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> implements SenchaAppConfiguration {
+public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
   public static final String DEFAULT_LOCALE = "en";
 
@@ -82,13 +81,8 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
   }
 
   @Override
-  public String getApplicationClass() {
-    return applicationClass;
-  }
-
-  @Override
-  public List<String> getLocales() {
-    return locales;
+  public String getJsonConfigFileName() {
+    return SenchaUtils.SENCHA_APP_FILENAME;
   }
 
   @Override
@@ -150,9 +144,7 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
       getLog().debug("Created " + senchaDirectory.mkdirs());
     }
 
-    FileHelper.copyFiles(project.getBasedir() + SENCHA_SRC_PATH, senchaAppPath);
-
-    File workingDirectory = new File(senchaAppPath);
+    FileHelper.copyFiles(getSenchaSrcDir(), senchaDirectory);
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
 
@@ -163,9 +155,9 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
       throw new MojoExecutionException("Could not build app file", e);
     }
 
-    writeAppJs(workingDirectory);
+    writeAppJs(senchaDirectory);
 
-    File buildPropertiesFile = new File(workingDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
+    File buildPropertiesFile = new File(senchaDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
     FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
             "build.dir", "${app.dir}/build/${build.environment}",
             "build.temp.dir", "${app.dir}/build/temp/${build.environment}"

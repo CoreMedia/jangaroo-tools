@@ -38,11 +38,7 @@ public final class FileHelper {
     }
 
   }
-
-  public static void copyFiles(String sourcePath, String destPath) throws MojoExecutionException {
-    // getProject().getBasedir() + SENCHA_SRC_PATH
-    File srcDir = new File(sourcePath);
-    File targetDir = new File(destPath);
+  public static void copyFiles(File srcDir, File targetDir) throws MojoExecutionException {
     if (srcDir.exists()) {
       try {
         org.apache.commons.io.FileUtils.copyDirectory(srcDir, targetDir);
@@ -62,4 +58,10 @@ public final class FileHelper {
     }
   }
 
+
+  public static void ensureDirectory(File dir) throws MojoExecutionException {
+    if (!dir.exists() && !dir.mkdirs()) {
+      throw new MojoExecutionException("could not create folder for directory " + dir);
+    }
+  }
 }

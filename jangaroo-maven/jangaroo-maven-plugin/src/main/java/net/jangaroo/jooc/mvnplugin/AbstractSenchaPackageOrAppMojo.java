@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.common.collect.ImmutableList;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
@@ -23,21 +24,25 @@ import org.apache.maven.project.ProjectBuildingResult;
 import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
-public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAppConfigBuilder> extends AbstractSenchaMojo {
+public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAppConfigBuilder>
+        extends AbstractSenchaMojo
+        implements SenchaProfileConfiguration {
 
   public static final String PRODUCTION = "production";
   public static final String TESTING = "testing";
   public static final String DEVELOPMENT = "development";
-
-  protected static final String SENCHA_SRC_PATH = "/src/main/sencha/";
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
@@ -51,6 +56,35 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   @Component
   protected ArtifactHandlerManager artifactHandlerManager;
 
+  @Parameter
+  private MavenSenchaProfileConfiguration production;
+
+  @Parameter
+  private MavenSenchaProfileConfiguration testing;
+
+  @Parameter
+  private MavenSenchaProfileConfiguration development;
+
+  @Parameter
+  private List<String> requiredClasses;
+  @Parameter
+  private List<String> additionalCssNonBundle;
+  @Parameter
+  private List<String> additionalJsNonBundle;
+  @Parameter
+  private List<String> additionalCssIncludeInBundle;
+  @Parameter
+  private List<String> additionalJsIncludeInBundle;
+
+  @Parameter
+  private String theme;
+
+  @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
+  private File senchaSrcDir;
+
+  public abstract String getType();
+
+  public abstract String getJsonConfigFileName();
 
   protected void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
 
@@ -63,6 +97,21 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     configureProfile(configBuilder, PRODUCTION, getProduction());
     configureProfile(configBuilder, TESTING, getTesting());
     configureProfile(configBuilder, DEVELOPMENT, getDevelopment());
+
+    configureCustomProperties(configBuilder);
+  }
+
+  private void configureCustomProperties(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
+    File jsonFile = new File(getSenchaSrcDir(), getJsonConfigFileName());
+    if (jsonFile.exists()) {
+      try (FileInputStream fileInputStream = new FileInputStream(jsonFile)) {
+        Map<String, Object> customConfig = (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(fileInputStream, Map.class);
+        // TODO would be nice not to overwrite nested properties
+        configBuilder.namesValues(customConfig);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not read json file", e);
+      }
+    }
   }
 
   protected void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder)
@@ -104,6 +153,8 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
             senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalJsNonBundle(),
             senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalJsIncludeInBundle());
   }
+
+
 
   protected void configureRequires(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     for (String dependency : getRequiredDependencies()) {
@@ -245,4 +296,51 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   protected abstract  T createSenchaConfigBuilder();
 
+  public File getSenchaSrcDir() {
+    return senchaSrcDir;
+  }
+
+  public SenchaProfileConfiguration getProduction() {
+    return production;
+  }
+
+  public SenchaProfileConfiguration getDevelopment() {
+    return development;
+  }
+
+  public SenchaProfileConfiguration getTesting() {
+    return testing;
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getRequiredClasses() {
+    return requiredClasses == null ? Collections.<String>emptyList() : requiredClasses;
+  }
+
+  public String getTheme() {
+    return theme;
+  }
+
+  @Nonnull
+  public List<String> getAdditionalCssNonBundle() {
+    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
+  }
+
+  @Nonnull
+  public List<String> getAdditionalJsNonBundle() {
+    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getAdditionalCssIncludeInBundle() {
+    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.<String>emptyList();
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getAdditionalJsIncludeInBundle() {
+    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.<String>emptyList();
+  }
 }

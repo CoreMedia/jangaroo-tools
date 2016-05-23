@@ -3,14 +3,17 @@ package net.jangaroo.jooc.mvnplugin.sencha.executor;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteStreamHandler;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class SenchaCmdExecutor {
 
@@ -49,6 +52,10 @@ public class SenchaCmdExecutor {
     executor.setWorkingDirectory(workingDirectory);
     executor.setExitValue(0);
     executor.execute(cmdLine);
+
+    // ExecuteStreamHandler streamHandler = executor.getStreamHandler();
+    // streamHandler.setProcessOutputStream(new BufferedInoutStream()
+
     if (watchdog.killedProcess()) {
       throw new ExecuteException(String.format("Watchdog killed Sencha Cmd process after %s ms.", MAX_EXECUTION_TIME), 0);
     }

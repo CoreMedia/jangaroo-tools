@@ -34,8 +34,8 @@ public interface SenchaProfileConfiguration {
   List<String> getAdditionalJsIncludeInBundle();
 
   /**
-   * Specifies the descriptors of the editorPlugins to be loaded.
+   * Specifies the required classes.
    */
   @Nonnull
-  List<? extends EditorPluginDescriptor> getEditorPlugins();
+  List<String> getRequiredClasses();
 }

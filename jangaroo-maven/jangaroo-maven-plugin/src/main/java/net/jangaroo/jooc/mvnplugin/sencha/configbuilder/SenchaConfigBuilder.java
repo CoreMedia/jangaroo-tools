@@ -29,6 +29,12 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
   }
 
   @SuppressWarnings("unchecked")
+  public T namesValues(Map<String, Object> properties) {
+    config.putAll(properties);
+    return (T) this;
+  }
+
+  @SuppressWarnings("unchecked")
   public T destFile(String path) {
     this.destFilePath = path;
     return (T) this;
@@ -67,8 +73,7 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
 
   @SuppressWarnings("unchecked")
   public T defaults(String jsonFileName) throws IOException {
-    config.putAll(readDefaultJson(jsonFileName));
-    return (T) this;
+    return namesValues(readDefaultJson(jsonFileName));
   }
 
   private Map<String, Object> readDefaultJson(String jsonFileName) throws IOException {
@@ -103,4 +108,6 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
     //noinspection unchecked
     return (T) this;
   }
+
+
 }

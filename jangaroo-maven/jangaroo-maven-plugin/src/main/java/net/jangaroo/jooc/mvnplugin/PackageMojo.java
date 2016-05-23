@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -110,12 +109,6 @@ public class PackageMojo extends AbstractMojo {
   @Parameter(defaultValue = "META-INF/resources/joo/${project.artifactId}.module.js")
   private String moduleJsFile;
 
-  /**
-   * The Sencha configuration to use.
-   */
-  @Parameter(property = "senchaConfiguration")
-  private SenchaConfiguration senchaConfiguration;
-
   @Component
   private ArtifactHandlerManager artifactHandlerManager;
 
@@ -134,9 +127,8 @@ public class PackageMojo extends AbstractMojo {
           archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
         }
       }
-      JarArchiver archiver = mavenArchiver.getArchiver();
       if (outputDirectory.exists()) {
-        archiver.addDirectory(outputDirectory);
+        mavenArchiver.getArchiver().addDirectory(outputDirectory);
       }
 
       String groupId = project.getGroupId();

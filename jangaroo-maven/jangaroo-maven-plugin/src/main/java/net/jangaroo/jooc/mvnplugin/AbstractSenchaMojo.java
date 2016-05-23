@@ -1,48 +1,13 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import com.google.common.collect.ImmutableList;
-import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.List;
 
-
-public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaConfiguration {
-
-  @Parameter
-  private List<String> additionalCssNonBundle;
-
-  @Parameter
-  private List<String> additionalJsNonBundle;
-
-  @Parameter
-  private List<String> additionalCssIncludeInBundle;
-
-  @Parameter
-  private List<String> additionalJsIncludeInBundle;
-
-  @Parameter
-  private List<MavenEditorPluginDescriptor> editorPlugins;
+public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   @Parameter(defaultValue = "classic")
   private String toolkit;
-
-  @Parameter
-  private String theme;
-
-  @Parameter
-  private MavenSenchaProfileConfiguration production;
-
-  @Parameter
-  private MavenSenchaProfileConfiguration testing;
-
-  @Parameter
-  private MavenSenchaProfileConfiguration development;
 
   @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)
   private String extFrameworkDir;
@@ -60,78 +25,23 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaC
   // ************************* GETTERS *************************************
   // ***********************************************************************
 
-  @Override
   public String getToolkit() {
     return toolkit;
   }
 
-  @Override
-  public String getTheme() {
-    return theme;
-  }
-
-  @Override
-  public SenchaProfileConfiguration getProduction() {
-    return production;
-  }
-
-  @Override
-  public SenchaProfileConfiguration getDevelopment() {
-    return development;
-  }
-
-  @Override
-  public SenchaProfileConfiguration getTesting() {
-    return testing;
-  }
-
-  @Override
   public String getExtFrameworkDir() {
     return extFrameworkDir;
   }
 
-  @Override
   public String getExtFrameworkArtifact() {
     return extFrameworkArtifact;
   }
 
 
-  @Override
   public String getPackagesDir() {
     return packagesDir;
   }
 
-  @Nonnull
-  @Override
-  public List<String> getAdditionalCssNonBundle() {
-    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
-  }
-
-  @Nonnull
-  @Override
-  public List<String> getAdditionalJsNonBundle() {
-    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
-  }
-
-  @Nonnull
-  @Override
-  public List<String> getAdditionalCssIncludeInBundle() {
-    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.<String>emptyList();
-  }
-
-  @Nonnull
-  @Override
-  public List<String> getAdditionalJsIncludeInBundle() {
-    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.<String>emptyList();
-  }
-
-  @Nonnull
-  @Override
-  public List<? extends EditorPluginDescriptor> getEditorPlugins() {
-    return editorPlugins != null ? ImmutableList.copyOf(editorPlugins) : Collections.<EditorPluginDescriptor>emptyList();
-  }
-
-  @Override
   public String getRemotePackagesArtifact() {
     return remotePackagesArtifact;
   }
@@ -140,12 +50,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo implements SenchaC
   // ************************* SETTERS *************************************
   // ***********************************************************************
 
-  @Override
   public void setExtFrameworkDir(String extFrameworkDir) {
     this.extFrameworkDir = extFrameworkDir;
   }
 
-  @Override
   public void setPackagesDir(String packagesDir) {
     this.packagesDir = packagesDir;
   }
