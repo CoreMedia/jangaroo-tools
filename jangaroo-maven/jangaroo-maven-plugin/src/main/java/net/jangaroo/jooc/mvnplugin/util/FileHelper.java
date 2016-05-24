@@ -1,8 +1,11 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -38,10 +41,14 @@ public final class FileHelper {
     }
 
   }
-  public static void copyFiles(File srcDir, File targetDir) throws MojoExecutionException {
+  public static void copyFiles(File srcDir, File targetDir, final String excludeFileName) throws MojoExecutionException {
     if (srcDir.exists()) {
       try {
-        org.apache.commons.io.FileUtils.copyDirectory(srcDir, targetDir);
+        FileFilter filter = null;
+        if (excludeFileName != null) {
+          filter = new NotFileFilter(new NameFileFilter(excludeFileName));
+        }
+        org.apache.commons.io.FileUtils.copyDirectory(srcDir, targetDir, filter);
       } catch (IOException e) {
         throw new MojoExecutionException(String.format("Copying sencha sources from %s to %s failed.", srcDir, targetDir ), e);
       }

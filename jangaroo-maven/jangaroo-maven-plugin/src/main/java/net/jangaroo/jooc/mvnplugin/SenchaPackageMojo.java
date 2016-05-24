@@ -186,7 +186,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       getLog().debug("Created " + senchaPackageDirectory.mkdirs());
     }
 
-    FileHelper.copyFiles(getSenchaSrcDir(), senchaPackageDirectory);
+    FileHelper.copyFiles(getSenchaSrcDir(), senchaPackageDirectory, SenchaUtils.SENCHA_PACKAGE_FILENAME);
 
     try {
       SenchaPackageConfigBuilder configBuilder = getConfigBuilder(senchaPackagePath);
