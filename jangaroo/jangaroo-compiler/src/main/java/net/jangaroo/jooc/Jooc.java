@@ -36,6 +36,8 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.properties.PropertyClassGenerator;
+import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -125,9 +127,16 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
+    PropertyClassGenerator propertyClassGenerator;
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
+
+      PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
+      config.setSourcePath(getConfig().getSourcePath());
+      config.setClassPath(getConfig().getClassPath());
+      config.setOutputDirectory(getConfig().getLocalizedOutputDirectory());
+      propertyClassGenerator = new PropertyClassGenerator(config);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -166,6 +175,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+        } else if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
+          outputFile = propertyClassGenerator.generate(sourceFile);
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {

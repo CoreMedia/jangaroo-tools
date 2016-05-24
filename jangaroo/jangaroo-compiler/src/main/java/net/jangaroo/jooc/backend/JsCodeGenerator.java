@@ -132,7 +132,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.MIXIN_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
-  public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String INIT_STATICS = "__initStatics__";
 
   static {

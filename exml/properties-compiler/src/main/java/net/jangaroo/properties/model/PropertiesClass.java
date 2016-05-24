@@ -3,10 +3,10 @@
  */
 package net.jangaroo.properties.model;
 
+import net.jangaroo.properties.api.PropcHelper;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,15 +28,13 @@ public class PropertiesClass {
   private ResourceBundleClass resourceBundle;
   private Locale locale;
   private PropertiesConfiguration properties;
-  private File srcFile;
 
-  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties, File srcFile) {
+  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties) {
     this.resourceBundle = resourceBundle;
     resourceBundle.addLocaleProperties(locale, this);
 
     this.locale = locale;
     this.properties = properties;
-    this.srcFile = srcFile;
   }
 
   public ResourceBundleClass getResourceBundle() {
@@ -79,7 +77,7 @@ public class PropertiesClass {
         boolean bundleFirst = "bundle".equals(matcher.group(1));
         String referenceBundleKey = matcher.group(!bundleFirst ? 2 : 4);
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
-        value = referenceBundleFullClassName + "_properties.INSTANCE";
+        value = referenceBundleFullClassName + PropcHelper.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
         if (isIdentifier(referenceBundleKey)) {
           value += "." + referenceBundleKey;
         } else {
@@ -112,10 +110,6 @@ public class PropertiesClass {
     return AS3_IDENTIFIER_PATTERN.matcher(str).matches();
   }
 
-  public File getSrcFile() {
-    return srcFile;
-  }
-
   public Set<String> getImports() {
     Set<String> result = new HashSet<String>();
     Iterator keys = properties.getKeys();
@@ -125,7 +119,7 @@ public class PropertiesClass {
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       if (matcher.find()) {
         String bundle = "bundle".equals(matcher.group(1)) ? matcher.group(2) : matcher.group(4);
-        String referenceBundleFullClassName = bundle + "_properties";
+        String referenceBundleFullClassName = bundle + PropcHelper.PROPERTIES_CLASS_SUFFIX;
         result.add(referenceBundleFullClassName);
       }
     }

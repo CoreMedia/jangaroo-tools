@@ -60,24 +60,6 @@ public class PropertiesMojo extends AbstractMojo {
   private FileSet properties;
 
   /**
-   * Output directory into which compiled property file classes are generated.
-   * By default, for packaging type <code>jangaroo-app</code>, the directory
-   * <code>${project.build.directory}/app/locale</code>
-   * is used, for packaging type <code>jangaroo-pkg</code>, it is
-   * <code>${project.build.directory}/packages/local/package/locale</code>.
-   */
-  @Parameter
-  private File outputDirectory;
-
-  public File getOutputDirectory() {
-    if (outputDirectory == null) {
-      String modulePath = Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging()) ? "packages/local/package/locale" : "app/locale";
-      return new File(project.getBuild().getDirectory(), modulePath);
-    }
-    return outputDirectory;
-  }
-
-  /**
    * Output directory for generated AS3 API classes.
    */
   @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
@@ -91,12 +73,6 @@ public class PropertiesMojo extends AbstractMojo {
   private MavenProjectHelper projectHelper;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    File outputDirectory = getOutputDirectory();
-    if (!outputDirectory.exists()) {
-      getLog().info("generating localized JavaScript into: " + outputDirectory.getPath());
-      getLog().debug("created " + outputDirectory.mkdirs());
-    }
-
     if (!apiOutputDirectory.exists()) {
       getLog().info("generating AS3 localization api stubs into: " + apiOutputDirectory.getPath());
       getLog().debug("created " + apiOutputDirectory.mkdirs());
@@ -109,7 +85,6 @@ public class PropertiesMojo extends AbstractMojo {
     }
 
     PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
-    config.setOutputDirectory(outputDirectory);
     config.setApiOutputDirectory(apiOutputDirectory);
 
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(properties)) {
@@ -124,7 +99,7 @@ public class PropertiesMojo extends AbstractMojo {
 
     PropertyClassGenerator generator = new PropertyClassGenerator(config);
     try {
-      generator.generate();
+      generator.generateApi();
     } catch (PropcException e) {
       throw new MojoExecutionException("Generation failure", e);
     }

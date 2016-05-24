@@ -14,6 +14,7 @@ import net.jangaroo.properties.api.PropcHelper;
 import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -64,22 +66,35 @@ public class PropertyClassGenerator implements Propc {
     this.config = config;
   }
 
-  public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out, boolean api) throws IOException, TemplateException {
-    Template template = cfg.getTemplate(api ? "properties_class.ftl" : "properties_js.ftl");
-    Environment env = template.createProcessingEnvironment(propertiesClass, out);
-    env.setOutputEncoding(OUTPUT_CHARSET);
-    env.process();
+  public void generateApi(String propertiesClassName, InputStream sourceInputStream, OutputStreamWriter writer) throws IOException {
+    PropertiesClass propertiesClass = parse(propertiesClassName, sourceInputStream);
+    generatePropertiesClass(propertiesClass, writer, true);
   }
 
-  public File generateCode(PropertiesClass pl) {
+  public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out, boolean api) throws IOException {
+    Template template = cfg.getTemplate(api ? "properties_class.ftl" : "properties_js.ftl");
+    try {
+      Environment env = template.createProcessingEnvironment(propertiesClass, out);
+      env.setOutputEncoding(OUTPUT_CHARSET);
+      env.process();
+    } catch (TemplateException e) {
+      throw new IOException("Internal error in property FreeMarker template.", e);
+    }
+  }
+
+  private File generateCode(PropertiesClass pl) {
     File outputFile = PropcHelper.computeGeneratedPropertiesJsFile(config, pl.getResourceBundle().getFullClassName(), pl.getLocale());
     generateCode(pl, outputFile, false);
     if (pl.getLocale() == null && config.isGenerateApi()) {
       // generate API from default locale bundle
-      File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(config, pl.getResourceBundle().getFullClassName());
-      generateCode(pl, apiOutputFile, true);
+      generateApi(pl);
     }
     return outputFile;
+  }
+
+  private File generateApi(PropertiesClass pl) {
+    File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(config, pl.getResourceBundle().getFullClassName());
+    return generateCode(pl, apiOutputFile, true);
   }
 
   private File generateCode(PropertiesClass pl, File outputFile, boolean api) {
@@ -113,18 +128,24 @@ public class PropertyClassGenerator implements Propc {
     return outputFileMap;
   }
 
-  @Override
-  public File generate(File propertiesFile) {
+  public Map<File,File> generateApi() {
+    Map<File,File> outputFileMap = new LinkedHashMap<File, File>();
+    for (File srcFile : config.getSourceFiles()) {
+      File outputFile = generateApi(parse(srcFile));
+      outputFileMap.put(srcFile, outputFile);
+    }
+    return outputFileMap;
+  }
+
+  public PropertiesClass parse(String propertiesClassName, InputStream in) throws IOException {
     PropertiesConfiguration p = new PropertiesConfiguration();
     p.setDelimiterParsingDisabled(true);
     Reader r = null;
     try {
-      r = new BufferedReader(new InputStreamReader(new FileInputStream(propertiesFile), "UTF-8"));
+      r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
       p.load(r);
-    } catch (IOException e) {
-      throw new PropcException("Error while parsing properties file", propertiesFile, e);
     } catch (ConfigurationException e) {
-      throw new PropcException("Error while parsing properties file", propertiesFile, e);
+      throw new PropcException("Internal error while parsing properties file.", e);
     } finally {
       try {
         if (r != null) {
@@ -134,11 +155,33 @@ public class PropertyClassGenerator implements Propc {
         //not really
       }
     }
+    ResourceBundleClass bundle = new ResourceBundleClass(PropcHelper.computeBaseClassName(propertiesClassName));
 
-    ResourceBundleClass bundle = new ResourceBundleClass(PropcHelper.computeBaseClassName(config, propertiesFile));
+    return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p);
+  }
 
+  @Override
+  public File generate(File propertiesFile) {
+    PropertiesClass propertiesClass = parse(propertiesFile);
     // Create properties class, which registers itself with the bundle.
-    return generateCode(new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesFile), p, propertiesFile));
+    return generateCode(propertiesClass);
+  }
+
+  public PropertiesClass parse(File propertiesFile) {
+    String className;
+    try {
+      className = CompilerUtils.qNameFromFile(config.findSourceDir(propertiesFile), propertiesFile);
+    } catch (IOException e1) {
+      throw new PropcException(e1);
+    }
+    String propertiesClassName = className;
+    PropertiesClass propertiesClass;
+    try {
+      propertiesClass = parse(propertiesClassName, new FileInputStream(propertiesFile));
+    } catch (IOException e) {
+      throw new PropcException("Error while parsing properties file", propertiesFile, e);
+    }
+    return propertiesClass;
   }
 
 }

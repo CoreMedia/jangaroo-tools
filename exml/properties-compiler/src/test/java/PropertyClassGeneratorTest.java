@@ -45,7 +45,7 @@ public class PropertyClassGeneratorTest {
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");
     p.setProperty("key2", "Resource(key='someKey'\\, bundle='net.jangaroo.icons.SomeBundle')");
     p.setProperty("key3", "Resource(key='someOtherKey'\\, bundle='net.jangaroo.SomeOtherBundle')");
-    PropertiesClass pc = new PropertiesClass(rbc, null,p, null);
+    PropertiesClass pc = new PropertiesClass(rbc, null,p);
 
     generator.generatePropertiesClass(pc, writer, false);
     assertEquals((
@@ -96,7 +96,7 @@ public class PropertyClassGeneratorTest {
             ).replaceAll("\n", LINE_SEPARATOR), writer.toString());
 
 
-    PropertiesClass psc = new PropertiesClass(rbc, Locale.ENGLISH,p, null);
+    PropertiesClass psc = new PropertiesClass(rbc, Locale.ENGLISH,p);
     writer  = new StringWriter();
     generator.generatePropertiesClass(psc, writer, false);
 

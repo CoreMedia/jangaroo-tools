@@ -20,6 +20,16 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>properties-compiler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>properties-compiler</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.javascript</groupId>
       <artifactId>closure-compiler</artifactId>
     </dependency>

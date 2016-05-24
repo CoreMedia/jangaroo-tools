@@ -1,7 +1,5 @@
 package net.jangaroo.jooc;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
@@ -21,15 +19,21 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.properties.PropertyClassGenerator;
+import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +59,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
   private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
-  private List<String> compilableSuffixes = Arrays.asList(Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
+  private List<String> compilableSuffixes = Arrays.asList(Jooc.PROPERTIES_SUFFIX, Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
   private final Scope globalScope = new DeclarationScope(null, null, this);
 
@@ -141,7 +145,11 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     boolean parseMxml = in.getName().endsWith(Jooc.MXML_SUFFIX);
     Reader reader;
     try {
-      reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
+      if (in.getName().endsWith(Jooc.PROPERTIES_SUFFIX)) {
+        reader = createPropertiesClassReader(in);
+      } else {
+        reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
+      }
     } catch (IOException e) {
       throw new CompilerError("Cannot read input file: " + in.getPath(), e);
     }
@@ -163,6 +171,18 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     } catch (Exception e) {
       throw new IllegalArgumentException("could not parse Jangaroo source", e);
     }
+  }
+
+  public Reader createPropertiesClassReader(InputSource in) throws IOException {
+    PropertyClassGenerator propertyClassGenerator = new PropertyClassGenerator(new PropertiesCompilerConfiguration());
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    propertyClassGenerator.generateApi(
+            CompilerUtils.qNameFromRelativPath(in.getRelativePath()),
+            in.getInputStream(),
+            new OutputStreamWriter(outputStream, UTF_8));
+    // From the properties file, we generate AS code, then parse a CompilationUnit again.
+    String output = outputStream.toString(UTF_8);
+    return new StringReader(output);
   }
 
   private static String nameWithoutExtension(InputSource input) {
@@ -204,7 +224,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
-    return pathInputSource.getChild(getInputSourceFileName(qname, pathInputSource, suffix));
+    String correctedQName = Jooc.PROPERTIES_SUFFIX.equals(suffix) && qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX) ? qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length()) : qname;
+    return pathInputSource.getChild(getInputSourceFileName(correctedQName, pathInputSource, suffix));
   }
 
   public static String getInputSourceFileName(final String qname, InputSource is, String extension) {

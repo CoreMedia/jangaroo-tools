@@ -9,12 +9,12 @@ import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.compiler.CompilerMessage;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -29,7 +29,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -141,6 +140,18 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected File getClassesOutputDirectory() {
     return new File(getOutputDirectory(), Type.JANGAROO_APP_PACKAGING.equals(getProject().getPackaging()) ? "app" : "src");
+  }
+
+  /**
+   * TODO: make this configurable via POM!
+   * Output directory into which compiled property file classes are generated.
+   * By default, for packaging type <code>jangaroo-app</code>, the directory
+   * <code>${project.build.directory}/app/locale</code>
+   * is used, for packaging type <code>jangaroo-pkg</code>, it is
+   * <code>${project.build.directory}/packages/local/package/locale</code>.
+   */
+  private File getLocalizedOutputDirectory() {
+    return new File(getOutputDirectory(), SenchaUtils.SENCHA_LOCALE_PATH);
   }
 
   public File getGeneratedSourcesDirectory() {
@@ -257,6 +268,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
     configuration.setClassPath(getActionScriptClassPath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
+    configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
     List<NamespaceConfiguration> allNamespaces = new ArrayList<NamespaceConfiguration>();
