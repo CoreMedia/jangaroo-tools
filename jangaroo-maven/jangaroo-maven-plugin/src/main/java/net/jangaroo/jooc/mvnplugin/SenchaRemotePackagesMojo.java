@@ -4,6 +4,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -43,10 +44,6 @@ public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
   private ArchiverManager archiverManager;
 
   @Override
-  public String getType() {
-    return null; // The remote packages mojo has no corresponding package type
-  }
-
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     String remotePackagesTargetDir = getRemotePackagesDirectory(project);
@@ -77,7 +74,7 @@ public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
                         + SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
       }
 
-      createTargetDir(packageTargetDir);
+      FileHelper.ensureDirectory(packageTargetDir);
       unArchiver.setDestDirectory(packageTargetDir);
 
       unArchiver.extract();
@@ -97,12 +94,4 @@ public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
   static String getExtFrameworkDirectory(MavenProject remotePackagesProject) {
     return remotePackagesProject.getBuild().getDirectory() + EXT_FRAMEWORK_DIRECTORY;
   }
-
-
-  private void createTargetDir(File targetDirectory) throws MojoExecutionException {
-    if (!targetDirectory.exists() && !targetDirectory.mkdirs()) {
-      throw new MojoExecutionException("could not create folder for remote package " + targetDirectory);
-    }
-  }
-
 }

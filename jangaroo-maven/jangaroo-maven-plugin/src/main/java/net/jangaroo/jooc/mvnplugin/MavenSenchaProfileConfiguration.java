@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
-import net.jangaroo.jooc.mvnplugin.sencha.EditorPluginDescriptor;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -36,10 +35,30 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   private List<String> additionalJsIncludeInBundle;
 
   /**
-   * @see SenchaProfileConfiguration#getEditorPlugins()
+   * @see SenchaProfileConfiguration#getRequiredClasses()
    */
   @Parameter
-  private List<MavenEditorPluginDescriptor> editorPlugins;
+  private List<String> requiredClasses;
+
+  public void setAdditionalCssIncludeInBundle(List<String> additionalCssIncludeInBundle) {
+    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
+  }
+
+  public void setAdditionalCssNonBundle(List<String> additionalCssNonBundle) {
+    this.additionalCssNonBundle = additionalCssNonBundle;
+  }
+
+  public void setAdditionalJsIncludeInBundle(List<String> additionalJsIncludeInBundle) {
+    this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
+  }
+
+  public void setAdditionalJsNonBundle(List<String> additionalJsNonBundle) {
+    this.additionalJsNonBundle = additionalJsNonBundle;
+  }
+
+  public void setRequiredClasses(List<String> requiredClasses) {
+    this.requiredClasses = requiredClasses;
+  }
 
   @Nonnull
   @Override
@@ -67,7 +86,7 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
 
   @Nonnull
   @Override
-  public List<? extends EditorPluginDescriptor> getEditorPlugins() {
-    return editorPlugins != null ? ImmutableList.copyOf(editorPlugins) : Collections.<EditorPluginDescriptor>emptyList();
+  public List<String> getRequiredClasses() {
+    return requiredClasses == null ? Collections.<String>emptyList() : requiredClasses;
   }
 }

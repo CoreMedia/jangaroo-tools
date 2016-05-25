@@ -228,5 +228,6 @@
 
   "archivePath": "archive",
 
-  "id": null
+  "id": null,
+  "packageDependencyOrder": []
 }

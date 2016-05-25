@@ -12,7 +12,11 @@
   "detailedDescription": "",
   "requires": [],
   "css": [],
-  "js": [],
+  "js": [ {
+    "path" : "resources/registerPackageOrder.js",
+    "bundle" : false,
+    "includeInBundle" : true
+  } ],
 
   /**
    * Sass configuration properties.

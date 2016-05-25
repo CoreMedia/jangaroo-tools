@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaConfiguration;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -14,13 +13,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
@@ -51,15 +46,6 @@ public class PackageMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${project.build.directory}")
   private File targetDir;
-
-  @Component
-  private MavenProjectHelper projectHelper;
-
-  /**
-   * List of files to exclude. Specified as fileset patterns.
-   */
-  @Parameter
-  private String[] excludes;
 
   /**
    * The name of the JAR file (without extension) generated as this module's artifact. Defaults to ${project.build.finalName}
@@ -101,24 +87,10 @@ public class PackageMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
 
-  /**
-   * This parameter specifies the path and name of the file containing the JavaScript code to execute when this
-   * module is used, relative to the outputDirectory.
-   * If this file is not created through copying the corresponding resource, and the jsClassesFile exists,
-   * a file containing the code to load the concatenated Jangaroo classes file is created.
-   */
-  @Parameter(defaultValue = "META-INF/resources/joo/${project.artifactId}.module.js")
-  private String moduleJsFile;
-
-  /**
-   * The Sencha configuration to use.
-   */
-  @Parameter(property = "senchaConfiguration")
-  private SenchaConfiguration senchaConfiguration;
-
   @Component
   private ArtifactHandlerManager artifactHandlerManager;
 
+  @Override
   public void execute()
       throws MojoExecutionException {
     File jarFile = new File(targetDir, finalName + ".jar");
@@ -134,9 +106,8 @@ public class PackageMojo extends AbstractMojo {
           archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
         }
       }
-      JarArchiver archiver = mavenArchiver.getArchiver();
       if (outputDirectory.exists()) {
-        archiver.addDirectory(outputDirectory);
+        mavenArchiver.getArchiver().addDirectory(outputDirectory);
       }
 
       String groupId = project.getGroupId();
@@ -154,23 +125,4 @@ public class PackageMojo extends AbstractMojo {
     // workaround for MNG-1682: force maven to install artifact using the "jar" handler
     mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
   }
-
-  private File getModuleJsFile() {
-    return new File(outputDirectory, moduleJsFile);
-  }
-
-  private void createDefaultModuleJsFile() throws IOException {
-    File jsFile = getModuleJsFile();
-    File moduleJsDir = jsFile.getParentFile();
-    if (moduleJsDir != null) {
-      if (moduleJsDir.mkdirs()) {
-        getLog().debug("created module output directory " + moduleJsDir);
-      }
-    }
-    getLog().info("Creating Jangaroo module classes loader script '" + jsFile.getAbsolutePath() + "'.");
-    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(jsFile), "UTF-8")) {
-      writer.write("joo.loadModule(\"" + project.getGroupId() + "\",\"" + project.getArtifactId() + "\");\n");
-    }
-  }
-
 }

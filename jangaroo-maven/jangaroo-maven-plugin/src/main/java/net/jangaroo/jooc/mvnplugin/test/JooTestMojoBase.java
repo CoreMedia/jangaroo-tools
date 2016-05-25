@@ -1,12 +1,14 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import net.jangaroo.jooc.mvnplugin.Type;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaTestAppHelper;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -30,6 +32,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
  * Base class for running tests either automatically (JooTestMojo) or start test Jetty and keep it running (JettyRunTestsMojo).
@@ -157,7 +161,41 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     unArchiver.setDestDirectory(webappDirectory);
     unArchiver.extract();
 
-    new SenchaTestAppHelper(project, getLog()).createApp();
+    createApp();
+  }
+
+  private static boolean isTestDependency(Dependency dependency) {
+    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && Type.JAR_EXTENSION.equals(dependency.getType());
+  }
+
+  protected String getDefaultsJsonFileName() {
+    return "default.test.app.json";
+  }
+
+  public void createApp() throws MojoExecutionException {
+    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), "app.json");
+    getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
+
+    SenchaAppConfigBuilder configBuilder = new SenchaAppConfigBuilder();
+    try {
+      configBuilder.destFile(project.getBuild().getTestOutputDirectory() + SenchaUtils.SEPARATOR + "app.json");
+      configBuilder.defaults(getDefaultsJsonFileName());
+      configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
+
+      // require the package to test:
+      configBuilder.require(getSenchaPackageName(project));
+      // add test scope dependencies:
+      List<Dependency> projectDependencies = project.getDependencies();
+      for (Dependency dependency : projectDependencies) {
+        if (isTestDependency(dependency)) {
+          configBuilder.require(getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId()));
+        }
+      }
+
+      configBuilder.buildFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not build test app.json", e);
+    }
   }
 
   protected String getJettyUrl(Server server) {
@@ -180,7 +218,7 @@ public abstract class JooTestMojoBase extends AbstractMojo {
     try {
       handler = new JettyWebAppContext();
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
-      List<Resource> baseResources = new ArrayList<Resource>();
+      List<Resource> baseResources = new ArrayList<>();
       File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
       baseResources.add(toResource(workspaceDir));
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));
@@ -216,7 +254,7 @@ public abstract class JooTestMojoBase extends AbstractMojo {
   }
 
   private Server startJettyOnRandomPort(Handler handler) throws MojoExecutionException {
-    List<Integer> ports = new ArrayList<Integer>(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound + 1);
+    List<Integer> ports = new ArrayList<>(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound + 1);
     for (int i = jooUnitJettyPortLowerBound; i <= jooUnitJettyPortUpperBound; i++) {
       ports.add(i);
     }

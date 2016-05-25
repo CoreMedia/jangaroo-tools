@@ -58,9 +58,10 @@ public class SenchaUtils {
 
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
+  public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
-  public static final String REGISTER_EDITOR_PLUGIN_RESOURCE_FILENAME = "registerEditorPlugins.js";
-  public static final String REQUIRE_EDITOR_PLUGIN_RESOURCE_FILENAME = "requireEditorPlugins.js";
+  public static final String REGISTER_PACKAGE_ORDER_FILENAME = "registerPackageOrder.js";
+  public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??
           Type.APP, "${app.dir}",
@@ -79,6 +80,10 @@ public class SenchaUtils {
 
   public static String getSenchaPackageName(String groupId, String artifactId) {
     return groupId + "__" + artifactId;
+  }
+
+  public static String getSenchaPackageName(@Nonnull MavenProject project) {
+    return getSenchaPackageName(project.getGroupId(), project.getArtifactId());
   }
 
   public static String getSenchaVersionForMavenVersion(String version) {
@@ -137,11 +142,10 @@ public class SenchaUtils {
    */
   public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
     // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
-    relativePath = FilenameUtils.separatorsToUnix(relativePath);
+    String normalizedRelativePath = FilenameUtils.separatorsToUnix(relativePath);
     String result = PLACEHOLDERS.get(packageType);
-    if (!StringUtils.isEmpty(relativePath)
-            && !relativePath.startsWith(SEPARATOR)) {
-      result += SEPARATOR + relativePath;
+    if (StringUtils.isNotEmpty(normalizedRelativePath) && !normalizedRelativePath.startsWith(SEPARATOR)) {
+      result += SEPARATOR + normalizedRelativePath;
     }
     return result;
   }
