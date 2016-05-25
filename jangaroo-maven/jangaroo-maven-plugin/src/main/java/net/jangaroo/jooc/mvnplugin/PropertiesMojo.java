@@ -69,6 +69,19 @@ public class PropertiesMojo extends AbstractMojo {
   @Parameter
   private File outputDirectory;
 
+  /**
+   * Output directory for generated AS3 API classes.
+   */
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
+  private File apiOutputDirectory;
+
+  @Component
+  private MavenProjectHelper projectHelper;
+
+  public File getApiOutputDirectory() {
+    return apiOutputDirectory;
+  }
+
   public File getOutputDirectory() {
     if (outputDirectory == null) {
       String modulePath = Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging()) ? "packages/local/package/locale" : "app/locale";
@@ -77,24 +90,12 @@ public class PropertiesMojo extends AbstractMojo {
     return outputDirectory;
   }
 
-  /**
-   * Output directory for generated AS3 API classes.
-   */
-  @Parameter(defaultValue = "${project.build.directory}/generated-sources/joo")
-  private File apiOutputDirectory;
-
-  public File getApiOutputDirectory() {
-    return apiOutputDirectory;
-  }
-
-  @Component
-  private MavenProjectHelper projectHelper;
-
+  @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    File outputDirectory = getOutputDirectory();
-    if (!outputDirectory.exists()) {
-      getLog().info("generating localized JavaScript into: " + outputDirectory.getPath());
-      getLog().debug("created " + outputDirectory.mkdirs());
+    File currentOutputDirectory = getOutputDirectory();
+    if (!currentOutputDirectory.exists()) {
+      getLog().info("generating localized JavaScript into: " + currentOutputDirectory.getPath());
+      getLog().debug("created " + currentOutputDirectory.mkdirs());
     }
 
     if (!apiOutputDirectory.exists()) {
@@ -109,7 +110,7 @@ public class PropertiesMojo extends AbstractMojo {
     }
 
     PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
-    config.setOutputDirectory(outputDirectory);
+    config.setOutputDirectory(currentOutputDirectory);
     config.setApiOutputDirectory(apiOutputDirectory);
 
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(properties)) {

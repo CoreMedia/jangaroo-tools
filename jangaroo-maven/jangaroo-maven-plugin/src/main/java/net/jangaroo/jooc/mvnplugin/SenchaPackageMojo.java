@@ -260,9 +260,9 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     configure(configBuilder);
 
     addRequiredClasses(configBuilder, null, this);
-    addRequiredClasses(configBuilder, PRODUCTION, getProduction());
-    addRequiredClasses(configBuilder, TESTING, getTesting());
-    addRequiredClasses(configBuilder, DEVELOPMENT, getDevelopment());
+    addRequiredClasses(configBuilder, PRODUCTION_PROFILE, getProduction());
+    addRequiredClasses(configBuilder, TESTING_PROFILE, getTesting());
+    addRequiredClasses(configBuilder, DEVELOPMENT_PROFILE, getDevelopment());
   }
 
   protected void addRequiredClasses(SenchaPackageConfigBuilder configBuilder,

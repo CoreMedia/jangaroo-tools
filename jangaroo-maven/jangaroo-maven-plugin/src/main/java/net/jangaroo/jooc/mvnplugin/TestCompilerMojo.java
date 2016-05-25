@@ -60,13 +60,13 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
    * A list of test inclusion filters for the compiler.
    */
   @Parameter
-  private Set<String> testIncludes = new HashSet<String>();
+  private Set<String> testIncludes = new HashSet<>();
 
   /**
    * A list of test exclusion filters for the compiler.
    */
   @Parameter
-  private Set<String> testExcludes = new HashSet<String>();
+  private Set<String> testExcludes = new HashSet<>();
 
   /**
    * Temporary output directory for compiled classes to be packaged into a single *.js file.
@@ -91,14 +91,16 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
     return null;
   }
 
+  @Override
   protected List<File> getCompileSourceRoots() {
     return Arrays.asList(testSourceDirectory, generatedTestSourcesDirectory);
   }
 
+
+  @Override
   protected File getOutputDirectory() {
     return Type.containsJangarooSources(getProject()) ? testOutputDirectory : testPackageSourceDirectory;
   }
-
 
   @Override
   protected Set<String> getIncludes() {
@@ -112,7 +114,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected List<File> getActionScriptClassPath() {
-    final List<File> classPath = new ArrayList<File>(getMavenPluginHelper().getActionScriptClassPath(true));
+    final List<File> classPath = new ArrayList<>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, sourceDirectory);
     classPath.add(0, getGeneratedSourcesDirectory());
     classPath.add(getCatalogOutputDirectory());

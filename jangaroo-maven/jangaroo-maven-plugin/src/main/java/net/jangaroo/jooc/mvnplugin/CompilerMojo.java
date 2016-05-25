@@ -56,13 +56,13 @@ public class CompilerMojo extends AbstractCompilerMojo {
    * A list of inclusion filters for the compiler.
    */
   @Parameter
-  private Set<String> includes = new HashSet<String>();
+  private Set<String> includes = new HashSet<>();
 
   /**
    * A list of exclusion filters for the compiler.
    */
   @Parameter
-  private Set<String> excludes = new HashSet<String>();
+  private Set<String> excludes = new HashSet<>();
 
   /**
    * Output directory for generated API stubs, relative to the outputDirectory.
@@ -70,6 +70,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}/META-INF/joo-api")
   private String apiOutputDirectory;
 
+  @Override
   public File getApiOutputDirectory() {
     return Type.containsJangarooSources(getProject()) ? new File(apiOutputDirectory) : null;
   }
@@ -79,10 +80,12 @@ public class CompilerMojo extends AbstractCompilerMojo {
     return getMavenPluginHelper().getActionScriptClassPath(false);
   }
 
+  @Override
   protected List<File> getCompileSourceRoots() {
     return Arrays.asList(getSourceDirectory(), getGeneratedSourcesDirectory());
   }
 
+  @Override
   protected File getOutputDirectory() {
     return Type.JANGAROO_PKG_PACKAGING.equals(getProject().getPackaging()) ? packageOutputDirectory : appOutputDirectory;
   }

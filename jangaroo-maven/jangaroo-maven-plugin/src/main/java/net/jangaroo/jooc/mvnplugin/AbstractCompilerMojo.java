@@ -14,22 +14,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.compiler.CompilerMessage;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -242,14 +233,14 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       }
     }
 
-    HashSet<File> sources = new HashSet<File>();
+    HashSet<File> sources = new HashSet<>();
     log.debug("starting source inclusion scanner");
     sources.addAll(computeStaleSources(staleMillis));
     if (sources.isEmpty()) {
       log.info("Nothing to compile - all classes are up to date");
       return null;
     }
-    configuration.setSourceFiles(new ArrayList<File>(sources));
+    configuration.setSourceFiles(new ArrayList<>(sources));
     try {
       configuration.setSourcePath(getCompileSourceRoots());
     } catch (IOException e) {
@@ -259,7 +250,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 
-    List<NamespaceConfiguration> allNamespaces = new ArrayList<NamespaceConfiguration>();
+    List<NamespaceConfiguration> allNamespaces = new ArrayList<>();
     if (getNamespaces() != null) {
       allNamespaces.addAll(Arrays.asList(getNamespaces()));
     }
@@ -309,47 +300,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected abstract List<File> getActionScriptClassPath();
 
-  private void buildOutputFile(File tempOutputDir, File outputFile) throws MojoExecutionException {
-    final Log log = getLog();
-    if (log.isDebugEnabled()) {
-      log.debug("Output file: " + outputFile);
-    }
-
-    // If the directory where the output file is going to land
-    // doesn't exist then create it.
-    File outputFileDirectory = outputFile.getParentFile();
-
-    if (!outputFileDirectory.exists()) {
-      //noinspection ResultOfMethodCallIgnored
-      if (outputFileDirectory.mkdirs()) {
-        log.debug("created output directory " + outputFileDirectory);
-      }
-    }
-
-    try (Writer fos = new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8")) {
-
-      @SuppressWarnings({"unchecked"})
-      // resource bundle classes should always be loaded dynamically:
-      List<File> files = FileUtils.getFiles(tempOutputDir, "**/*.js", "**/*_properties_*.js");
-      // We should now have all the files we want to concat so let's do it.
-
-      int tempOutputDirPathLength = tempOutputDir.getAbsolutePath().length() + 1;
-      for (File file : files) {
-        String className = file.getAbsolutePath();
-        className = className.substring(tempOutputDirPathLength, className.length() - ".js".length());
-        className = className.replace(File.separatorChar, '.');
-        fos.write("// class " + className + "\n");
-        try (InputStream fileInput = new FileInputStream(file)) {
-          IOUtil.copy(fileInput, fos, "UTF-8");
-        }
-        fos.write('\n');
-      }
-
-    } catch (IOException e) {
-      throw new MojoExecutionException("could not build output file " + outputFile + ": " + e.toString(), e);
-    }
-  }
-
   private int compile(Jooc jooc) throws MojoExecutionException {
     File outputDirectory = jooc.getConfig().getOutputDirectory();
 
@@ -389,7 +339,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     List<File> compileSourceRoots = getCompileSourceRoots();
 
 
-    List<File> staleFiles = new ArrayList<File>();
+    List<File> staleFiles = new ArrayList<>();
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
     return staleFiles;
