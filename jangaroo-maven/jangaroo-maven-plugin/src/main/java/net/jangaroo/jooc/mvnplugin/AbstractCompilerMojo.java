@@ -404,6 +404,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     List<File> staleFiles = new ArrayList<File>();
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
+    staleFiles.addAll(getMavenPluginHelper().computeStalePropertiesSources(compileSourceRoots, getIncludes(), getExcludes(), getLocalizedOutputDirectory(), staleMillis));
     return staleFiles;
   }
 

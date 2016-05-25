@@ -11,6 +11,7 @@ import java.util.Locale;
 public class PropcHelper {
 
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
+  public static final String DEFAULT_LOCALE = "en";
 
   public static Locale computeLocale(String propertiesClassName) {
     String[] parts = propertiesClassName.split("_", 4);
@@ -35,10 +36,10 @@ public class PropcHelper {
     return new File(config.getApiOutputDirectory(), generatedPropertiesClassFileName);
   }
 
-  public static File computeGeneratedPropertiesJsFile(PropertiesCompilerConfiguration config, String className, Locale locale) {
-    String localeSubDir = locale == null ? config.getDefaultLocale() : locale.toString();
+  public static File computeGeneratedPropertiesJsFile(File outputDirectory, String className, Locale locale) {
+    String localeSubDir = locale == null ? DEFAULT_LOCALE : locale.toString();
     String generatedPropertiesClassFileName = localeSubDir + '/' + CompilerUtils.fileNameFromQName(className, '/', PROPERTIES_CLASS_SUFFIX + ".js");
-    return new File(config.getOutputDirectory(), generatedPropertiesClassFileName);
+    return new File(outputDirectory, generatedPropertiesClassFileName);
   }
 
 }
