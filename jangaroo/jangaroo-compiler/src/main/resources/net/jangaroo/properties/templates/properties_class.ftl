@@ -6,18 +6,18 @@ package ${resourceBundle.packageName} {
 ${as3Comment}
 <#else>
 /**
- * AS3 API stub for ResourceBundle "${resourceBundle.className}".
+ * AS3 API stub for ResourceBundle "${resourceBundle.bundleName}".
 </#if>
- * @see ${resourceBundle.className}_properties#INSTANCE
+ * @see ${resourceBundle.className}#INSTANCE
  */
-[Native("${resourceBundle.fullClassName}_properties", require)]
-public class ${resourceBundle.className}_properties {
+[Native("${resourceBundle.fullClassName}", require)]
+public class ${resourceBundle.className} {
 
 /**
- * Singleton for the current user Locale's instance of ResourceBundle "${resourceBundle.className}".
- * @see ${resourceBundle.className}_properties
+ * Singleton for the current user Locale's instance of ResourceBundle "${resourceBundle.bundleName}".
+ * @see ${resourceBundle.className}
  */
-public static const INSTANCE:${resourceBundle.className}_properties;
+public static const INSTANCE:${resourceBundle.className};
 
 <#list props as property>
 <#if property.keyIsIdentifier>

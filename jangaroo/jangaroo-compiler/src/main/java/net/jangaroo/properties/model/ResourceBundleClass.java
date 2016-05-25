@@ -3,6 +3,8 @@
  */
 package net.jangaroo.properties.model;
 
+import net.jangaroo.utils.CompilerUtils;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -19,13 +21,17 @@ public final class ResourceBundleClass {
     this.fullClassName = fullClassName;
   }
 
+  public String getBundleName() {
+    String className = getClassName();
+    return className.substring(0, className.length() - "_properties".length());
+  }
+
   public String getClassName() {
-    return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
+    return CompilerUtils.className(fullClassName);
   }
 
   public String getPackageName() {
-    int lastDotPos = fullClassName.lastIndexOf('.');
-    return lastDotPos==-1 ? "" : fullClassName.substring(0, lastDotPos);
+    return CompilerUtils.packageName(fullClassName);
   }
 
   public String getFullClassName() {

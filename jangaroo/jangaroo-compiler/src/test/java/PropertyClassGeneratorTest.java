@@ -39,7 +39,7 @@ public class PropertyClassGeneratorTest {
 
     StringWriter writer  = new StringWriter();
 
-    ResourceBundleClass rbc = new ResourceBundleClass("testPackage.PropertiesTest");
+    ResourceBundleClass rbc = new ResourceBundleClass("testPackage.PropertiesTest_properties");
     PropertiesConfiguration p = new PropertiesConfiguration();
     p.getLayout().setHeaderComment("# some comment \n# \t [PublicApi]".replaceAll("\n", LINE_SEPARATOR));
     p.setProperty("key", "Die Platte \"{1}\" enthält {0}.");

@@ -74,7 +74,7 @@ public class PropertiesMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!apiOutputDirectory.exists()) {
-      getLog().info("generating AS3 localization api stubs into: " + apiOutputDirectory.getPath());
+    getLog().info("generating AS3 localization api stubs into: " + apiOutputDirectory.getPath());
       getLog().debug("created " + apiOutputDirectory.mkdirs());
     }
 

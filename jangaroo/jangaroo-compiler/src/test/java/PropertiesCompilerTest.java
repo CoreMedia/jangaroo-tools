@@ -34,8 +34,6 @@ public class PropertiesCompilerTest {
     args.add(apiFolder.getRoot().getAbsolutePath());
     args.add("-sourcepath");
     args.add(root.getAbsolutePath());
-    args.add("-defaultLocale");
-    args.add("en_gb");
     args.add(getFile("/testPackage/subPackage/Proberties.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest.properties").getAbsolutePath());
     args.add(getFile("/testPackage/PropertiesTest_de.properties").getAbsolutePath());
@@ -48,7 +46,7 @@ public class PropertiesCompilerTest {
     assertTrue(api.getAbsolutePath() + " exists", api.exists());
     assertTrue(api.length() > 100);
 
-    File defaultProp = new File(out,"en_gb/testPackage/PropertiesTest_properties.js");
+    File defaultProp = new File(out,"en/testPackage/PropertiesTest_properties.js");
     assertTrue(defaultProp.getAbsolutePath() + " exists", defaultProp.exists());
     assertTrue(defaultProp.length() > 100);
 
@@ -64,7 +62,7 @@ public class PropertiesCompilerTest {
     assertTrue(it_VA_WINProp.getAbsolutePath() + " exists", it_VA_WINProp.exists());
     assertTrue(it_VA_WINProp.length() > 100);
 
-    File subPackageProp = new File(out, "en_gb/testPackage/subPackage/Proberties_properties.js");
+    File subPackageProp = new File(out, "en/testPackage/subPackage/Proberties_properties.js");
     assertTrue(subPackageProp.getAbsolutePath() + " exists", subPackageProp.exists());
     assertTrue(subPackageProp.length() > 100);
   }

@@ -131,8 +131,11 @@ public class PropertyClassGenerator implements Propc {
   public Map<File,File> generateApi() {
     Map<File,File> outputFileMap = new LinkedHashMap<File, File>();
     for (File srcFile : config.getSourceFiles()) {
-      File outputFile = generateApi(parse(srcFile));
-      outputFileMap.put(srcFile, outputFile);
+      PropertiesClass propertiesClass = parse(srcFile);
+      if (propertiesClass.getLocale() == null) {
+        File outputFile = generateApi(propertiesClass);
+        outputFileMap.put(srcFile, outputFile);
+      }
     }
     return outputFileMap;
   }

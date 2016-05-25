@@ -224,12 +224,19 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
-    return pathInputSource.getChild(getInputSourceFileName(qname, pathInputSource, suffix));
+    String correctedQName = qname;
+    if (Jooc.PROPERTIES_SUFFIX.equals(suffix)) {
+      if (qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX)) {
+        correctedQName = qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length());
+      } else {
+        return null;
+      }
+    }
+    return pathInputSource.getChild(getInputSourceFileName(correctedQName, pathInputSource, suffix));
   }
 
   public static String getInputSourceFileName(final String qname, InputSource is, String extension) {
-    String correctedQName = Jooc.PROPERTIES_SUFFIX.equals(extension) && qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX) ? qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length()) : qname;
-    return CompilerUtils.fileNameFromQName(correctedQName, is.getFileSeparatorChar(), extension);
+    return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
   }
 
   public CompilationUnit importSource(InputSource source, boolean forceParse) {
