@@ -118,28 +118,31 @@ public class AbstractJoocTest {
     Assert.assertThat(testLog.getPosition(expected), matchesPosition(line, column));
   }
 
-  void assertApiCompilationResult(String path, String expectPath) throws URISyntaxException, IOException {
-    File sourcefile = getFile("/" + path + ".as");
-    config.addSourceFile(sourcefile);
-    //noinspection ResultOfMethodCallIgnored
+  void assertApiCompilationResult(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
     apiOutputFolder.mkdirs(); // NOSONAR
-    jooc.run();
-
-    File destFile = new File(apiOutputFolder, path + ".as");
-    assertTrue(destFile.exists());
-
-    String result = readFileToString(destFile);
-    String expected = readFileToString(getFile("/expectedApi/" + expectPath + path + ".as"));
-    assertEquals("Result file not equal", expected, result);
+    compile(".as", relativeClassFileName);
+    verifyOutput(relativeClassFileName, apiOutputFolder, expectedPath, ".as");
   }
-
 
   void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as");
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
-    File destFile = compile(relativeClassFileName, extension);
+    assertCompilationResult(relativeClassFileName, extension, "/expected");
+  }
+
+  void assertCompilationResult(String relativeClassFileName, String extension, String expectedPath) throws URISyntaxException, IOException {
+    compile(extension, relativeClassFileName);
+    verifyClassOutput(relativeClassFileName, expectedPath);
+  }
+
+  void verifyClassOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
+    verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".js");
+  }
+
+  void verifyOutput(String relativeClassFileName, File targetDir, String expectedPath, String expectedExtension) throws URISyntaxException, IOException {
+    File destFile = outputFile(targetDir, relativeClassFileName, expectedExtension);
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
 
     String result = readFileToString(destFile);
@@ -147,25 +150,30 @@ public class AbstractJoocTest {
     if (sourceMappingUrlPos != -1) {
       result = result.substring(0, sourceMappingUrlPos);
     }
-    File expectedFile = getFile("/expected/" + relativeClassFileName + ".js");
+    File expectedFile = getFile(expectedPath + '/' + relativeClassFileName + expectedExtension);
     String expected = readFileToString(expectedFile);
     expected = expected.replace("@runtimeVersion", JoocProperties.getRuntimeVersion());
     expected = expected.replace("@version", JoocProperties.getVersion());
     assertEquals("Result file " + destFile.getAbsolutePath() +
-            " not equal to expected file " + expectedFile.getAbsolutePath(),
+                    " not equal to expected file " + expectedFile.getAbsolutePath(),
             expected,
             result);
   }
 
-  File compile(String relativeClassFileName) throws URISyntaxException {
-    return compile(relativeClassFileName, ".as");
+  File outputFile(File targetDir, String relativeClassFileName, String expectedExtension) {
+    return new File(targetDir, relativeClassFileName + expectedExtension);
   }
 
-  private File compile(String relativeClassFileName, String extension) throws URISyntaxException {
-    File sourceFile = getFile("/" + relativeClassFileName + extension);
-    config.addSourceFile(sourceFile);
+  void compile(String relativeClassFileName) throws URISyntaxException {
+    compile(".as", relativeClassFileName);
+  }
+
+  void compile(String extension, String ...relativeClassFileNames) throws URISyntaxException {
+    for (String relativeClassFileName : relativeClassFileNames) {
+      File sourceFile = getFile("/" + relativeClassFileName + extension);
+      config.addSourceFile(sourceFile);
+    }
     jooc.run();
-    return new File(outputFolder, relativeClassFileName + ".js");
   }
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");

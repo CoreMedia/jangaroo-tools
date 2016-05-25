@@ -104,7 +104,10 @@ public class JoocTest extends AbstractJoocTest {
 
   @Test
   public void testMixin() throws Exception {
-    File compileResult = compile("package2/ITestMixin");
+    final String relativeClassFileName = "package2/ITestMixin";
+    compile(relativeClassFileName);
+    File compileResult = outputFile(outputFolder, relativeClassFileName, ".js");
+
     assertFalse("[Mixin] interfaces must not have compile output.", compileResult.exists());
     assertCompilationResult("package2/TestMixinClient");
     assertCompilationResult("package2/TestMixin");
@@ -145,7 +148,7 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testImportReductionExcludeClass() throws Exception {
     config.setExcludeClassByDefault(true);
-    assertApiCompilationResult("package1/someOtherPackage/ImportReduction", "withExclude/");
+    assertApiCompilationResult("package1/someOtherPackage/ImportReduction", "/expectedApi/withExclude");
   }
 
   @Test
@@ -196,9 +199,11 @@ public class JoocTest extends AbstractJoocTest {
   
   @Test
   public void testNativeApi() throws Exception {
-    File compileResult = compile("package1/SomeNativeClass");
+    String relativeClassFileName = "package1/SomeNativeClass";
+    compile(relativeClassFileName);
+    File compileResult = outputFile(outputFolder, relativeClassFileName, ".js");
     assertFalse("[Native] classes must not have compile output.", compileResult.exists());
-    assertApiCompilationResult("package1/SomeNativeClass");
+    assertApiCompilationResult(relativeClassFileName);
   }
 
   @Test
@@ -221,8 +226,8 @@ public class JoocTest extends AbstractJoocTest {
     assertApiCompilationResult("package1/someOtherPackage/NamespacedMembers");
   }
 
-  private void assertApiCompilationResult(String path) throws URISyntaxException, IOException {
-    assertApiCompilationResult(path, "");
+  private void assertApiCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
+    assertApiCompilationResult(relativeClassFileName, "/expectedApi");
   }
 
   @Test
