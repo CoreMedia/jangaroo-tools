@@ -3,13 +3,17 @@ package net.jangaroo.jooc.mvnplugin.sencha.configbuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,14 +27,75 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
   private String destFileComment = null;
 
   @SuppressWarnings("unchecked")
-  T nameValue(String name, Object value) {
-    config.put(name, value);
+  T nameValue(@Nonnull String name, @Nullable Object value) {
+    handleNewValue(config, name, config.get(name), value);
     return (T) this;
   }
 
+  private static void mergeMap(@Nonnull Map<String, Object> baseMap,
+                               @Nonnull Map<String, Object> mapWithNewValues) {
+    for (Map.Entry<String, Object> entry : mapWithNewValues.entrySet()) {
+      String key = entry.getKey();
+      handleNewValue(baseMap, key, baseMap.get(key), entry.getValue());
+    }
+  }
+
+  private static void handleNewValue(@Nonnull Map<String, Object> baseMap,
+                                     @Nonnull String key,
+                                     @Nullable Object currentValue,
+                                     @Nullable Object newValue) {
+    boolean isListValue = newValue instanceof List;
+    boolean isMapValue = newValue instanceof Map;
+
+    if (currentValue == null || !(isListValue || isMapValue)) {
+      baseMap.put(key, newValue);
+    } else if (isMapValue) {
+      //noinspection unchecked
+      addToMapRecursively(baseMap, key, currentValue, (Map<String, Object>) newValue);
+    } else {
+      addToList(baseMap, key, currentValue, (Collection<?>) newValue);
+    }
+  }
+
+  private static void addToList(@Nonnull Map<String, Object> baseMap,
+                                @Nonnull String key,
+                                @Nonnull Object currentValue,
+                                @Nonnull Collection<?> additionalValues) {
+    if (!(currentValue instanceof List)) {
+      String errorMessage = String.format("Expected a list as value for property name %s, but got %s", key, currentValue);
+      throw new IllegalArgumentException(errorMessage);
+    }
+    @SuppressWarnings("unchecked")
+    List<Object> currentValueAsList = (List<Object>) currentValue;
+    // we need to add the values to the existing list
+    List<Object> currentList = new ArrayList<>();
+    currentList.addAll(currentValueAsList);
+    currentList.addAll(additionalValues);
+    baseMap.put(key, currentList);
+  }
+
+  private static void addToMapRecursively(@Nonnull Map<String, Object> baseMap,
+                                          @Nonnull String key,
+                                          @Nonnull Object currentValue,
+                                          @Nonnull Map<String, Object> additionalMap) {
+    if (!(currentValue instanceof Map)) {
+      throw new IllegalArgumentException(String.format("Expected a map as value for property name %s, but got %s", key, currentValue));
+    }
+    @SuppressWarnings("unchecked")
+    Map<String, Object> currentValueAsMap = (Map<String, Object>) currentValue;
+    // we need to add the values to the existing list
+    Map<String, Object> currentSubMap = new HashMap<>();
+    currentSubMap.putAll(currentValueAsMap);
+    currentSubMap.putAll(additionalMap);
+    baseMap.put(key, currentSubMap);
+    mergeMap(currentValueAsMap, additionalMap);
+  }
+
   @SuppressWarnings("unchecked")
-  public T namesValues(Map<String, Object> properties) {
-    config.putAll(properties);
+  public T namesValues(@Nonnull Map<String, Object> properties) {
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      nameValue(entry.getKey(), entry.getValue());
+    }
     return (T) this;
   }
 
@@ -46,6 +111,7 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
     return (T) this;
   }
 
+  @Nonnull
   public Map<String, Object> build() {
     return Collections.unmodifiableMap(config);
   }
@@ -79,9 +145,8 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
   private Map<String, Object> readDefaultJson(String jsonFileName) throws IOException {
     InputStream inputStream = getClass().getResourceAsStream(jsonFileName);
 
-    @SuppressWarnings("unchecked")
-    Map<String, Object> defaultAppConfig = (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(inputStream, Map.class);
-    return defaultAppConfig;
+    //noinspection unchecked
+    return (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(inputStream, Map.class);
   }
 
   <I> T addToList(I item, String ...pathArcs) {

@@ -105,9 +105,8 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     File jsonFile = new File(getSenchaSrcDir(), getJsonConfigFileName());
     if (jsonFile.exists()) {
       try (FileInputStream fileInputStream = new FileInputStream(jsonFile)) {
-        Map<String, Object> customConfig = (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(fileInputStream, Map.class);
-        // TODO would be nice not to overwrite nested properties
-        configBuilder.namesValues(customConfig);
+        //noinspection unchecked
+        configBuilder.namesValues((Map<String, Object>) SenchaUtils.getObjectMapper().readValue(fileInputStream, Map.class));
       } catch (IOException e) {
         throw new MojoExecutionException("Could not read json file", e);
       }
@@ -137,6 +136,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     } else {
       SenchaPackageOrAppConfigBuilder profileConfigBuilder = createSenchaConfigBuilder();
       configureProfile(senchaProfileConfiguration, profileConfigBuilder);
+      //noinspection unchecked
       configBuilder.profile(profileName, profileConfigBuilder.build());
     }
   }
@@ -266,15 +266,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  protected static String getPluginName(String editorPlugin) {
-    String editorPluginName = "No name";
-    String[] parts = editorPlugin.split("\\.");
-    if (parts.length > 0) {
-      editorPluginName = parts[parts.length - 1];
-    }
-    return editorPluginName;
-  }
-
   @Nonnull
   private String getThemePackageName() {
     Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
@@ -323,11 +314,13 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   @Nonnull
+  @Override
   public List<String> getAdditionalCssNonBundle() {
     return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
   }
 
   @Nonnull
+  @Override
   public List<String> getAdditionalJsNonBundle() {
     return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
   }
