@@ -4,11 +4,11 @@
 ${comment}
 <#else>
 /**
-* Properties class for ResourceBundle "${resourceBundle.className}"<#if locale??> and Locale "${locale}"</#if>.
+ * Properties class for ResourceBundle "${resourceBundle.className}"<#if locale??> and Locale "${locale}"</#if>.
 </#if>
-*/
+ */
 Ext.define("${resourceBundle.fullClassName}_properties<#if locale??>_${locale}</#if>", {
-  <#if locale??>override: "${resourceBundle.fullClassName}_properties"<#if props?has_content>,</#if></#if>
+<#if locale??>  override: "${resourceBundle.fullClassName}_properties"<#if props?has_content>,</#if></#if>
 <#if imports?has_content>
   requires: [
  <#list imports as import>

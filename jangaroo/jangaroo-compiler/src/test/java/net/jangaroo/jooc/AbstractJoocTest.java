@@ -34,6 +34,7 @@ public class AbstractJoocTest {
   protected final TestLog testLog = new TestLog();
 
   protected File outputFolder;
+  protected File localizedOutputFolder;
   protected File apiOutputFolder;
   protected Jooc jooc;
 
@@ -88,7 +89,8 @@ public class AbstractJoocTest {
 
   @Before
   public void setup() throws Exception{
-    outputFolder = tmpFolder.newFolder("jangaroo-output");
+    outputFolder = tmpFolder.newFolder("joo-classes");
+    localizedOutputFolder = tmpFolder.newFolder("joo-locale");
     apiOutputFolder = tmpFolder.newFolder("joo-api");
     config = new JoocConfiguration();
     config.setVerbose(true);
@@ -99,6 +101,7 @@ public class AbstractJoocTest {
     config.setDebugMode(DebugMode.SOURCE);
     config.setOutputDirectory(outputFolder);
     //noinspection ResultOfMethodCallIgnored
+    config.setLocalizedOutputDirectory(localizedOutputFolder);
     config.setApiOutputDirectory(apiOutputFolder);
     testLog.reset();
     jooc = new Jooc(config, testLog);
@@ -121,7 +124,7 @@ public class AbstractJoocTest {
   void assertApiCompilationResult(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
     apiOutputFolder.mkdirs(); // NOSONAR
     compile(".as", relativeClassFileName);
-    verifyOutput(relativeClassFileName, apiOutputFolder, expectedPath, ".as");
+    verifyApiOutput(relativeClassFileName, expectedPath);
   }
 
   void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
@@ -139,6 +142,10 @@ public class AbstractJoocTest {
 
   void verifyClassOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
     verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".js");
+  }
+
+  void verifyApiOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
+    verifyOutput(relativeClassFileName, apiOutputFolder, expectedPath, ".as");
   }
 
   void verifyOutput(String relativeClassFileName, File targetDir, String expectedPath, String expectedExtension) throws URISyntaxException, IOException {

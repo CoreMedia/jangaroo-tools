@@ -10,7 +10,6 @@ public class JoocPropertiesTest extends AbstractJoocTest {
 
   @Test
   public void testPropertiesCompilation() throws Exception {
-    //todo add default locale parameter
     compile(".properties",
             //todo"testPackage/subPackage/Proberties",
             "testPackage/PropertiesTest",
@@ -18,16 +17,19 @@ public class JoocPropertiesTest extends AbstractJoocTest {
             "testPackage/PropertiesTest_es_ES",
             "testPackage/PropertiesTest_it_VA_WIN");
 
-    verifyPropertiesOutput("testPackage/PropertiesTest", "en");
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "en");
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "de");
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "es_ES");
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "it_VA_WIN");
+
+    //todo verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
   }
 
   void verifyPropertiesOutput(String relativeClassFileName, String locale) throws URISyntaxException, IOException {
-    verifyOutput(relativeClassFileName, propertiesTargetDir(locale), "/expectedProperties", ".js");
+    verifyOutput(relativeClassFileName, propertiesTargetDir(locale), "/expectedProperties/" + locale, ".js");
   }
 
   private File propertiesTargetDir(String locale) throws URISyntaxException {
-    return new File(outputFolder, locale); //todo introduce locale output folder
-}
-
-
+    return new File(localizedOutputFolder, locale);
+  }
 }
