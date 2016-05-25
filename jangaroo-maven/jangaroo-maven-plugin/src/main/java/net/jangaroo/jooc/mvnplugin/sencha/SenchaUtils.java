@@ -32,7 +32,7 @@ public class SenchaUtils {
 
   public static final String LOCAL_PACKAGE_BUILD_PATH = LOCAL_PACKAGE_PATH + "build/";
 
-  public final static String APP_TARGET_DIRECTORY = "/app";
+  public static final String APP_TARGET_DIRECTORY = "/app";
 
   /**
    * The name of the folder of the generated module inside the {@link #LOCAL_PACKAGE_PATH} folder.
@@ -48,6 +48,9 @@ public class SenchaUtils {
   public static final String SENCHA_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_LOCALE_PATH = "locale";
   public static final String SENCHA_RESOURCES_PATH = "resources";
+  public static final String PRODUCTION_PROFILE = "production";
+  public static final String TESTING_PROFILE = "testing";
+  public static final String DEVELOPMENT_PROFILE = "development";
 
 
   private static final String SENCHA_CFG = "sencha.cfg";
@@ -63,6 +66,8 @@ public class SenchaUtils {
   public static final String REGISTER_PACKAGE_ORDER_FILENAME = "registerPackageOrder.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
+  private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");
+
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??
           Type.APP, "${app.dir}",
           Type.CODE, "${package.dir}",
@@ -70,13 +75,15 @@ public class SenchaUtils {
           Type.WORKSPACE, "${workspace.dir}"
   );
 
-  private final static ObjectMapper objectMapper;
+  private static final ObjectMapper objectMapper;
   static {
     objectMapper = new ObjectMapper();
     objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
   }
 
-  private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");
+  private SenchaUtils() {
+    // hide constructor
+  }
 
   public static String getSenchaPackageName(String groupId, String artifactId) {
     return groupId + "__" + artifactId;
@@ -88,9 +95,9 @@ public class SenchaUtils {
 
   public static String getSenchaVersionForMavenVersion(String version) {
     // Very simple matching for now, maybe needs some adjustment
-    version = version.replace("-SNAPSHOT", "").replace("-", ".");
-    if (SENCHA_VERSION_PATTERN.matcher(version).matches()) {
-      return version;
+    String senchaVersion = version.replace("-SNAPSHOT", "").replace("-", ".");
+    if (SENCHA_VERSION_PATTERN.matcher(senchaVersion).matches()) {
+      return senchaVersion;
     } else {
       return null;
     }

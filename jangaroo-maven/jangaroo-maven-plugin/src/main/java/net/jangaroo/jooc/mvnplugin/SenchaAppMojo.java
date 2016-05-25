@@ -95,9 +95,9 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
       throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
     if (StringUtils.isEmpty(senchaAppBuild)) {
-      senchaAppBuild = PRODUCTION_PROFILE;
+      senchaAppBuild = SenchaUtils.PRODUCTION_PROFILE;
     }
-    if (!(PRODUCTION_PROFILE.equals(senchaAppBuild) || DEVELOPMENT_PROFILE.equals(senchaAppBuild))) {
+    if (!(SenchaUtils.PRODUCTION_PROFILE.equals(senchaAppBuild) || SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild))) {
       throw new MojoExecutionException("'senchaAppBuild' must be one of 'production' or 'development'.");
     }
 

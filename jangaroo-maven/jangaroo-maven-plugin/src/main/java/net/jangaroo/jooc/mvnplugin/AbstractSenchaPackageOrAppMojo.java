@@ -40,10 +40,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
         extends AbstractSenchaMojo
         implements SenchaProfileConfiguration {
 
-  public static final String PRODUCTION_PROFILE = "production";
-  public static final String TESTING_PROFILE = "testing";
-  public static final String DEVELOPMENT_PROFILE = "development";
-
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
 
@@ -94,9 +90,9 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     configureModule(configBuilder);
 
     configureProfile(configBuilder, null, this);
-    configureProfile(configBuilder, PRODUCTION_PROFILE, getProduction());
-    configureProfile(configBuilder, TESTING_PROFILE, getTesting());
-    configureProfile(configBuilder, DEVELOPMENT_PROFILE, getDevelopment());
+    configureProfile(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getProduction());
+    configureProfile(configBuilder, SenchaUtils.TESTING_PROFILE, getTesting());
+    configureProfile(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getDevelopment());
 
     configureCustomProperties(configBuilder);
   }
