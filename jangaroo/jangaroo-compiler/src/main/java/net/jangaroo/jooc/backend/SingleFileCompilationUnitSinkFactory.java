@@ -69,14 +69,6 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
                                         IdeDeclaration primaryDeclaration, final File sourceFile,
                                         final boolean verbose) {
     final File outFile = getOutputFile(sourceFile, packageDeclaration.getQualifiedName());
-    String fileName = outFile.getName();
-    String classPart = fileName.substring(0, fileName.lastIndexOf('.'));
-
-    String className = primaryDeclaration.getName();
-    if (!classPart.equals(className)) {
-      JangarooParser.warning(primaryDeclaration.getSymbol(),
-              "class name should be equal to file name: expected " + classPart + ", found " + className);
-    }
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {

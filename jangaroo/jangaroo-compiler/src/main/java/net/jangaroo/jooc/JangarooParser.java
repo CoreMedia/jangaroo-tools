@@ -224,12 +224,12 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
-    String correctedQName = Jooc.PROPERTIES_SUFFIX.equals(suffix) && qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX) ? qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length()) : qname;
-    return pathInputSource.getChild(getInputSourceFileName(correctedQName, pathInputSource, suffix));
+    return pathInputSource.getChild(getInputSourceFileName(qname, pathInputSource, suffix));
   }
 
   public static String getInputSourceFileName(final String qname, InputSource is, String extension) {
-    return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
+    String correctedQName = Jooc.PROPERTIES_SUFFIX.equals(extension) && qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX) ? qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length()) : qname;
+    return CompilerUtils.fileNameFromQName(correctedQName, is.getFileSeparatorChar(), extension);
   }
 
   public CompilationUnit importSource(InputSource source, boolean forceParse) {
@@ -257,7 +257,11 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
     String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-    checkValidFileName(qname, unit, source);
+    if (Jooc.AS_SUFFIX.equals(fileExtension)) {
+      // Only check *.as file names.
+      // For *.properties and *.mxml, the class name is derived from the file name, anyway!
+      checkValidFileName(qname, unit, source);
+    }
 
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
