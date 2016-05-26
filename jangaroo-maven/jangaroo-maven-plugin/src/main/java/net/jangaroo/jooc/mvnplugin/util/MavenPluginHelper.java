@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -12,6 +13,7 @@ import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
+import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import javax.annotation.Nonnull;
@@ -91,8 +93,18 @@ public class MavenPluginHelper {
   }
 
   public List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, String outputFileSuffix, int staleMillis) throws MojoExecutionException {
+    return computeStaleSources(compileSourceRoots, includes, excludes, outputDirectory, inputFileSuffix,
+            new SuffixMapping(inputFileSuffix, outputFileSuffix), staleMillis);
+  }
+
+  public List<File> computeStalePropertiesSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, int staleMillis) throws MojoExecutionException {
+    return computeStaleSources(compileSourceRoots, includes, excludes, outputDirectory, Jooc.PROPERTIES_SUFFIX,
+            PropertiesSourceMapping.getInstance(), staleMillis);
+  }
+
+  private List<File> computeStaleSources(List<File> compileSourceRoots, Set<String> includes, Set<String> excludes, File outputDirectory, String inputFileSuffix, SourceMapping sourceMapping, int staleMillis) throws MojoExecutionException {
     SourceInclusionScanner scanner = createSourceInclusionScanner(includes, excludes, inputFileSuffix, staleMillis);
-    scanner.addSourceMapping(new SuffixMapping(inputFileSuffix, outputFileSuffix));
+    scanner.addSourceMapping(sourceMapping);
     log.debug("Searching for");
     Set<File> staleSources = new LinkedHashSet<>();
 
@@ -114,15 +126,10 @@ public class MavenPluginHelper {
   }
 
   private SourceInclusionScanner createSourceInclusionScanner(Set<String> includes, Set<String> excludes, String inputFileSuffix, int staleMillis) {
-    SourceInclusionScanner scanner;
-
-    if (staleMillis >= 0 && includes.isEmpty() && excludes.isEmpty()) {
-      scanner = new StaleSourceScanner(staleMillis);
-    } else {
-      Set<String> includesOrDefaults = includes.isEmpty() ? Collections.singleton("**/*" + inputFileSuffix) : includes;
-      scanner = staleMillis >= 0 ? new StaleSourceScanner(staleMillis, includesOrDefaults, excludes)
-              : new SimpleSourceInclusionScanner(includesOrDefaults, excludes);
-    }
+    Set<String> includesOrDefaults = includes.isEmpty() ? Collections.singleton("**/*" + inputFileSuffix) : includes;
+    SourceInclusionScanner scanner = staleMillis >= 0
+            ? new StaleSourceScanner(staleMillis, includesOrDefaults, excludes)
+            : new SimpleSourceInclusionScanner(includesOrDefaults, excludes);
 
     log.debug("Using source inclusion scanner " + scanner);
     return scanner;

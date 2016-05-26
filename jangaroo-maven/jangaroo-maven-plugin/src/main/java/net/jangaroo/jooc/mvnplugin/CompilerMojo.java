@@ -113,17 +113,4 @@ public class CompilerMojo extends AbstractCompilerMojo {
     }
     return joocConfiguration;
   }
-
-  @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
-    super.execute();
-    if (getSourceDirectory() != null && getApiOutputDirectory() != null && getSourceDirectory().exists()) {
-      try {
-        getLog().info(String.format("Copying properties source files from %s to API output directory %s...", getSourceDirectory().getPath(), getApiOutputDirectory().getPath()));
-        FileUtils.copyDirectory(getSourceDirectory(), getApiOutputDirectory(), PROPERTIES_FILE_FILTER);
-      } catch (IOException e) {
-        throw new MojoExecutionException("Failed to copy properties source files to API output directory.", e);
-      }
-    }
-  }
 }

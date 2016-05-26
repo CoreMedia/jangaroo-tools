@@ -36,10 +36,18 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.properties.PropertyClassGenerator;
+import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,9 +133,21 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
+    PropertyClassGenerator propertyClassGenerator;
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
+
+      PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
+      config.setSourcePath(getConfig().getSourcePath());
+      config.setClassPath(getConfig().getClassPath());
+      File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
+      // temporary fix until the new configuration option can be used by IDEA Plugin:
+      if (localizedOutputDirectory == null) {
+        localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
+      }
+      config.setOutputDirectory(localizedOutputDirectory);
+      propertyClassGenerator = new PropertyClassGenerator(config);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -166,10 +186,22 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+        } else if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
+          outputFile = propertyClassGenerator.generate(sourceFile);
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {
-          writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+          if (sourceFile.getName().endsWith(PROPERTIES_SUFFIX)) {
+            if (!sourceFile.getName().contains("_")) {
+              Path targetPath = getConfig().getApiOutputDirectory().toPath().resolve(source.getRelativePath());
+              Files.createDirectories(targetPath.getParent());
+              Files.copy(sourceFile.toPath(),
+                      targetPath,
+                      StandardCopyOption.REPLACE_EXISTING);
+            }
+          } else {
+            writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+          }
         }
       }
 
@@ -335,7 +367,17 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     if (file.isDirectory()) {
       throw error("Input file is a directory.", file);
     }
-    CompilationUnit unit = importSource(new FileInputSource(getConfig().findSourceDir(file), file, true), true);
+    File sourceDir = getConfig().findSourceDir(file);
+    String qName = CompilerUtils.qNameFromFile(sourceDir, file);
+//    InputSource canonicalInputSource = findSource(qName);
+//    if (canonicalInputSource != null && !canonicalInputSource.getPath().equals(file.getPath())) {
+//      if (canonicalInputSource.getName().endsWith(PROPERTIES_SUFFIX)) {
+//        // ignore classes generated from properties files!
+//        return;
+//      }
+//      throw Jooc.error(String.format("Compilation unit %s defined in %s is redeclared in %s.", qName, canonicalInputSource.getPath(), file.getPath()), file);
+//    }
+    CompilationUnit unit = importSource(new FileInputSource(sourceDir, file, true), true);
     if (unit != null) {
       compileQueue.add(unit);
     }

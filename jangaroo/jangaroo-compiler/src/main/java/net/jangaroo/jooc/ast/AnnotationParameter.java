@@ -20,6 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.properties.api.PropcHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,7 +86,7 @@ public class AnnotationParameter extends NodeImplBase {
         }
         Scope scope = parentAnnotation.getIde().getScope();
         String resourceBundleName = (String) valueSymbol.getJooValue();
-        CompilationUnit resourceBundleCompilationUnit = scope.getCompiler().getCompilationUnit(resourceBundleName + "_properties");
+        CompilationUnit resourceBundleCompilationUnit = scope.getCompiler().getCompilationUnit(resourceBundleName + PropcHelper.PROPERTIES_CLASS_SUFFIX);
         if (resourceBundleCompilationUnit == null) {
           throw new CompilerError(valueSymbol, "unable to resolve resource bundle " + resourceBundleName);
         }

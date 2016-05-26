@@ -69,8 +69,15 @@ public final class CompilerUtils {
   public static String qNameFromRelativPath(String relativePath) {
     if (relativePath != null) {
       int lastDotPos = relativePath.lastIndexOf('.');
-      if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf(File.separatorChar)) {
-        return relativePath.substring(0, lastDotPos).replace(File.separatorChar, '.');
+      // normalize '\' to '/';
+      relativePath = relativePath.replace(File.separatorChar, '/');
+      if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf('/')) {
+        String qName = relativePath.substring(0, lastDotPos).replace('/', '.');
+        String suffix = relativePath.substring(lastDotPos);
+        if (".properties".equals(suffix)) {
+          qName += "_properties";
+        }
+        return qName;
       }
     }
     return null;

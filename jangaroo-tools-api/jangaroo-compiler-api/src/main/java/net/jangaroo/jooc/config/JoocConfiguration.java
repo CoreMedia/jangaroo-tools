@@ -23,6 +23,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean allowDuplicateLocalVariables;
 
+  private File localizedOutputDirectory;
+
   private File apiOutputDirectory;
 
   private boolean mergeOutput = false;
@@ -151,6 +153,15 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Override
   public boolean isGenerateSourceMaps() {
     return generateSourceMaps;
+  }
+
+  public File getLocalizedOutputDirectory() {
+    return localizedOutputDirectory;
+  }
+
+  @Option(name="-ld", aliases = "--localizedDir", usage = "destination directory for generated localized JavaScript files, compiled from properties files")
+  public void setLocalizedOutputDirectory(final File localizedOutputDirectory) {
+    this.localizedOutputDirectory = localizedOutputDirectory;
   }
 
   public File getApiOutputDirectory() {
