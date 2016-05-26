@@ -11,7 +11,6 @@ public class JoocPropertiesTest extends AbstractJoocTest {
   @Test
   public void testPropertiesCompilation() throws Exception {
     compile(".properties",
-            //todo"testPackage/subPackage/Proberties",
             "testPackage/PropertiesTest",
             "testPackage/PropertiesTest_de",
             "testPackage/PropertiesTest_es_ES",

@@ -3,7 +3,7 @@
  */
 package net.jangaroo.properties.model;
 
-import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.PropcHelper;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
 

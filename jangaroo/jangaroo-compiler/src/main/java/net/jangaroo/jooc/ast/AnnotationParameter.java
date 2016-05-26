@@ -20,7 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
-import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.PropcHelper;
 
 import java.io.IOException;
 import java.util.List;
