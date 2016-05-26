@@ -41,14 +41,10 @@ public final class FileHelper {
     }
 
   }
-  public static void copyFiles(File srcDir, File targetDir, final String excludeFileName) throws MojoExecutionException {
+  public static void copyFiles(File srcDir, File targetDir) throws MojoExecutionException {
     if (srcDir.exists()) {
       try {
-        FileFilter filter = null;
-        if (excludeFileName != null) {
-          filter = new NotFileFilter(new NameFileFilter(excludeFileName));
-        }
-        org.apache.commons.io.FileUtils.copyDirectory(srcDir, targetDir, filter);
+        org.apache.commons.io.FileUtils.copyDirectory(srcDir, targetDir);
       } catch (IOException e) {
         throw new MojoExecutionException(String.format("Copying sencha sources from %s to %s failed.", srcDir, targetDir ), e);
       }

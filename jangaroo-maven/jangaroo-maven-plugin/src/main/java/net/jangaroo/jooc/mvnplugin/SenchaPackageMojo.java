@@ -186,7 +186,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       getLog().debug("Created " + senchaPackageDirectory.mkdirs());
     }
 
-    FileHelper.copyFiles(getSenchaSrcDir(), senchaPackageDirectory, SenchaUtils.SENCHA_PACKAGE_FILENAME);
+    FileHelper.copyFiles(getSenchaSrcDir(), senchaPackageDirectory);
 
     try {
       SenchaPackageConfigBuilder configBuilder = getConfigBuilder(senchaPackagePath);
@@ -254,7 +254,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       throw new MojoExecutionException("Cannot laod default.package.json", e);
     }
     configBuilder.destFile(workingDirectory + SenchaUtils.SENCHA_PACKAGE_FILENAME);
-    configBuilder.type(Type.THEME.equals(getType()) ? "theme" : "code");
+    configBuilder.type(Type.THEME.equals(getType()) ? Type.THEME : Type.CODE);
     configBuilder.destFile(workingDirectory + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME);
 
     configure(configBuilder);
@@ -315,6 +315,12 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
             || Type.THEME.equals(getType()) && !isolateResources) {
       ((SenchaPackageConfigBuilder)configBuilder).shareResources();
     }
+
+    /* TODO needed for sencha bug workaround
+    if (isolateResources) {
+      ((SenchaPackageConfigBuilder)configBuilder).isolateResources();
+    }
+    */
 
     super.configureResourcesEntry(configBuilder);
   }

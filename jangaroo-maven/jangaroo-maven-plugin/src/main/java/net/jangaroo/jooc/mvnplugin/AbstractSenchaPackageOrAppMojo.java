@@ -98,7 +98,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   private void configureCustomProperties(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-    File jsonFile = new File(getSenchaSrcDir(), getJsonConfigFileName());
+    File jsonFile = new File(project.getBasedir(), getJsonConfigFileName());
     if (jsonFile.exists()) {
       try (FileInputStream fileInputStream = new FileInputStream(jsonFile)) {
         //noinspection unchecked

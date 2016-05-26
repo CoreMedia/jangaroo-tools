@@ -18,7 +18,7 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
   private static final String VERSION = "version";
   private static final String CREATOR = "creator";
   private static final String SUMMARY = "summary";
-  private static final String TYPE = "type";
+  protected static final String TYPE = "type";
   private static final String TOOLKIT = "toolkit";
   private static final String THEME = "theme";
   private static final String REQUIRES = "requires";
@@ -31,9 +31,6 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
   static final String BUILD_OUT_CSS_PATH = "${build.out.css.path}";
   static final String EXCLUDE = "exclude";
   static final String FASHION = "fashion";
-
-  public SenchaPackageOrAppConfigBuilder() {
-  }
 
   /**
    * Specifies the Sencha package or app name.
@@ -119,7 +116,7 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
     return addToList(getResourceEntry(path, bundle, includeInBundle), cssOrJs);
   }
 
-  private Map<String, Object> getResourceEntry(String path, boolean bundle, boolean includeInBundle) {
+  private static Map<String, Object> getResourceEntry(String path, boolean bundle, boolean includeInBundle) {
     Map<String, Object> result = new LinkedHashMap<>();
 
     result.put(PATH, path);
