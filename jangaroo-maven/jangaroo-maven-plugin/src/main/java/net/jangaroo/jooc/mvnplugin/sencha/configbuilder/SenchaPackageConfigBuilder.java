@@ -76,7 +76,7 @@ public class SenchaPackageConfigBuilder extends SenchaPackageOrAppConfigBuilder<
       if (!resourcesForWorkaround.isEmpty()) {
         List<Map<String, Object>> updatedResources = Lists.newArrayList(Iterables.filter(resources, Predicates.not(Predicates.in(resourcesForWorkaround))));
 
-        nameValue(resourceType, updatedResources);
+        config.put(resourceType, updatedResources);
 
         addToProfile(SenchaUtils.DEVELOPMENT_PROFILE, resourceType, resourcesForWorkaround);
         addToProfile(SenchaUtils.TESTING_PROFILE, resourceType, resourcesForWorkaround);

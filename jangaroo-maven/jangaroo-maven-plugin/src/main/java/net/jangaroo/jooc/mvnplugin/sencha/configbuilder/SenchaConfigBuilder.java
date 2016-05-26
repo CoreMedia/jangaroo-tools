@@ -47,7 +47,7 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
     boolean isListValue = newValue instanceof List;
     boolean isMapValue = newValue instanceof Map;
 
-    if (currentValue == null || !(isListValue || isMapValue)) {
+    if (currentValue == null || newValue == null || !(isListValue || isMapValue)) {
       baseMap.put(key, newValue);
     } else if (isMapValue) {
       //noinspection unchecked
