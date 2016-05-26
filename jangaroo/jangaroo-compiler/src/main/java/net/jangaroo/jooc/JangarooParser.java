@@ -185,12 +185,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return new StringReader(output);
   }
 
-  private static String nameWithoutExtension(InputSource input) {
-    String name = input.getName();
-    int lastDot = name.lastIndexOf('.');
-    return lastDot >= 0 ? name.substring(0, lastDot) : name;
-  }
-
   private static void declareType(Scope scope, String identifier) {
     IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
     decl.scope(scope);
@@ -248,11 +242,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     }
 
     String fileName = source.getName();
-    int dotIndex = fileName.lastIndexOf('.');
-    String fileExtension = (dotIndex == -1) ? "" : fileName.substring(dotIndex);
-    List<String> suffixes = getCompilableSuffixes();
-    if(!suffixes.contains(fileExtension)) {
-      throw error("Input file must end with one of '" + suffixes + "': " + fileName);
+    if (!hasCompilableSuffix(fileName)) {
+      throw error("Input file must end with one of '" + getCompilableSuffixes() + "': " + fileName);
     }
     CompilationUnit unit = doParse(source, log, config.getSemicolonInsertionMode());
     if (null != unit) {
@@ -264,7 +255,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
     String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-    if (Jooc.AS_SUFFIX.equals(fileExtension)) {
+    if (fileName.endsWith(Jooc.AS_SUFFIX)) {
       // Only check *.as file names.
       // For *.properties and *.mxml, the class name is derived from the file name, anyway!
       checkValidFileName(qname, unit, source);
@@ -274,6 +265,11 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
     return unit;
+  }
+
+  private boolean hasCompilableSuffix(String fileName) {
+    int dotIndex = fileName.lastIndexOf('.');
+    return dotIndex != -1 && getCompilableSuffixes().contains(fileName.substring(dotIndex));
   }
 
   public IdeDeclaration resolveImport(final ImportDirective importDirective) {
@@ -400,15 +396,12 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   private void addPackageFolderSymbols(final List<String> result, final String packageName, final InputSource path) {
-    addPackageFolderSymbols(findInputSource(packageName, path, ""), result);
-  }
-
-  private void addPackageFolderSymbols(final InputSource folder, List<String> list) {
+    final InputSource folder = findInputSource(packageName, path, "");
     if (folder != null) {
       for (InputSource child : folder.list()) {
         if (!child.isDirectory() &&
-                (child.getName().endsWith(Jooc.AS_SUFFIX) || child.getName().endsWith(Jooc.MXML_SUFFIX))) {
-          list.add(nameWithoutExtension(child));
+                hasCompilableSuffix(child.getName())) {
+          result.add(CompilerUtils.qNameFromRelativPath(child.getName()));
         }
       }
     }
