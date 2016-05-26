@@ -316,11 +316,9 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       ((SenchaPackageConfigBuilder)configBuilder).shareResources();
     }
 
-    /* TODO needed for sencha bug workaround
     if (isolateResources) {
       ((SenchaPackageConfigBuilder)configBuilder).isolateResources();
     }
-    */
 
     super.configureResourcesEntry(configBuilder);
   }
