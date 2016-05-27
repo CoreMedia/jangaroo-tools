@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
-import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 

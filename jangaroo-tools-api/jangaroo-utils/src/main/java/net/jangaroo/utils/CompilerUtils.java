@@ -2,6 +2,7 @@ package net.jangaroo.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,6 +60,20 @@ public final class CompilerUtils {
 
   public static String fileNameFromQName(String qName, char separatorChar, String extension) {
     return qName.replace('.', separatorChar) + extension;
+  }
+
+  public static File findSourceDir(List<File> sourcePath, File file) throws IOException {
+    File canonicalFile = file.getCanonicalFile();
+    for (File sourceDir : sourcePath) {
+      if (CompilerUtils.qNameFromFile(sourceDir, canonicalFile) != null) {
+        return sourceDir;
+      }
+    }
+    return null;
+  }
+
+  public static String qNameFromFile(List<File> sourcePath, File file) throws IOException {
+    return qNameFromFile(findSourceDir(sourcePath, file), file);
   }
 
   public static String qNameFromFile(File baseDirectory, File file) {
