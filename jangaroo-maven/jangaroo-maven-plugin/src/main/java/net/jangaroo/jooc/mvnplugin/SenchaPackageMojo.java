@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_PACKAGE_ORDER_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -64,34 +65,13 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   @Parameter(defaultValue = Type.CODE)
   private String packageType;
 
-  /**
-   * Defines if the resources of this package will be shared between different profiles of an application production
-   * build.
-   *
-   * Due to restrictions in Sencha CMD only usable if {@link #packageType} is set to {@link Type#CODE}
-   *
-   * @since 4.0
-   */
-  @Parameter(defaultValue = "false")
-  private boolean shareResources;
-
-  /**
-   * Defines if the resources of this package will isolated in an application production build.
-   *
-   * Due to restrictions in Sencha CMD only usable if {@link #packageType} is set to {@link Type#THEME}
-   *
-   * @since 4.0
-   */
-  @Parameter(defaultValue = "false")
-  private boolean isolateResources;
-
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH)
   private String senchaPackagePath;
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_BUILD_PATH)
   private String senchaPackageBuildOutputDir;
 
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH + "/" + SENCHA_RESOURCES_PATH + "/" + REGISTER_PACKAGE_ORDER_FILENAME)
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH + "/" + SENCHA_BUNDLED_RESOURCES_PATH + "/" + REGISTER_PACKAGE_ORDER_FILENAME)
   private File packageDependencyOrderJsFile;
 
   @Override
@@ -277,7 +257,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     List<String> requiredClasses = configuration.getRequiredClasses();
     if (!requiredClasses.isEmpty()) {
 
-      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_RESOURCES_PATH +
+      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_BUNDLED_RESOURCES_PATH +
               File.separator + SenchaUtils.REQUIRED_CLASSES_FILENAME);
       if (requireResourceFile.exists()) {
         getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
@@ -289,7 +269,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       writeRequireResourceFile(requireResourceFile, requiredClasses);
 
       SenchaPackageConfigBuilder requiredCLassesConfigBuilder = new SenchaPackageConfigBuilder();
-      requiredCLassesConfigBuilder.js(SENCHA_RESOURCES_PATH + SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
+      requiredCLassesConfigBuilder.js(SENCHA_BUNDLED_RESOURCES_PATH + SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
       configBuilder.profile(profile, requiredCLassesConfigBuilder.build());
     }
   }
@@ -308,23 +288,9 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-  @Override
-  protected void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
-
-    if (Type.CODE.equals(getType()) && shareResources
-            || Type.THEME.equals(getType()) && !isolateResources) {
-      ((SenchaPackageConfigBuilder)configBuilder).shareResources();
-    }
-
-    if (isolateResources) {
-      ((SenchaPackageConfigBuilder)configBuilder).isolateResources();
-    }
-
-    super.configureResourcesEntry(configBuilder);
-  }
-
 
   private void writePackageDependencyOrderJs() throws MojoExecutionException {
+    FileHelper.ensureDirectory(packageDependencyOrderJsFile.getParentFile());
     if (packageDependencyOrderJsFile.exists()) {
       getLog().warn("register package dependency order file for module already exists, deleting...");
       if (!packageDependencyOrderJsFile.delete()) {

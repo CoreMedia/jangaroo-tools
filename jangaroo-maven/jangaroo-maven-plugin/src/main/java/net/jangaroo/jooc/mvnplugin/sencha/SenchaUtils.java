@@ -48,6 +48,7 @@ public class SenchaUtils {
   public static final String SENCHA_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_LOCALE_PATH = "locale";
   public static final String SENCHA_RESOURCES_PATH = "resources";
+  public static final String SENCHA_BUNDLED_RESOURCES_PATH = "bundledResources";
   public static final String PRODUCTION_PROFILE = "production";
   public static final String TESTING_PROFILE = "testing";
   public static final String DEVELOPMENT_PROFILE = "development";
