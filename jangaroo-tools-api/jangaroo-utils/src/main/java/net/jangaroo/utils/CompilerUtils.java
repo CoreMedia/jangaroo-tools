@@ -61,7 +61,15 @@ public final class CompilerUtils {
   }
 
   public static String fileNameFromQName(String qName, char separatorChar, String extension) {
-    return qName.replace('.', separatorChar) + extension;
+    String correctedQName = qName;
+    if (PROPERTIES_SUFFIX.equals(extension)) {
+      if (qName.endsWith(PROPERTIES_CLASS_SUFFIX)) {
+        correctedQName = qName.substring(0, qName.length() - PROPERTIES_CLASS_SUFFIX.length());
+      } else {
+        return null;
+      }
+    }
+    return correctedQName.replace('.', separatorChar) + extension;
   }
 
   public static File findSourceDir(List<File> sourcePath, File file) throws IOException {
