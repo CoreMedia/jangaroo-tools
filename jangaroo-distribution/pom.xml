@@ -11,10 +11,8 @@
   <artifactId>jangaroo-distribution</artifactId>
   <name>jangaroo-distribution</name>
   <description>
-    All Jangaroo tools as a single download:
-    * jooc  - AS3-to-JS compiler
-    * propc - properties-to-AS3 compiler
-    * exmlc - EXML-to-AS3 compiler
+    The Jangaroo compiler a single, self-contained download:
+    jooc - AS3-to-JS, MXML and properties compiler
   </description>
 
   <scm>
@@ -28,22 +26,6 @@
     <dependency>
       <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
-      <version>${project.version}</version>
-      <classifier>jar-with-dependencies</classifier>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>exml-compiler</artifactId>
-      <version>${project.version}</version>
-      <classifier>jar-with-dependencies</classifier>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>properties-compiler</artifactId>
       <version>${project.version}</version>
       <classifier>jar-with-dependencies</classifier>
       <scope>runtime</scope>
