@@ -20,7 +20,6 @@ import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.properties.Propc;
-import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
@@ -219,8 +218,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
     String correctedQName = qname;
     if (Jooc.PROPERTIES_SUFFIX.equals(suffix)) {
-      if (qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX)) {
-        correctedQName = qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length());
+      if (qname.endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)) {
+        correctedQName = qname.substring(0, qname.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length());
       } else {
         return null;
       }

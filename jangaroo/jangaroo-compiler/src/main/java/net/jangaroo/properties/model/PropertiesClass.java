@@ -3,7 +3,7 @@
  */
 package net.jangaroo.properties.model;
 
-import net.jangaroo.properties.PropcHelper;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
 
@@ -75,7 +75,7 @@ public class PropertiesClass {
         boolean bundleFirst = "bundle".equals(matcher.group(1));
         String referenceBundleKey = matcher.group(!bundleFirst ? 2 : 4);
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
-        value = referenceBundleFullClassName + PropcHelper.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
+        value = referenceBundleFullClassName + CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
         if (isIdentifier(referenceBundleKey)) {
           value += "." + referenceBundleKey;
         } else {
@@ -117,7 +117,7 @@ public class PropertiesClass {
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       if (matcher.find()) {
         String bundle = "bundle".equals(matcher.group(1)) ? matcher.group(2) : matcher.group(4);
-        String referenceBundleFullClassName = bundle + PropcHelper.PROPERTIES_CLASS_SUFFIX;
+        String referenceBundleFullClassName = bundle + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
         result.add(referenceBundleFullClassName);
       }
     }

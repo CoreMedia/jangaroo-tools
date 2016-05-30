@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
  * File Templates.
  */
 public final class CompilerUtils {
+  public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
+
   private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   // utility class, do not instantiate
@@ -90,7 +92,7 @@ public final class CompilerUtils {
         String qName = relativePath.substring(0, lastDotPos).replace('/', '.');
         String suffix = relativePath.substring(lastDotPos);
         if (".properties".equals(suffix)) {
-          qName += "_properties";
+          qName += PROPERTIES_CLASS_SUFFIX;
         }
         return qName;
       }

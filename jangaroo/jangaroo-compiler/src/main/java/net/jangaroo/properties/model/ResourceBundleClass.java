@@ -3,7 +3,6 @@
  */
 package net.jangaroo.properties.model;
 
-import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.CompilerUtils;
 
 public final class ResourceBundleClass {
@@ -16,7 +15,7 @@ public final class ResourceBundleClass {
 
   public String getBundleName() {
     String className = getClassName();
-    return className.substring(0, className.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length());
+    return className.substring(0, className.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length());
   }
 
   public String getClassName() {
