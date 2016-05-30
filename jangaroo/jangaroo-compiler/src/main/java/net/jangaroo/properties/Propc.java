@@ -98,8 +98,8 @@ public class Propc {
    */
   public void generateApi(List<File> sourceFiles, List<File> sourcePath, File outputDirectory) {
     for (File srcFile : sourceFiles) {
-      PropertiesClass propertiesClass = parse(srcFile, sourcePath);
-      if (propertiesClass.getLocale() == null) {
+      if (!srcFile.getName().contains("_")) {
+        PropertiesClass propertiesClass = parse(srcFile, sourcePath);
         generateApi(propertiesClass, outputDirectory);
       }
     }
