@@ -258,7 +258,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     if (!requiredClasses.isEmpty()) {
 
       File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_BUNDLED_RESOURCES_PATH +
-              File.separator + SenchaUtils.REQUIRED_CLASSES_FILENAME);
+              File.separator + profile + File.separator + SenchaUtils.REQUIRED_CLASSES_FILENAME);
       if (requireResourceFile.exists()) {
         getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
         if (!requireResourceFile.delete()) {
@@ -269,7 +269,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       writeRequireResourceFile(requireResourceFile, requiredClasses);
 
       SenchaPackageConfigBuilder requiredCLassesConfigBuilder = new SenchaPackageConfigBuilder();
-      requiredCLassesConfigBuilder.js(SENCHA_BUNDLED_RESOURCES_PATH + SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
+      requiredCLassesConfigBuilder.js(SENCHA_BUNDLED_RESOURCES_PATH + SenchaUtils.SEPARATOR + profile +
+              SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
       configBuilder.profile(profile, requiredCLassesConfigBuilder.build());
     }
   }
