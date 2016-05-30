@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
  */
 public final class CompilerUtils {
   public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
+  public static final String PROPERTIES_SUFFIX = ".properties";
 
   private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
@@ -56,8 +57,7 @@ public final class CompilerUtils {
   }
 
   public static File fileFromQName(String qName, File baseDirectory, String extension) {
-    char separatorChar = File.separatorChar;
-    return new File(baseDirectory, fileNameFromQName(qName, separatorChar, extension));
+    return new File(baseDirectory, fileNameFromQName(qName, File.separatorChar, extension));
   }
 
   public static String fileNameFromQName(String qName, char separatorChar, String extension) {
@@ -91,7 +91,7 @@ public final class CompilerUtils {
       if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf('/')) {
         String qName = relativePath.substring(0, lastDotPos).replace('/', '.');
         String suffix = relativePath.substring(lastDotPos);
-        if (".properties".equals(suffix)) {
+        if (PROPERTIES_SUFFIX.equals(suffix)) {
           qName += PROPERTIES_CLASS_SUFFIX;
         }
         return qName;
