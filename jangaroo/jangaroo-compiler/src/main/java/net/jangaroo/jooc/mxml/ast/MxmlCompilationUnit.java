@@ -74,7 +74,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     this.source = source;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
-    classQName = CompilerUtils.qNameFromRelativPath(source.getRelativePath());
+    classQName = CompilerUtils.qNameFromRelativePath(source.getRelativePath());
   }
 
   @Override

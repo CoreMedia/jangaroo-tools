@@ -24,7 +24,7 @@ public class PropertiesSourceMapping implements SourceMapping {
 
   @Override
   public Set<File> getTargetFiles(File targetDir, String source) {
-    String className = CompilerUtils.qNameFromRelativPath(source);
+    String className = CompilerUtils.qNameFromRelativePath(source);
     String baseClassName = PropcHelper.computeBaseClassName(className);
     Locale locale = PropcHelper.computeLocale(className);
     File targetFile = PropcHelper.computeGeneratedPropertiesJsFile(targetDir, baseClassName, locale);

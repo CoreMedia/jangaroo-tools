@@ -78,10 +78,10 @@ public final class CompilerUtils {
 
   public static String qNameFromFile(File baseDirectory, File file) {
     String relativePath = getRelativePath(baseDirectory, file);
-    return qNameFromRelativPath(relativePath);
+    return qNameFromRelativePath(relativePath);
   }
 
-  public static String qNameFromRelativPath(String relativePath) {
+  public static String qNameFromRelativePath(String relativePath) {
     if (relativePath != null) {
       int lastDotPos = relativePath.lastIndexOf('.');
       // normalize '\' to '/';

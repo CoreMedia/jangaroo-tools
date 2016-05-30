@@ -176,7 +176,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     Propc propertyClassGenerator = new Propc();
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     propertyClassGenerator.generateApi(
-            CompilerUtils.qNameFromRelativPath(in.getRelativePath()),
+            CompilerUtils.qNameFromRelativePath(in.getRelativePath()),
             in.getInputStream(),
             new OutputStreamWriter(outputStream, UTF_8));
     // From the properties file, we generate AS code, then parse a CompilationUnit again.
@@ -400,7 +400,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
       for (InputSource child : folder.list()) {
         if (!child.isDirectory() &&
                 hasCompilableSuffix(child.getName())) {
-          result.add(CompilerUtils.qNameFromRelativPath(child.getName()));
+          result.add(CompilerUtils.qNameFromRelativePath(child.getName()));
         }
       }
     }
