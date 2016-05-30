@@ -253,12 +253,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
     String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-    if (fileName.endsWith(Jooc.AS_SUFFIX)) {
-      // Only check *.as file names.
-      // For *.properties and *.mxml, the class name is derived from the file name, anyway!
-      checkValidFileName(qname, unit, source);
-    }
-
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
@@ -369,21 +363,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {
     return mxmlComponentRegistry;
-  }
-
-  private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
-    // check valid file name for qname
-    String path = CompilerUtils.removeExtension(source.getRelativePath());
-    if (path != null) {
-      String expectedPath = getInputSourceFileName(qname, source, "");
-      if (!expectedPath.equals(path)) {
-        warning(unit.getSymbol(),
-                String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
-                        expectedPath,
-                        qname,
-                        path));
-      }
-    }
   }
 
   public List<String> getPackageIdes(String packageName) {

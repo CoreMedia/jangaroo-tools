@@ -56,9 +56,6 @@ import java.util.Set;
  */
 public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
-  public static final String CLASS_LOADER_NAME = "classLoader";
-  public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
-  public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
@@ -169,6 +166,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       analyzeDependencies();
 
       for (CompilationUnit unit : compileQueue) {
+        checkValidFileName(unit);
+
         InputSource source = getInputSource(unit);
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
@@ -193,6 +192,28 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  private void checkValidFileName(final CompilationUnit unit) {
+    InputSource source = getInputSource(unit);
+    if (!source.getName().endsWith(AS_SUFFIX)) {
+      // Only check *.as file names.
+      // For *.properties and *.mxml, the class name is derived from the file name, anyway!
+      return;
+    }
+    // check valid file name for qname
+    String path = source.getRelativePath();
+    if (path != null) {
+      String qname = unit.getPrimaryDeclaration().getQualifiedNameStr();
+      String expectedPath = CompilerUtils.fileNameFromQName(qname, '/', AS_SUFFIX);
+      if (!expectedPath.equals(path)) {
+        warning(unit.getSymbol(),
+                String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
+                        expectedPath,
+                        qname,
+                        path));
+      }
     }
   }
 
@@ -348,7 +369,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw error("Input file is a directory.", file);
     }
     File sourceDir = getConfig().findSourceDir(file);
-    String qName = CompilerUtils.qNameFromFile(sourceDir, file);
+//    String qName = CompilerUtils.qNameFromFile(sourceDir, file);
 //    InputSource canonicalInputSource = findSource(qName);
 //    if (canonicalInputSource != null && !canonicalInputSource.getPath().equals(file.getPath())) {
 //      if (canonicalInputSource.getName().endsWith(PROPERTIES_SUFFIX)) {
