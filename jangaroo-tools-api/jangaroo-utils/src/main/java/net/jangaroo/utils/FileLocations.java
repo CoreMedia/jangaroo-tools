@@ -24,13 +24,7 @@ public class FileLocations {
   private File outputDirectory;
 
   public File findSourceDir(final File file) throws IOException {
-    File canonicalFile = file.getCanonicalFile();
-    for (File sourceDir : getSourcePath()) {
-      if (CompilerUtils.qNameFromFile(sourceDir, canonicalFile) != null) {
-        return sourceDir;
-      }
-    }
-    return null;
+    return CompilerUtils.findSourceDir(getSourcePath(), file);
   }
 
   public File getOutputDirectory() {

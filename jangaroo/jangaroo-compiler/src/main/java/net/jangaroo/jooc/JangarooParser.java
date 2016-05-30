@@ -19,9 +19,8 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.api.PropcHelper;
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
+import net.jangaroo.properties.Propc;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
@@ -174,7 +173,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   public Reader createPropertiesClassReader(InputSource in) throws IOException {
-    PropertyClassGenerator propertyClassGenerator = new PropertyClassGenerator(new PropertiesCompilerConfiguration());
+    Propc propertyClassGenerator = new Propc();
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     propertyClassGenerator.generateApi(
             CompilerUtils.qNameFromRelativPath(in.getRelativePath()),

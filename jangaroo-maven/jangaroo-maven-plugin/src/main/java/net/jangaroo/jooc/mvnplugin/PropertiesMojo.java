@@ -3,9 +3,7 @@
  */
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
-import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.api.PropcException;
+import net.jangaroo.properties.Propc;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -20,8 +18,9 @@ import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Mojo to compile properties files to ActionScript3 files
@@ -85,23 +84,16 @@ public class PropertiesMojo extends AbstractMojo {
       properties.addInclude("**/*.properties");
     }
 
-    PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
-    config.setApiOutputDirectory(apiOutputDirectory);
-
+    List<File> sourceFiles = new ArrayList<>(10);
     for (String srcFileRelativePath : new FileSetManager().getIncludedFiles(properties)) {
-      config.addSourceFile(new File(resourceDirectory,srcFileRelativePath));
+      sourceFiles.add(new File(resourceDirectory,srcFileRelativePath));
     }
 
+    Propc generator = new Propc();
     try {
-      config.setSourcePath(Collections.singletonList(resourceDirectory));
-    } catch (IOException e) {
-      throw new MojoExecutionException("configuration failure", e);
-    }
-
-    PropertyClassGenerator generator = new PropertyClassGenerator(config);
-    try {
-      generator.generateApi();
-    } catch (PropcException e) {
+      List<File> sourcePath = Collections.singletonList(resourceDirectory.getCanonicalFile());
+      generator.generateApi(sourceFiles, sourcePath, apiOutputDirectory);
+    } catch (Exception e) {
       throw new MojoExecutionException("Generation failure", e);
     }
 

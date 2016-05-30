@@ -36,18 +36,12 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.api.PropcHelper;
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
+import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,28 +127,24 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
-    PropertyClassGenerator propertyClassGenerator;
+    Propc propertyClassGenerator;
+    File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
+    if (localizedOutputDirectory == null) {
+      // temporary fix until the new configuration option can be used by IDEA Plugin:
+      localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
+    }
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
 
-      PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
-      config.setSourcePath(getConfig().getSourcePath());
-      config.setClassPath(getConfig().getClassPath());
-      File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
-      // temporary fix until the new configuration option can be used by IDEA Plugin:
-      if (localizedOutputDirectory == null) {
-        localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
-      }
-      config.setOutputDirectory(localizedOutputDirectory);
-      propertyClassGenerator = new PropertyClassGenerator(config);
+      propertyClassGenerator = new Propc();
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
 
     setUp(sourcePathInputSource, classPathInputSource);
 
-    HashMap<File, File> outputFileMap = new HashMap<File, File>();
+    HashMap<File, File> outputFileMap = new HashMap<>();
     try {
       setUpMxmlComponentRegistry(sourcePathInputSource, classPathInputSource);
       for (File sourceFile : getConfig().getSourceFiles()) {
@@ -187,21 +177,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         } else if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
-          outputFile = propertyClassGenerator.generate(sourceFile);
+          outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {
-          if (sourceFile.getName().endsWith(PROPERTIES_SUFFIX)) {
-            if (!sourceFile.getName().contains("_")) {
-              Path targetPath = getConfig().getApiOutputDirectory().toPath().resolve(source.getRelativePath());
-              Files.createDirectories(targetPath.getParent());
-              Files.copy(sourceFile.toPath(),
-                      targetPath,
-                      StandardCopyOption.REPLACE_EXISTING);
-            }
-          } else {
-            writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
-          }
+          writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
 

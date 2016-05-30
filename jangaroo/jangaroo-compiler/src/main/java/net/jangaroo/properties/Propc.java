@@ -8,10 +8,6 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.properties.api.Propc;
-import net.jangaroo.properties.api.PropcException;
-import net.jangaroo.properties.api.PropcHelper;
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
 import net.jangaroo.utils.CompilerUtils;
@@ -28,42 +24,23 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
-public class PropertyClassGenerator implements Propc {
+public class Propc {
+  @SuppressWarnings("deprecation")
   private static Configuration cfg = new Configuration();
 
   private static final String OUTPUT_CHARSET = "UTF-8";
 
   static {
     /* Create and adjust freemarker configuration */
-    cfg.setClassForTemplateLoading(PropertyClassGenerator.class, "/net/jangaroo/properties/templates");
+    cfg.setClassForTemplateLoading(Propc.class, "/net/jangaroo/properties/templates");
+    //noinspection deprecation
     cfg.setObjectWrapper(new DefaultObjectWrapper());
     cfg.setOutputEncoding("UTF-8");
   }
 
-  private PropertiesCompilerConfiguration config;
-
-
-  @SuppressWarnings({"UnusedDeclaration" })
-  public PropertyClassGenerator() {
-  }
-
-  public PropertyClassGenerator(PropertiesCompilerConfiguration config) {
-    this.config = config;
-  }
-
-  @Override
-  public PropertiesCompilerConfiguration getConfig() {
-    return config;
-  }
-
-  @Override
-  public void setConfig(PropertiesCompilerConfiguration config) {
-    this.config = config;
+  public Propc() {
   }
 
   public void generateApi(String propertiesClassName, InputStream sourceInputStream, OutputStreamWriter writer) throws IOException {
@@ -71,7 +48,7 @@ public class PropertyClassGenerator implements Propc {
     generatePropertiesClass(propertiesClass, writer, true);
   }
 
-  public void generatePropertiesClass(PropertiesClass propertiesClass, Writer out, boolean api) throws IOException {
+  private void generatePropertiesClass(PropertiesClass propertiesClass, Writer out, boolean api) throws IOException {
     Template template = cfg.getTemplate(api ? "properties_class.ftl" : "properties_js.ftl");
     try {
       Environment env = template.createProcessingEnvironment(propertiesClass, out);
@@ -82,19 +59,10 @@ public class PropertyClassGenerator implements Propc {
     }
   }
 
-  private File generateCode(PropertiesClass pl) {
-    File outputFile = PropcHelper.computeGeneratedPropertiesJsFile(config.getOutputDirectory(), pl.getResourceBundle().getFullClassName(), pl.getLocale());
+  private File generateCode(PropertiesClass pl, File outputDirectory) {
+    File outputFile = PropcHelper.computeGeneratedPropertiesJsFile(outputDirectory, pl.getResourceBundle().getFullClassName(), pl.getLocale());
     generateCode(pl, outputFile, false);
-    if (pl.getLocale() == null && config.isGenerateApi()) {
-      // generate API from default locale bundle
-      generateApi(pl);
-    }
     return outputFile;
-  }
-
-  private File generateApi(PropertiesClass pl) {
-    File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(config, pl.getResourceBundle().getFullClassName());
-    return generateCode(pl, apiOutputFile, true);
   }
 
   private File generateCode(PropertiesClass pl, File outputFile, boolean api) {
@@ -119,28 +87,25 @@ public class PropertyClassGenerator implements Propc {
     }
   }
 
-  public Map<File,Set<File>> generate() {
-    Map<File,Set<File>> outputFileMap = new LinkedHashMap<File, Set<File>>();
-    for (File srcFile : config.getSourceFiles()) {
-      File outputFile = generate(srcFile);
-      outputFileMap.put(srcFile, Collections.singleton(outputFile));
-    }
-    return outputFileMap;
+  private File generateApi(PropertiesClass pl, File outputDirectory) {
+    File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(outputDirectory, pl.getResourceBundle().getFullClassName());
+    return generateCode(pl, apiOutputFile, true);
   }
 
-  public Map<File,File> generateApi() {
-    Map<File,File> outputFileMap = new LinkedHashMap<File, File>();
-    for (File srcFile : config.getSourceFiles()) {
-      PropertiesClass propertiesClass = parse(srcFile);
-      if (propertiesClass.getLocale() == null) {
-        File outputFile = generateApi(propertiesClass);
-        outputFileMap.put(srcFile, outputFile);
+  /**
+   * Generate AS3 native classes representing the ActionScript API to the JS classes generated from the properties files.
+   * The files within the given sourcePath should already be canonicalized using {@link File#getCanonicalFile()}.
+   */
+  public void generateApi(List<File> sourceFiles, List<File> sourcePath, File outputDirectory) {
+    for (File srcFile : sourceFiles) {
+      if (!srcFile.getName().contains("_")) {
+        PropertiesClass propertiesClass = parse(srcFile, sourcePath);
+        generateApi(propertiesClass, outputDirectory);
       }
     }
-    return outputFileMap;
   }
 
-  public PropertiesClass parse(String propertiesClassName, InputStream in) throws IOException {
+  private PropertiesClass parse(String propertiesClassName, InputStream in) throws IOException {
     PropertiesConfiguration p = new PropertiesConfiguration();
     p.setDelimiterParsingDisabled(true);
     Reader r = null;
@@ -163,17 +128,20 @@ public class PropertyClassGenerator implements Propc {
     return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p);
   }
 
-  @Override
-  public File generate(File propertiesFile) {
-    PropertiesClass propertiesClass = parse(propertiesFile);
+  /**
+   * Compile the given properties file into a JS class.
+   * The files within the given sourcePath should already be canonicalized using {@link File#getCanonicalFile()}.
+   */
+  public File compile(File propertiesFile, List<File> sourcePath, File outputDirectory) {
+    PropertiesClass propertiesClass = parse(propertiesFile, sourcePath);
     // Create properties class, which registers itself with the bundle.
-    return generateCode(propertiesClass);
+    return generateCode(propertiesClass, outputDirectory);
   }
 
-  public PropertiesClass parse(File propertiesFile) {
+  private PropertiesClass parse(File propertiesFile, List<File> sourcePath) {
     String className;
     try {
-      className = CompilerUtils.qNameFromFile(config.findSourceDir(propertiesFile), propertiesFile);
+      className = CompilerUtils.qNameFromFile(sourcePath, propertiesFile);
     } catch (IOException e1) {
       throw new PropcException(e1);
     }
