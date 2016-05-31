@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.utils.CompilerUtils;
@@ -18,18 +17,19 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_PACKAGE_ORDER_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
@@ -239,40 +239,55 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     configure(configBuilder);
 
-    addRequiredClasses(configBuilder, null, this);
-    addRequiredClasses(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getProduction());
-    addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getTesting());
-    addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getDevelopment());
-
-
+    addRequiredClasses(configBuilder, null, getRequiredClasses());
+    addRequiredClasses(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getRequiredClassesFromConfiguration(getProduction()));
+    addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
+    addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
   }
 
-  protected void addRequiredClasses(SenchaPackageConfigBuilder configBuilder,
-                                    String profile,
-                                    SenchaProfileConfiguration configuration) throws MojoExecutionException {
-    if (configuration == null) {
+  @Nonnull
+  private static List<String> getRequiredClassesFromConfiguration(@Nullable SenchaProfileConfiguration configuration) {
+    return configuration == null ? Collections.<String>emptyList() : configuration.getRequiredClasses();
+  }
+
+  protected void addRequiredClasses(@Nonnull SenchaPackageConfigBuilder configBuilder,
+                                    @Nullable String profile,
+                                    @Nonnull List<String> requiredClassesForProfile) throws MojoExecutionException {
+    if (requiredClassesForProfile.isEmpty()) {
       return;
     }
 
-    List<String> requiredClasses = configuration.getRequiredClasses();
-    if (!requiredClasses.isEmpty()) {
-
-      File requireResourceFile = new File(senchaPackagePath + File.separator + SENCHA_BUNDLED_RESOURCES_PATH +
-              File.separator + profile + File.separator + SenchaUtils.REQUIRED_CLASSES_FILENAME);
-      if (requireResourceFile.exists()) {
-        getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
-        if (!requireResourceFile.delete()) {
-          throw new MojoExecutionException("Could not delete requireResourceFile file for require editor plugins");
-        }
+    File requireResourceFile = new File(getRequiredClassesFileName(profile, senchaPackagePath, File.separator));
+    if (requireResourceFile.exists()) {
+      getLog().warn("requireResourceFile file for require editor plugins already exists, deleting...");
+      if (!requireResourceFile.delete()) {
+        throw new MojoExecutionException("Could not delete requireResourceFile file for require editor plugins");
       }
-      // write file
-      writeRequireResourceFile(requireResourceFile, requiredClasses);
+    }
+    // write file
+    writeRequireResourceFile(requireResourceFile, requiredClassesForProfile);
 
+    if (profile == null) {
+      configBuilder.js(getRequiredClassesFileName(null, null, SenchaUtils.SEPARATOR), false, true);
+    } else {
       SenchaPackageConfigBuilder requiredCLassesConfigBuilder = new SenchaPackageConfigBuilder();
-      requiredCLassesConfigBuilder.js(SENCHA_BUNDLED_RESOURCES_PATH + SenchaUtils.SEPARATOR + profile +
-              SenchaUtils.SEPARATOR + SenchaUtils.REQUIRED_CLASSES_FILENAME, false, true);
+      requiredCLassesConfigBuilder.js(getRequiredClassesFileName(profile, null, SenchaUtils.SEPARATOR), false, true);
       configBuilder.profile(profile, requiredCLassesConfigBuilder.build());
     }
+  }
+
+  @Nonnull
+  private static String getRequiredClassesFileName(@Nullable String profile, String baseDir, String separator) {
+    StringBuilder nameBuilder = new StringBuilder();
+    if (baseDir != null) {
+      nameBuilder.append(baseDir).append(separator);
+    }
+    nameBuilder.append(SENCHA_BUNDLED_RESOURCES_PATH).append(separator);
+    if (profile != null) {
+      nameBuilder.append(profile).append(separator);
+    }
+    nameBuilder.append(SenchaUtils.REQUIRED_CLASSES_FILENAME);
+    return nameBuilder.toString();
   }
 
   private static void writeRequireResourceFile(File requireResourceFile, List<String> requiredClasses)
