@@ -18,30 +18,6 @@
       <lineEnding>unix</lineEnding>
       <fileMode>0755</fileMode>
     </file>
-
-    <file>
-      <source>src/bin/propc.bat</source>
-      <filtered>true</filtered>
-      <lineEnding>dos</lineEnding>
-    </file>
-    <file>
-      <source>src/bin/propc</source>
-      <filtered>true</filtered>
-      <lineEnding>unix</lineEnding>
-      <fileMode>0755</fileMode>
-    </file>
-
-    <file>
-      <source>src/bin/exmlc.bat</source>
-      <filtered>true</filtered>
-      <lineEnding>dos</lineEnding>
-    </file>
-    <file>
-      <source>src/bin/exmlc</source>
-      <filtered>true</filtered>
-      <lineEnding>unix</lineEnding>
-      <fileMode>0755</fileMode>
-    </file>
   </files>
   <dependencySets>
     <dependencySet>
