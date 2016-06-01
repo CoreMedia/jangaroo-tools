@@ -331,7 +331,6 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
         remotesDependency = MavenDependencyHelper.createDependency(
                 remotesProject.getGroupId(), remotesProject.getArtifactId(), "pom", "${project.version}");
       }
-      remotesDependency.setScope(Artifact.SCOPE_PROVIDED);
 
       PomManipulator.addDependency(project, remotesDependency, getLog());
 
