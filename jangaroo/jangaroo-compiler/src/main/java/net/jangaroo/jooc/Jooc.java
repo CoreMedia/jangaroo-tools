@@ -206,7 +206,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     String path = source.getRelativePath();
     if (path != null) {
       String qname = unit.getPrimaryDeclaration().getQualifiedNameStr();
-      String expectedPath = CompilerUtils.fileNameFromQName(qname, '/', AS_SUFFIX);
+      String expectedPath = CompilerUtils.fileNameFromQName(qname, File.separatorChar, AS_SUFFIX);
       if (!expectedPath.equals(path)) {
         warning(unit.getSymbol(),
                 String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
