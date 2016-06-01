@@ -193,10 +193,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
     Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
 
-    List<Dependency> projectDependencies = resolveRequiredDependencies(project);
-
     Dependency remotePackageDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
     Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
+
+    List<Dependency> projectDependencies = resolveRequiredDependencies(project, remotePackageDependency);
     for (Dependency dependency : projectDependencies) {
 
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
@@ -213,12 +213,15 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   @Nonnull
-  private List<Dependency> resolveRequiredDependencies(@Nonnull MavenProject project) throws MojoExecutionException {
+  private List<Dependency> resolveRequiredDependencies(@Nonnull MavenProject project, Dependency remotePackages)
+          throws MojoExecutionException {
     List<Dependency> resolvedDependencies = new ArrayList<>();
     for (Dependency dependency : project.getDependencies()) {
-      if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())) {
+      // only resolve POM packages that are not the remote packages artifact
+      if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())
+              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackages)) {
         MavenProject projectFromPom = createProjectFromPomDependency(dependency);
-        List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom);
+        List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom, remotePackages);
         if (!fromPomDependencies.isEmpty()) {
           resolvedDependencies.addAll(fromPomDependencies);
         }
