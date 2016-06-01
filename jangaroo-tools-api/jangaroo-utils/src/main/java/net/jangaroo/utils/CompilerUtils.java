@@ -2,6 +2,7 @@ package net.jangaroo.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,6 +12,9 @@ import java.util.regex.Pattern;
  * File Templates.
  */
 public final class CompilerUtils {
+  public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
+  public static final String PROPERTIES_SUFFIX = ".properties";
+
   private static final Pattern ATTRIBUTE_NORMALIZED_WHITESPACE = Pattern.compile("  +");
 
   // utility class, do not instantiate
@@ -53,20 +57,41 @@ public final class CompilerUtils {
   }
 
   public static File fileFromQName(String qName, File baseDirectory, String extension) {
-    char separatorChar = File.separatorChar;
-    return new File(baseDirectory, fileNameFromQName(qName, separatorChar, extension));
+    return new File(baseDirectory, fileNameFromQName(qName, File.separatorChar, extension));
   }
 
   public static String fileNameFromQName(String qName, char separatorChar, String extension) {
-    return qName.replace('.', separatorChar) + extension;
+    String correctedQName = qName;
+    if (PROPERTIES_SUFFIX.equals(extension)) {
+      if (qName.endsWith(PROPERTIES_CLASS_SUFFIX)) {
+        correctedQName = qName.substring(0, qName.length() - PROPERTIES_CLASS_SUFFIX.length());
+      } else {
+        return null;
+      }
+    }
+    return correctedQName.replace('.', separatorChar) + extension;
+  }
+
+  public static File findSourceDir(List<File> sourcePath, File file) throws IOException {
+    File canonicalFile = file.getCanonicalFile();
+    for (File sourceDir : sourcePath) {
+      if (CompilerUtils.qNameFromFile(sourceDir, canonicalFile) != null) {
+        return sourceDir;
+      }
+    }
+    return null;
+  }
+
+  public static String qNameFromFile(List<File> sourcePath, File file) throws IOException {
+    return qNameFromFile(findSourceDir(sourcePath, file), file);
   }
 
   public static String qNameFromFile(File baseDirectory, File file) {
     String relativePath = getRelativePath(baseDirectory, file);
-    return qNameFromRelativPath(relativePath);
+    return qNameFromRelativePath(relativePath);
   }
 
-  public static String qNameFromRelativPath(String relativePath) {
+  public static String qNameFromRelativePath(String relativePath) {
     if (relativePath != null) {
       int lastDotPos = relativePath.lastIndexOf('.');
       // normalize '\' to '/';
@@ -74,8 +99,8 @@ public final class CompilerUtils {
       if (lastDotPos != -1 && lastDotPos > relativePath.lastIndexOf('/')) {
         String qName = relativePath.substring(0, lastDotPos).replace('/', '.');
         String suffix = relativePath.substring(lastDotPos);
-        if (".properties".equals(suffix)) {
-          qName += "_properties";
+        if (PROPERTIES_SUFFIX.equals(suffix)) {
+          qName += PROPERTIES_CLASS_SUFFIX;
         }
         return qName;
       }

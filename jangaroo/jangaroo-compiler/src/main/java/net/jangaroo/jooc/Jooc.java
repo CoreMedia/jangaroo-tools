@@ -36,18 +36,12 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.api.PropcHelper;
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
+import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,9 +56,6 @@ import java.util.Set;
  */
 public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
-  public static final String CLASS_LOADER_NAME = "classLoader";
-  public static final String CLASS_LOADER_PACKAGE_NAME = "joo";
-  public static final String CLASS_LOADER_FULLY_QUALIFIED_NAME = CLASS_LOADER_PACKAGE_NAME + "." + CLASS_LOADER_NAME;
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
@@ -133,28 +124,24 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
-    PropertyClassGenerator propertyClassGenerator;
+    Propc propertyClassGenerator;
+    File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
+    if (localizedOutputDirectory == null) {
+      // temporary fix until the new configuration option can be used by IDEA Plugin:
+      localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
+    }
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
 
-      PropertiesCompilerConfiguration config = new PropertiesCompilerConfiguration();
-      config.setSourcePath(getConfig().getSourcePath());
-      config.setClassPath(getConfig().getClassPath());
-      File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
-      // temporary fix until the new configuration option can be used by IDEA Plugin:
-      if (localizedOutputDirectory == null) {
-        localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
-      }
-      config.setOutputDirectory(localizedOutputDirectory);
-      propertyClassGenerator = new PropertyClassGenerator(config);
+      propertyClassGenerator = new Propc();
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
 
     setUp(sourcePathInputSource, classPathInputSource);
 
-    HashMap<File, File> outputFileMap = new HashMap<File, File>();
+    HashMap<File, File> outputFileMap = new HashMap<>();
     try {
       setUpMxmlComponentRegistry(sourcePathInputSource, classPathInputSource);
       for (File sourceFile : getConfig().getSourceFiles()) {
@@ -179,6 +166,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       analyzeDependencies();
 
       for (CompilationUnit unit : compileQueue) {
+        checkValidFileName(unit);
+
         InputSource source = getInputSource(unit);
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
@@ -187,21 +176,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
                 && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
           outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
         } else if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
-          outputFile = propertyClassGenerator.generate(sourceFile);
+          outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
         if (getConfig().isGenerateApi()) {
-          if (sourceFile.getName().endsWith(PROPERTIES_SUFFIX)) {
-            if (!sourceFile.getName().contains("_")) {
-              Path targetPath = getConfig().getApiOutputDirectory().toPath().resolve(source.getRelativePath());
-              Files.createDirectories(targetPath.getParent());
-              Files.copy(sourceFile.toPath(),
-                      targetPath,
-                      StandardCopyOption.REPLACE_EXISTING);
-            }
-          } else {
-            writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
-          }
+          writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
         }
       }
 
@@ -213,6 +192,28 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw new CompilerError("IO Exception occurred", e);
     } finally {
       tearDown();
+    }
+  }
+
+  private void checkValidFileName(final CompilationUnit unit) {
+    InputSource source = getInputSource(unit);
+    if (!source.getName().endsWith(AS_SUFFIX)) {
+      // Only check *.as file names.
+      // For *.properties and *.mxml, the class name is derived from the file name, anyway!
+      return;
+    }
+    // check valid file name for qname
+    String path = source.getRelativePath();
+    if (path != null) {
+      String qname = unit.getPrimaryDeclaration().getQualifiedNameStr();
+      String expectedPath = CompilerUtils.fileNameFromQName(qname, '/', AS_SUFFIX);
+      if (!expectedPath.equals(path)) {
+        warning(unit.getSymbol(),
+                String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
+                        expectedPath,
+                        qname,
+                        path));
+      }
     }
   }
 
@@ -368,7 +369,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       throw error("Input file is a directory.", file);
     }
     File sourceDir = getConfig().findSourceDir(file);
-    String qName = CompilerUtils.qNameFromFile(sourceDir, file);
+//    String qName = CompilerUtils.qNameFromFile(sourceDir, file);
 //    InputSource canonicalInputSource = findSource(qName);
 //    if (canonicalInputSource != null && !canonicalInputSource.getPath().equals(file.getPath())) {
 //      if (canonicalInputSource.getName().endsWith(PROPERTIES_SUFFIX)) {

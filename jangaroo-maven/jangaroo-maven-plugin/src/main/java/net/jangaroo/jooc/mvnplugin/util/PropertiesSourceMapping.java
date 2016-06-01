@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
-import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 
@@ -24,7 +24,7 @@ public class PropertiesSourceMapping implements SourceMapping {
 
   @Override
   public Set<File> getTargetFiles(File targetDir, String source) {
-    String className = CompilerUtils.qNameFromRelativPath(source);
+    String className = CompilerUtils.qNameFromRelativePath(source);
     String baseClassName = PropcHelper.computeBaseClassName(className);
     Locale locale = PropcHelper.computeLocale(className);
     File targetFile = PropcHelper.computeGeneratedPropertiesJsFile(targetDir, baseClassName, locale);

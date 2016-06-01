@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -27,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,8 +57,11 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
   @Parameter
   private String applicationClass;
 
+  /**
+   * Supported locales in addition to the default locale "{@value DEFAULT_LOCALE}"
+   */
   @Parameter()
-  private List<String> locales = Lists.newArrayList("en");
+  private List<String> additionalLocales = Collections.emptyList();
 
   /**
    * Choose to create a 'development' build of the Sencha App instead of the standard 'production' build.
@@ -176,11 +179,11 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
   }
 
   public void configureLocales(SenchaAppConfigBuilder configBuilder) {
-    configBuilder.defaultLocale(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
-    for (String locale : locales) {
+    configBuilder.locale(DEFAULT_LOCALE);
+    for (String locale : additionalLocales) {
       configBuilder.locale(locale);
     }
-    if (locales.size() > 1) {
+    if (!additionalLocales.isEmpty()) {
       configBuilder.require("locale");
     }
   }
@@ -236,12 +239,12 @@ public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfi
     StringBuilder args = new StringBuilder();
     args.append("app build")
             .append(" --").append(buildEnvironment)
-            .append(" --locale ").append(locales.isEmpty() ? DEFAULT_LOCALE : locales.get(0));
+            .append(" --locale " + DEFAULT_LOCALE);
     args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
-    for (int i = 1; i < locales.size(); i++) {
+    for (String locale : additionalLocales) {
       args.append(" then app build")
               .append(" --").append(buildEnvironment)
-              .append(" --locale ").append(locales.get(i));
+              .append(" --locale ").append(locale);
     }
 
     getLog().info(String.format("Execute sencha cmd for %s with arguments %s", buildEnvironment, args.toString()));

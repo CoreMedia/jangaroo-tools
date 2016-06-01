@@ -1,4 +1,4 @@
-package net.jangaroo.properties.api;
+package net.jangaroo.properties;
 
 import net.jangaroo.utils.CompilerUtils;
 
@@ -10,7 +10,6 @@ import java.util.Locale;
  */
 public class PropcHelper {
 
-  public static final String PROPERTIES_CLASS_SUFFIX = "_properties";
   public static final String DEFAULT_LOCALE = "en";
 
   public static Locale computeLocale(String propertiesClassName) {
@@ -27,18 +26,18 @@ public class PropcHelper {
     String bundleName = getBundleName(propertiesClassName);
     int underscorePos = bundleName.indexOf('_');
     if (underscorePos != -1) {
-      return propertiesClassName.substring(0, underscorePos) + PROPERTIES_CLASS_SUFFIX;
+      return propertiesClassName.substring(0, underscorePos) + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
     }
     return propertiesClassName;
   }
 
   public static String getBundleName(String propertiesClassName) {
-    return propertiesClassName.substring(0, propertiesClassName.length() - PROPERTIES_CLASS_SUFFIX.length());
+    return propertiesClassName.substring(0, propertiesClassName.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length());
   }
 
-  public static File computeGeneratedPropertiesAS3File(PropertiesCompilerConfiguration config, String className) {
+  public static File computeGeneratedPropertiesAS3File(File apiOutputDirectory, String className) {
     String generatedPropertiesClassFileName = CompilerUtils.fileNameFromQName(className, '/', ".as");
-    return new File(config.getApiOutputDirectory(), generatedPropertiesClassFileName);
+    return new File(apiOutputDirectory, generatedPropertiesClassFileName);
   }
 
   public static File computeGeneratedPropertiesJsFile(File outputDirectory, String className, Locale locale) {

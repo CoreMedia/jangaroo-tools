@@ -23,7 +23,7 @@ Ext.define("${resourceBundle.fullClassName}<#if locale??>_${locale}</#if>", {
       ${property.comment}
       */
     </#if>
-  "${property.key}": "${property.value?js_string}"<#sep>,
+  "${property.key?json_string}": "${property.value?json_string}"<#sep>,
 </#list>
 
 }, function() {
@@ -33,7 +33,7 @@ Ext.define("${resourceBundle.fullClassName}<#if locale??>_${locale}</#if>", {
   ${property.comment}
   */
   </#if>
-  this.prototype["${property.key}"] =  ${property.value};
+  this.prototype["${property.key?json_string}"] =  ${property.value};
 </#list>
   <#if !locale??>
 

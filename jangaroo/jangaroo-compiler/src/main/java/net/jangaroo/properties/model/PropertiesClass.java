@@ -3,7 +3,7 @@
  */
 package net.jangaroo.properties.model;
 
-import net.jangaroo.properties.api.PropcHelper;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
 
@@ -31,8 +31,6 @@ public class PropertiesClass {
 
   public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties) {
     this.resourceBundle = resourceBundle;
-    resourceBundle.addLocaleProperties(locale, this);
-
     this.locale = locale;
     this.properties = properties;
   }
@@ -67,9 +65,9 @@ public class PropertiesClass {
   private List<Property> getProps(boolean includeStrings, boolean includeReferences) {
     PropertiesConfigurationLayout layout = properties.getLayout();
     List<Property> props = new ArrayList<Property>();
-    Iterator keys = properties.getKeys();
+    Iterator<String> keys = properties.getKeys();
     while (keys.hasNext()) {
-      String key = (String)keys.next();
+      String key = keys.next();
       String value = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       boolean valueIsResourceReference = matcher.find();
@@ -77,7 +75,7 @@ public class PropertiesClass {
         boolean bundleFirst = "bundle".equals(matcher.group(1));
         String referenceBundleKey = matcher.group(!bundleFirst ? 2 : 4);
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
-        value = referenceBundleFullClassName + PropcHelper.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
+        value = referenceBundleFullClassName + CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
         if (isIdentifier(referenceBundleKey)) {
           value += "." + referenceBundleKey;
         } else {
@@ -85,7 +83,7 @@ public class PropertiesClass {
         }
       }
       if (valueIsResourceReference ? includeReferences : includeStrings) {
-        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, !valueIsResourceReference));
+        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value));
       }
     }
     return props;
@@ -119,7 +117,7 @@ public class PropertiesClass {
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       if (matcher.find()) {
         String bundle = "bundle".equals(matcher.group(1)) ? matcher.group(2) : matcher.group(4);
-        String referenceBundleFullClassName = bundle + PropcHelper.PROPERTIES_CLASS_SUFFIX;
+        String referenceBundleFullClassName = bundle + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
         result.add(referenceBundleFullClassName);
       }
     }

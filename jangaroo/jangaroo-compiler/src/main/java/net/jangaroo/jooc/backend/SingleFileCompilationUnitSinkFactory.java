@@ -12,6 +12,7 @@ import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.tools.ant.util.FileUtils;
 
 import java.io.File;
@@ -38,37 +39,18 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     this.compilationUnitRegistry = compilationUnitRegistry;
   }
 
-  protected File getOutputFile(File sourceFile, String[] packageName) {
-    return new File(getOutputFileName(sourceFile, packageName));
-  }
-
-  protected String getOutputFileName(File sourceFile, String[] packageName) {
-    String result;
+  protected File getOutputFile(File sourceFile, String qName) {
     if (getOutputDir() == null) {
-      result = sourceFile.getAbsoluteFile().getParentFile().getAbsolutePath();
-    } else {
-      result = getOutputDir().getAbsolutePath();
-      StringBuilder buffy = new StringBuilder(result);
-      for (String aPackageName : packageName) {
-        buffy.append(File.separator);
-        buffy.append(aPackageName);
-      }
-      result = buffy.toString();
+      File outputDirectory = sourceFile.getAbsoluteFile().getParentFile();
+      return new File(outputDirectory, CompilerUtils.qNameFromFile(outputDirectory, sourceFile) + suffix);
     }
-    result += File.separator;
-    result += sourceFile.getName();
-    int dotpos = result.lastIndexOf('.');
-    if (dotpos >= 0) {
-      result = result.substring(0, dotpos);
-    }
-    result += suffix;
-    return result;
+    return CompilerUtils.fileFromQName(qName, getOutputDir(), suffix);
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
                                         IdeDeclaration primaryDeclaration, final File sourceFile,
                                         final boolean verbose) {
-    final File outFile = getOutputFile(sourceFile, packageDeclaration.getQualifiedName());
+    final File outFile = getOutputFile(sourceFile, primaryDeclaration.getQualifiedNameStr());
     createOutputDirs(outFile);
 
     return new CompilationUnitSink() {

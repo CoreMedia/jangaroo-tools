@@ -1,4 +1,4 @@
-package net.jangaroo.properties.api;
+package net.jangaroo.properties;
 
 import java.io.File;
 

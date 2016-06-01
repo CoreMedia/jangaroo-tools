@@ -19,9 +19,7 @@ import net.jangaroo.jooc.model.ClassModel;
 import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.PropertyClassGenerator;
-import net.jangaroo.properties.api.PropcHelper;
-import net.jangaroo.properties.api.PropertiesCompilerConfiguration;
+import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
 import net.jangaroo.utils.CompilerUtils;
@@ -174,10 +172,10 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   public Reader createPropertiesClassReader(InputSource in) throws IOException {
-    PropertyClassGenerator propertyClassGenerator = new PropertyClassGenerator(new PropertiesCompilerConfiguration());
+    Propc propertyClassGenerator = new Propc();
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     propertyClassGenerator.generateApi(
-            CompilerUtils.qNameFromRelativPath(in.getRelativePath()),
+            CompilerUtils.qNameFromRelativePath(in.getRelativePath()),
             in.getInputStream(),
             new OutputStreamWriter(outputStream, UTF_8));
     // From the properties file, we generate AS code, then parse a CompilationUnit again.
@@ -218,15 +216,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   }
 
   private static InputSource findInputSource(String qname, InputSource pathInputSource, String suffix) {
-    String correctedQName = qname;
-    if (Jooc.PROPERTIES_SUFFIX.equals(suffix)) {
-      if (qname.endsWith(PropcHelper.PROPERTIES_CLASS_SUFFIX)) {
-        correctedQName = qname.substring(0, qname.length() - PropcHelper.PROPERTIES_CLASS_SUFFIX.length());
-      } else {
-        return null;
-      }
-    }
-    return pathInputSource.getChild(getInputSourceFileName(correctedQName, pathInputSource, suffix));
+    String inputSourceFileName = getInputSourceFileName(qname, pathInputSource, suffix);
+    return inputSourceFileName == null ? null : pathInputSource.getChild(inputSourceFileName);
   }
 
   public static String getInputSourceFileName(final String qname, InputSource is, String extension) {
@@ -255,12 +246,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
     String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
     String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-    if (fileName.endsWith(Jooc.AS_SUFFIX)) {
-      // Only check *.as file names.
-      // For *.properties and *.mxml, the class name is derived from the file name, anyway!
-      checkValidFileName(qname, unit, source);
-    }
-
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
@@ -373,21 +358,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return mxmlComponentRegistry;
   }
 
-  private void checkValidFileName(final String qname, final CompilationUnit unit, final InputSource source) {
-    // check valid file name for qname
-    String path = CompilerUtils.removeExtension(source.getRelativePath());
-    if (path != null) {
-      String expectedPath = getInputSourceFileName(qname, source, "");
-      if (!expectedPath.equals(path)) {
-        warning(unit.getSymbol(),
-                String.format("expected '%s' as the file name for %s, found: '%s'. -sourcepath not set (correctly)?",
-                        expectedPath,
-                        qname,
-                        path));
-      }
-    }
-  }
-
   public List<String> getPackageIdes(String packageName) {
     List<String> result = new ArrayList<String>(10);
     addPackageFolderSymbols(result, packageName, sourcePathInputSource);
@@ -401,7 +371,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
       for (InputSource child : folder.list()) {
         if (!child.isDirectory() &&
                 hasCompilableSuffix(child.getName())) {
-          result.add(CompilerUtils.qNameFromRelativPath(child.getName()));
+          result.add(CompilerUtils.qNameFromRelativePath(child.getName()));
         }
       }
     }

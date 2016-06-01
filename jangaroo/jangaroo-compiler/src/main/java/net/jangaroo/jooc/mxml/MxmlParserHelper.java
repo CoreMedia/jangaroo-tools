@@ -188,7 +188,7 @@ public class MxmlParserHelper {
       String packageName = parsePackageFromNamespace(uri);
       if (packageName != null) {
         String qName = CompilerUtils.qName(packageName, name);
-        if (qName.equals(CompilerUtils.qNameFromRelativPath(getInputSource().getRelativePath()))) {
+        if (qName.equals(CompilerUtils.qNameFromRelativePath(getInputSource().getRelativePath()))) {
           return qName;
         }
         if (parser.isClass(qName)) {
