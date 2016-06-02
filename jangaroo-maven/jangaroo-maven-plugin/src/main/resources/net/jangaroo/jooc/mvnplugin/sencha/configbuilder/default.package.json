@@ -13,7 +13,7 @@
   "requires": [],
   "css": [],
   "js": [ {
-    "path" : "bundledResources/registerPackageOrder.js",
+    "path" : "bundledResources/packageConfig.js",
     "bundle" : false,
     "includeInBundle" : true
   } ],

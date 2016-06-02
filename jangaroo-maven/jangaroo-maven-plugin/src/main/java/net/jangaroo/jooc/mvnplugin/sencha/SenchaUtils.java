@@ -64,7 +64,7 @@ public class SenchaUtils {
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String SENCHA_PKG_EXTENSION = ".pkg";
-  public static final String REGISTER_PACKAGE_ORDER_FILENAME = "registerPackageOrder.js";
+  public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
   private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");

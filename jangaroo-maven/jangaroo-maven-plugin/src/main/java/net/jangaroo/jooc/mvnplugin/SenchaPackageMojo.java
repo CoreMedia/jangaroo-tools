@@ -25,9 +25,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.REGISTER_PACKAGE_ORDER_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGE_CONFIG_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -65,14 +67,40 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   @Parameter(defaultValue = Type.CODE)
   private String packageType;
 
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH)
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH, readonly = true)
   private String senchaPackagePath;
 
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_BUILD_PATH)
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_BUILD_PATH, readonly = true)
   private String senchaPackageBuildOutputDir;
 
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH + "/" + SENCHA_BUNDLED_RESOURCES_PATH + "/" + REGISTER_PACKAGE_ORDER_FILENAME)
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.LOCAL_PACKAGE_PATH + "/" + SENCHA_BUNDLED_RESOURCES_PATH + "/" + PACKAGE_CONFIG_FILENAME, readonly = true)
   private File packageDependencyOrderJsFile;
+
+  /**
+   * Defines a map of global resources (files or directories) which can be accessed in your application
+   * by the entry's key. For example, the resource ...
+   * <pre>
+   * &lt;globalResourcesMap>
+   *   &lt;exampleJs>example.js&lt;/exampleJs>
+   * &lt;/globalResourcesMap>
+   * </pre>
+   * ... is accessible in your code as follows ...
+   * <pre>
+   *  Ext.manifest.globalResources['exampleJs'];
+   * </pre>
+   * <p>
+   * During the build process Sencha Cmd copies the resources of a package into isolated subdirectories of the final
+   * app's resource directory. The corresponding path change is managed by the plugin. If you access the resource
+   * through the manifest you always get the correct absolute path.
+   * </p>
+   * <p>
+   * If you want to want to access the global resources outside of an Ext class make sure that you wrapped the call
+   * in a <code>Ext.onReady</code> callback function.
+   * </p>
+   * The given path must be relative to the package's resource directory, i.e. <i>src/main/sencha/resources</i>.
+   */
+  @Parameter
+  private Map<String, String> globalResourcesMap;
 
   @Override
   public String getType() {
@@ -142,7 +170,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     } else {
       throw new MojoExecutionException("Could not find sencha.cfg of package");
     }
-    writePackageDependencyOrderJs();
+    writePackageConfig();
   }
 
   private File getWorkingDirectory() throws MojoExecutionException {
@@ -304,19 +332,55 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-
-  private void writePackageDependencyOrderJs() throws MojoExecutionException {
+  private void writePackageConfig() throws MojoExecutionException {
     FileHelper.ensureDirectory(packageDependencyOrderJsFile.getParentFile());
     if (packageDependencyOrderJsFile.exists()) {
-      getLog().warn("register package dependency order file for module already exists, deleting...");
+      getLog().warn(PACKAGE_CONFIG_FILENAME + " for module already exists, deleting...");
       if (!packageDependencyOrderJsFile.delete()) {
-        throw new MojoExecutionException("Could not delete registerPackageDependencyOrder file for module");
+        throw new MojoExecutionException("Could not delete " + PACKAGE_CONFIG_FILENAME + " file for module");
       }
     }
+
     try (PrintWriter pw = new PrintWriter(new FileWriter(packageDependencyOrderJsFile, true))) {
-      pw.printf("Ext.manifest.packageDependencyOrder.push(\"%s\");%n", getSenchaPackageName(project));
+      pw.println("(function(){");
+      writePackageDependencyOrderJs(pw);
+      writeGlobalResourceMapJs(pw);
+      pw.println("}());");
     } catch (IOException e) {
-      throw new MojoExecutionException("could not create package dependency order resource", e);
+      throw new MojoExecutionException("Could not create " + PACKAGE_CONFIG_FILENAME + " resource", e);
+    }
+  }
+
+  private void writePackageDependencyOrderJs(PrintWriter pw) throws MojoExecutionException {
+      pw.printf("// START - Registering package dependency order%n" +
+                "Ext.manifest.packageDependencyOrder.push('%s');%n" +
+                "// END - Registering package dependency order%n", getSenchaPackageName(project));
+  }
+
+  private void writeGlobalResourceMapJs(PrintWriter pw) throws MojoExecutionException {
+    if (globalResourcesMap != null && !globalResourcesMap.isEmpty()) {
+      String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+      pw.printf("// START - Adding global resources to ext manifest%n");
+      pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
+                "  var resolvedPath = Ext.resolveResource('<@' + packageName + '>' + resourcePath);%n" +
+                "  if (resolvedPath.indexOf('/') !== 0) {%n" +
+                "    resolvedPath = window.location.pathname + resolvedPath;%n" +
+                "  }%n" +
+                "  return resolvedPath;%n" +
+                "};%n" +
+                "Ext.apply(Ext.manifest.globalResources, {%n");
+
+      Iterator<Map.Entry<String, String>> globalResourceIterator = globalResourcesMap.entrySet().iterator();
+      while (globalResourceIterator.hasNext()) {
+        Map.Entry<String, String> globalResource = globalResourceIterator.next();
+        pw.printf(
+                "  '%s': resolveAbsolutePath('%s', '%s')", globalResource.getKey(), senchaPackageName, globalResource.getValue());
+        if (globalResourceIterator.hasNext()) {
+          pw.printf(",%n");
+        }
+      }
+      pw.printf("%n});%n");
+      pw.println("// END - Adding global resources to ext manifest");
     }
   }
 

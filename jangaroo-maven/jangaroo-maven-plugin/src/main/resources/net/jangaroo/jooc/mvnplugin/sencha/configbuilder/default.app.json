@@ -229,5 +229,6 @@
   "archivePath": "archive",
 
   "id": null,
-  "packageDependencyOrder": []
+  "packageDependencyOrder": [],
+  "globalResources": {}
 }
