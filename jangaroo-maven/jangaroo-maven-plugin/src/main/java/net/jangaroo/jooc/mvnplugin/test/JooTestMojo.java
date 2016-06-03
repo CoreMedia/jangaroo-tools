@@ -3,22 +3,44 @@ package net.jangaroo.jooc.mvnplugin.test;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
+import net.jangaroo.jooc.mvnplugin.Type;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
+import org.codehaus.plexus.archiver.UnArchiver;
+import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.codehaus.plexus.util.cli.CommandLineException;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.mortbay.jetty.plugin.JettyWebAppContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,22 +52,128 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
  * Executes JooUnit tests.
- * Unpacks all dependency to its output directory, generates a tests.html which starts up the class
- * <code>testSuiteName</code>. Since a real browser is the best JavaScript execution environment
- * the test now fires up a jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and
- * <code>jooUnitJettyPortUpperBound</code> contacts a selenium server given by
- * <code>jooUnitSeleniumRCHost</code>. The Selenium Remote Control then starts a browser, navigates
- * the browser to the Jetty we just started and waits for <code>jooUnitTestExecutionTimeout</code>ms
- * for the results to appear on the browser screen.
+ * Unpacks all dependency to its output directory, generates a tests app which runs the script
+ * given by <code>runTestsJs</code>. This usually runs JooUnit's BrowserRunner with a given
+ * TestSuite.
+ * Then the Test Mojo starts a Jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and
+ * <code>jooUnitJettyPortUpperBound</code> and prints out the resulting test app URL.
+ * <p>Tests are executed in one of three ways:</p>
+ * <ol>
+ *   <li>
+ *     If available, PhantomJS is started with a script that loads the test app and stores the
+ *     test result in the report file in XML format.
+ *   </li>
+ *   <li>
+ *     Otherwise, the Mojo tries to start a browser via the Selenium server given by
+ *     <code>jooUnitSeleniumRCHost</code> with the test app URL and tries to collect the test result
+ *     through Selenium.
+ *   </li>
+ *   <li>
+ *     Another option is to set the system property <code>interactiveJooUnitTests</code>
+ *     (<code>mvn test -DinteractiveJooUnitTests</code>), which simply halts Maven execution
+ *     and gives you the opportunity to load and debug the test app in a browser.
+ *   </li>
+ * </ol>
+ * Option 1 and 2 respect the configured <code>jooUnitTestExecutionTimeout</code> (ms)
+ * and interrupt the tests after that time, resulting in a test failure.
  */
 @Mojo(name = "test",
         defaultPhase = LifecyclePhase.TEST,
         requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
-public class JooTestMojo extends JooTestMojoBase {
+public class JooTestMojo extends AbstractMojo {
+
+  /**
+   * The maven project.
+   */
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  protected MavenProject project;
+
+  /**
+   * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
+   */
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
+  private File outputDirectory;
+
+  /**
+   * Directory whose joo/classes sub-directory contains compiled test classes.
+   */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}")
+  protected File testOutputDirectory;
+
+  /**
+   * The JavaScript file relative to the test resources folder that runs your test suite.
+   */
+  @Parameter(defaultValue = "run-tests.js")
+  protected String runTestsJs;
+
+  /**
+   * Whether to load the test application in debug mode (#joo.debug).
+   */
+  @Parameter(defaultValue = "false")
+  protected boolean debugTests;
+
+  /**
+   * the project's test resources
+   */
+  @Parameter(defaultValue = "${project.testResources}")
+  protected List<Resource> testResources;
+
+  /**
+   * To avoid port clashes when multiple tests are running at the same
+   * time on the same machine, the jetty port is selected randomly within
+   * an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
+   * Every port is tried until a free one is found or all ports in the range
+   * are occupied (which results in the build to fail).
+   */
+  @Parameter(property = "jooUnitJettyPortUpperBound", defaultValue = "10200")
+  private int jooUnitJettyPortUpperBound;
+
+  /**
+   * To avoid port clashes when multiple tests are running at the same
+   * time on the same machine, the jetty port is selected randomly within
+   * an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
+   * Every port is tried until a free one is found or all ports in the range
+   * are occupied (which results in the build to fail).
+   * When setting the flag <code>interactiveJooUnitTests</code>, this lower bound is
+   * always used.
+   */
+  @Parameter(property = "jooUnitJettyPortLowerBound", defaultValue = "10100")
+  private int jooUnitJettyPortLowerBound;
+
+  /**
+   * The host name to use to reach the locally started Jetty listenes, usually the default, "localhost".
+   */
+  @Parameter(property = "jooUnitJettyHost", defaultValue = "localhost")
+  private String jooUnitJettyHost;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  protected RepositorySystem repositorySystem;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  private ArtifactResolver artifactResolver;
+
+  @Inject
+  private ArchiverManager archiverManager;
+
+  @Parameter(defaultValue = "${localRepository}", required = true)
+  private ArtifactRepository localRepository;
+
+  @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+  private List<ArtifactRepository> remoteRepositories;
 
   /**
    * Source directory to scan for files to compile.
@@ -146,8 +274,12 @@ public class JooTestMojo extends JooTestMojoBase {
   private String phantomBin;
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!skip && !skipTests && !skipJooUnitTests && isTestAvailable()) {
-      super.execute();
+    boolean doSkip = skip || skipTests || skipJooUnitTests;
+    if (doSkip || !isTestAvailable()) {
+      getLog().info("Skipping generation of Jangaroo test app: " + (doSkip ? "tests skipped." : "no tests found."));
+    } else {
+      getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
+      createWebApp(testOutputDirectory);
 
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog()).execute();
@@ -206,6 +338,191 @@ public class JooTestMojo extends JooTestMojoBase {
     } catch (SAXException e) {
       throw wrap(e);
     }
+  }
+
+  /**
+   * Create the Jangaroo Web app in the given Web app directory.
+   * @param webappDirectory the directory where to build the Jangaroo Web app.
+   * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
+   */
+  protected void createWebApp(File webappDirectory) throws MojoExecutionException {
+    if (webappDirectory.mkdirs()) {
+      getLog().debug("created app directory " + webappDirectory);
+    }
+    UnArchiver unArchiver;
+    try {
+      unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
+    } catch (NoSuchArchiverException e) {
+      throw new MojoExecutionException("No ZIP UnArchiver?!", e);
+    }
+    ArtifactResolutionRequest artifactResolutionRequest = new ArtifactResolutionRequest();
+    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
+    artifactResolutionRequest.setArtifact(repositorySystem.createArtifact("net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar"));
+    artifactResolutionRequest.setLocalRepository(localRepository);
+    artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
+    ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
+    File appTemplateArtifactFile = result.getArtifacts().iterator().next().getFile();
+
+    unArchiver.setSourceFile(appTemplateArtifactFile);
+    unArchiver.setDestDirectory(webappDirectory);
+    unArchiver.extract();
+
+    createApp();
+  }
+
+  private static boolean isTestDependency(Dependency dependency) {
+    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && Type.JAR_EXTENSION.equals(dependency.getType());
+  }
+
+  protected String getDefaultsJsonFileName() {
+    return "default.test.app.json";
+  }
+
+  public void createApp() throws MojoExecutionException {
+    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), "app.json");
+    getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
+
+    SenchaAppConfigBuilder configBuilder = new SenchaAppConfigBuilder();
+    try {
+      configBuilder.destFile(project.getBuild().getTestOutputDirectory() + SenchaUtils.SEPARATOR + "app.json");
+      configBuilder.defaults(getDefaultsJsonFileName());
+      configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
+
+      // require the package to test:
+      configBuilder.require(getSenchaPackageName(project));
+      // add test scope dependencies:
+      List<Dependency> projectDependencies = project.getDependencies();
+      for (Dependency dependency : projectDependencies) {
+        if (isTestDependency(dependency)) {
+          configBuilder.require(getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId()));
+        }
+      }
+
+      configBuilder.buildFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not build test app.json", e);
+    }
+  }
+
+  protected String getJettyUrl(Server server) {
+    return "http://" + jooUnitJettyHost + ":" + server.getConnectors()[0].getPort();
+  }
+
+  protected boolean isTestAvailable() {
+    for (org.apache.maven.model.Resource r : testResources) {
+      File testFile = new File(r.getDirectory(), runTestsJs);
+      if (testFile.exists()) {
+        return true;
+      }
+    }
+    getLog().info("The JavaScript test run file '" + runTestsJs + "' could not be found. Skipping.");
+    return false;
+  }
+
+  protected Server jettyRunTest(boolean tryPortRange) throws MojoExecutionException {
+    JettyWebAppContext handler;
+    try {
+      handler = new JettyWebAppContext();
+      handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+      List<org.eclipse.jetty.util.resource.Resource> baseResources = new ArrayList<>();
+      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
+      baseResources.add(toResource(workspaceDir));
+      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new org.eclipse.jetty.util.resource.Resource[baseResources.size()])));
+      getLog().info("Using base resources " + baseResources);
+      ServletHolder servletHolder = new ServletHolder("default", DefaultServlet.class);
+      servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
+      handler.addServlet(servletHolder, "/");
+      getLog().info("Set servlet cache control to 'do not cache'.");
+    } catch (Exception e) {
+      throw wrap(e);
+    }
+    return startJetty(handler, tryPortRange);
+  }
+
+  private org.eclipse.jetty.util.resource.Resource toResource(File file) throws MojoExecutionException {
+    try {
+      return org.eclipse.jetty.util.resource.Resource.newResource(file);
+    } catch (IOException e) {
+      throw wrap(e);
+    }
+  }
+
+  private Server startJetty(Handler handler, boolean tryPortRange) throws MojoExecutionException {
+    if (tryPortRange && jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
+      return startJettyOnRandomPort(handler);
+    } else {
+      try {
+        return startJettyOnPort(handler, jooUnitJettyPortLowerBound);
+      } catch (Exception e) {
+        throw wrapJettyException(e, jooUnitJettyPortLowerBound);
+      }
+    }
+  }
+
+  private Server startJettyOnRandomPort(Handler handler) throws MojoExecutionException {
+    List<Integer> ports = new ArrayList<>(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound + 1);
+    for (int i = jooUnitJettyPortLowerBound; i <= jooUnitJettyPortUpperBound; i++) {
+      ports.add(i);
+    }
+    Collections.shuffle(ports);
+    int lastPort = ports.get(ports.size() - 1);
+    Exception finalException = null;
+    for (int jooUnitJettyPort : ports) {
+      try {
+        return startJettyOnPort(handler, jooUnitJettyPort);
+      } catch (Exception e) {
+        if (jooUnitJettyPort != lastPort) {
+          getLog().info(String.format("Starting Jetty on port %d failed. Retrying ...", jooUnitJettyPort));
+        } else {
+          finalException = e;
+        }
+      }
+    }
+    throw wrapJettyException(finalException, lastPort);
+  }
+
+  private Server startJettyOnPort(Handler handler, int jettyPort) throws Exception {
+    Server server = new Server(jettyPort);
+    try {
+      server.setHandler(handler);
+      server.start();
+      getLog().info(String.format("Started Jetty for unit tests on port %d.", jettyPort));
+    } catch (Exception e) {
+      stopServerIgnoreException(server);
+      throw e;
+    }
+    return server;
+  }
+
+  protected MojoExecutionException wrap(Exception e) {
+    return new MojoExecutionException(e.toString(), e);
+  }
+
+  private MojoExecutionException wrapJettyException(Exception e, int jettyPort) {
+    getLog().error(String.format("Starting Jetty on port %d failed.", jettyPort));
+    return new MojoExecutionException(String.format("Cannot start jetty server on port %d.", jettyPort), e);
+  }
+
+  protected void stopServerIgnoreException(Server server) {
+    try {
+      server.stop();
+    } catch (Exception e1) {
+      getLog().warn("Stopping Jetty failed. Never mind.");
+    }
+  }
+
+  protected String getTestUrl(Server server) throws MojoExecutionException {
+    File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
+    if (workspaceDir == null) {
+      throw new MojoExecutionException("No Sencha workspace.json found starting from " + project.getBasedir());
+    }
+    String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
+    StringBuilder builder = new StringBuilder(getJettyUrl(server))
+            .append("/").append(path);
+    if (debugTests) {
+      builder.append("#joo.debug");
+    }
+    return builder.toString();
   }
 
   void executeSelenium(String testsHtmlUrl) throws MojoExecutionException, MojoFailureException {
@@ -309,7 +626,7 @@ public class JooTestMojo extends JooTestMojoBase {
     this.testFailureIgnore = b;
   }
 
-  public void setTestOutputDirectory(File testOutputDirectory) {
-    this.testOutputDirectory = testOutputDirectory;
+  static {
+    org.eclipse.jetty.util.resource.Resource.setDefaultUseCaches(false);
   }
 }
