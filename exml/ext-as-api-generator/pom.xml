@@ -40,7 +40,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>4.0-SNAPSHOT</version>
+    <version>4.0.18</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <build>
