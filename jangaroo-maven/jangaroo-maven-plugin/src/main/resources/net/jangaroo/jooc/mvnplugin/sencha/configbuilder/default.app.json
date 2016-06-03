@@ -5,7 +5,7 @@
   "classpath": [
     "app",
     "${toolkit.name}/src",
-    "locale/${app.defaultLocale}"
+    "locale/en"
   ],
   "overrides": [
     "overrides",
