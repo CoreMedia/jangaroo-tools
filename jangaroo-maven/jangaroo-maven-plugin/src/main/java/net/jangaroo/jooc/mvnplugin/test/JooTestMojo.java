@@ -76,6 +76,13 @@ public class JooTestMojo extends JooTestMojoBase {
   private boolean skipJooUnitTests;
 
   /**
+   * Set this to 'true' to build and serve the tests app, output the tests app URL, then wait for the developer
+   * to manually run and debug the tests in a browser.
+   */
+  @Parameter(defaultValue = "${interactiveJooUnitTests}")
+  private boolean interactiveJooUnitTests;
+
+  /**
    * Output directory for test results.
    */
   @SuppressWarnings({"UnusedDeclaration"})
@@ -145,29 +152,39 @@ public class JooTestMojo extends JooTestMojoBase {
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog()).execute();
 
-      Server server = jettyRunTest(true);
+      Server server = jettyRunTest(!interactiveJooUnitTests);
       String url = getTestUrl(server);
+      getLog().info("Test-URL: " + url);
 
       try {
-        File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
-        File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
-        FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
-        final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, getLog());
-        if (phantomJsTestRunner.canRun()) {
-          executePhantomJs(testResultOutputFile, phantomJsTestRunner);
+        if (interactiveJooUnitTests) {
+          try {
+            server.join();
+          } catch (InterruptedException e) {
+            // okay, good-bye!
+          }
         } else {
-          executeSelenium(url);
+          runTests(url);
         }
-      } catch (IOException e) {
-        throw new MojoExecutionException("Cannot create local copy of phantomjs-joounit-page-runner.js", e);
       } finally {
-        try {
-          server.stop();
-        } catch (Exception e) {
-          // never mind we just couldn't stop the selenium server.
-          getLog().error("Could not stop test Jetty.", e);
-        }
+        stopServerIgnoreException(server);
       }
+    }
+  }
+
+  private void runTests(String url) throws MojoFailureException, MojoExecutionException {
+    try {
+      File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
+      File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
+      FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, getLog());
+      if (phantomJsTestRunner.canRun()) {
+        executePhantomJs(testResultOutputFile, phantomJsTestRunner);
+      } else {
+        executeSelenium(url);
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("Cannot create local copy of phantomjs-joounit-page-runner.js", e);
     }
   }
 
