@@ -467,8 +467,8 @@ final class MxmlToModelParser {
   }
 
   private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull MemberModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    Directive propertyAssignement = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
-    constructorBodyDirectives.add(propertyAssignement);
+    Directive propertyAssignment = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
+    constructorBodyDirectives.add(propertyAssignment);
   }
 
   @Nonnull
