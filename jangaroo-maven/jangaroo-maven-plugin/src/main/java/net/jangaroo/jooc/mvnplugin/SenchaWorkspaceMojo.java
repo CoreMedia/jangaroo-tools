@@ -88,16 +88,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
     /*
      * CREATE SENCHA MODULE
      */
-    File workingDirectory;
-    try {
-      workingDirectory = project.getBasedir().getCanonicalFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not determine project base directory", e);
-    }
-
-    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("Could not create working directory");
-    }
+    File workingDirectory = getWorkingDirectory();
 
     if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
 
@@ -119,22 +110,7 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
 
         try {
           List<String> senchaCfgTmpContent = Files.readAllLines(senchaCfg, Charset.forName("UTF-8"));
-
-          // prepend comment and delete first comment line with usually contains the date time
-          if (senchaCfgTmpContent.get(0).startsWith("#")) { // if the first
-            senchaCfgTmpContent.remove(0);
-          }
-
-          List<String> newSenchaCfg = new ArrayList<>(senchaCfgTmpContent.size());
-          newSenchaCfg.add("#");
-          newSenchaCfg.add("# " + AUTO_CONTENT_COMMENT);
-          newSenchaCfg.add("#");
-          newSenchaCfg.add("");
-          newSenchaCfg.addAll(senchaCfgTmpContent);
-
-          newSenchaCfg.add("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir()));
-
-          Files.write(senchaCfg, newSenchaCfg, Charset.forName("UTF-8"));
+          Files.write(senchaCfg, getSenchaCfgContent(senchaCfgTmpContent), Charset.forName("UTF-8"));
         } catch (IOException e) {
           throw new MojoExecutionException("Modifying sencha.cfg file failed", e);
         }
@@ -160,6 +136,37 @@ public class SenchaWorkspaceMojo extends AbstractSenchaMojo {
       getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
     }
 
+  }
+
+  private File getWorkingDirectory() throws MojoExecutionException {
+    File workingDirectory;
+    try {
+      workingDirectory = project.getBasedir().getCanonicalFile();
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not determine project base directory", e);
+    }
+
+    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
+      throw new MojoExecutionException("Could not create working directory");
+    }
+    return workingDirectory;
+  }
+
+  private List<String> getSenchaCfgContent(@Nonnull List<String> currentContent) {
+    // prepend comment and delete first comment line with usually contains the date time
+    if (currentContent.get(0).startsWith("#")) { // if the first
+      currentContent.remove(0);
+    }
+
+    List<String> newSenchaCfg = new ArrayList<>(currentContent.size());
+    newSenchaCfg.add("#");
+    newSenchaCfg.add("# " + AUTO_CONTENT_COMMENT);
+    newSenchaCfg.add("#");
+    newSenchaCfg.add("");
+    newSenchaCfg.addAll(currentContent);
+
+    newSenchaCfg.add("ext.dir=" + SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir()));
+    return newSenchaCfg;
   }
 
   private void configurePackagesAndApp(SenchaWorkspaceConfigBuilder configBuilder) throws MojoExecutionException {
