@@ -160,6 +160,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testStringToArrayCoersion() throws Exception {
+    assertCompilationResult("package1/mxml/StringToArrayCoersion", ".mxml");
+  }
+
+  @Test
   public void testAllElements() throws Exception {
     assertCompilationResult("package1/AllElements", ".mxml");
   }

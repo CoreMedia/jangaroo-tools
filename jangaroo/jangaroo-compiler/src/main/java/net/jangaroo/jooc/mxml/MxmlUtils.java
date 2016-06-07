@@ -109,6 +109,9 @@ public class MxmlUtils {
           case UINT:
           case INT:
             return Long.parseLong(attributeValue);
+          case ARRAY:
+            Object singleItem = getAttributeValue(attributeValue, AS3Type.ANY.name);
+            return MxmlUtils.createBindingExpression(String.format("[%s]", valueToString(singleItem)));
         }
       }
     }
