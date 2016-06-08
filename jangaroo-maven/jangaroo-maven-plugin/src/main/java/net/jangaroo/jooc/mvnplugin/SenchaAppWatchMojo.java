@@ -14,7 +14,7 @@ import java.io.File;
 /**
  * Start "sencha app watch" for a <em>jangaroo-app</em> project.
  */
-@Mojo(name = "sencha-app-watch", threadSafe = true)
+@Mojo(name = "app-watch", threadSafe = true)
 public class SenchaAppWatchMojo extends AbstractMojo {
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY)
@@ -33,6 +33,5 @@ public class SenchaAppWatchMojo extends AbstractMojo {
     getLog().info("Starting \"sencha app watch\"");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(appTargetDir, arguments, getLog());
     senchaCmdExecutor.execute();
-
   }
 }

@@ -36,7 +36,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
  * Generates and packages Sencha app module.
  */
 @Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class SenchaAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
+public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
   public static final String DEFAULT_LOCALE = "en";
 

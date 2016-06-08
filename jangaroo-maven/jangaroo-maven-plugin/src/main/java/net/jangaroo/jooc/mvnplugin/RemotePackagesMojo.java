@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, CoreMedia AG, Hamburg. All rights reserved.
+ * Copyright (c) 2016, CoreMedia AG, Hamburg. All rights reserved.
  */
 package net.jangaroo.jooc.mvnplugin;
 
@@ -29,7 +29,7 @@ import java.util.Set;
         defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
         requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
-public class SenchaRemotePackagesMojo extends AbstractSenchaMojo {
+public class RemotePackagesMojo extends AbstractSenchaMojo {
 
   private static final String PACKAGES_DIRECTORY = "/packages/";
   private static final String EXT_FRAMEWORK_DIRECTORY = "/ext/";
