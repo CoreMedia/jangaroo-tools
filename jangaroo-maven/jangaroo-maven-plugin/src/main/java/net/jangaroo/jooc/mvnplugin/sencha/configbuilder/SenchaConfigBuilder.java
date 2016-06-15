@@ -83,12 +83,13 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
     }
     @SuppressWarnings("unchecked")
     Map<String, Object> currentValueAsMap = (Map<String, Object>) currentValue;
-    // we need to add the values to the existing list
+    // we need to add the values to the existing map
     Map<String, Object> currentSubMap = new HashMap<>();
+    // we need to add values recursively, map can include lists and maps
     currentSubMap.putAll(currentValueAsMap);
-    currentSubMap.putAll(additionalMap);
+    mergeMap(currentSubMap, additionalMap);
+
     baseMap.put(key, currentSubMap);
-    mergeMap(currentValueAsMap, additionalMap);
   }
 
   @SuppressWarnings("unchecked")
