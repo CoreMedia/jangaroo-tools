@@ -23,6 +23,15 @@ public class SenchaAppWatchMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
+  /**
+   * The log level to use for Sencha Cmd.
+   * The log level for Maven is kind of the base line which determines which log entries are actually shown in the output.
+   * When you Maven log level is "info", no "debug" messages for Sencha Cmd are logged.
+   * If no log level is given, the Maven log level will be used.
+   */
+  @Parameter(property = "senchaLogLevel")
+  private String senchaLogLevel;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
@@ -31,7 +40,7 @@ public class SenchaAppWatchMojo extends AbstractMojo {
 
     String arguments = "app watch";
     getLog().info("Starting \"sencha app watch\"");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(appTargetDir, arguments, getLog());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(appTargetDir, arguments, getLog(), senchaLogLevel);
     senchaCmdExecutor.execute();
   }
 }

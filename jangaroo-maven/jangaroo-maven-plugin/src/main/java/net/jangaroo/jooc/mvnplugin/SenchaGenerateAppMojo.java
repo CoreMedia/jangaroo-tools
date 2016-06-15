@@ -57,7 +57,7 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
             + " --path=\"\""
             + " " + senchaAppName;
     getLog().info("Generating Sencha app module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
 
     // remove example resources from application's classpath directory

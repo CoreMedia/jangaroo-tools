@@ -3,18 +3,27 @@ package net.jangaroo.jooc.mvnplugin.util;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.mvnplugin.Type;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
+import org.eclipse.aether.repository.LocalRepository;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -157,6 +166,34 @@ public class MavenPluginHelper {
       classPath.add(0, jooApiDir);
     }
     return classPath;
+  }
+
+  public static void extractFileTemplate(File targetDirectory,
+                                         File templateFile,
+                                         ArchiverManager archiverManager) throws MojoExecutionException {
+    UnArchiver unArchiver;
+    try {
+      unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
+    } catch (NoSuchArchiverException e) {
+      throw new MojoExecutionException("No ZIP UnArchiver?!", e);
+    }
+    unArchiver.setSourceFile(templateFile);
+    unArchiver.setDestDirectory(targetDirectory);
+    unArchiver.extract();
+  }
+
+  public static File getArtifactFile(ArtifactRepository localRepository,
+                                     List<ArtifactRepository> remoteRepositories,
+                                     ArtifactResolver artifactResolver,
+                                     Artifact artifact) throws MojoExecutionException {
+
+    ArtifactResolutionRequest artifactResolutionRequest = new ArtifactResolutionRequest();
+    artifactResolutionRequest.setArtifact(artifact);
+    artifactResolutionRequest.setLocalRepository(localRepository);
+    artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
+    ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
+
+    return result.getArtifacts().iterator().next().getFile();
   }
 
 }

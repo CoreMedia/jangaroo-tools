@@ -249,7 +249,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     getLog().info(String.format("Execute sencha cmd for %s with arguments %s", buildEnvironment, args.toString()));
 
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
 

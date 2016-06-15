@@ -102,7 +102,7 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
 
 
       getLog().info("Generating Sencha workspace module");
-      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog());
+      SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog(), getSenchaLogLevel());
       senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated

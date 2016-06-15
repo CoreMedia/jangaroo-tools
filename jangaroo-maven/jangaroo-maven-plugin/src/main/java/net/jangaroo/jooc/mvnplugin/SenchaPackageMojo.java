@@ -160,7 +160,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
             + " --type=\"code\""
             + " " + pathToWorkingDirectory;
     getLog().info("Generating Sencha package module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
 
     // sencha.cfg should be recreated
@@ -243,7 +243,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {
     getLog().info("Building Sencha package module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaPackageDirectory, "package build", getLog());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaPackageDirectory, "package build", getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
 

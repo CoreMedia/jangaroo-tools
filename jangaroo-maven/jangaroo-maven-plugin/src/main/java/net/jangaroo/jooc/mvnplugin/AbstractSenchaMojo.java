@@ -21,6 +21,15 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(defaultValue = "net.jangaroo.com.sencha:ext-js")
   private String extFrameworkArtifact;
 
+  /**
+   * The log level to use for Sencha Cmd.
+   * The log level for Maven is kind of the base line which determines which log entries are actually shown in the output.
+   * When you Maven log level is "info", no "debug" messages for Sencha Cmd are logged.
+   * If no log level is given, the Maven log level will be used.
+   */
+  @Parameter(property = "senchaLogLevel")
+  private String senchaLogLevel;
+
   // ***********************************************************************
   // ************************* GETTERS *************************************
   // ***********************************************************************
@@ -58,4 +67,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     this.packagesDir = packagesDir;
   }
 
+  public String getSenchaLogLevel() {
+    return senchaLogLevel;
+  }
 }

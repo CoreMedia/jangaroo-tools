@@ -3,15 +3,15 @@ package net.jangaroo.jooc.mvnplugin.test;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
+import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
@@ -24,9 +24,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -273,6 +271,15 @@ public class JooTestMojo extends AbstractMojo {
   @Parameter(property = "phantomjs.bin", defaultValue = "phantomjs")
   private String phantomBin;
 
+  /**
+   * The log level to use for Sencha Cmd.
+   * The log level for Maven is kind of the base line which determines which log entries are actually shown in the output.
+   * When you Maven log level is "info", no "debug" messages for Sencha Cmd are logged.
+   * If no log level is given, the Maven log level will be used.
+   */
+  @Parameter(property = "senchaLogLevel")
+  private String senchaLogLevel;
+
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean doSkip = skip || skipTests || skipJooUnitTests;
     if (doSkip || !isTestAvailable()) {
@@ -282,7 +289,7 @@ public class JooTestMojo extends AbstractMojo {
       createWebApp(testOutputDirectory);
 
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
-      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog()).execute();
+      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), senchaLogLevel).execute();
 
       Server server = jettyRunTest(!interactiveJooUnitTests);
       String url = getTestUrl(server);
@@ -329,13 +336,7 @@ public class JooTestMojo extends AbstractMojo {
       } else {
         signalError();
       }
-    } catch (CommandLineException e) {
-      throw wrap(e);
-    } catch (IOException e) {
-      throw wrap(e);
-    } catch (ParserConfigurationException e) {
-      throw wrap(e);
-    } catch (SAXException e) {
+    } catch (CommandLineException | IOException | ParserConfigurationException | SAXException e) {
       throw wrap(e);
     }
   }
@@ -349,23 +350,11 @@ public class JooTestMojo extends AbstractMojo {
     if (webappDirectory.mkdirs()) {
       getLog().debug("created app directory " + webappDirectory);
     }
-    UnArchiver unArchiver;
-    try {
-      unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
-    } catch (NoSuchArchiverException e) {
-      throw new MojoExecutionException("No ZIP UnArchiver?!", e);
-    }
-    ArtifactResolutionRequest artifactResolutionRequest = new ArtifactResolutionRequest();
-    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
-    artifactResolutionRequest.setArtifact(repositorySystem.createArtifact("net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar"));
-    artifactResolutionRequest.setLocalRepository(localRepository);
-    artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
-    ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
-    File appTemplateArtifactFile = result.getArtifacts().iterator().next().getFile();
 
-    unArchiver.setSourceFile(appTemplateArtifactFile);
-    unArchiver.setDestDirectory(webappDirectory);
-    unArchiver.extract();
+    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
+    Artifact templateArtifact = repositorySystem.createArtifact("net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar");
+    File appTemplateArtifactFile = MavenPluginHelper.getArtifactFile(localRepository, remoteRepositories, artifactResolver, templateArtifact);
+    MavenPluginHelper.extractFileTemplate(webappDirectory, appTemplateArtifactFile, archiverManager);
 
     createApp();
   }
