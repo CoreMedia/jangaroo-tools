@@ -82,13 +82,13 @@ public class SenchaCmdExecutor {
   }
 
   private  String getMavenLogLevel() {
-    String result = "debug";
-    if (log.isErrorEnabled()) {
-      result = "error";
-    } else if (log.isWarnEnabled()) {
-      result = "warn";
+    String result = "error";
+    if (log.isDebugEnabled()) {
+      result = "debug";
     } else if (log.isInfoEnabled()) {
       result = "info";
+    } else if (log.isWarnEnabled()) {
+      result = "warn";
     }
     return result;
   }
