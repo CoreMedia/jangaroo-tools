@@ -20,15 +20,13 @@ import net.jangaroo.jooc.ast.VariableDeclaration;
 import java.io.IOException;
 
 class StaticDependencyVisitor extends TransitiveAstVisitor {
-  private final Object classBody;
   private final CompilationUnit compilationUnit;
-  final Multimap<FunctionDeclaration, FunctionDeclaration> internalUses = HashMultimap.create();
-  final Multimap<FunctionDeclaration, Dependency> nonFunctionUses = HashMultimap.create();
-  final FunctionDeclaration[] currentDeclaration = {null};
+  private final Multimap<FunctionDeclaration, FunctionDeclaration> internalUses = HashMultimap.create();
+  private final Multimap<FunctionDeclaration, Dependency> nonFunctionUses = HashMultimap.create();
+  private FunctionDeclaration currentDeclaration = null;
 
-  public StaticDependencyVisitor(Object classBody, CompilationUnit compilationUnit) {
+  public StaticDependencyVisitor(CompilationUnit compilationUnit) {
     super(new AstVisitorBase());
-    this.classBody = classBody;
     this.compilationUnit = compilationUnit;
   }
 
@@ -45,15 +43,9 @@ class StaticDependencyVisitor extends TransitiveAstVisitor {
     // Ignore instance methods.
     if (functionDeclaration.isStatic()) {
       // For static methods, register all nested ides as dependencies of the method.
-      boolean isTopLevel = currentDeclaration[0] == null &&
-              classBody.equals(functionDeclaration.getParentNode());
-      if (isTopLevel) {
-        currentDeclaration[0] = functionDeclaration;
-      }
+      currentDeclaration = functionDeclaration;
       super.visitFunctionDeclaration(functionDeclaration);
-      if (isTopLevel) {
-        currentDeclaration[0] = null;
-      }
+      currentDeclaration = null;
     }
   }
 
@@ -81,11 +73,10 @@ class StaticDependencyVisitor extends TransitiveAstVisitor {
     }
   }
 
-  private void ownFunctionReferenced(FunctionDeclaration ideDeclaration) {
-    FunctionDeclaration functionDeclaration = ideDeclaration;
+  private void ownFunctionReferenced(FunctionDeclaration functionDeclaration) {
     if (functionDeclaration.isMethod() && functionDeclaration.isStatic()) {
       // A local constructor call or a local static call.
-      internalUses.put(currentDeclaration[0], functionDeclaration);
+      internalUses.put(currentDeclaration, functionDeclaration);
     }
   }
 
@@ -96,13 +87,13 @@ class StaticDependencyVisitor extends TransitiveAstVisitor {
     // Ignore ordinary method calls: The called class must have been initialized,
     // because an instance has already been created.
     if (ideDeclaration.isStatic() || ideDeclaration instanceof ClassDeclaration) {
-      nonFunctionUses.put(currentDeclaration[0],
+      nonFunctionUses.put(currentDeclaration,
               new Dependency(ideDeclaration.getCompilationUnit(), DependencyLevel.STATIC));
     }
   }
 
   private void constructorReferenced(IdeDeclaration ideDeclaration) {
-    nonFunctionUses.put(currentDeclaration[0], new Dependency(ideDeclaration.getCompilationUnit(), DependencyLevel.DYNAMIC));
+    nonFunctionUses.put(currentDeclaration, new Dependency(ideDeclaration.getCompilationUnit(), DependencyLevel.DYNAMIC));
   }
 
   @Override
