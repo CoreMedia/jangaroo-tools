@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -111,7 +112,8 @@ public class MxmlUtils {
             return Long.parseLong(attributeValue);
           case ARRAY:
             Object singleItem = getAttributeValue(attributeValue, AS3Type.ANY.name);
-            return MxmlUtils.createBindingExpression(String.format("[%s]", valueToString(singleItem)));
+            String code = StringUtils.isBlank(attributeValue) ? "[]" : String.format("[%s]", valueToString(singleItem));
+            return  MxmlUtils.createBindingExpression(code);
         }
       }
     }
