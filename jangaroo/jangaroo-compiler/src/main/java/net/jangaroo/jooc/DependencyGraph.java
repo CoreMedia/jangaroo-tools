@@ -2,10 +2,8 @@ package net.jangaroo.jooc;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.util.GraphUtil;
 
 import java.io.File;
@@ -95,14 +93,9 @@ public class DependencyGraph {
     dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.STATIC), new Dependency(compilationUnit, DependencyLevel.INIT));
 
     // Analyze dependencies in detail.
-    final IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    final Object classBody = primaryDeclaration instanceof ClassDeclaration ?
-            ((ClassDeclaration) primaryDeclaration).getBody() :
-            "noBody";
-
     // key null: references from static code
     // other keys: references from static methods
-    StaticDependencyVisitor visitor = new StaticDependencyVisitor(classBody, compilationUnit);
+    StaticDependencyVisitor visitor = new StaticDependencyVisitor(compilationUnit);
     compilationUnit.visit(visitor);
 
     // Compute dependencies of the INIT level.
