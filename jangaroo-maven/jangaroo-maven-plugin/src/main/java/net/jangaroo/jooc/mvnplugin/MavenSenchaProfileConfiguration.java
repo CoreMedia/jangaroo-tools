@@ -40,26 +40,6 @@ public class MavenSenchaProfileConfiguration implements SenchaProfileConfigurati
   @Parameter
   private List<String> requiredClasses;
 
-  public void setAdditionalCssIncludeInBundle(List<String> additionalCssIncludeInBundle) {
-    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
-  }
-
-  public void setAdditionalCssNonBundle(List<String> additionalCssNonBundle) {
-    this.additionalCssNonBundle = additionalCssNonBundle;
-  }
-
-  public void setAdditionalJsIncludeInBundle(List<String> additionalJsIncludeInBundle) {
-    this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
-  }
-
-  public void setAdditionalJsNonBundle(List<String> additionalJsNonBundle) {
-    this.additionalJsNonBundle = additionalJsNonBundle;
-  }
-
-  public void setRequiredClasses(List<String> requiredClasses) {
-    this.requiredClasses = requiredClasses;
-  }
-
   @Nonnull
   @Override
   public List<String> getAdditionalCssNonBundle() {

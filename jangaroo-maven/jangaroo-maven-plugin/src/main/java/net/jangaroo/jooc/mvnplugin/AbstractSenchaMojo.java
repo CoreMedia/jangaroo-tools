@@ -1,7 +1,13 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
@@ -69,5 +75,30 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   public String getSenchaLogLevel() {
     return senchaLogLevel;
+  }
+
+  protected static void configureDefaults(SenchaConfigBuilder configBuilder, String defaultsFileName) throws MojoExecutionException {
+    try {
+      configBuilder.defaults(defaultsFileName);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Cannot load " + defaultsFileName, e);
+    }
+  }
+
+  protected void writeFile(@Nonnull SenchaConfigBuilder configBuilder,
+                           @Nonnull String destinationFileName,
+                           @Nullable String comment)
+          throws MojoExecutionException {
+
+    configBuilder.destFile(destinationFileName);
+    if (comment != null ) {
+      configBuilder.destFileComment(comment);
+    }
+
+    try {
+      configBuilder.buildFile();
+    } catch (IOException io) {
+      throw new MojoExecutionException(String.format("Writing %s failed", destinationFileName), io);
+    }
   }
 }

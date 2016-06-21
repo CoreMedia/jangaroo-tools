@@ -38,7 +38,7 @@ public class SenchaCmdExecutor {
 
     try {
       CommandLine cmdLine = getCommandLine(line);
-      log.debug(String.format("Executing Sencha Cmd '%s'", line));
+      log.info(String.format("Executing Sencha Cmd '%s'", line));
       internalExecute(cmdLine);
       log.debug("Executed Sencha Cmd successfully");
     } catch (IOException e) {

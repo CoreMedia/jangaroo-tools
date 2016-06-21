@@ -70,7 +70,8 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   @Parameter(defaultValue = "${senchaAppBuild}")
   private String senchaAppBuild;
 
-  private String senchaAppPath;
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
+  private File senchaAppDirectory;
 
   /**
    * Plexus archiver.
@@ -104,12 +105,9 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       throw new MojoExecutionException("'senchaAppBuild' must be one of 'production' or 'development'.");
     }
 
-    senchaAppPath = project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY;
-
     prepareModule();
     File appProductionBuildDir = packageModule();
     createJarFromProductionBuild(appProductionBuildDir);
-
   }
 
   private void createJarFromProductionBuild(File appProductionBuildDir) throws MojoExecutionException {
@@ -140,42 +138,34 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
 
   public void prepareModule() throws MojoExecutionException {
-    File senchaDirectory = new File(senchaAppPath);
-
-    if (!senchaDirectory.exists()) {
-      getLog().info("Generating Sencha into: " + senchaDirectory.getPath());
-      getLog().debug("Created " + senchaDirectory.mkdirs());
-    }
-
-    FileHelper.copyFiles(getSenchaSrcDir(), senchaDirectory);
+    // necessary?
+    FileHelper.ensureDirectory(senchaAppDirectory);
+    getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), senchaAppDirectory.getPath()));
+    FileHelper.copyFiles(getSenchaSrcDir(), senchaAppDirectory);
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
+    configure(senchaConfigBuilder);
 
-    try {
-      configure(senchaConfigBuilder, senchaAppPath);
-      senchaConfigBuilder.buildFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not build app file", e);
-    }
+    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath() + File.separator + APP_JSON_FILENAME, null);
 
-    writeAppJs(senchaDirectory);
+    writeAppJs(senchaAppDirectory);
 
-    File buildPropertiesFile = new File(senchaDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
+    File buildPropertiesFile = new File(senchaAppDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
     FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
             "build.dir", "${app.dir}/build/${build.environment}",
             "build.temp.dir", "${app.dir}/build/temp/${build.environment}"
     ));
   }
 
-  protected void configure(SenchaAppConfigBuilder configBuilder, String workingDirectory)
-          throws IOException, MojoExecutionException {
+  protected void configure(SenchaAppConfigBuilder configBuilder)
+          throws  MojoExecutionException {
 
-    configBuilder.destFile(workingDirectory + APP_JSON_FILENAME);
-    configBuilder.defaults("default.app.json");
+    configureDefaults(configBuilder, "default.app.json");
+
+    super.configure(configBuilder);
+
     configBuilder.id(generateSenchaAppId());
     configureLocales(configBuilder);
-
-    configure(configBuilder);
   }
 
   public void configureLocales(SenchaAppConfigBuilder configBuilder) {
@@ -190,8 +180,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   @Nonnull
   public File packageModule() throws MojoExecutionException {
-    File senchaAppDirectory = new File(senchaAppPath);
-
     if (!senchaAppDirectory.exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
@@ -204,7 +192,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       throw new MojoExecutionException("Could not find Sencha workspace directory ");
     }
 
-    File appOutputDirectory = new File(senchaAppPath + BUILD_PATH + senchaAppBuild);
+    File appOutputDirectory = new File(senchaAppDirectory.getPath() + BUILD_PATH + senchaAppBuild);
     if (!appOutputDirectory.isDirectory() && !appOutputDirectory.exists()) {
       throw new MojoExecutionException("Could not find build directory for Sencha app " + appOutputDirectory);
     }
@@ -246,8 +234,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
               .append(" --").append(buildEnvironment)
               .append(" --locale ").append(locale);
     }
-
-    getLog().info(String.format("Execute sencha cmd for %s with arguments %s", buildEnvironment, args.toString()));
 
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();

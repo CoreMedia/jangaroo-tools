@@ -93,6 +93,7 @@ public class PackageMojo extends AbstractMojo {
   @Override
   public void execute()
       throws MojoExecutionException {
+    getLog().info("Create the jangaroo archive and attach it to the project");
     File jarFile = new File(targetDir, finalName + ".jar");
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
@@ -110,9 +111,7 @@ public class PackageMojo extends AbstractMojo {
         mavenArchiver.getArchiver().addDirectory(outputDirectory);
       }
 
-      String groupId = project.getGroupId();
-      String artifactId = project.getArtifactId();
-      archiver.addFile(project.getFile(), "META-INF/maven/" + groupId + "/" + artifactId
+      archiver.addFile(project.getFile(), "META-INF/maven/" + project.getGroupId() + "/" + project.getArtifactId()
               + "/pom.xml");
 
       mavenArchiver.createArchive(mavenSession, project, archive);

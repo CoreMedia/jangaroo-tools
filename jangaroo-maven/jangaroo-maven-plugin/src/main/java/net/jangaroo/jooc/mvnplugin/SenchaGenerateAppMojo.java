@@ -28,6 +28,9 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
+  private File workingDirectory;
+
   public String getType() {
     return Type.APP;
   }
@@ -41,7 +44,7 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
   }
 
   public void createModule() throws MojoExecutionException {
-    File workingDirectory = new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    // necessary?
     FileHelper.ensureDirectory(workingDirectory);
 
     File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);

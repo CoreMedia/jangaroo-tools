@@ -8,6 +8,7 @@ import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaWorkspaceConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.PomManipulator;
 import org.apache.commons.io.FilenameUtils;
@@ -55,6 +56,9 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
+  @Parameter(defaultValue = "${project.build.directory}", readonly = true)
+  private File workingDirectory;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -88,7 +92,7 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
     /*
      * CREATE SENCHA MODULE
      */
-    File workingDirectory = getWorkingDirectory();
+    FileHelper.ensureDirectory(workingDirectory);
 
     if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
 
@@ -100,56 +104,37 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
         throw new MojoExecutionException("Could not delete existing sencha.cfg file in " + senchaCfg, ioe);
       }
 
-
       getLog().info("Generating Sencha workspace module");
       SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", getLog(), getSenchaLogLevel());
       senchaCmdExecutor.execute();
 
       // sencha.cfg should be recreated
-      if (Files.exists(senchaCfg)) {
-
-        try {
-          List<String> senchaCfgTmpContent = Files.readAllLines(senchaCfg, Charset.forName("UTF-8"));
-          Files.write(senchaCfg, getSenchaCfgContent(senchaCfgTmpContent), Charset.forName("UTF-8"));
-        } catch (IOException e) {
-          throw new MojoExecutionException("Modifying sencha.cfg file failed", e);
-        }
-
-      } else {
-        throw new MojoExecutionException("Could not find sencha.cfg file in " + senchaCfg);
-      }
+      writeSenchaCfg(senchaCfg);
 
       SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
       String workspaceJsonPath = workingDirectory.getPath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME;
-      try {
-        configBuilder.defaults("default.workspace.json");
-
-        configurePackagesAndApp(configBuilder);
-        configBuilder.destFile(workspaceJsonPath);
-        configBuilder.destFileComment(AUTO_CONTENT_COMMENT);
-        configBuilder.buildFile();
-      } catch (IOException io) {
-        throw new MojoExecutionException(String.format("Writing %s failed", workspaceJsonPath), io);
-      }
-
+      configureDefaults(configBuilder, "default.workspace.json");
+      configurePackagesAndApp(configBuilder);
+      writeFile(configBuilder, workspaceJsonPath, AUTO_CONTENT_COMMENT);
     } else {
       getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
     }
 
   }
 
-  private File getWorkingDirectory() throws MojoExecutionException {
-    File workingDirectory;
-    try {
-      workingDirectory = project.getBasedir().getCanonicalFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not determine project base directory", e);
-    }
+  private void writeSenchaCfg(Path senchaCfg) throws MojoExecutionException {
+    if (Files.exists(senchaCfg)) {
 
-    if (!workingDirectory.exists() && !workingDirectory.mkdirs()) {
-      throw new MojoExecutionException("Could not create working directory");
+      try {
+        List<String> senchaCfgTmpContent = Files.readAllLines(senchaCfg, Charset.forName("UTF-8"));
+        Files.write(senchaCfg, getSenchaCfgContent(senchaCfgTmpContent), Charset.forName("UTF-8"));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Modifying sencha.cfg file failed", e);
+      }
+
+    } else {
+      throw new MojoExecutionException("Could not find sencha.cfg file in " + senchaCfg);
     }
-    return workingDirectory;
   }
 
   private List<String> getSenchaCfgContent(@Nonnull List<String> currentContent) {
@@ -182,18 +167,13 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
       for (MavenProject projectInReactor : projectsInReactor) {
         String packageType = projectInReactor.getPackaging();
         if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
-
           packagePaths.add(SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + getRelativePathForSubProject(projectInReactor));
 
         } else if (Type.JANGAROO_APP_PACKAGING.equals(packageType)) {
-
           appPaths.add(getRelativePathForSubProject(projectInReactor));
-
         }
       }
-
     }
-
 
     // sort resulting paths deterministically so that it remains the same no matter what OS you are using
     Collections.sort(packagePaths);
@@ -265,6 +245,7 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
    * @throws MojoExecutionException
    */
   public void updateRemotePackages(MavenProject remoteAggregatorProject) throws MojoExecutionException {
+    getLog().debug(String.format("Update remotes packages for project %s", project));
     long startTime = System.nanoTime();
 
     // we need to use projects in this set, because the class dependency does not have an equals method

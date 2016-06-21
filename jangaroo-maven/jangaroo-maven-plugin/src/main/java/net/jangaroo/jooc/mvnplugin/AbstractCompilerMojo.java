@@ -10,16 +10,16 @@ import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -153,6 +153,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     return generatedSourcesDirectory;
   }
 
+  @Nullable
   protected abstract File getApiOutputDirectory();
 
   protected File getCatalogOutputDirectory() {
@@ -167,14 +168,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-
     final Log log = getLog();
+
     if (getCompileSourceRoots().isEmpty()) {
       log.info("No sources to compile");
-
       return;
     }
-
 
     // ----------------------------------------------------------------------
     // Create the compiler configuration
@@ -318,20 +317,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   private int compile(Jooc jooc) throws MojoExecutionException {
     File outputDirectory = jooc.getConfig().getOutputDirectory();
-
-    // create output directory if it does not exist
-    if (!outputDirectory.exists()) {
-      if (!outputDirectory.mkdirs()) {
-        throw new MojoExecutionException("Failed to create output directory " + outputDirectory.getAbsolutePath());
-      }
-    }
+    FileHelper.ensureDirectory(outputDirectory);
 
     // create api output directory if it does not exist
     File apiOutputDirectory = getApiOutputDirectory();
-    if (apiOutputDirectory != null && !apiOutputDirectory.exists()) {
-      if (!apiOutputDirectory.mkdirs()) {
-        throw new MojoExecutionException("Failed to create api output directory " + apiOutputDirectory.getAbsolutePath());
-      }
+    if (apiOutputDirectory != null) {
+      FileHelper.ensureDirectory(apiOutputDirectory);
     }
 
     final List<File> sources = jooc.getConfig().getSourceFiles();
