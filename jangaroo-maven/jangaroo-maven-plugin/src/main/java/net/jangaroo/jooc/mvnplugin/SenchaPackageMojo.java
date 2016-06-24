@@ -220,7 +220,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     buildSenchaPackage(senchaPackageDirectory);
 
-    File pkg = new File(senchaPackageBuildOutputDir.getPath() + getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
+    File pkg = new File(senchaPackageBuildOutputDir.getPath() +  File.separator + getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
     if (!pkg.exists()) {
       throw new MojoExecutionException("Could not find " + SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project));
     }
