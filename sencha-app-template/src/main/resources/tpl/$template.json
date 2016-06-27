@@ -1,0 +1,22 @@
+{
+    "title": "Basic Application Template",
+    "creator": "Sencha",
+    "version": "1.0",
+    "templateType": "app",
+    "params": [{
+        "type": "string",
+        "name": "appName",
+        "group": "General",
+        "label": "App Name",
+        "defaultValue": "sencha-app-template",
+        "tip": "The name of the application to generate",
+        "doc": "The application name must be a valid JavaScript ...",
+        "validators": [{
+            "type": "presence"
+        }]
+    }]/*,
+    "conditional": {
+        "$meta": "test($values)",
+        "view/users": "appName"
+    }*/
+}

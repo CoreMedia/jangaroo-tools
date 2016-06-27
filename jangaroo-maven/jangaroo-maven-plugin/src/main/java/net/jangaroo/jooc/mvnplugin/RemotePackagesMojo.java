@@ -6,7 +6,10 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -15,6 +18,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
@@ -22,6 +26,7 @@ import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
@@ -40,8 +45,26 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
+  @Parameter(defaultValue = "${localRepository}", required = true)
+  private ArtifactRepository localRepository;
+
+  @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
+  private List<ArtifactRepository> remoteRepositories;
+
   @Inject
   private ArchiverManager archiverManager;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  protected RepositorySystem repositorySystem;
+
+  /**
+   * Used to look up Artifacts in the remote repository.
+   */
+  @Inject
+  private ArtifactResolver artifactResolver;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -56,6 +79,12 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
 
       }
     }
+
+    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
+    Artifact artifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
+            repositorySystem, "net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar");
+
+    unpackArtifact(remotePackagesTargetDir, artifactFromHelper);
   }
 
   private void unpackArtifact(String remotePackagesTargetDir, Artifact artifact) throws MojoExecutionException {

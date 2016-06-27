@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.test;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
-import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
@@ -352,7 +351,7 @@ public class JooTestMojo extends AbstractMojo {
     }
 
     String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
-    Artifact templateArtifact = repositorySystem.createArtifact("net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar");
+    Artifact templateArtifact = repositorySystem.createArtifact("net.jangaroo", "sencha-test-app-template", myVersion, "runtime", "jar");
     File appTemplateArtifactFile = MavenPluginHelper.getArtifactFile(localRepository, remoteRepositories, artifactResolver, templateArtifact);
     MavenPluginHelper.extractFileTemplate(webappDirectory, appTemplateArtifactFile, archiverManager);
 
@@ -532,7 +531,7 @@ public class JooTestMojo extends AbstractMojo {
       getLog().debug("Opening " + testsHtmlUrl);
       selenium.open(testsHtmlUrl);
       getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
-      selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", "" + jooUnitTestExecutionTimeout);
+      selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", Integer.toString(jooUnitTestExecutionTimeout));
       String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
       if (classLoadingError != null && !classLoadingError.equals("null")) {
         throw new MojoExecutionException(classLoadingError);
@@ -585,7 +584,7 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
-  private void signalError() throws MojoExecutionException {
+  private static void signalError() throws MojoExecutionException {
     throw new MojoExecutionException("There are errors");
   }
 
@@ -607,7 +606,7 @@ public class JooTestMojo extends AbstractMojo {
     this.testSourceDirectory = f;
   }
 
-  public void setTestResources(ArrayList<org.apache.maven.model.Resource> resources) {
+  public void setTestResources(List<org.apache.maven.model.Resource> resources) {
     this.testResources = resources;
   }
 

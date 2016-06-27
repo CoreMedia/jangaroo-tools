@@ -1,3 +1,4 @@
+/* from tpl */
 var joo = joo || {};
 joo.localization = joo.localization || {};
 

@@ -22,7 +22,7 @@
   </properties>
 
   <build>
-    <resources>
+<!--    <resources>
       <resource>
         <directory>target/template</directory>
         <includes>
@@ -83,6 +83,6 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>
+    </plugins>-->
   </build>  
 </project>

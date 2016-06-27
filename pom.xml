@@ -11,6 +11,7 @@
     <module>jangaroo</module>
     <module>exml</module>
     <module>sencha-app-template</module>
+    <module>sencha-test-app-template</module>
     <module>jangaroo-maven</module>
     <module>jangaroo-distribution</module>
   </modules>

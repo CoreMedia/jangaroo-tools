@@ -5,6 +5,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -23,13 +24,20 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 @Mojo(name = "generate-app", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
 
-  private static final String SENCHA_APP_CLASS_PATH = "/app";
-
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
   private File workingDirectory;
+
+  /**
+   * The full qualified name of the application class of the Sencha app, e.g.:
+   * <pre>
+   * &lt;applicationClass>net.jangaroo.acme.MainApplication&lt;/applicationClass>
+   * </pre>
+   */
+  @Parameter
+  private String applicationClass;
 
   public String getType() {
     return Type.APP;
@@ -39,6 +47,10 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
+    }
+    // parameter can not just be required="true" as this would also apply for the other packaging types and mojos
+    if (StringUtils.isBlank(applicationClass)) {
+      throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
     createModule();
   }
@@ -57,19 +69,15 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     String arguments = "generate app"
             + " -ext"
             + " -" + getToolkit()
+            + " --template " + SenchaUtils.getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/tpl"
             + " --path=\"\""
+            + " --refresh=false"
+            + " -DappName=" + senchaAppName
+            + " -DapplicationClass=" + applicationClass
             + " " + senchaAppName;
     getLog().info("Generating Sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
-
-    // remove example resources from application's classpath directory
-    File appDir = new File(workingDirectory.getAbsolutePath() + SENCHA_APP_CLASS_PATH);
-    try {
-      FileUtils.cleanDirectory(appDir);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not delete example app directory: " + appDir, e);
-    }
 
     // sencha.cfg should have been recreated.
     if (!senchaCfg.exists()) {

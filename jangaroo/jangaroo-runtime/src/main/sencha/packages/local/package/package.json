@@ -16,11 +16,7 @@
     "path" : "resources/joo/jangaroo-runtime.module.js",
     "bundle": false,
     "includeInBundle" : true
-  }, {
-    "path" : "resources/joo/before-ext-load.js",
-    "bundle": false,
-    "includeInBundle" : true
-  } ],
+  }],
   "sass" : {
     "var" : "${package.dir}/sass/var",
     "etc" : "${package.dir}/sass/etc/imports.scss",

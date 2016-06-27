@@ -1,12 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import com.google.common.collect.ImmutableMap;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
-import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -22,10 +20,6 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -42,20 +36,10 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   private static final String APP_JSON_FILENAME = "/app.json";
   private static final String BUILD_PATH = "/build/";
-  private static final String APP_BUILD_PROPERTIES_FILE = "/.sencha/app/build.properties";
 
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession mavenSession;
-
-  /**
-   * The full qualified name of the application class of the Sencha app, e.g.:
-   * <pre>
-   * &lt;applicationClass>net.jangaroo.acme.MainApllication&lt;/applicationClass>
-   * </pre>
-   */
-  @Parameter
-  private String applicationClass;
 
   /**
    * Supported locales in addition to the default locale "{@value DEFAULT_LOCALE}"
@@ -94,10 +78,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
     }
-    // parameter can not just be required="true" as this would also apply for the other packaging types and mojos
-    if (StringUtils.isBlank(applicationClass)) {
-      throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
-    }
+
     if (StringUtils.isEmpty(senchaAppBuild)) {
       senchaAppBuild = SenchaUtils.PRODUCTION_PROFILE;
     }
@@ -147,14 +128,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     configure(senchaConfigBuilder);
 
     writeFile(senchaConfigBuilder, senchaAppDirectory.getPath() + File.separator + APP_JSON_FILENAME, null);
-
-    writeAppJs(senchaAppDirectory);
-
-    File buildPropertiesFile = new File(senchaAppDirectory.getAbsolutePath() + APP_BUILD_PROPERTIES_FILE);
-    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
-            "build.dir", "${app.dir}/build/${build.environment}",
-            "build.temp.dir", "${app.dir}/build/temp/${build.environment}"
-    ));
   }
 
   protected void configure(SenchaAppConfigBuilder configBuilder)
@@ -200,21 +173,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     return appOutputDirectory;
   }
 
-
-  private void writeAppJs(File workingDirectory) throws MojoExecutionException {
-    Path appJs = Paths.get(workingDirectory.getAbsolutePath() + "/resources/app.js");
-    if (Files.exists(appJs)) {
-      getLog().info(String.format("Using existing %s to define the main application class.", appJs));
-    } else {
-      getLog().info(String.format("Generating %s with main application class %s.", appJs, applicationClass));
-      try {
-        String defineAppJsStatement = String.format("Ext.application(%s);", CompilerUtils.quote(applicationClass));
-        Files.write(appJs, defineAppJsStatement.getBytes());
-      } catch (IOException e) {
-        throw new MojoExecutionException("An error occurred during creation of " + appJs, e);
-      }
-    }
-  }
 
   private String generateSenchaAppId() {
     String appIdString = SenchaUtils.getSenchaPackageName(project) +

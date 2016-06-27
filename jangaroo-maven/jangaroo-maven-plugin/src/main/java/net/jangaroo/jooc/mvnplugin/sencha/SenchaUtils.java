@@ -67,6 +67,9 @@ public class SenchaUtils {
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
+  public static final String SENCHA_APP_TEMPLATE_ARTIFACT_ID = "sencha-app-template";
+  public static final String SENCHA_APP_TEMPLATE_GROUP_ID = "net.jangaroo";
+
   private static final Pattern SENCHA_VERSION_PATTERN = Pattern.compile("^[0-9]+(\\.[0-9]+){0,3}$");
 
   public static final Map<String, String> PLACEHOLDERS = ImmutableMap.of( // TODO data structure and location??

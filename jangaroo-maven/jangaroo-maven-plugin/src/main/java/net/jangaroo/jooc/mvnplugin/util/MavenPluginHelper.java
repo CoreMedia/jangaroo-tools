@@ -23,7 +23,6 @@ import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
-import org.eclipse.aether.repository.LocalRepository;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -187,13 +186,35 @@ public class MavenPluginHelper {
                                      ArtifactResolver artifactResolver,
                                      Artifact artifact) throws MojoExecutionException {
 
+    return getRealArtifact(localRepository, remoteRepositories, artifactResolver, artifact).getFile();
+  }
+
+  public static Artifact getArtifact(ArtifactRepository localRepository,
+                                     List<ArtifactRepository> remoteRepositories,
+                                     ArtifactResolver artifactResolver,
+                                     RepositorySystem repositorySystem,
+                                     String groupId,
+                                     String artifactId,
+                                     String version,
+                                     String scope,
+                                     String type) throws MojoExecutionException {
+
+    Artifact templateArtifact = repositorySystem.createArtifact(groupId, artifactId, version, scope, type);
+
+    return getRealArtifact(localRepository, remoteRepositories, artifactResolver, templateArtifact);
+  }
+
+  private static Artifact getRealArtifact(ArtifactRepository localRepository,
+                                          List<ArtifactRepository> remoteRepositories,
+                                          ArtifactResolver artifactResolver,
+                                          Artifact artifact) {
     ArtifactResolutionRequest artifactResolutionRequest = new ArtifactResolutionRequest();
     artifactResolutionRequest.setArtifact(artifact);
     artifactResolutionRequest.setLocalRepository(localRepository);
     artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
     ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
 
-    return result.getArtifacts().iterator().next().getFile();
+    return result.getArtifacts().iterator().next();
   }
 
 }
