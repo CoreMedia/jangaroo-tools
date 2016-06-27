@@ -114,6 +114,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testCustomConfig() throws IOException, URISyntaxException {
+    assertCompilationResult("package1/ConfigClass");
+  }
+
+  @Test
   public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");

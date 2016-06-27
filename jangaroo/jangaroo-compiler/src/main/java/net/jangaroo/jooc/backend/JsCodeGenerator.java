@@ -1570,7 +1570,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void registerField(VariableDeclaration variableDeclaration) {
     String variableName = variableDeclaration.getName();
 
-    boolean isBindable = Metadata.find(currentMetadata, "Bindable") != null;
+    boolean isBindable = Metadata.find(currentMetadata, Jooc.BINDABLE_ANNOTATION_NAME) != null;
     String value = null;
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
@@ -1711,14 +1711,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);
     } else {
+      JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
+      String functionName = convertIdentifier(functionSymbol.getText());
       if (!isPrimaryDeclaration && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(functionDeclaration).storeCurrentMetadata(
-                functionDeclaration.getIde().getName(),
+                functionName,
                 currentMetadata
         );
       }
       out.beginComment();
       writeModifiers(out, functionDeclaration);
+      Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
       if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
         writeOptSymbol(functionDeclaration.getSymGetOrSet());
@@ -1726,11 +1729,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         generateSignatureJsCode(functionDeclaration.getFun());
         writeOptSymbol(functionDeclaration.getOptSymSemicolon());
         out.endComment();
+        if (functionDeclaration.isGetterOrSetter() && Metadata.find(currentMetadata, Jooc.BINDABLE_ANNOTATION_NAME) != null) {
+          PropertyDefinition previousPropertyDefinition = members.get(functionName);
+          if (previousPropertyDefinition == null || !previousPropertyDefinition.writable) {
+            members.put(functionName, new PropertyDefinition("undefined", functionDeclaration.isSetter(), true));
+          }
+        }
       } else {
         out.endComment();
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
-        JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
-        String functionName = convertIdentifier(functionSymbol.getText());
         String methodName = functionName;
 
         boolean isAccessor = functionDeclaration.isGetterOrSetter();
@@ -1767,7 +1774,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         } else if (functionDeclaration.isStatic()) {
           functionName += "$static";
         }
-        Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
         if (isAccessor) {
           out.writeSymbolWhitespace(functionDeclaration.getIde().getSymbol());
           out.writeSymbolWhitespace(functionDeclaration.getSymGetOrSet());
