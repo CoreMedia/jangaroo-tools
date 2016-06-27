@@ -32,8 +32,6 @@ under the License.
   <url>http://www.jangaroo.net</url>
 
   <build>
-    <sourceDirectory>src/main/joo</sourceDirectory>
-
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>

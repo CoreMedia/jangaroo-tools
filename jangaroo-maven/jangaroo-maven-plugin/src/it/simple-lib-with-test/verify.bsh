@@ -39,18 +39,10 @@ try
     }
 
 
-    File sourceartifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
-    if ( !sourceartifact.exists() )
-    {
-        print( "sourceartifact file is missing or a directory." );
-        return false;
-    }
-
-
     File jsDir = new File ( target, "packages/local/package/src" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        print( "jangaroo-output/src directory is missing or not a directory." );
+        print( "packages/local/package/src directory is missing or not a directory." );
         return false;
     }
 
@@ -68,10 +60,10 @@ try
         return false;
     }
 
-    File testJsDir = new File ( target, "jangaroo-output-test/src" );
+    File testJsDir = new File ( target, "test-classes/src" );
     if ( !testJsDir.exists() || !testJsDir.isDirectory() )
     {
-        print( "jangaroo-output-test/src directory is missing or not a directory." );
+        print( "test-classes/src directory is missing or not a directory." );
         return false;
     }
 
@@ -93,13 +85,6 @@ try
     if ( !jarFile.isFile() )
     {
         print( "JAR file is missing" );
-        return false;
-    }
-
-    File sourcesJarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT-sources.jar" );
-    if ( !sourcesJarFile.isFile() )
-    {
-        print( "Sources JAR file is missing" );
         return false;
     }
 

@@ -36,24 +36,9 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   private File testOutputDirectory;
 
   /**
-   * Location of Jangaroo test resources of this module (including compiler output, usually under "joo/") to be added
-   * to the webapp. This property is used for <code>war</code> packaging type (actually, all packaging types
-   * but <code>jangaroo</code>) as {@link #getOutputDirectory}.
-   * Defaults to ${project.build.directory}/jangaroo-test-output/
-   */
-  @Parameter(defaultValue = "${project.build.directory}/jangaroo-test-output/")
-  private File testPackageSourceDirectory;
-
-  /**
-   * Source directory to scan for files to compile.
-   */
-  @Parameter(defaultValue = "${project.build.sourceDirectory}")
-  private File sourceDirectory;
-
-  /**
    * Source directory to scan for test files to compile.
    */
-  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
+  @Parameter(defaultValue = "${basedir}/src/test/joo")
   private File testSourceDirectory;
 
   /**
@@ -99,7 +84,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected File getOutputDirectory() {
-    return Type.containsJangarooSources(getProject()) ? testOutputDirectory : testPackageSourceDirectory;
+    return testOutputDirectory;
   }
 
   @Override
@@ -115,7 +100,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   @Override
   protected List<File> getActionScriptClassPath() {
     final List<File> classPath = new ArrayList<>(getMavenPluginHelper().getActionScriptClassPath(true));
-    classPath.add(0, sourceDirectory);
+    classPath.add(0, getSourceDirectory());
     classPath.add(0, getGeneratedSourcesDirectory());
     classPath.add(getCatalogOutputDirectory());
     return classPath;

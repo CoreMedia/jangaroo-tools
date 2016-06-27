@@ -31,7 +31,6 @@ under the License.
   <build>
     <resources>
     </resources>
-    <sourceDirectory>src/main/joo</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>
@@ -42,7 +41,6 @@ under the License.
           <namespaces>
             <namespace>
               <uri>library://testNamespace</uri>
-              <manifest>${project.build.sourceDirectory}/manifest.xml</manifest>
             </namespace>
           </namespaces>
           <skipPkg>true</skipPkg>

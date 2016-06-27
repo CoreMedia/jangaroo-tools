@@ -37,10 +37,6 @@ under the License.
   </profiles>
 
   <build>
-    <outputDirectory>target/jangaroo-output</outputDirectory>
-    <sourceDirectory>src/main/joo</sourceDirectory>
-    <testSourceDirectory>src/test/joo</testSourceDirectory>
-    <testOutputDirectory>target/jangaroo-output-test</testOutputDirectory>
     <plugins>
       <plugin>
         <groupId>net.jangaroo</groupId>

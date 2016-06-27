@@ -6,11 +6,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 
 public abstract class AbstractJangarooMojo extends JangarooMojo {
+
   /**
    * Source directory to scan for files to compile.
    */
   @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
-  @Parameter(defaultValue = "${project.build.sourceDirectory}")
+  @Parameter(defaultValue = "${basedir}/src/main/joo")
   private File sourceDirectory;
 
   /**

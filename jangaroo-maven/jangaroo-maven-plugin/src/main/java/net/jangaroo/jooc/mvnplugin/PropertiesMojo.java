@@ -4,7 +4,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.properties.Propc;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -30,7 +29,7 @@ import java.util.List;
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         threadSafe = true)
-public class PropertiesMojo extends AbstractMojo {
+public class PropertiesMojo extends AbstractJangarooMojo {
 
   /**
    * The maven project.
@@ -38,11 +37,6 @@ public class PropertiesMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  /**
-   * Source directory to scan for files to compile.
-   */
-  @Parameter(defaultValue = "${basedir}/src/main/joo")
-  private File resourceDirectory;
 
   /**
    * Fileset for properties. default is:
@@ -78,6 +72,7 @@ public class PropertiesMojo extends AbstractMojo {
       getLog().debug("created " + apiOutputDirectory.mkdirs());
     }
 
+    File resourceDirectory = getSourceDirectory();
     if (properties == null) {
       properties = new FileSet();
       properties.setDirectory(resourceDirectory.getAbsolutePath());

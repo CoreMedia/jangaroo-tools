@@ -27,7 +27,7 @@ public class NamespaceConfiguration {
    * A manifest XML file that contains a component package definition
    * for the given namespace.
    *
-   * @parameter expression="${project.build.sourceDirectory}/manifest.xml"
+   * @parameter expression="${basedir}/src/main/joo/manifest.xml"
    */
   private File manifest;
 
