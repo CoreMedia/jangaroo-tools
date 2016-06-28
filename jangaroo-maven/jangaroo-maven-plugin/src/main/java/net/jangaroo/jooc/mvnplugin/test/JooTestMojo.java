@@ -55,8 +55,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 /**
  * Executes JooUnit tests.
  * Unpacks all dependency to its output directory, generates a tests app which runs the script
- * given by <code>runTestsJs</code>. This usually runs JooUnit's BrowserRunner with a given
- * TestSuite.
+ * 'run-tests.js'. This runs JooUnit's BrowserRunner with the given TestSuite.
  * Then the Test Mojo starts a Jetty on a random port between <code>jooUnitJettyPortLowerBound</code> and
  * <code>jooUnitJettyPortUpperBound</code> and prints out the resulting test app URL.
  * <p>Tests are executed in one of three ways:</p>
@@ -102,12 +101,6 @@ public class JooTestMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   protected File testOutputDirectory;
-
-  /**
-   * The JavaScript file relative to the test resources folder that runs your test suite.
-   */
-  @Parameter(defaultValue = "run-tests.js")
-  protected String runTestsJs;
 
   /**
    * Whether to load the test application in debug mode (#joo.debug).
