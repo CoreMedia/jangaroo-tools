@@ -38,7 +38,7 @@ public class SenchaCmdExecutor {
 
     try {
       CommandLine cmdLine = getCommandLine(line);
-      log.info(String.format("Executing Sencha Cmd '%s'", line));
+      log.info(String.format("Executing Sencha Cmd '%s' in directory '%s'", line, workingDirectory));
       internalExecute(cmdLine);
       log.debug("Executed Sencha Cmd successfully");
     } catch (IOException e) {
