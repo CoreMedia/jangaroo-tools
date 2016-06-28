@@ -1,6 +1,14 @@
 <component-set>
   <components>
 
+    <component>
+      <role>org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalyzer</role>
+      <role-hint>skipJangarooAnalyzer</role-hint>
+      <!-- there is no implementation of SARUnArchiver, but ZipUnArchive will do the job -->
+      <implementation>net.jangaroo.jooc.mvnplugin.analyzer.SkipJangarooAnalyzer</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+
     <!--
        A custom artifact handler for jangaroo modules.
        This requires the plugin to be configured with <extensions> set to true

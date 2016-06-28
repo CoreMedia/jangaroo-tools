@@ -58,6 +58,16 @@
         <version>${maven.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-dependency-analyzer</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-component-annotations</artifactId>
+        <version>1.5.5</version>
+      </dependency>
+      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.4</version>
