@@ -348,7 +348,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
       pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
                 "  var resolvedPath = Ext.resolveResource('<@' + packageName + '>' + resourcePath);%n" +
                 "  if (resolvedPath.indexOf('/') !== 0) {%n" +
-                "    resolvedPath = window.location.pathname + resolvedPath;%n" +
+                "    var pathname = window.location.pathname;%n" +
+                "    resolvedPath = pathname.substring(0, pathname.lastIndexOf('/') + 1) + resolvedPath;%n" +
                 "  }%n" +
                 "  return resolvedPath;%n" +
                 "};%n" +
