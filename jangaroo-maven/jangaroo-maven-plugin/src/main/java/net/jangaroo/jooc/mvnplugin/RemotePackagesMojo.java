@@ -82,9 +82,14 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
 
     String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
     Artifact artifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
-            repositorySystem, "net.jangaroo", "sencha-app-template", myVersion, "runtime", "jar");
+            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "jar");
 
     unpackArtifact(remotePackagesTargetDir, artifactFromHelper);
+
+    Artifact testArtifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
+            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "jar");
+
+    unpackArtifact(remotePackagesTargetDir, testArtifactFromHelper);
   }
 
   private void unpackArtifact(String remotePackagesTargetDir, Artifact artifact) throws MojoExecutionException {

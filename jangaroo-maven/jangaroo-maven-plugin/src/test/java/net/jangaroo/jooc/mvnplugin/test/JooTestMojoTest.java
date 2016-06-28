@@ -1,10 +1,10 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.junit.Assert;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;

@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -12,7 +13,7 @@ import java.io.IOException;
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
 
-  @Parameter(defaultValue = "classic")
+  @Parameter(defaultValue = SenchaUtils.TOOLKIT_CLASSIC)
   private String toolkit;
 
   @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class SenchaUtils {
@@ -53,6 +54,8 @@ public class SenchaUtils {
   public static final String TESTING_PROFILE = "testing";
   public static final String DEVELOPMENT_PROFILE = "development";
 
+  public static final String TOOLKIT_CLASSIC = "classic";
+
 
   private static final String SENCHA_CFG = "sencha.cfg";
   private static final String SENCHA_DIRECTORYNAME = ".sencha";
@@ -67,6 +70,7 @@ public class SenchaUtils {
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
+  public static final String SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID = "sencha-test-app-template";
   public static final String SENCHA_APP_TEMPLATE_ARTIFACT_ID = "sencha-app-template";
   public static final String SENCHA_APP_TEMPLATE_GROUP_ID = "net.jangaroo";
 
@@ -187,6 +191,17 @@ public class SenchaUtils {
             && Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && !Artifact.SCOPE_TEST.equals(dependency.getScope());
+  }
+
+  public static String generateSenchaAppId(MavenProject project) {
+    String appIdString = SenchaUtils.getSenchaPackageName(project) +
+            SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
+    return UUID.nameUUIDFromBytes(appIdString.getBytes()).toString();
+  }
+
+  public static boolean doesSenchaAppExist(File directory) {
+    File senchaCfg = new File(directory, SenchaUtils.SENCHA_APP_CONFIG);
+    return senchaCfg.exists();
   }
 
 }

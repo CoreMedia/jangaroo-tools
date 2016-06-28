@@ -1,0 +1,25 @@
+{
+    "title": "Basic Test Application Template",
+    "creator": "Sencha",
+    "version": "1.0",
+    "templateType": "app",
+    "params": [{
+        "type": "string",
+        "name": "moduleName",
+        "group": "General",
+        "label": "The name of the module, used for naming the test app",
+        "defaultValue": "sencha-test-app",
+        "tip": "The name of the application to generate",
+        "doc": "The application name must be a valid JavaScript ...",
+        "validators": [{
+            "type": "presence"
+        }]
+    },{
+        "type": "string",
+        "name": "testSuite",
+        "group": "General",
+        "label": "Name of the test suite to use for tests",
+        "tip": "The name of the test suite to use for tests",
+        "doc": "The testSuite must be a valid JavaScript ..."
+    }]
+}

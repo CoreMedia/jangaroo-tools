@@ -59,11 +59,12 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     // necessary?
     FileHelper.ensureDirectory(workingDirectory);
 
-    File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);
     // only generate app if senchaCfg does not exist
-    if (senchaCfg.exists()) {
+    if (SenchaUtils.doesSenchaAppExist(workingDirectory)) {
+      getLog().info("Sencha app already exists, skip generating one");
       return;
     }
+    File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);
 
     String senchaAppName = getSenchaPackageName(project);
     String arguments = "generate app"

@@ -1,0 +1,234 @@
+{
+  "name": "{appName}",
+  "version": "1.0.0.0",
+  "indexHtmlPath": "index.html",
+  "classpath": [
+    "app",
+    "$\u007btoolkit.name}/src",
+    "locale/en"
+  ],
+  "overrides": [
+    "overrides",
+    "$\u007btoolkit.name}/overrides",
+    "locale/$\u007bapp.locale}"
+  ],
+  "framework": "ext",
+  "toolkit": "classic",
+  "theme": "theme-neptune",
+  "requires": [],
+
+  "fashion": {
+    "inliner": {
+      "enable": false
+    }
+  },
+
+  /**
+   * Sass configuration properties.
+   */
+  "sass": {
+    /**
+     * The root namespace to use when mapping *.scss files to classes in the
+     * sass/src and sass/var directories. For example, "foo2.view.Foo" would
+     * map to "sass/src/view/Foo.scss". If we changed this to "foo2.view" then
+     * it would map to "sass/src/Foo.scss". To style classes outside the app's
+     * root namespace, change this to "". Doing so would change the mapping of
+     * "foo2.view.Foo" to "sass/src/foo2/view/Foo.scss".
+     */
+    "namespace": "",
+
+    /**
+     * File used to save sass variables edited via Sencha Inspector. This file
+     * will automatically be applied to the end of the scss build.
+     *
+     *      "save": "sass/save.scss"
+     *
+     */
+
+    /**
+     * Comma-separated list of files or folders containing extra Sass. These
+     * files are automatically included in the Sass compilation. By default this
+     * is just "etc/all.scss" to allow import directives to control the order
+     * other files are included.
+     *
+     * All "etc" files are included at the top of the Sass compilation in their
+     * dependency order:
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     */
+    "etc": [
+      // "sass/etc/all.scss",
+      // "$\u007btoolkit.name}/sass/etc/all.scss",
+      "sass/etc/imports.scss"
+    ],
+
+    /**
+     * Comma-separated list of folders containing Sass variable definitions
+     * files. These file can also define Sass mixins for use by components.
+     *
+     * All "var" files are included after "etc" files in the Sass compilation in
+     * dependency order:
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     *
+     * The "sass/var/all.scss" file is always included at the start of the var
+     * block before any files associated with JavaScript classes.
+     */
+    "var": [
+      // "sass/var/all.scss",
+      // "$\u007btoolkit.name}/sass/var",
+      "sass/var"
+    ],
+
+    /**
+     * Comma-separated list of folders containing Sass rule files.
+     *
+     * All "src" files are included after "var" files in the Sass compilation in
+     * dependency order (the same order as "etc"):
+     *
+     *      +-------+---------+
+     *      |       | base    |
+     *      | theme +---------+
+     *      |       | derived |
+     *      +-------+---------+
+     *      | packages        |  (in package dependency order)
+     *      +-----------------+
+     *      | application     |
+     *      +-----------------+
+     */
+    "src": [
+      // "$\u007btoolkit.name}/sass/src",
+      "sass/mixins",
+      "sass/src"
+    ]
+  },
+
+  "js": [{
+    /**
+     * app.js is generated automatically. It contains the definition of
+     * the main application class
+     */
+    "path" : "resources/app.js",
+    "bundle" : true,
+    "includeInBundle" : false
+  }],
+
+  "classic": {},
+
+  "modern": {},
+
+  "css": [
+    {
+      "path": "$\u007bbuild.out.css.path}",
+      "bundle": true,
+      "exclude": ["fashion"]
+    }
+  ],
+
+  "loader": {
+    "cache": false,
+    "cacheParam": "_dc"
+  },
+
+  "production": {
+    "output": {
+      "appCache": {
+        "enable": true,
+        "path": "cache.appcache"
+      }
+    },
+    "loader": {
+      "cache": "$\u007bbuild.timestamp}"
+    },
+    "cache": {
+      "enable": true
+    },
+    "compressor": {
+      "type": "yui"
+    }
+  },
+
+  "testing": {
+  },
+
+  "development": {
+    "tags": [
+      // You can add this tag to enable Fashion when using app watch or
+      // you can add "?platformTags=fashion:1" to the URL to enable Fashion
+      // without changing this file.
+      //
+      // "fashion"
+    ]
+  },
+
+  "bootstrap": {
+    "base": "$\u007bapp.dir}",
+    "manifest": "$\u007bbuild.id}.json",
+    "microloader": "bootstrap.js",
+    "css": "bootstrap.css"
+  },
+
+  "output": {
+    "base": "$\u007bapp.dir}/build/$\u007bbuild.environment}",
+    "manifest": "$\u007bbuild.id}.json",
+    "js": "$\u007bbuild.id}.js",
+    "appCache": {
+      "enable": false
+    }
+  },
+
+  "cache": {
+    "enable": false,
+    "deltas": true
+  },
+
+
+  "appCache": {
+    "cache": [
+      "index.html"
+    ],
+    "network": [
+      "*"
+    ],
+    "fallback": []
+  },
+
+  "resources": [
+    {
+      "path": "resources",
+      "output": "shared"
+    },
+    {
+      "path": "$\u007btoolkit.name}/resources"
+    },
+    {
+      "path": "$\u007bbuild.id}/resources"
+    }
+  ],
+
+  "ignore": [
+    "(^|/)CVS(/?$|/.*?$)"
+  ],
+
+  "archivePath": "archive",
+
+  "packageDependencyOrder": [],
+  "globalResources": {},
+  "locales" : [ "en", "de", "ja" ]
+}

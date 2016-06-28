@@ -152,7 +152,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
   private void createModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
-    File senchaCfg = new File(senchaPackageDirectory.getAbsolutePath() + File.separator + SenchaUtils.SENCHA_PACKAGE_CONFIG);
+    File senchaCfg = new File(senchaPackageDirectory.getAbsolutePath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
     // make sure senchaCfg does not exist
     if (senchaCfg.exists() && !senchaCfg.delete()) {
       throw new MojoExecutionException("Could not delete " + senchaCfg);
@@ -220,7 +220,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     buildSenchaPackage(senchaPackageDirectory);
 
-    File pkg = new File(senchaPackageBuildOutputDir.getPath() +  File.separator + getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
+    File pkg = new File(senchaPackageBuildOutputDir.getPath(), getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
     if (!pkg.exists()) {
       throw new MojoExecutionException("Could not find " + SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project));
     }

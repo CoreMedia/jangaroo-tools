@@ -7,11 +7,10 @@ import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -23,7 +22,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -157,14 +155,6 @@ public class JooTestMojo extends AbstractMojo {
   @Inject
   protected RepositorySystem repositorySystem;
 
-  /**
-   * Used to look up Artifacts in the remote repository.
-   */
-  @Inject
-  private ArtifactResolver artifactResolver;
-
-  @Inject
-  private ArchiverManager archiverManager;
 
   @Parameter(defaultValue = "${localRepository}", required = true)
   private ArtifactRepository localRepository;
@@ -242,6 +232,12 @@ public class JooTestMojo extends AbstractMojo {
   private String jooUnitSeleniumRCHost = "localhost";
 
   /**
+   * Defines the class of the test suite for JooUnit tests.
+   */
+  @Parameter
+  private String testSuite = null;
+
+  /**
    * Defines the Selenium RC port. Default is 4444.
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
@@ -281,7 +277,7 @@ public class JooTestMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean doSkip = skip || skipTests || skipJooUnitTests;
-    if (doSkip || !isTestAvailable()) {
+    if (doSkip || testSuite == null) {
       getLog().info("Skipping generation of Jangaroo test app: " + (doSkip ? "tests skipped." : "no tests found."));
     } else {
       getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
@@ -346,14 +342,28 @@ public class JooTestMojo extends AbstractMojo {
    * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
    */
   protected void createWebApp(File webappDirectory) throws MojoExecutionException {
-    if (webappDirectory.mkdirs()) {
-      getLog().debug("created app directory " + webappDirectory);
+    // only generate app if senchaCfg does not exist
+    if (SenchaUtils.doesSenchaAppExist(webappDirectory)) {
+      getLog().info("Sencha app already exists, skip generating one");
+      return;
     }
 
-    String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
-    Artifact templateArtifact = repositorySystem.createArtifact("net.jangaroo", "sencha-test-app-template", myVersion, "runtime", "jar");
-    File appTemplateArtifactFile = MavenPluginHelper.getArtifactFile(localRepository, remoteRepositories, artifactResolver, templateArtifact);
-    MavenPluginHelper.extractFileTemplate(webappDirectory, appTemplateArtifactFile, archiverManager);
+    FileHelper.ensureDirectory(webappDirectory);
+
+    String senchaAppName = getSenchaPackageName(project);
+    String arguments = "generate app"
+            + " -ext"
+            + " -" + SenchaUtils.TOOLKIT_CLASSIC
+            + " --template " + getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/tpl"
+            + " --path=\"\""
+            + " --refresh=false"
+            + " -DmoduleName=" + getSenchaPackageName(project)
+            + " -DtestSuite=" + testSuite
+            + " " + senchaAppName;
+    getLog().info("Generating Sencha app module");
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(webappDirectory, arguments, getLog(), null);
+    senchaCmdExecutor.execute();
+
 
     createApp();
   }
@@ -394,17 +404,6 @@ public class JooTestMojo extends AbstractMojo {
 
   protected String getJettyUrl(Server server) {
     return "http://" + jooUnitJettyHost + ":" + server.getConnectors()[0].getPort();
-  }
-
-  protected boolean isTestAvailable() {
-    for (org.apache.maven.model.Resource r : testResources) {
-      File testFile = new File(r.getDirectory(), runTestsJs);
-      if (testFile.exists()) {
-        return true;
-      }
-    }
-    getLog().info("The JavaScript test run file '" + runTestsJs + "' could not be found. Skipping.");
-    return false;
   }
 
   protected Server jettyRunTest(boolean tryPortRange) throws MojoExecutionException {
