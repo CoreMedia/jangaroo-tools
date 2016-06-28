@@ -23,12 +23,14 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.cli.CommandLineException;
+import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
+import org.eclipse.jetty.server.AbstractNetworkConnector;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.ResourceCollection;
-import org.mortbay.jetty.plugin.JettyWebAppContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -60,20 +62,20 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
  * <code>jooUnitJettyPortUpperBound</code> and prints out the resulting test app URL.
  * <p>Tests are executed in one of three ways:</p>
  * <ol>
- *   <li>
- *     If available, PhantomJS is started with a script that loads the test app and stores the
- *     test result in the report file in XML format.
- *   </li>
- *   <li>
- *     Otherwise, the Mojo tries to start a browser via the Selenium server given by
- *     <code>jooUnitSeleniumRCHost</code> with the test app URL and tries to collect the test result
- *     through Selenium.
- *   </li>
- *   <li>
- *     Another option is to set the system property <code>interactiveJooUnitTests</code>
- *     (<code>mvn test -DinteractiveJooUnitTests</code>), which simply halts Maven execution
- *     and gives you the opportunity to load and debug the test app in a browser.
- *   </li>
+ * <li>
+ * If available, PhantomJS is started with a script that loads the test app and stores the
+ * test result in the report file in XML format.
+ * </li>
+ * <li>
+ * Otherwise, the Mojo tries to start a browser via the Selenium server given by
+ * <code>jooUnitSeleniumRCHost</code> with the test app URL and tries to collect the test result
+ * through Selenium.
+ * </li>
+ * <li>
+ * Another option is to set the system property <code>interactiveJooUnitTests</code>
+ * (<code>mvn test -DinteractiveJooUnitTests</code>), which simply halts Maven execution
+ * and gives you the opportunity to load and debug the test app in a browser.
+ * </li>
  * </ol>
  * Option 1 and 2 respect the configured <code>jooUnitTestExecutionTimeout</code> (ms)
  * and interrupt the tests after that time, resulting in a test failure.
@@ -331,6 +333,7 @@ public class JooTestMojo extends AbstractMojo {
 
   /**
    * Create the Jangaroo Web app in the given Web app directory.
+   *
    * @param webappDirectory the directory where to build the Jangaroo Web app.
    * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
    */
@@ -396,7 +399,13 @@ public class JooTestMojo extends AbstractMojo {
   }
 
   protected String getJettyUrl(Server server) {
-    return "http://" + jooUnitJettyHost + ":" + server.getConnectors()[0].getPort();
+    String url = "http://" + jooUnitJettyHost;
+    Connector connector = server.getConnectors()[0];
+    if (connector instanceof AbstractNetworkConnector) {
+      AbstractNetworkConnector networkConnector = (AbstractNetworkConnector)connector;
+      url += ":" + (networkConnector.getLocalPort() <= 0 ? networkConnector.getPort() : networkConnector.getLocalPort());
+    }
+    return url;
   }
 
   protected Server jettyRunTest(boolean tryPortRange) throws MojoExecutionException {
@@ -419,12 +428,8 @@ public class JooTestMojo extends AbstractMojo {
     return startJetty(handler, tryPortRange);
   }
 
-  private org.eclipse.jetty.util.resource.Resource toResource(File file) throws MojoExecutionException {
-    try {
-      return org.eclipse.jetty.util.resource.Resource.newResource(file);
-    } catch (IOException e) {
-      throw wrap(e);
-    }
+  private org.eclipse.jetty.util.resource.Resource toResource(File file) {
+    return org.eclipse.jetty.util.resource.Resource.newResource(file);
   }
 
   private Server startJetty(Handler handler, boolean tryPortRange) throws MojoExecutionException {
