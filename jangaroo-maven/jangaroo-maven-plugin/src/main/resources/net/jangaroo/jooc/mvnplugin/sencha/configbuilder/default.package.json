@@ -117,7 +117,6 @@
   "testing": {},
   "development": {},
   "output": "${package.dir}/build",
-  "classpath": "${package.dir}/src,${package.dir}/${toolkit.name}/src,${package.dir}/locale/en",
   "overrides": "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides,${package.dir}/locale/${package.locale}"
 
 }

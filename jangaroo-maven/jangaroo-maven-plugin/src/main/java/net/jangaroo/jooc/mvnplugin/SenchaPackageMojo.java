@@ -6,6 +6,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
+import net.jangaroo.jooc.mvnplugin.util.ClosureExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -15,6 +16,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
+import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
+import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,6 +33,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGE_CONFIG_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
@@ -150,6 +156,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
 
   }
+
   private void createModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     File senchaCfg = new File(senchaPackageDirectory.getAbsolutePath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
@@ -188,6 +195,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
+
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     // copy files from src/main/sencha to local package dir "target/packages/local/package"
@@ -201,6 +209,9 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     // write package.json
     writePackageJson(configBuilder);
 
+    File packageJsOutput = new File(senchaPackageDirectory, packageJsFileName());
+    compileJavaScriptSources(packageJsOutput);
+
     // write target//.sencha/package/build.properties/build.properties
     getLog().info("Write " + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
     File buildPropertiesFile = new File(senchaPackageDirectory.getAbsolutePath() + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
@@ -209,6 +220,28 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
             "pkg.build.dir", "${package.dir}/build",
             "build.temp.dir", "${package.dir}/build/temp"
     ));
+  }
+
+  private void compileJavaScriptSources(File output) throws MojoExecutionException {
+    Set<String> includes = Collections.singleton("src/**/*.js");
+    Set<String> excludes = Collections.emptySet();
+    SuffixMapping mapping = new SuffixMapping(".js", ".js");
+    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner(includes, excludes);
+    scanner.addSourceMapping(mapping);
+    Set<File> sources;
+    try {
+      sources = scanner.getIncludedSources(senchaPackageDirectory, null);
+    } catch (InclusionScanException e) {
+      throw new MojoExecutionException("cannot scan JavaScript source dir");
+    }
+
+    ClosureExecutor.compile(sources, output, getLog());
+  }
+
+  private String packageJsFileName() {
+    String artifactId = project.getArtifactId();
+    String groupId = project.getGroupId();
+    return String.format("%s__%s.js", groupId, artifactId);
   }
 
   @Nonnull
@@ -230,7 +263,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
 
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-
     getLog().info("Write package.json file");
     writeFile(configBuilder, senchaPackageDirectory.getPath() + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
   }
@@ -252,6 +284,10 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     addRequiredClasses(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getRequiredClassesFromConfiguration(getProduction()));
     addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
     addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
+
+    configBuilder.namesValues(Collections.singletonMap("classpath", (Object)
+            ("${package.dir}/" + packageJsFileName() + ",${package.dir}/${toolkit.name}/src")
+    ));
   }
 
   @Nonnull

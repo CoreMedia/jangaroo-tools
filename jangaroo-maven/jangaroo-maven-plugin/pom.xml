@@ -189,6 +189,10 @@
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>com.google.javascript</groupId>
+      <artifactId>closure-compiler</artifactId>
+    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
