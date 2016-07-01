@@ -23,10 +23,17 @@ public class ConfigClass extends Observable {
   [ExtConfig(extractXType="defaultType")]
   public native function set defaults(value:*):void;
 
-  public native function get title():String;
+  private var _title:String = "- empty -";
 
   [Bindable]
-  public native function set title(value:String):void;
+  public*/ function get$title()/*:String*/ {
+    return this._title$2;
+  }/*
+
+  [Bindable]
+  public*/ function set$title(value/*:String*/)/*:void*/ {
+    this._title$2 = value;
+  }/*
 }
 }
 
@@ -48,6 +55,9 @@ public class ConfigClass extends Observable {
       constructor: ConfigClass$,
       foo: "foo",
       number: 0,
+      _title$2: "- empty -",
+      getTitle: get$title,
+      setTitle: set$title,
       config: {title: undefined},
       requires: ["ext.mixin.Observable"]
     };

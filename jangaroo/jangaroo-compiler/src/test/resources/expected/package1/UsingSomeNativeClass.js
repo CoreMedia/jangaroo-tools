@@ -49,6 +49,11 @@ public class UsingSomeNativeClass {
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       isMonkey: get$monkey,
       setMonkey: set$monkey,
+      config: {
+        someNativeAccessor: undefined,
+        anotherNativeAccessor: undefined,
+        monkey: undefined
+      },
       uses: [
         "SomeOtherNativeClass",
         "package1.someOtherPackage.SomeNativeClass"

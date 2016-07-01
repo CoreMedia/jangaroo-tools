@@ -1729,12 +1729,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         generateSignatureJsCode(functionDeclaration.getFun());
         writeOptSymbol(functionDeclaration.getOptSymSemicolon());
         out.endComment();
-        if (functionDeclaration.isGetterOrSetter() && Metadata.find(currentMetadata, Jooc.BINDABLE_ANNOTATION_NAME) != null) {
-          PropertyDefinition previousPropertyDefinition = members.get(functionName);
-          if (previousPropertyDefinition == null || !previousPropertyDefinition.writable) {
-            members.put(functionName, new PropertyDefinition("undefined", functionDeclaration.isSetter(), true));
-          }
-        }
       } else {
         out.endComment();
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
@@ -1746,6 +1740,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           if (bindableAnnotation != null) {
             String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
             String accessorName = (String) bindableAnnotation.getArgumentValue(DEFAULT_ANNOTATION_PARAMETER_NAME);
+            members.put(functionName, new PropertyDefinition("undefined", true, true));
             if (accessorName != null) {
               methodName = accessorName;
             } else {
