@@ -86,6 +86,8 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
         threadSafe = true)
 public class JooTestMojo extends AbstractMojo {
 
+  private static final int MAXIMUM_NUMBER_OF_RETRIES = 30;
+  private static final int WAITING_TIME = 1000;
   /**
    * The maven project.
    */
@@ -293,10 +295,26 @@ public class JooTestMojo extends AbstractMojo {
             // okay, good-bye!
           }
         } else {
+          checkServerState(server);
           runTests(url);
         }
       } finally {
         stopServerIgnoreException(server);
+      }
+    }
+  }
+
+  private void checkServerState(Server server) {
+    for (int i = 0; i < MAXIMUM_NUMBER_OF_RETRIES; i++) {
+      if (server.isStarted()) {
+        break;
+      } else {
+        try {
+          getLog().info("Server not ready yet i=" + i);
+          Thread.sleep(WAITING_TIME);
+        } catch (InterruptedException e) { // NOSONAR
+          // IGNORE
+        }
       }
     }
   }
