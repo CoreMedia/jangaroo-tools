@@ -6,6 +6,7 @@ import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
 import com.google.javascript.jscomp.SourceMap;
+import com.google.javascript.jscomp.WarningLevel;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 
@@ -15,9 +16,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A facade to call the Google Closure compiler
@@ -35,7 +36,7 @@ public class ClosureExecutor {
    *   --compilation_level WHITESPACE_ONLY
    *   --js_output_file {output.path}
    */
-  static public void compile(Set<File> sources, File output, Log log) throws MojoExecutionException {
+  static public void compile(Collection<File> sources, File output, Log log) throws MojoExecutionException {
 
     try {
       CompilerOptions options = new CompilerOptions();
@@ -51,6 +52,9 @@ public class ClosureExecutor {
         prefix = prefix.replace('\\', '/');
       }
       options.setSourceMapLocationMappings(Collections.singletonList(new SourceMap.LocationMapping(prefix, "")));
+
+      WarningLevel level = WarningLevel.QUIET;
+      level.setOptionsForWarningLevel(options);
 
       List<SourceFile> sourceFiles = new ArrayList<>();
       for (File source : sources) {
