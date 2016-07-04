@@ -116,7 +116,6 @@
   "production": {},
   "testing": {},
   "development": {},
-  "output": "${package.dir}/build",
-  "overrides": "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides,${package.dir}/locale/${package.locale}"
+  "output": "${package.dir}/build"
 
 }
