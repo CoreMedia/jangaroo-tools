@@ -27,7 +27,7 @@ public class NamespaceConfiguration {
    * A manifest XML file that contains a component package definition
    * for the given namespace.
    *
-   * @parameter expression="${basedir}/src/main/joo/manifest.xml"
+   * @parameter expression="${project.build.sourceDirectory}/manifest.xml"
    */
   private File manifest;
 
@@ -68,11 +68,8 @@ public class NamespaceConfiguration {
     if (manifest != null ? !manifest.equals(that.manifest) : that.manifest != null) {
       return false;
     }
-    if (uri != null ? !uri.equals(that.uri) : that.uri != null) {
-      return false;
-    }
+    return uri != null ? uri.equals(that.uri) : that.uri == null;
 
-    return true;
   }
 
   @Override

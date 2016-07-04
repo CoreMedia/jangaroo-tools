@@ -38,7 +38,7 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   /**
    * Source directory to scan for test files to compile.
    */
-  @Parameter(defaultValue = "${basedir}/src/test/joo")
+  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
   private File testSourceDirectory;
 
   /**
