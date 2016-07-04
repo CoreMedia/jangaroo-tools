@@ -17,10 +17,10 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
 
   private static final String DEFAULT_SOURCE_DIRECTORY = "src/main/java";
   private static final String DEFAULT_TEST_SORUCE_DIRECTORY = "src/test/java";
-  public static final String DEFAULT_JOO_SOURCE_DIR = "src/main/joo";
-  public static final String DEFAULT_JOO_TEST_SOURCE_DIR = "src/test/joo";
-  public static final String DEFAULT_SENCHA_RESOURCES_DIR = "src/main/sencha";
-  public static final String DEFAULT_SENCHA_TEST_RESOURCES_DIR = "src/test/sencha";
+  private static final String DEFAULT_JOO_SOURCE_DIR = "src/main/joo";
+  private static final String DEFAULT_JOO_TEST_SOURCE_DIR = "src/test/joo";
+  private static final String DEFAULT_SENCHA_RESOURCES_DIR = "src/main/sencha";
+  private static final String DEFAULT_SENCHA_TEST_RESOURCES_DIR = "src/test/sencha";
 
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
@@ -56,8 +56,8 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
         // happened on purpose
         if (sourceDirectory != null && sourceDirectory.endsWith(DEFAULT_SOURCE_DIRECTORY)) {
           project.getBuild().setSourceDirectory(DEFAULT_JOO_SOURCE_DIR);
+          project.addCompileSourceRoot(DEFAULT_JOO_SOURCE_DIR);
         }
-        project.addCompileSourceRoot(DEFAULT_JOO_SOURCE_DIR);
 
         String testSourceDirectory = project.getBuild().getTestSourceDirectory();
         // overwrite the sourceDirectory from the build configuration only if it is different
@@ -65,8 +65,8 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
         // happened on purpose
         if (testSourceDirectory != null && testSourceDirectory.endsWith(DEFAULT_TEST_SORUCE_DIRECTORY)) {
           project.getBuild().setTestSourceDirectory(DEFAULT_JOO_TEST_SOURCE_DIR);
+          project.addTestCompileSourceRoot(DEFAULT_JOO_TEST_SOURCE_DIR);
         }
-        project.addTestCompileSourceRoot(DEFAULT_JOO_TEST_SOURCE_DIR);
 
       }
     }
