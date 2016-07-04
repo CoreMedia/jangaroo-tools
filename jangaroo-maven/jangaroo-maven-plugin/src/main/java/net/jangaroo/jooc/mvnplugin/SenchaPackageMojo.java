@@ -232,7 +232,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     getLog().info("Write package.json file");
-    writeFile(configBuilder, senchaPackageDirectory.getPath() + File.separator + SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
+    writeFile(configBuilder, senchaPackageDirectory.getPath(), SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
   }
 
   private void buildSenchaPackage(File senchaPackageDirectory) throws MojoExecutionException {

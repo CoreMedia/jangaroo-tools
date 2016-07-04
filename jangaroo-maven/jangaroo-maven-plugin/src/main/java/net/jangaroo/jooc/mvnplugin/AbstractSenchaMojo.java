@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 
 
@@ -87,11 +88,12 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   protected void writeFile(@Nonnull SenchaConfigBuilder configBuilder,
+                           @Nonnull String destinationFileDir,
                            @Nonnull String destinationFileName,
                            @Nullable String comment)
           throws MojoExecutionException {
 
-    configBuilder.destFile(destinationFileName);
+    configBuilder.destFile(new File(destinationFileDir, destinationFileName));
     if (comment != null ) {
       configBuilder.destFileComment(comment);
     }

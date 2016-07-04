@@ -114,10 +114,9 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
       writeSenchaCfg(senchaCfg);
 
       SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
-      String workspaceJsonPath = workingDirectory.getPath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME;
       configureDefaults(configBuilder, "default.workspace.json");
       configurePackagesAndApp(configBuilder);
-      writeFile(configBuilder, workspaceJsonPath, AUTO_CONTENT_COMMENT);
+      writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, AUTO_CONTENT_COMMENT);
     } else {
       getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
     }

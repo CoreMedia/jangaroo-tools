@@ -88,6 +88,9 @@ public class JooTestMojo extends AbstractMojo {
 
   private static final int MAXIMUM_NUMBER_OF_RETRIES = 30;
   private static final int WAITING_TIME = 1000;
+
+  private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
+
   /**
    * The maven project.
    */
@@ -362,6 +365,8 @@ public class JooTestMojo extends AbstractMojo {
       return;
     }
 
+    getLog().info(String.format("Generating Sencha App %s for unit tests...", webappDirectory));
+
     FileHelper.ensureDirectory(webappDirectory);
 
     String senchaAppName = getSenchaPackageName(project);
@@ -378,26 +383,21 @@ public class JooTestMojo extends AbstractMojo {
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(webappDirectory, arguments, getLog(), null);
     senchaCmdExecutor.execute();
 
-
-    createApp();
+    createAppJson();
   }
 
   private static boolean isTestDependency(Dependency dependency) {
     return Artifact.SCOPE_TEST.equals(dependency.getScope()) && Type.JAR_EXTENSION.equals(dependency.getType());
   }
 
-  protected String getDefaultsJsonFileName() {
-    return "default.test.app.json";
-  }
-
-  public void createApp() throws MojoExecutionException {
-    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), "app.json");
+  public void createAppJson() throws MojoExecutionException {
+    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), SenchaUtils.SENCHA_APP_FILENAME);
     getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
 
     SenchaAppConfigBuilder configBuilder = new SenchaAppConfigBuilder();
     try {
-      configBuilder.destFile(project.getBuild().getTestOutputDirectory() + SenchaUtils.SEPARATOR + "app.json");
-      configBuilder.defaults(getDefaultsJsonFileName());
+      configBuilder.destFile(appJsonFile);
+      configBuilder.defaults(DEFAULT_TEST_APP_JSON);
       configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
 
       // require the package to test:
@@ -412,7 +412,7 @@ public class JooTestMojo extends AbstractMojo {
 
       configBuilder.buildFile();
     } catch (IOException e) {
-      throw new MojoExecutionException("Could not build test app.json", e);
+      throw new MojoExecutionException("Could not build test " + SenchaUtils.SENCHA_APP_FILENAME, e);
     }
   }
 

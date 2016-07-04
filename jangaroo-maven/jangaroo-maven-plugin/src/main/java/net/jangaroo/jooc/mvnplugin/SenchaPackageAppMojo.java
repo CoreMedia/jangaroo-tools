@@ -127,7 +127,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
 
-    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath() + File.separator + APP_JSON_FILENAME, null);
+    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null);
   }
 
   protected void configure(SenchaAppConfigBuilder configBuilder)
