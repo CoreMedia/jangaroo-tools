@@ -320,6 +320,9 @@ public class JooTestMojo extends AbstractMojo {
         }
       }
     }
+    if (!server.isStarted()) {
+      getLog().error("Could not start jetty server");
+    }
   }
 
   private void runTests(String url) throws MojoFailureException, MojoExecutionException {
