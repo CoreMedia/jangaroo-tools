@@ -20,6 +20,17 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testUsingNonIdentifierCharacterAfterMxmlNode() throws Exception {
+    File sourceFile = getFile("/package1/mxml/UsingNonIdentifierCharacterAfterMxmlNode.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    String expected = "unexpected tokens";
+    assertTrue("Expected error (unexpected tokens) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 7, 1);
+  }
+
+  @Test
   public void testInterfaceImplementingMxmlClass() throws Exception {
     assertCompilationResult("package1/mxml/InterfaceImplementingMxmlClass", ".mxml");
   }

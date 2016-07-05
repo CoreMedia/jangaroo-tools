@@ -32,12 +32,10 @@ public var bar:String;
     * /
     [Bindable]
     public var empty:int;
-
-    [Bindable]
-    public var blub:Object;
-
-    [Bindable]
-    public var list:Array;
+[Bindable]
+public var blub:Object;
+[Bindable]
+public var list:Array;
 [Bindable]
 public var other:package1.someOtherPackage.SomeOtherClass;}}
 

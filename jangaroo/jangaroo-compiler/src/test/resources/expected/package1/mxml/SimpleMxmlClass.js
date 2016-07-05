@@ -93,27 +93,22 @@ public var computed:String;
     public var num:int;
 [Bindable]
 public var empty:int;
-
-    [Bindable]
-    public var someFlag1:Boolean;
-
-    [Bindable]
-    public var anotherFlag1:Boolean;
-
-    [Bindable]
-    public var someFlag2:Boolean;
+[Bindable]
+public var someFlag1:Boolean;
+[Bindable]
+public var anotherFlag1:Boolean;
+[Bindable]
+public var someFlag2:Boolean;
 [Bindable]
 public var anotherFlag2:Boolean;
 [Bindable]
 public var someFlag3:Boolean;
 [Bindable]
 public var anotherFlag3:Boolean;
-
-    [Bindable]
-    public var emptyObject:Object;
-
-    [Bindable]
-    public var joe:Object;
+[Bindable]
+public var emptyObject:Object;
+[Bindable]
+public var joe:Object;
 [Bindable]
 public var otherByExpression:Object;
 [Bindable]
@@ -124,9 +119,8 @@ private*/ function $on_config_$1_click (event/*:package1.someOtherPackage.SomeEv
 private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
     var test=0;}/*
-
-        [Bindable]
-        public var no_config:package1.someOtherPackage.SomeOtherClass;}}
+[Bindable]
+public var no_config:package1.someOtherPackage.SomeOtherClass;}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
