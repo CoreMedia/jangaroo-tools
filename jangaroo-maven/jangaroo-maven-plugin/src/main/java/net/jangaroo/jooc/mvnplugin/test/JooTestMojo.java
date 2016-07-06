@@ -524,7 +524,7 @@ public class JooTestMojo extends AbstractMojo {
     }
     String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
     StringBuilder builder = new StringBuilder(getJettyUrl(server))
-            .append("/").append(path);
+            .append("/").append(path).append("?cache"); // "?cache" because phantomjs@2.1.1. seems to have a problem with the cached resources
     if (debugTests) {
       builder.append("#joo.debug");
     }
