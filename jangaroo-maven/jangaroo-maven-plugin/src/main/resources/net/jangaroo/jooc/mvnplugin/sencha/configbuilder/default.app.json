@@ -129,7 +129,14 @@
     "includeInBundle" : false
   }],
 
-  "classic": {},
+  "classic": {
+    "js": [
+      // Remove this entry to individually load sources from the framework.
+      {
+        "path": "${framework.dir}/build/ext-all-rtl-debug.js"
+      }
+    ]
+  },
 
   "modern": {},
 
@@ -179,9 +186,12 @@
 
   "bootstrap": {
     "base": "${app.dir}",
-    "manifest": "${build.id}.json",
     "microloader": "bootstrap.js",
-    "css": "bootstrap.css"
+    "css": "bootstrap.css",
+    "manifest": {
+      "path": "${build.id}.json",
+      "exclude": "" // needed to prevent sencha app build from removing the loadOrder property
+    }
   },
 
   "output": {
