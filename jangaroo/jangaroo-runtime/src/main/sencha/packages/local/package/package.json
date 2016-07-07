@@ -12,11 +12,7 @@
   "detailedDescription" : "",
   "requires" : [ ],
   "css" : [ ],
-  "js" : [ {
-    "path" : "resources/joo/jangaroo-runtime.module.js",
-    "bundle": false,
-    "includeInBundle" : true
-  }],
+  "js" : [ ],
   "sass" : {
     "var" : "${package.dir}/sass/var",
     "etc" : "${package.dir}/sass/etc/imports.scss",
@@ -30,8 +26,10 @@
   "development" : {
   },
   "output" : "${package.dir}/build",
-  "classpath" : "${package.dir}/src",
-  "overrides" : "${package.dir}/overrides",
+  "classpath" : [
+    "${package.dir}/src"
+  ],
+  "overrides" : [ "${package.dir}/overrides" ],
   "resources" : [ {
     "path" : "resources",
     "output" : "shared"
