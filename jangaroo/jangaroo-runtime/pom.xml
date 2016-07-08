@@ -47,10 +47,6 @@
                   <src path="src/main/joo" />
                 </jooc>
                 <mkdir dir="target/temp" />
-                <jooc destdir="target/temp" enableassertions="false" failonerror="true" verbose="true">
-                  <include name="**/*.as" />
-                  <src path="src/main/joo" />
-                </jooc>
                 <copy todir="target/classes/META-INF/resources">
                   <fileset dir="src/main/joo-js" />
                 </copy>
