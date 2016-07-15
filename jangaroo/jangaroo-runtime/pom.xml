@@ -69,6 +69,11 @@
                   </filterset>
                 </copy>
                 <mkdir dir="target/workspace/packages/local/package/resources/joo" />
+                <copy todir="target/workspace/packages/local/package/resources/joo">
+                  <filelist dir="target/classes/META-INF/resources/joo">
+                    <file name="jangaroo-runtime.module.js" />
+                  </filelist>
+                </copy>
                 <mkdir dir="target/workspace/packages/local/package/src" />
                 <copy todir="target/workspace/packages/local/package/src">
                   <fileset dir="target/classes/META-INF/resources/joo/classes"/>

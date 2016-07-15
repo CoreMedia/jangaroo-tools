@@ -114,8 +114,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   @Parameter
   private Map<String, String> globalResourcesMap;
 
-  private List<File> jsBundledResources = new ArrayList<>();
-
   @Override
   public String getType() {
     if (Type.CODE.equals(packageType) || Type.THEME.equals(packageType)) {
@@ -230,16 +228,14 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   private void compileJavaScriptSources() throws MojoExecutionException {
 
     // compile package js file, including the classes for the default locale 'en'
-    ArrayList<File> sources = new ArrayList<>(jsBundledResources);
+    ArrayList<File> sources = new ArrayList<>();
     sources.addAll(scanFiles("src/**/*.js", "locale/en/**/*.js"));
     compileJavaScriptSources(new File(senchaPackageDirectory, packageJsFileName()), sources);
 
     // compile overrides into one override file for each locale
     String overridesPattern = "overrides/**/*.js";
 
-    // the default locale source directory locale/en does not contain any overrides,
-    // it contains just classes that have been included in the package js file above
-    compileJavaScriptSources(new File(senchaPackageDirectory, overridesJsFilename("en")),
+    compileJavaScriptSources(new File(senchaPackageDirectory, overridesJsFilename()),
             scanFiles(overridesPattern));
 
     // at this time, the Jangaroo compiler has already written any locale-specific JavaScript into ${package.dir}/locale
@@ -248,10 +244,12 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     if (children != null) {
       for (File child : children) {
         final String locale = child.getName();
+        // the default locale source directory locale/en does not contain any overrides,
+        // it contains just classes that have been included in the package js file above
         if (child.isDirectory() && !"en".equals(locale)) {
           String localePattern = "locale/" + locale + "/**/*.js";
           compileJavaScriptSources(new File(senchaPackageDirectory, overridesJsFilename(locale)),
-                  scanFiles(overridesPattern, localePattern));
+                  scanFiles(localePattern));
         }
       }
     }
@@ -334,20 +332,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
     addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
 
-    setClassPath(configBuilder);
-    setOverrides(configBuilder);
-  }
-
-  private void setClassPath(SenchaPackageConfigBuilder configBuilder) {
-    configBuilder.namesValues(Collections.singletonMap("classpath", (Object)
-            ("${package.dir}/" + packageJsFileName("") + ",${package.dir}/${toolkit.name}/src")
-    ));
-  }
-
-  private void setOverrides(SenchaPackageConfigBuilder configBuilder) {
-    configBuilder.namesValues(Collections.singletonMap("overrides", (Object)
-            ("${package.dir}/" + genericOverridesJsFilename())
-    ));
   }
 
   private String genericOverridesJsFilename() {
@@ -355,7 +339,11 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   private String overridesJsFilename(String locale) {
-    return packageJsFileName("-overrides-" + locale);
+    return packageJsFileName("-overrides" + (locale.isEmpty() ? "" : "-") + locale);
+  }
+
+  private String overridesJsFilename() {
+    return overridesJsFilename("");
   }
 
   @Nonnull
@@ -381,10 +369,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     writeRequireResourceFile(requireResourceFile, requiredClassesForProfile);
 
     if (profile == null) {
-      File requiredClassesFile = new File(getRequiredClassesFileName(null,
-              senchaPackageDirectory.getAbsolutePath(),
-              SenchaUtils.SEPARATOR));
-      jsBundledResources.add(requiredClassesFile);
+      configBuilder.js(getRequiredClassesFileName(null, null, SenchaUtils.SEPARATOR), false, true);
     } else {
       SenchaPackageConfigBuilder requiredCLassesConfigBuilder = new SenchaPackageConfigBuilder();
       requiredCLassesConfigBuilder.js(getRequiredClassesFileName(profile, null, SenchaUtils.SEPARATOR), false, true);
