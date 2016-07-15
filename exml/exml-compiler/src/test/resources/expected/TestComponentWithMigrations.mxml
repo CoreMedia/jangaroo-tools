@@ -16,7 +16,6 @@
 
     private var config:testComponentWithMigrations;
 
-    public native function TestComponentWithMigrations(config:testComponentWithMigrations = null);
 
     [Bindable]
     public var propertyWithDefaultElementUsingConfig:ext.Component;

@@ -22,7 +22,6 @@
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestComponentWithoutInnerRoot(config:testComponentWithoutInnerRoot = null);
   ]]></fx:Script>
   <fx:Declarations>
     <!--- Some Boolean property @see Boolean -->

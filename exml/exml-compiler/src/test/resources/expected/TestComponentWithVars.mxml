@@ -27,7 +27,6 @@
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestComponentWithVars(config:testComponentWithVars = null);
   ]]></fx:Script>
   <fx:Declarations>
     <Button id="varWithXmlValue"

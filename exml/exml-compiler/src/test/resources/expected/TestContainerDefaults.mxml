@@ -11,7 +11,6 @@
 
     private var config:testContainerDefaults;
 
-    public native function TestContainerDefaults(config:testContainerDefaults = null);
   ]]></fx:Script>
 
     <defaults>

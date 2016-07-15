@@ -20,7 +20,6 @@
       sitesService = editorContext.getSitesService();
     }
 
-    public native function TestPluginWithoutInnerRoot(config:testPluginWithoutInnerRoot = null);
   ]]></fx:Script>
   <fx:Declarations>
     <!--- Some Boolean property @see Boolean -->

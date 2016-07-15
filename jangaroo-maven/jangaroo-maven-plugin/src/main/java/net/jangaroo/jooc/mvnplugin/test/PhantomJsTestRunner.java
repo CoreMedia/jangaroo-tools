@@ -20,7 +20,7 @@ public class PhantomJsTestRunner {
 
   public static final Pattern LOG_LEVEL_PATTERN = Pattern.compile("^\\[([A-Z]+)\\]\\s*(.*)$");
 
-  private static int INITIAL_RESOURCE_TIMEOUT_MS = 500;
+  private static int INITIAL_RESOURCE_TIMEOUT_MS = 5000;
   private static volatile Boolean phantomjsExecutableFound;
 
   private final String testPageUrl;
@@ -81,7 +81,8 @@ public class PhantomJsTestRunner {
       if (returnCode >= 0 && returnCode <= 4) { // valid phantomjs-joounit-page-runner return codes!
         return returnCode == 0;
       }
-      log.warn(String.format("unexpected result %d from phantomjs run #%d", returnCode, tryCount + 1));
+      log.warn(String.format("unexpected result %d from phantomjs run #%d (resource timeout %d ms)",
+              returnCode, tryCount + 1, resourceTimeoutMs));
 
       // seems that phantomjs keeps state and needs some time to recover .... really ?
       try {
@@ -89,8 +90,8 @@ public class PhantomJsTestRunner {
       } catch (InterruptedException e) { // NOSONAR
         // IGNORE
       }
-      // increase resource timeout but not beyond a second
-      resourceTimeoutMs = Math.min(resourceTimeoutMs + 100, 1000);
+      // increase resource timeout
+      resourceTimeoutMs = resourceTimeoutMs + 500;
     }
     log.error(String.format("Got %d unexpected results from phantomjs, giving up.", maxRetriesOnCrashes + 1));
     return false;

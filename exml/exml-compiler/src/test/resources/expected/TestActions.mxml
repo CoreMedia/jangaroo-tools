@@ -10,7 +10,6 @@
 
     private var config:testActions;
 
-    public native function TestActions(config:testActions = null);
   ]]></fx:Script>
 
     <baseAction>

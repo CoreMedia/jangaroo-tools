@@ -12,7 +12,6 @@
 
     private var config:testLabel;
 
-    public native function TestLabel(config:testLabel = null);
   ]]></fx:Script>
   <fx:Declarations>
     <!--- The label text -->

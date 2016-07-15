@@ -11,7 +11,6 @@
 
     private var config:testBaseClass;
 
-    public native function TestBaseClass(config:testBaseClass = null);
   ]]></fx:Script>
 
 </ns1:BaseClass>

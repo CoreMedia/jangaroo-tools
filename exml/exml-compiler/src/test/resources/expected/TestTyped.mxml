@@ -10,7 +10,6 @@
 
     private var config:testTyped;
 
-    public native function TestTyped(config:testTyped = null);
   ]]></fx:Script>
 
     <items>

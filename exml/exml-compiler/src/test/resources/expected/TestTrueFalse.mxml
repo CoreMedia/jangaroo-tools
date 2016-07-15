@@ -10,7 +10,6 @@
 
     private var config:testTrueFalse;
 
-    public native function TestTrueFalse(config:testTrueFalse = null);
   ]]></fx:Script>
 
         <items>

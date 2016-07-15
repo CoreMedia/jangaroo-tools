@@ -16,7 +16,6 @@
 
     private var config:testComponentWithExmlObjects;
 
-    public native function TestComponentWithExmlObjects(config:testComponentWithExmlObjects = null);
   ]]></fx:Script>
 
     <tpl>{

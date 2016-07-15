@@ -25,7 +25,6 @@
 
     private var config:testConstants;
 
-    public native function TestConstants(config:testConstants = null);
   ]]></fx:Script>
 
 </Panel>

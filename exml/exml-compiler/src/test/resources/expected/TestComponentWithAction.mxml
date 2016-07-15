@@ -15,7 +15,6 @@
 
     private var config:testComponentWithAction;
 
-    public native function TestComponentWithAction(config:testComponentWithAction = null);
   ]]></fx:Script>
 
     <items>

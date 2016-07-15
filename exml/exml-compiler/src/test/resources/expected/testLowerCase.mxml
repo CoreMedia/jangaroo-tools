@@ -10,7 +10,6 @@
 
     private var config:testLowerCase;
 
-    public native function TestLowerCase(config:testLowerCase = null);
   ]]></fx:Script>
 
 </Panel>

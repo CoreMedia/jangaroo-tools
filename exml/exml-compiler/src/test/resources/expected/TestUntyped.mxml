@@ -10,7 +10,6 @@
 
     private var config:testUntyped;
 
-    public native function TestUntyped(config:testUntyped = null);
   ]]></fx:Script>
 
     <items>

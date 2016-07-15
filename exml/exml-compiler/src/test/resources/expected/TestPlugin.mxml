@@ -9,7 +9,6 @@
 
     private var config:testPlugin;
 
-    public native function TestPlugin(config:testPlugin = null);
   ]]></fx:Script>
 
 </Plugin>

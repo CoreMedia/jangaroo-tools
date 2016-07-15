@@ -10,7 +10,6 @@
 
     private var config:testDataField;
 
-    public native function TestDataField(config:testDataField = null);
   ]]></fx:Script>
 
 </data_AutoField>

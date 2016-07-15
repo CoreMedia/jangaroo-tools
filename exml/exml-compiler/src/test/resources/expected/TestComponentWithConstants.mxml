@@ -34,7 +34,6 @@
 
     private var config:testComponentWithConstants;
 
-    public native function TestComponentWithConstants(config:testComponentWithConstants = null);
   ]]></fx:Script>
 
 </Panel>

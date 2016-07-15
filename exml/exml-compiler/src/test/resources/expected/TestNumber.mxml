@@ -10,7 +10,6 @@
 
     private var config:testNumber;
 
-    public native function TestNumber(config:testNumber = null);
   ]]></fx:Script>
 
     <items>

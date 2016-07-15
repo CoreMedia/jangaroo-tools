@@ -45,7 +45,6 @@
       myVar = config.myProperty + '_suffix';
     }
 
-    public native function AllElements(config:allElements = null);
   ]]></fx:Script>
   <fx:Declarations>
     <Button id="myVar3"

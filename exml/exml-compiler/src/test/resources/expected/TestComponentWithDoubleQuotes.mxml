@@ -15,7 +15,6 @@
 
     private var config:testComponentWithDoubleQuotes;
 
-    public native function TestComponentWithDoubleQuotes(config:testComponentWithDoubleQuotes = null);
   ]]></fx:Script>
 
     <items>

@@ -377,7 +377,6 @@ public class ExmlToMxml {
       printConstants();
       printVars();
       printInitializer();
-      printConstructor();
       printConfigVars();
       printCloseScript();
       printDeclarations();
@@ -527,11 +526,6 @@ public class ExmlToMxml {
           currentOut.printf(";%n");
         }
       }
-    }
-
-    private void printConstructor() {
-      String configClassName = CompilerUtils.className(exmlSourceFile.getConfigClassName());
-      currentOut.printf("    public native function %s(config:%s = null);%n", exmlModel.getClassName(), configClassName);
     }
 
     private void printInitializer() {

@@ -15,7 +15,6 @@
 
     private var config:testComponentWithMultiLineAttribute;
 
-    public native function TestComponentWithMultiLineAttribute(config:testComponentWithMultiLineAttribute = null);
   ]]></fx:Script>
 
     <items>

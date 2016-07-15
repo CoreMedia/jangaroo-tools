@@ -23,7 +23,6 @@
 
     private var config:testComponent;
 
-    public native function TestComponent(config:testComponent = null);
 
     /**
      * Some type without default constructor

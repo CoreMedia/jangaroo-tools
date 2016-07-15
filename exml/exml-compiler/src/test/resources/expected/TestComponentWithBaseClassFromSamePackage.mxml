@@ -14,7 +14,6 @@
 
     private var config:testComponentWithBaseClassFromSamePackage;
 
-    public native function TestComponentWithBaseClassFromSamePackage(config:testComponentWithBaseClassFromSamePackage = null);
   ]]></fx:Script>
 
     <local:items>

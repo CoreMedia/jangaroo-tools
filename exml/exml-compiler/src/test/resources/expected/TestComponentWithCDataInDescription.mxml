@@ -17,7 +17,6 @@
 
     private var config:testComponentWithCDataInDescription;
 
-    public native function TestComponentWithCDataInDescription(config:testComponentWithCDataInDescription = null);
   ]]></fx:Script>
   <fx:Declarations>
     <!--- Some Boolean property @see Boolean -->
