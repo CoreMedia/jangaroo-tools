@@ -1806,7 +1806,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write(");");
     }
 
-    if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null) {
+    if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null && !classDeclaration.getFieldsWithInitializer().isEmpty()) {
       // generate default constructor that calls field initializers:
       String constructorName = classDeclaration.getName() + "$";
       out.write("function " + constructorName + "() {");
@@ -1882,8 +1882,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     public void generate(JsWriter out, boolean first) throws IOException {
       int inheritanceLevel = classDeclaration.getInheritanceLevel();
       if (inheritanceLevel > 1) { // suppress for classes extending Object
-        generateSuperConstructorCallCode(null);
-        out.writeToken(";");
+        out.write(getSuperClassPrototypeAccessCode() + ".constructor.apply(this,arguments);");
       }
       generateFieldInitCode(classDeclaration, false);
     }

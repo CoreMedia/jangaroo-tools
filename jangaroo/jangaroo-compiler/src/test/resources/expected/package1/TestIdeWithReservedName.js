@@ -10,13 +10,12 @@ public class TestIdeWithReservedName {
     char_ = char_.substr(0,0) + "u";
     return char_;
   }/*
-}*/function TestIdeWithReservedName$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       parameterWithReservedName: parameterWithReservedName,
-      localVarWithReservedName: localVarWithReservedName,
-      constructor: TestIdeWithReservedName$
+      localVarWithReservedName: localVarWithReservedName
     };
 });

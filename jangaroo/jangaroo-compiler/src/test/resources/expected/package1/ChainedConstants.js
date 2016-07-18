@@ -12,12 +12,11 @@ public class ChainedConstants {
   public static const ANOTHER_METHOD_TYPE : String =*/function ANOTHER_METHOD_TYPE$static_(){ChainedConstants.ANOTHER_METHOD_TYPE=( ChainedConstants.METHOD_TYPE_GET.substr(0, 1));}/*;
 
   public static const THE_BLA : int =*/function THE_BLA$static_(){ChainedConstants.THE_BLA=( package1.someOtherPackage.SomeOtherClass.BLA);}/*;
-}*/function ChainedConstants$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      constructor: ChainedConstants$,
       statics: {
         METHOD_TYPE_GET: "get",
         DEFAULT_METHOD_TYPE: undefined,

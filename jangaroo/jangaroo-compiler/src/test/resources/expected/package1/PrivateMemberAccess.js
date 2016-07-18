@@ -7,13 +7,12 @@ public class PrivateMemberAccess {
   public static*/ function doSomething$static()/*:String*/ {
     return PrivateMemberAccess.INSTANCE.secret$1;
   }/*
-}*/function PrivateMemberAccess$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       secret$1: null,
-      constructor: PrivateMemberAccess$,
       statics: {
         INSTANCE: undefined,
         doSomething: doSomething$static,

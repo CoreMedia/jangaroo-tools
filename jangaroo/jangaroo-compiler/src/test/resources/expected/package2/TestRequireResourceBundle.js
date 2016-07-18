@@ -2,12 +2,9 @@ Ext.define("package2.TestRequireResourceBundle", function(TestRequireResourceBun
 
 [ResourceBundle("package2.ResourceBundle")]
 public class TestRequireResourceBundle {
-}*/function TestRequireResourceBundle$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      constructor: TestRequireResourceBundle$,
-      requires: ["package2.ResourceBundle_properties"]
-    };
+    return {requires: ["package2.ResourceBundle_properties"]};
 });

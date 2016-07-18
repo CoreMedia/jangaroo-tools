@@ -8,12 +8,9 @@ public class AuxVarConfusion {
     }
   }/*
 
-}*/function AuxVarConfusion$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      doSomething: doSomething,
-      constructor: AuxVarConfusion$
-    };
+    return {doSomething: doSomething};
 });

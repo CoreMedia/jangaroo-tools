@@ -13,12 +13,11 @@ public class UsingSomePackageGlobal {
     var local2/*:**/ = foo.somethingElse || {};
   }/*
 
-}*/function UsingSomePackageGlobal$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      constructor: UsingSomePackageGlobal$,
       statics: {main: main$static},
       uses: [
         "package1.someOtherPackage.SomeOtherClass",

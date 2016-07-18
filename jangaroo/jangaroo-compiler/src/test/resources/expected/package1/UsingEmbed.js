@@ -48,7 +48,7 @@ public class UsingEmbed {
   [SomePropertyAnnotation(2)]
   public native function set annotated6(value:String):void;
 
-}*/function UsingEmbed$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
@@ -115,7 +115,6 @@ public class UsingEmbed {
       annotated3: annotated3,
       annotated4: annotated4,
       annotated5: annotated5,
-      constructor: UsingEmbed$,
       uses: ["flash.display.Bitmap"]
     };
 });

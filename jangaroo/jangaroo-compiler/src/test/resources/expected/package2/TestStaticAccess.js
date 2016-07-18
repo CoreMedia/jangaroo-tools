@@ -20,7 +20,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static public var s1:String = "s1";
   static private*/ var s2$static/*:String*/ = "s2";/*
 
-  public*/ function TestStaticAccess$() {package2.StaticAccessSuperClass.prototype.constructor.call(this);
+  public*/ function TestStaticAccess$() {package2.StaticAccessSuperClass.prototype.constructor.apply(this,arguments);
     package1.StaticAccessSuperSuperClass.f0();
   }/*
 
