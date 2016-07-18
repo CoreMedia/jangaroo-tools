@@ -1,5 +1,6 @@
 package package1 {
 
+[Uses("Object")]
 [Uses("NaN")]
 [Uses("undefined")]
 public class ParameterInitializers {

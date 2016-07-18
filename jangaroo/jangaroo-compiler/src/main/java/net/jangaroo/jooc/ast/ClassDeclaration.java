@@ -151,7 +151,7 @@ public class ClassDeclaration extends TypeDeclaration {
 
     // define these here so they get the right scope:
     thisType = new Type(new Ide(getIde().getSymbol()));
-    superType = "Object".equals(getQualifiedNameStr()) ? null
+    superType = isInterface() || "Object".equals(getQualifiedNameStr()) ? null
             : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
 
     thisType.scope(scope);
@@ -204,6 +204,9 @@ public class ClassDeclaration extends TypeDeclaration {
       if (packageName.length() > 0 && parentNode instanceof CompilationUnit) {
         ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
       }
+    } else if (superType != null) {
+      // establish dependency on and import of "Object" compilation unit:
+      new Extends(null, superType.getIde()).analyze(this);
     }
     if (getOptImplements() != null) {
       getOptImplements().analyze(this);

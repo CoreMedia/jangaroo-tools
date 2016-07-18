@@ -1,5 +1,6 @@
 package package1 {
 
+[Uses("Object")]
 [Uses("package1.Interface")]
 public final class ImplementsInterface implements package1.Interface {
   /**
