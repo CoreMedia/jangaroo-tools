@@ -2,11 +2,11 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import net.jangaroo.jooc.PackagerImpl;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
-import net.jangaroo.jooc.mvnplugin.util.ClosureExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -16,10 +16,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
-import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
-import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,15 +25,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGE_CONFIG_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
@@ -226,68 +217,16 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   private void compileJavaScriptSources() throws MojoExecutionException {
-
-    // compile package js file, including the classes for the default locale 'en'
-    ArrayList<File> sources = new ArrayList<>();
-    sources.addAll(scanFiles("src/**/*.js", "locale/en/**/*.js"));
-    compileJavaScriptSources(new File(senchaPackageDirectory, packageJsFileName()), sources);
-
-    // compile overrides into one override file for each locale
-    String overridesPattern = "overrides/**/*.js";
-
-    compileJavaScriptSources(new File(senchaPackageDirectory, overridesJsFilename()),
-            scanFiles(overridesPattern));
-
-    // at this time, the Jangaroo compiler has already written any locale-specific JavaScript into ${package.dir}/locale
-    File localeDir = new File(senchaPackageDirectory, "locale");
-    final File[] children = localeDir.listFiles();
-    if (children != null) {
-      for (File child : children) {
-        final String locale = child.getName();
-        // the default locale source directory locale/en does not contain any overrides,
-        // it contains just classes that have been included in the package js file above
-        if (child.isDirectory() && !"en".equals(locale)) {
-          String localePattern = "locale/" + locale + "/**/*.js";
-          compileJavaScriptSources(new File(senchaPackageDirectory, overridesJsFilename(locale)),
-                  scanFiles(localePattern));
-        }
-      }
-    }
-  }
-
-
-  private Set<File> scanFiles(String... includes) throws MojoExecutionException {
-    return scanFiles(new LinkedHashSet<>(Arrays.asList(includes)));
-  }
-
-  private void compileJavaScriptSources(File output, Collection<File> inputFiles) throws MojoExecutionException {
-    if (!inputFiles.isEmpty()) {
-      ClosureExecutor.compile(inputFiles, output, getLog());
-    }
-  }
-
-  private Set<File> scanFiles(Set<String> includes) throws MojoExecutionException {
-    Set<String> excludes = Collections.emptySet();
-    SuffixMapping mapping = new SuffixMapping(".js", ".js");
-    SourceInclusionScanner scanner = new SimpleSourceInclusionScanner(includes, excludes);
-    scanner.addSourceMapping(mapping);
-    Set<File> files;
     try {
-      files = scanner.getIncludedSources(senchaPackageDirectory, null);
-    } catch (InclusionScanException e) {
-      throw new MojoExecutionException("cannot scan JavaScript source dir");
+      new PackagerImpl().doPackage(
+              new File(senchaPackageDirectory, "src"),
+              new File(senchaPackageDirectory, "overrides"),
+              new File(senchaPackageDirectory, "locale"),
+              senchaPackageDirectory,
+              project.getGroupId() + "__" + project.getArtifactId());
+    } catch (IOException e) {
+      throw new MojoExecutionException("exception while packaging JavaScript sources", e);
     }
-    return files;
-  }
-
-  private String packageJsFileName() {
-    return packageJsFileName("");
-  }
-
-  private String packageJsFileName(String suffix) {
-    String artifactId = project.getArtifactId();
-    String groupId = project.getGroupId();
-    return String.format("%s__%s%s.js", groupId, artifactId, suffix);
   }
 
   @Nonnull
@@ -306,7 +245,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     return pkg;
   }
-
 
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
     getLog().info("Write package.json file");
@@ -332,18 +270,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
     addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
 
-  }
-
-  private String genericOverridesJsFilename() {
-    return overridesJsFilename("${package.locale}");
-  }
-
-  private String overridesJsFilename(String locale) {
-    return packageJsFileName("-overrides" + (locale.isEmpty() ? "" : "-") + locale);
-  }
-
-  private String overridesJsFilename() {
-    return overridesJsFilename("");
   }
 
   @Nonnull
