@@ -140,10 +140,14 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     if (config.isVerbose()) {
       System.out.println("Parsing " + in.getPath() + " (" + (in.isInSourcePath() ? "source" : "class") + "path)"); // NOSONAR this is a cmd line tool
     }
-    boolean parseMxml = in.getName().endsWith(Jooc.MXML_SUFFIX);
+    String inputSourceName = in.getName();
+    boolean parseMxml = inputSourceName.endsWith(Jooc.MXML_SUFFIX);
     Reader reader;
     try {
-      if (in.getName().endsWith(Jooc.PROPERTIES_SUFFIX)) {
+      if (inputSourceName.endsWith(Jooc.PROPERTIES_SUFFIX)) {
+        if (inputSourceName.contains("_")) {
+          return null;
+        }
         reader = createPropertiesClassReader(in);
       } else {
         reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
