@@ -71,6 +71,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testOldPropertyAccessSyntax() throws Exception {
+    assertCompilationResult("package1/mxml/TestOldPropertyAccessSyntax", ".mxml");
+  }
+
+  @Test
   public void testMxmlCannotResolveClass() throws Exception {
     File sourceFile = getFile("/package1/mxml/CannotResolveClass.mxml");
     config.addSourceFile(sourceFile);
