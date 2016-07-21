@@ -99,11 +99,21 @@ public class ApplyExpr extends Expr {
     return COERCE_FUNCTION_NAMES.contains(qualifiedName);
   }
 
+  @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getFun().analyze(this);
     if (getArgs() != null) {
       getArgs().analyze(this);
+    }
+    if (getFun() instanceof IdeExpr) {
+      IdeDeclaration type = ((IdeExpr) getFun()).getIde().resolveDeclaration();
+      if (type instanceof FunctionDeclaration) {
+        TypeRelation optTypeRelation = ((FunctionDeclaration) type).getOptTypeRelation();
+        if (optTypeRelation != null) {
+          setType(optTypeRelation.getType().getIde().getDeclaration(false));
+        }
+      }
     }
   }
 

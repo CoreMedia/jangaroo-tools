@@ -16,5 +16,9 @@ public class Panel extends Observable {
   public native function get items():Array;
 
   public native function set items(value:Array):void;
+
+  public native function get layout():*;
+
+  public native function set layout(value:*):void;
 }
 }

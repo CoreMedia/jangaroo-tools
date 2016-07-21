@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,9 +70,15 @@ public class DotExpr extends PostfixOpExpr {
     super.analyze(parentNode);
     ide.analyze(this);
     IdeDeclaration qualiferType = getArg().getType();
-    if (qualiferType != null) {
-      IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());
-      if (memberDeclaration != null && memberDeclaration.isStatic()) {
+    if (qualiferType instanceof ClassDeclaration && !AS3Type.ANY.name.equals(qualiferType.getName())) {
+      IdeDeclaration memberDeclaration = qualiferType.resolvePropertyDeclaration(getIde().getName());
+      if (memberDeclaration == null) {
+        if (!qualiferType.isDynamic()) {
+          getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
+        }
+        return;
+      }
+      if (memberDeclaration.isStatic()) {
         throw JangarooParser.error(getIde().getIde(), "static member used in dynamic context");
       }
       if (memberDeclaration instanceof Typed) {
