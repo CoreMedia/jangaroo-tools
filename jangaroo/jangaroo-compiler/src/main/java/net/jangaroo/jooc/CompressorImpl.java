@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,6 +50,7 @@ public class CompressorImpl implements Compressor {
     File sourceMap = new File(output.getPath() + SOURCE_MAP_EXTENSION);
     options.setSourceMapFormat(SourceMap.Format.V3);
     options.setSourceMapOutputPath(sourceMap.getPath());
+
     String outputFilePath = output.getPath();
     String prefix = outputFilePath.substring(0, outputFilePath.lastIndexOf(File.separator) + 1);
     if (File.separatorChar == '\\') {
@@ -55,17 +58,22 @@ public class CompressorImpl implements Compressor {
     }
     options.setSourceMapLocationMappings(Collections.singletonList(new SourceMap.LocationMapping(prefix, "")));
 
+    Path outputDirPath = output.getParentFile().toPath();
+
     WarningLevel level = WarningLevel.QUIET;
     level.setOptionsForWarningLevel(options);
 
     List<SourceFile> sourceFiles = new ArrayList<>();
     for (File source : sources) {
-      SourceFile sourceFile = SourceFile.fromFile(source);
+      Path sourcePath = source.toPath();
+      Path relativeSourcePath = outputDirPath.relativize(sourcePath);
+      final File file = new File(outputDirPath.toString(), relativeSourcePath.toString());
+      SourceFile sourceFile = SourceFile.fromFile(file);
       sourceFiles.add(sourceFile);
     }
-    Compiler compiler = new Compiler();
-    final Result result = compiler.compile(Collections.<SourceFile>emptyList(), sourceFiles, options);
 
+    Compiler compiler = new Compiler();
+    Result result = compiler.compile(Collections.<SourceFile>emptyList(), sourceFiles, options);
     if (compiler.hasErrors()) {
       throw new IllegalArgumentException(compiler.getErrors()[0].description);
     }
@@ -83,18 +91,21 @@ public class CompressorImpl implements Compressor {
 
   @Override
   public void compressFileList(File fileList, File output) throws IOException {
-
     try (Reader reader = new FileReader(fileList)) {
       LineReader in = new LineReader(reader);
       List<File> files = new ArrayList<>();
+      File baseDir = fileList.getParentFile();
+      String baseDirPath = baseDir.getPath();
       String line;
       while ((line = in.readLine()) != null) {
         String filename = line.trim();
         if (!filename.isEmpty()) {
-          files.add(new File(filename));
+          Path path = Paths.get(baseDirPath, filename);
+          path = path.normalize();
+          files.add(path.toFile());
         }
       }
       compress(files, output);
     }
   }
-  }
+}

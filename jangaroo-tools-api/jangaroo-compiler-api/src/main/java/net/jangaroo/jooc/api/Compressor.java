@@ -17,6 +17,8 @@ public interface Compressor {
   /**
    * Same as {@link #compress(Collection, File)}, but the list of input file paths is read from
    * a file, line by line.
+   *
+   * <p>Paths within fileList are interpreted relative to the directory in which the fileList resides.
    */
   void compressFileList(File fileList, File output) throws IOException;
 }
