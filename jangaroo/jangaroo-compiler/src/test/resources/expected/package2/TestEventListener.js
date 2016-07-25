@@ -4,12 +4,21 @@ import ext.events.PanelEvent;
 
 public class TestEventListener {
 
-  public*/ function TestEventListener$() {
-    var panel/*:Panel*/ = AS3.cast(ext.Panel,{});
-    panel.title = "not yet clicked.";
+  private var panel:Panel =*/function panel_(){this.panel$1=( AS3.cast(ext.Panel,{}));}/*;
+
+  public*/ function TestEventListener$() {var this$=this;panel_.call(this);
+    AS3.setBindable(this.panel$1,"title" , "not yet clicked.");
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
-      panel.title = "clicked!";
+      AS3.setBindable(this$.getThis().getPanel(),"title" , "clicked!");
     } );
+  }/*
+
+  public*/ function getThis()/*:TestEventListener*/ {
+    return this;
+  }/*
+
+  public*/ function getPanel()/*:Panel*/ {
+    return this.panel$1;
   }/*
 }
 }
@@ -17,6 +26,8 @@ public class TestEventListener {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestEventListener$,
+      getThis: getThis,
+      getPanel: getPanel,
       uses: [
         "ext.Panel",
         "ext.events.PanelEvent"

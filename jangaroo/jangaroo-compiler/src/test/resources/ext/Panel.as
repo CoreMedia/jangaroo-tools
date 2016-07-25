@@ -8,8 +8,10 @@ public class Panel extends Observable {
   public function Panel(config:Object) {
   }
 
+  [Bindable]
   public native function get title():String;
 
+  [Bindable]
   public native function set title(value:String):void;
 
   [DefaultProperty]

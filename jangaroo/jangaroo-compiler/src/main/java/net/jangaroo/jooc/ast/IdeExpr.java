@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -121,15 +122,35 @@ public class IdeExpr extends Expr {
     super.analyze(parentNode);
     getIde().analyze(this);
     getIde().analyzeAsExpr(parentNode, this);
-    IdeDeclaration type = getIde().resolveDeclaration();
-    if (type instanceof VariableDeclaration) {
-      TypeRelation optTypeRelation = ((VariableDeclaration) type).getOptTypeRelation();
-      type = optTypeRelation == null ? null : optTypeRelation.getType().getIde().getDeclaration(false);
+    IdeDeclaration declaration = getIde().getDeclaration(false);
+    ExpressionType.MetaType metaType = null;
+    ClassDeclaration classDeclaration = null;
+    if (declaration instanceof ClassDeclaration) {
+      metaType = ExpressionType.MetaType.CLASS;
+      classDeclaration = (ClassDeclaration) declaration;
+    } else if (declaration instanceof Typed) {
+      TypeRelation optTypeRelation = ((Typed) declaration).getOptTypeRelation();
+      if (optTypeRelation != null) {
+        IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
+        if (typeDeclaration instanceof ClassDeclaration) {
+          metaType = declaration instanceof FunctionDeclaration && !((FunctionDeclaration)declaration).isGetterOrSetter()
+                  ? ExpressionType.MetaType.FUNCTION
+                  : ExpressionType.MetaType.INSTANCE;
+          classDeclaration = (ClassDeclaration) typeDeclaration;
+        }
+      }
     }
-    setType(type);
+    if (metaType != null) {
+      setType(new ExpressionType(metaType, classDeclaration));
+    }
+
   }
 
   public JooSymbol getSymbol() {
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      return normalizedExpr.getSymbol();
+    }
     return getIde().getSymbol();
   }
 

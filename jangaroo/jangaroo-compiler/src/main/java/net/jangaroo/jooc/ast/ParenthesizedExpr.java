@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,8 +56,10 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    if (getExpr() != null) {
-      getExpr().analyze(this);
+    E expr = getExpr();
+    if (expr != null) {
+      expr.analyze(this);
+      setType(expr.getType());
     }
   }
 
@@ -77,7 +80,7 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
   }
 
   @Override
-  public IdeDeclaration getType() {
+  public ExpressionType getType() {
     return expr == null ? null : expr.getType();
   }
 

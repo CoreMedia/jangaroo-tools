@@ -55,9 +55,9 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   private static TypeRelation computeTypeRelation(JooSymbol symGetOrSet, Parameters params, TypeRelation optTypeRelation) {
-    return isGetter(symGetOrSet) ? optTypeRelation
-            : isSetter(symGetOrSet) && params != null ? params.getHead().getOptTypeRelation()
-            : null;
+    return isSetter(symGetOrSet)
+            ? params == null ? null : params.getHead().getOptTypeRelation()
+            : optTypeRelation;
   }
 
   @Override

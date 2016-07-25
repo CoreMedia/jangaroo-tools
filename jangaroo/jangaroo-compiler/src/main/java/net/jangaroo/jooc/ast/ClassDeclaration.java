@@ -39,7 +39,7 @@ import java.util.Set;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class ClassDeclaration extends IdeDeclaration {
+public class ClassDeclaration extends TypeDeclaration {
 
   private JooSymbol symClass;
   private Extends optExtends;
@@ -245,10 +245,12 @@ public class ClassDeclaration extends IdeDeclaration {
     }
   }
 
+  @Override
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
     return members.get(memberName);
   }
 
+  @Override
   public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
     return staticMembers.get(memberName);
   }
@@ -365,7 +367,7 @@ public class ClassDeclaration extends IdeDeclaration {
     if ("Object".equals(superType.getIde().getQualifiedNameStr())) {
       return 1;
     }
-    IdeDeclaration superClassDecl = superType.getIde().getDeclaration();
+    TypeDeclaration superClassDecl = superType.getDeclaration();
     if (!(superClassDecl instanceof ClassDeclaration)) {
       throw new CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
     }
@@ -373,8 +375,9 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
 
+  @Override
   public ClassDeclaration getSuperTypeDeclaration() {
-    return superType == null ? null : (ClassDeclaration) superType.getIde().getDeclaration();
+    return superType == null ? null : (ClassDeclaration) superType.getDeclaration();
   }
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {

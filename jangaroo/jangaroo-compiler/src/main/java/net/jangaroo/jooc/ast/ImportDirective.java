@@ -83,6 +83,14 @@ public class ImportDirective extends Directive {
     scope.addImport(this);
   }
 
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    if (!"*".equals(getIde().getName())) {
+      getIde().getScope().getCompiler().resolveImport(this);
+    }
+  }
+
   public String getQualifiedName() {
     return getIde().getQualifiedNameStr();
   }

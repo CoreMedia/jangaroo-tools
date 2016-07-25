@@ -29,6 +29,12 @@ public class AssignmentOpExpr extends BinaryOpExpr {
   }
 
   @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    setType(getArg1().getType());
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitAssignmentOpExpr(this);
   }

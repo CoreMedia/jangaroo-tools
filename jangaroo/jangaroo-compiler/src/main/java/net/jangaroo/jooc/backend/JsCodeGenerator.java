@@ -69,6 +69,7 @@ import net.jangaroo.jooc.ast.SwitchStatement;
 import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
@@ -92,6 +93,7 @@ import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.util.MessageFormat;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -233,18 +235,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (arg instanceof IdeExpr) {
       arg = ((IdeExpr)arg).getNormalizedExpr();
     }
-    IdeDeclaration type = arg.getType();
-    if (type == null && arg instanceof IdeExpr) {
-      Ide argIde = ((IdeExpr) arg).getIde();
-      IdeDeclaration ideDeclaration = argIde.getDeclaration(false);
-      if (ideDeclaration instanceof ClassDeclaration) {
-        memberDeclaration = ((ClassDeclaration)ideDeclaration).getStaticMemberDeclaration(ide.getName());
-      } else {
-        type = ideDeclaration;
-      }
-    }
+    ExpressionType type = arg.getType();
     if (type != null) {
-      memberDeclaration = Ide.resolveMember(type, ide);
+      if (type.getMetaType() == ExpressionType.MetaType.CLASS) {
+        memberDeclaration = type.getDeclaration().getStaticMemberDeclaration(ide.getName());
+      } else {
+        memberDeclaration = Ide.resolveMember(type.getDeclaration(), ide);
+      }
     }
 
     String memberName = ide.getName();
@@ -751,8 +748,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         symDot = dotExpr.getOp();
       }
       if (setter != null && dotExprArg != null) {
-        AstNode normalizedDotExprArg = dotExprArg instanceof IdeExpr ? ((IdeExpr) dotExprArg).getNormalizedExpr() : dotExprArg;
-        out.writeSymbolWhitespace(normalizedDotExprArg.getSymbol());
+        out.writeSymbolWhitespace(dotExprArg.getSymbol());
         out.write("AS3.setBindable(");
         visitInExpressionMode(dotExprArg);
         writeSymbolReplacement(symDot, ",");
@@ -769,9 +765,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private String resolveBindable(DotExpr dotExpr, MethodType methodType) throws IOException {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
-    IdeDeclaration lhsType = dotExpr.getArg().getType();
-    if (lhsType instanceof ClassDeclaration) {
-      MemberModel member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, (ClassDeclaration) lhsType);
+    ExpressionType lhsType = dotExpr.getArg().getType();
+    if (lhsType != null && lhsType.getMetaType() == ExpressionType.MetaType.INSTANCE) {
+      MemberModel member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, lhsType.getDeclaration());
       return member == null ? null : member.getName();
     }
     if (lhsType instanceof Typed) {
@@ -786,7 +782,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
+  private MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
     MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
@@ -826,7 +822,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
 
-  private MemberModel lookupPropertyDeclaration(ClassDeclaration classDeclaration, String memberName,
+  private MemberModel lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
                                                        MethodType methodType) throws IOException {
     MemberModel member;
     ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
@@ -1288,8 +1284,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitForInStatement(final ForInStatement forInStatement) throws IOException {
     final Ide exprAuxIde = forInStatement.getExprAuxIde();
-    IdeDeclaration exprType = forInStatement.getExpr().getType();
-    String exprTypeName = exprType != null  ? exprType.getQualifiedNameStr() : "";
+    ExpressionType exprType = forInStatement.getExpr().getType();
+    String exprTypeName = exprType != null && exprType.getMetaType() == ExpressionType.MetaType.INSTANCE ? exprType.getDeclaration().getQualifiedNameStr() : "";
     boolean iterateArrayMode = "Array".equals(exprTypeName) || "Vector$object".equals(exprTypeName);
     if (exprAuxIde != null && !iterateArrayMode) {
       new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);

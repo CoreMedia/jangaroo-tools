@@ -17,6 +17,8 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 
@@ -39,7 +41,7 @@ public class ArrayLiteral extends ParenthesizedExpr<CommaSeparatedList<Expr>> {
 
   @Override
   public void analyze(AstNode parentNode) {
-    setType(scope.lookupDeclaration(new Ide("Array")));
+    setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.ARRAY.name)));
     super.analyze(parentNode);
   }
 
