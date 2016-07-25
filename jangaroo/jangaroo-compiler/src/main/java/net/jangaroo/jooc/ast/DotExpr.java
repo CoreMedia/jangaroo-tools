@@ -73,23 +73,24 @@ public class DotExpr extends PostfixOpExpr {
     ExpressionType qualifierExpressionType = getArg().getType();
     TypeDeclaration qualifierType = null;
     if (qualifierExpressionType != null) {
-      if (qualifierExpressionType.getMetaType() == ExpressionType.MetaType.INSTANCE) {
-        qualifierType = qualifierExpressionType.getDeclaration();
-      } else if (qualifierExpressionType.getMetaType() == ExpressionType.MetaType.FUNCTION) {
-        qualifierType = ide.getScope().getClassDeclaration("Function");
+      switch (qualifierExpressionType.getMetaType()) {
+        case INSTANCE:
+        case CLASS:
+          qualifierType = qualifierExpressionType.getDeclaration();
+          break;
+        case FUNCTION:
+          qualifierType = ide.getScope().getClassDeclaration("Function");
+          break;
       }
     }
     if (qualifierType != null) {
       if (!AS3Type.ANY.name.equals(qualifierType.getName())) {
-        IdeDeclaration memberDeclaration = qualifierType.resolvePropertyDeclaration(getIde().getName());
+        IdeDeclaration memberDeclaration = qualifierType.resolvePropertyDeclaration(getIde().getName(), qualifierExpressionType.getMetaType() == ExpressionType.MetaType.CLASS);
         if (memberDeclaration == null) {
           if (!qualifierType.isDynamic()) {
             getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
           }
           return;
-        }
-        if (memberDeclaration.isStatic()) {
-          throw JangarooParser.error(getIde().getIde(), "static member used in dynamic context");
         }
         if (memberDeclaration instanceof Typed) {
           TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
@@ -105,7 +106,6 @@ public class DotExpr extends PostfixOpExpr {
         }
       }
     }
-    // TODO: other meta types!
   }
 
 }

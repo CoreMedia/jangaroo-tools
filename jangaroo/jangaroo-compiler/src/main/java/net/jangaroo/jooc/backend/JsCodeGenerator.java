@@ -240,7 +240,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (type.getMetaType() == ExpressionType.MetaType.CLASS) {
         memberDeclaration = type.getDeclaration().getStaticMemberDeclaration(ide.getName());
       } else {
-        memberDeclaration = Ide.resolveMember(type.getDeclaration(), ide);
+        memberDeclaration = type.getDeclaration().resolvePropertyDeclaration(ide.getName());
       }
     }
 

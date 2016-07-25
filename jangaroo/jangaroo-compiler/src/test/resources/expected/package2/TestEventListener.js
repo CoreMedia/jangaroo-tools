@@ -10,6 +10,7 @@ public class TestEventListener {
     AS3.setBindable(this.panel$1,"title" , "not yet clicked.");
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(this$.getThis().getPanel(),"title" , "clicked!");
+      AS3.setBindable(this$.panel$1.layout.getOwner(),"title" , "clicked!");
     } );
   }/*
 

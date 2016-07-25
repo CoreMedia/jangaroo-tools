@@ -63,11 +63,11 @@ public class IdeExpr extends Expr {
     if (normalizedExpr == null) {
       normalizedExpr = this;
       IdeDeclaration ideDeclaration = ide.getDeclaration(false);
-      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE withouth declaration => DotExpr
+      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE without declaration => DotExpr
               (ideDeclaration != null && ideDeclaration.isClassMember())) {  // "this." or "<Class>." may have to be synthesized
         DotExpr dotExpr = null;
         if (ide instanceof QualifiedIde) {
-          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()).getNormalizedExpr(), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
         } else if (!ideDeclaration.isStatic()) {
           // non-static class member: synthesize "this."
           JooSymbol ideSymbol = ide.getSymbol();
@@ -122,6 +122,11 @@ public class IdeExpr extends Expr {
     super.analyze(parentNode);
     getIde().analyze(this);
     getIde().analyzeAsExpr(parentNode, this);
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      setType(normalizedExpr.getType());
+      return;
+    }
     IdeDeclaration declaration = getIde().getDeclaration(false);
     ExpressionType.MetaType metaType = null;
     ClassDeclaration classDeclaration = null;

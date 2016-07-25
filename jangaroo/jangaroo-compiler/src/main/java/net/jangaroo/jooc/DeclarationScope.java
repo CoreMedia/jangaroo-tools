@@ -25,6 +25,7 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
+import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.utils.AS3Type;
 
@@ -149,7 +150,7 @@ public class DeclarationScope extends AbstractScope {
         return getClassDeclaration().resolvePropertyDeclaration(ide.getName());
       }
       if (ide.isQualifiedBySuper()) {
-        final IdeDeclaration superTypeDeclaration = getClassDeclaration().getSuperTypeDeclaration();
+        final TypeDeclaration superTypeDeclaration = getClassDeclaration().getSuperTypeDeclaration();
         return superTypeDeclaration == null ? null : superTypeDeclaration.resolvePropertyDeclaration(ide.getName());
       }
     } else {
@@ -159,13 +160,17 @@ public class DeclarationScope extends AbstractScope {
         if (failOnAmbigousImport && importsOfThisIde.size() > 1) {
           ambigousImport(ide, importsOfThisIde);
         }
-        return resolveImport(importsOfThisIde.get(0));
+        try {
+          return resolveImport(importsOfThisIde.get(0));
+        } catch (CompilerError e) {
+          getCompiler().getLog().error(ide.getIde(), e.getMessage());
+        }
       }
       decl = ides.get(ide.getName());
       if (decl == null && getDefiningNode() != null && getClassDeclaration() == getDefiningNode()) {
-        decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName());
-        if (decl != null && !isInstanceScope && !decl.isStatic()) {
-          decl = null;
+        decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName(), true);
+        if (decl == null && isInstanceScope) {
+          decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName(), false);
         }
       }
     }

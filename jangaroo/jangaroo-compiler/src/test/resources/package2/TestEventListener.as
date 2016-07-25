@@ -10,6 +10,7 @@ public class TestEventListener {
     panel.title = "not yet clicked.";
     panel.addEventListener( PanelEvent.FLOPS, function(event:PanelEvent):void {
       getThis().getPanel().title = "clicked!";
+      panel.layout.getOwner().title = "clicked!";
     } );
   }
 

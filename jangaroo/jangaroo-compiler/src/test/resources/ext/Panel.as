@@ -1,4 +1,5 @@
 package ext {
+import ext.layout.ContainerLayout;
 import ext.mixin.Observable;
 
 [Event(name="onFlipFlop", type="ext.events.PanelEvent")]
@@ -19,8 +20,8 @@ public class Panel extends Observable {
 
   public native function set items(value:Array):void;
 
-  public native function get layout():*;
+  public native function get layout():ContainerLayout;
 
-  public native function set layout(value:*):void;
+  public native function set layout(value:ContainerLayout):void;
 }
 }

@@ -267,7 +267,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     try {
       compilationUnit = getCompilationUnit(qname);
     } catch (CompilerError e) {
-      throw error(importDirective.getSymbol(), "Unable to import " + qname + ": error while parsing its source (see below).", e);
+      getLog().error(e.getSymbol(), e.getMessage());
+      throw error(importDirective.getSymbol(), "Unable to import " + qname + ": error while parsing its source (see error above).");
     }
     if (compilationUnit == null) {
       throw error(importDirective.getSymbol(), "unable to resolve import of " + qname);
