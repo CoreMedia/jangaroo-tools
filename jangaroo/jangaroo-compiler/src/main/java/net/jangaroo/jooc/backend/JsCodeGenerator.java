@@ -834,7 +834,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     // TODO: also look in implemented interfaces first!
 
-    IdeDeclaration primaryDeclaration = classDeclaration.getCompilationUnit().getPrimaryDeclaration();
+    CompilationUnit compilationUnit = classDeclaration.getCompilationUnit();
+    if (compilationUnit == null) {
+      // predefined types (*, void) declare no properties:
+      return null;
+    }
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     CompilationUnitModel compilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(primaryDeclaration.getQualifiedNameStr());
     member = compilationUnitModel.getClassModel().getMember(memberName);
     if (member instanceof PropertyModel) {
