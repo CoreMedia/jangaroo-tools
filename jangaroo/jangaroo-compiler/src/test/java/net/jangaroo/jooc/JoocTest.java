@@ -103,6 +103,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testTestTypeCast() throws Exception {
+    assertCompilationResult("package1/TestTypeCast");
+  }
+
+  @Test
   public void testMixin() throws Exception {
     final String relativeClassFileName = "package2/ITestMixin";
     compile(relativeClassFileName);
