@@ -1,7 +1,7 @@
 package suite {
 import net.jangaroo.example.HelloWorldTest;
 
-import flexunit.framework.TestSuite;
+//import flexunit.framework.TestSuite;
 
 public class TestSuite {
 
