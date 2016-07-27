@@ -34,7 +34,7 @@ public class AsExpr extends InfixOpExpr {
     super.analyze(parentNode);
     ExpressionType targetType = getArg2().getType();
     if (targetType != null && targetType.getMetaType() == ExpressionType.MetaType.CLASS) {
-      setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, targetType.getDeclaration()));
+      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, targetType.getDeclaration()));
     }
   }
 

@@ -15,7 +15,6 @@
 
 package net.jangaroo.jooc.ast;
 
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -97,7 +96,7 @@ public class DotExpr extends PostfixOpExpr {
           if (typeRelation != null) {
             TypeDeclaration memberTypeDeclaration = typeRelation.getType().getDeclaration();
             if (memberTypeDeclaration != null) {
-              setType(new ExpressionType(memberDeclaration instanceof FunctionDeclaration && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter()
+              setType(ExpressionType.create(memberDeclaration instanceof FunctionDeclaration && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter()
                       ? ExpressionType.MetaType.FUNCTION
                       : ExpressionType.MetaType.INSTANCE,
                       memberTypeDeclaration));

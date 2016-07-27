@@ -100,7 +100,7 @@ public class ApplyExpr extends Expr {
     }
     ExpressionType type = getFun().getType();
     if (type != null && type.getMetaType() != ExpressionType.MetaType.INSTANCE) {
-      setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, type.getDeclaration()));
+      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, type.getDeclaration()));
     }
   }
 

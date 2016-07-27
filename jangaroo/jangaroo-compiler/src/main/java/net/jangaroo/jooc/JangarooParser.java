@@ -10,6 +10,7 @@ import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
+import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
@@ -60,16 +61,24 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private List<String> compilableSuffixes = Arrays.asList(Jooc.PROPERTIES_SUFFIX, Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
   private final Scope globalScope = new DeclarationScope(null, null, this);
+  private final TypeDeclaration voidType = declareType(globalScope, AS3Type.VOID.toString());
+  private final TypeDeclaration anyType = declareType(globalScope, AS3Type.ANY.toString());
 
   {
-    declareType(globalScope, AS3Type.VOID.toString());
-    declareType(globalScope, AS3Type.ANY.toString());
     declareValues(globalScope, new String[]{Ide.THIS});
   }
 
   public JangarooParser(@Nonnull ParserOptions config, @Nonnull CompileLog log) {
     this.config = config;
     this.log = log;
+  }
+
+  public TypeDeclaration getAnyType() {
+    return anyType;
+  }
+
+  public TypeDeclaration getVoidType() {
+    return anyType;
   }
 
   public static CompilerError error(String msg) {
@@ -187,9 +196,10 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return new StringReader(output);
   }
 
-  private static void declareType(Scope scope, String identifier) {
-    IdeDeclaration decl = new PredefinedTypeDeclaration(identifier);
+  private static TypeDeclaration declareType(Scope scope, String identifier) {
+    TypeDeclaration decl = new PredefinedTypeDeclaration(identifier);
     decl.scope(scope);
+    return decl;
   }
 
   protected static void declareValues(Scope scope, String[] identifiers) {

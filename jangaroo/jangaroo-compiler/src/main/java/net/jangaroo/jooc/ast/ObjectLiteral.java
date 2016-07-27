@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
-import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -67,7 +66,7 @@ public class ObjectLiteral extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration("Object")));
+    setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration("Object")));
     if (getFields() != null) {
       getFields().analyze(this);
     }

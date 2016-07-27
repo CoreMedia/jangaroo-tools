@@ -146,7 +146,7 @@ public class IdeExpr extends Expr {
       }
     }
     if (metaType != null) {
-      setType(new ExpressionType(metaType, classDeclaration));
+      setType(ExpressionType.create(metaType, classDeclaration));
     }
 
   }

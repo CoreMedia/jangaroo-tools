@@ -41,7 +41,7 @@ public class ArrayLiteral extends ParenthesizedExpr<CommaSeparatedList<Expr>> {
 
   @Override
   public void analyze(AstNode parentNode) {
-    setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.ARRAY.name)));
+    setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.ARRAY.name)));
     super.analyze(parentNode);
   }
 

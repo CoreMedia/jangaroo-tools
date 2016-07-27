@@ -42,7 +42,7 @@ public class IsExpr extends InfixOpExpr {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.BOOLEAN.name)));
+    setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.BOOLEAN.name)));
   }
 
   @Override

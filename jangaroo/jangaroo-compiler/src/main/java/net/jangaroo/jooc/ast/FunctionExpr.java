@@ -152,10 +152,10 @@ public class FunctionExpr extends Expr {
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
     }
-    setType(new ExpressionType(ExpressionType.MetaType.FUNCTION,
-            optTypeRelation == null
-                    ? null
-                    : optTypeRelation.getType().resolveDeclaration()));
+    if (optTypeRelation != null) {
+      setType(ExpressionType.create(ExpressionType.MetaType.FUNCTION,
+              optTypeRelation.getType().resolveDeclaration()));
+    }
     if (optBody != null) {
       optBody.analyze(this);
     }
