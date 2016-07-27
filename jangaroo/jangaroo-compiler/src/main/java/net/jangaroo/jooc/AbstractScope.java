@@ -142,6 +142,16 @@ public abstract class AbstractScope implements Scope {
   }
 
   @Override
+  public ClassDeclaration getClassDeclaration(String qname) {
+    CompilationUnit compilationUnit = getCompiler().getCompilationUnit(qname);
+    if (compilationUnit == null) {
+      return null;
+    }
+    IdeDeclaration declaration = compilationUnit.getPrimaryDeclaration();
+    return declaration instanceof ClassDeclaration ? (ClassDeclaration) declaration : null;
+  }
+
+  @Override
   public FunctionDeclaration getMethodDeclaration() {
     return parent == null ? null : parent.getMethodDeclaration();
   }

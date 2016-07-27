@@ -12,6 +12,9 @@ public class TestComponentBase implements TestInterface {
    */
   public native function set store(value:*):void;
 
+  public var emptyText:String;
+  public var letters:Array;
+
   private var property_1:String;
   private var property_2:int;
 

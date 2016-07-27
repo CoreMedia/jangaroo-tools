@@ -24,7 +24,7 @@ public class TestArrayForIn {
       doSomething$static(e2a);
     }
     // test rewrite of Array for each ... in with field using explicit class
-    for/* each*/ (var $6 in/* TestArrayForIn.*/array$static) {var e2b/*:int*/ =/*TestArrayForIn.*/array$static[$6];
+    for/* each*/ (var $6=0;$6</* in TestArrayForIn.*/array$static.length;++$6) {var e2b/*:int*/ =/*TestArrayForIn.*/array$static[$6];
       doSomething$static(e2b);
     }
     // test rewrite of Array for each ... in with static const

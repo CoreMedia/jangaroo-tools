@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -62,11 +63,11 @@ public class IdeExpr extends Expr {
     if (normalizedExpr == null) {
       normalizedExpr = this;
       IdeDeclaration ideDeclaration = ide.getDeclaration(false);
-      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE withouth declaration => DotExpr
+      if ((ide instanceof QualifiedIde && ideDeclaration == null) ||  // qualified IDE without declaration => DotExpr
               (ideDeclaration != null && ideDeclaration.isClassMember())) {  // "this." or "<Class>." may have to be synthesized
         DotExpr dotExpr = null;
         if (ide instanceof QualifiedIde) {
-          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()).getNormalizedExpr(), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
         } else if (!ideDeclaration.isStatic()) {
           // non-static class member: synthesize "this."
           JooSymbol ideSymbol = ide.getSymbol();
@@ -121,15 +122,40 @@ public class IdeExpr extends Expr {
     super.analyze(parentNode);
     getIde().analyze(this);
     getIde().analyzeAsExpr(parentNode, this);
-    IdeDeclaration type = getIde().resolveDeclaration();
-    if (type instanceof VariableDeclaration) {
-      TypeRelation optTypeRelation = ((VariableDeclaration) type).getOptTypeRelation();
-      type = optTypeRelation == null ? null : optTypeRelation.getType().getIde().getDeclaration(false);
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      setType(normalizedExpr.getType());
+      return;
     }
-    setType(type);
+    IdeDeclaration declaration = getIde().getDeclaration(false);
+    ExpressionType.MetaType metaType = null;
+    ClassDeclaration classDeclaration = null;
+    if (declaration instanceof ClassDeclaration) {
+      metaType = ExpressionType.MetaType.CLASS;
+      classDeclaration = (ClassDeclaration) declaration;
+    } else if (declaration instanceof Typed) {
+      TypeRelation optTypeRelation = ((Typed) declaration).getOptTypeRelation();
+      if (optTypeRelation != null) {
+        IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
+        if (typeDeclaration instanceof ClassDeclaration) {
+          metaType = declaration instanceof FunctionDeclaration && !((FunctionDeclaration)declaration).isGetterOrSetter()
+                  ? ExpressionType.MetaType.FUNCTION
+                  : ExpressionType.MetaType.INSTANCE;
+          classDeclaration = (ClassDeclaration) typeDeclaration;
+        }
+      }
+    }
+    if (metaType != null) {
+      setType(new ExpressionType(metaType, classDeclaration));
+    }
+
   }
 
   public JooSymbol getSymbol() {
+    Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr != this) {
+      return normalizedExpr.getSymbol();
+    }
     return getIde().getSymbol();
   }
 

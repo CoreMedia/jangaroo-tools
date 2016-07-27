@@ -68,7 +68,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
 
-  private List<CompilationUnit> compileQueue = new ArrayList<CompilationUnit>();
+  private List<FileInputSource> compileQueue = new ArrayList<FileInputSource>();
 
   public Jooc() {
     this(new JoocConfiguration());
@@ -154,34 +154,39 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         apiSinkFactory = createSinkFactory(getConfig(), true);
       }
       ImplementedMembersAnalyzer implementedMembersAnalyzer = new ImplementedMembersAnalyzer(this);
-      for (CompilationUnit unit : compileQueue) {
-        unit.analyze(null);
-        if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
-          reportPublicApiViolations(unit);
-        }
+      for (InputSource inputSource : compileQueue) {
+        CompilationUnit unit = importSource(inputSource, false);
+        if (unit != null) {
+          checkValidFileName(unit);
+          unit.analyze(null);
+          if (getConfig().getPublicApiViolationsMode() != PublicApiViolationsMode.ALLOW) {
+            reportPublicApiViolations(unit);
+          }
 
-        implementedMembersAnalyzer.analyzeImplementedMembers(unit);
+          implementedMembersAnalyzer.analyzeImplementedMembers(unit);
+        }
       }
 
       analyzeDependencies();
 
-      for (CompilationUnit unit : compileQueue) {
-        checkValidFileName(unit);
-
-        InputSource source = getInputSource(unit);
+      for (InputSource source : compileQueue) {
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
-        // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
-        if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
-                && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
-          outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
-        } else if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
+        if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
           outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
         }
-        outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
-        if (getConfig().isGenerateApi()) {
-          writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+        CompilationUnit unit = importSource(source, false);
+        if (unit != null) {
+          // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
+          if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
+                  && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
+            outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+          }
+          if (getConfig().isGenerateApi()) {
+            writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+          }
         }
+        outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
       }
 
       compileQueue.clear();
@@ -378,10 +383,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 //      }
 //      throw Jooc.error(String.format("Compilation unit %s defined in %s is redeclared in %s.", qName, canonicalInputSource.getPath(), file.getPath()), file);
 //    }
-    CompilationUnit unit = importSource(new FileInputSource(sourceDir, file, true), true);
-    if (unit != null) {
-      compileQueue.add(unit);
-    }
+    FileInputSource inputSource = new FileInputSource(sourceDir, file, true);
+    compileQueue.add(inputSource);
+    importSource(inputSource, true);
   }
 
   public static int run(String[] argv, CompileLog log) {

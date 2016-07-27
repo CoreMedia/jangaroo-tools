@@ -58,15 +58,32 @@ public class Type extends NodeImplBase {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getIde().analyze(this);
+    Ide ide = getIde();
+    ide.analyze(this);
+    if (ide instanceof IdeWithTypeParam) {
+      ((IdeWithTypeParam) ide).getType().analyze(this);
+    } else {
+      if (!(ide.getDeclaration() instanceof TypeDeclaration)) {
+        ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
+      }
+    }
   }
 
   public JooSymbol getSymbol() {
     return getIde().getSymbol();
   }
 
-  public IdeDeclaration resolveDeclaration() {
-    return getIde().getDeclaration(false);
+  public TypeDeclaration getDeclaration() {
+    return getDeclaration(true);
+  }
+
+  public TypeDeclaration resolveDeclaration() {
+    return getDeclaration(false);
+  }
+
+  public TypeDeclaration getDeclaration(boolean errorIfUndeclared) {
+    IdeDeclaration declaration = getIde().getDeclaration(errorIfUndeclared);
+    return declaration instanceof TypeDeclaration ? (TypeDeclaration) declaration : null;
   }
 
 }

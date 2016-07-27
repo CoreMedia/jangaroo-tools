@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
@@ -151,6 +152,10 @@ public class FunctionExpr extends Expr {
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
     }
+    setType(new ExpressionType(ExpressionType.MetaType.FUNCTION,
+            optTypeRelation == null
+                    ? null
+                    : optTypeRelation.getType().resolveDeclaration()));
     if (optBody != null) {
       optBody.analyze(this);
     }

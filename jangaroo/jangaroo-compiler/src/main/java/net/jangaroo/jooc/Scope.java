@@ -73,4 +73,6 @@ public interface Scope {
   DeclarationScope getPackageDeclarationScope();
 
   JangarooParser getCompiler();
+
+  ClassDeclaration getClassDeclaration(String qname);
 }

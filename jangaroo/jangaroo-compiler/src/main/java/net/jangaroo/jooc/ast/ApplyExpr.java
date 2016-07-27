@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -81,29 +82,25 @@ public class ApplyExpr extends Expr {
   }
 
   private boolean isNonCoercingType(IdeExpr fun) {
-    IdeDeclaration funType = fun.getType();
-    if (funType != null && "Class".equals(funType.getQualifiedNameStr())) {
-      // treat any expression of type "Class" as a type cast:
-      return true;
-    }
-    final Ide ide = fun.getIde();
-    IdeDeclaration declaration = ide.getDeclaration(false);
-    return declaration != null &&
-            (declaration instanceof ClassDeclaration || declaration instanceof PredefinedTypeDeclaration ||
-                    (declaration instanceof FunctionDeclaration && declaration.isConstructor()))
-            && (declaration.isClassMember() || !isCoerceFunction(declaration.getQualifiedNameStr())
-    );
+    // treat any expression of type "Class" as a type cast:
+    return fun.getType() != null && fun.getType().getMetaType() == ExpressionType.MetaType.CLASS
+            && !isCoerceFunction(fun.getType().getDeclaration().getQualifiedNameStr());
   }
 
   public static boolean isCoerceFunction(String qualifiedName) {
     return COERCE_FUNCTION_NAMES.contains(qualifiedName);
   }
 
+  @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getFun().analyze(this);
     if (getArgs() != null) {
       getArgs().analyze(this);
+    }
+    ExpressionType type = getFun().getType();
+    if (type != null && type.getMetaType() != ExpressionType.MetaType.INSTANCE) {
+      setType(new ExpressionType(ExpressionType.MetaType.INSTANCE, type.getDeclaration()));
     }
   }
 

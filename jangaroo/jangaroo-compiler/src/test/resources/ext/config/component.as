@@ -1,4 +1,5 @@
 package ext.config {
+import ext.Action;
 
 [ExtConfig(target="ext.Component", xtype="component")]
 public class component {
@@ -16,6 +17,9 @@ public class component {
    * @private
    */
   public native function set extId(value:String):void;
+
+  public native function get baseAction():Action;
+  public native function set baseAction(value:Action):void;
 
    /**
    * the x value

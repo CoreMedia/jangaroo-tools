@@ -56,16 +56,14 @@
     </fx:Array>
   </fx:Declarations>
   <!-- superclass of the the component with attributes-->
-  <panel title="I am a panel" layout="{config.myLayout}">
+  <panel title="I am a panel" layout="{config.myProperty}">
     <!-- define some attributes through a typed mixin: -->
     <mixins>
       <someMixin>
         <someList exml:mode="append">
           <button text="click me!" extId="myId">
             <baseAction>
-              <ext:Action>
-                <action/>
-              </ext:Action>
+              <ext:Action/>
             </baseAction>
           </button>
         </someList>

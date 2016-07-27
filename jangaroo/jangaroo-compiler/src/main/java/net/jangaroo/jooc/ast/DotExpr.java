@@ -18,6 +18,8 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,21 +70,42 @@ public class DotExpr extends PostfixOpExpr {
   public void analyze(final AstNode parentNode) {
     super.analyze(parentNode);
     ide.analyze(this);
-    IdeDeclaration qualiferType = getArg().getType();
-    if (qualiferType != null) {
-      IdeDeclaration memberDeclaration = getArg().getType().resolvePropertyDeclaration(getIde().getName());
-      if (memberDeclaration != null && memberDeclaration.isStatic()) {
-        throw JangarooParser.error(getIde().getIde(), "static member used in dynamic context");
+    ExpressionType qualifierExpressionType = getArg().getType();
+    TypeDeclaration qualifierType = null;
+    if (qualifierExpressionType != null) {
+      switch (qualifierExpressionType.getMetaType()) {
+        case INSTANCE:
+        case CLASS:
+          qualifierType = qualifierExpressionType.getDeclaration();
+          break;
+        case FUNCTION:
+          qualifierType = ide.getScope().getClassDeclaration("Function");
+          break;
       }
-      if (memberDeclaration instanceof Typed) {
-        TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
-        if (typeRelation != null) {
-          memberDeclaration = typeRelation.getType().getIde().getDeclaration();
+    }
+    if (qualifierType != null) {
+      if (!AS3Type.ANY.name.equals(qualifierType.getName())) {
+        IdeDeclaration memberDeclaration = qualifierType.resolvePropertyDeclaration(getIde().getName(), qualifierExpressionType.getMetaType() == ExpressionType.MetaType.CLASS);
+        if (memberDeclaration == null) {
+          if (!qualifierType.isDynamic()) {
+            getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
+          }
+          return;
+        }
+        if (memberDeclaration instanceof Typed) {
+          TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
+          if (typeRelation != null) {
+            TypeDeclaration memberTypeDeclaration = typeRelation.getType().getDeclaration();
+            if (memberTypeDeclaration != null) {
+              setType(new ExpressionType(memberDeclaration instanceof FunctionDeclaration && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter()
+                      ? ExpressionType.MetaType.FUNCTION
+                      : ExpressionType.MetaType.INSTANCE,
+                      memberTypeDeclaration));
+            }
+          }
         }
       }
-      setType(memberDeclaration);
     }
-
   }
 
 }
