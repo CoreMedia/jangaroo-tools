@@ -168,9 +168,11 @@ public class DeclarationScope extends AbstractScope {
       }
       decl = ides.get(ide.getName());
       if (decl == null && getDefiningNode() != null && getClassDeclaration() == getDefiningNode()) {
-        decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName(), true);
-        if (decl == null && isInstanceScope) {
+        if (isInstanceScope) {
           decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName(), false);
+        }
+        if (decl == null) {
+          decl = getClassDeclaration().resolvePropertyDeclaration(ide.getName(), true);
         }
       }
     }
