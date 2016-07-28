@@ -22,12 +22,27 @@ import java.io.IOException;
 /**
  * @author Andreas Gawecki
  */
-public class PredefinedTypeDeclaration extends IdeDeclaration {
+public class PredefinedTypeDeclaration extends TypeDeclaration {
 
   //todo define well-known types as final consts here
 
   public PredefinedTypeDeclaration(final String name) {
     super(new Ide(new JooSymbol(name)));
+  }
+
+  @Override
+  public TypedIdeDeclaration getMemberDeclaration(String memberName) {
+    return null;
+  }
+
+  @Override
+  public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
+    return null;
+  }
+
+  @Override
+  public ClassDeclaration getSuperTypeDeclaration() {
+    return null;
   }
 
   @Override

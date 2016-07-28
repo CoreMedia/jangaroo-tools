@@ -4,9 +4,7 @@
     "dir": "${workspace.dir}/target/sencha/build"
   },
   "packages": {
-    "dir": [
-      "${workspace.dir}/packages/local"
-    ],
+    "dir": [],
     "extract": "${workspace.dir}/packages/remote"
   }
 }

@@ -1,10 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import com.google.common.collect.ImmutableList;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -14,7 +12,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.io.IOException;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
@@ -64,7 +61,6 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
       getLog().info("Sencha app already exists, skip generating one");
       return;
     }
-    File senchaCfg = new File(workingDirectory, SenchaUtils.SENCHA_APP_CONFIG);
 
     String senchaAppName = getSenchaPackageName(project);
     String arguments = "generate app"
@@ -79,15 +75,5 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     getLog().info("Generating Sencha app module");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
-
-    // sencha.cfg should have been recreated.
-    if (!senchaCfg.exists()) {
-      throw new MojoExecutionException("Could not find sencha.cfg of app");
-    }
-
-    // For apps, skip generating slices.
-    // app.output.js.optimize.defines - If true will cause problems with class pre- and post-processors we use.
-    // build.options.minVersion - If 0.99 (default), some deprecated API will not be available in production build:
-    FileHelper.addToConfigFile(senchaCfg, ImmutableList.of("skip.slice=1", "app.output.js.optimize.defines=false", "build.options.minVersion=0"));
   }
 }

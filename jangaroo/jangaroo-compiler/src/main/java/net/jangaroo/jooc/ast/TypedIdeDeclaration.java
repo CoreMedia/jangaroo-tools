@@ -92,6 +92,9 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
       }
       addPublicApiDependencyOn(optTypeRelation);
     }
+    if (optTypeRelation != null) {
+      optTypeRelation.analyze(parentNode);
+    }
   }
 
   @Override
@@ -102,15 +105,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   @Override
   public IdeDeclaration resolveDeclaration() {
-    if (getOptTypeRelation() == null) {
-      return null;
-    } else {
-      if (getOptTypeRelation().getType().getIde().equals(getIde())) {
-        throw JangarooParser.error(getSymbol(), "Type was not found or was not a compile-time constant: " + getIde().getSymbol().getText());
-      } else {
-        return getOptTypeRelation().getType().resolveDeclaration();
-      }
-    }
+    return getOptTypeRelation() == null ? null : getOptTypeRelation().getType().resolveDeclaration();
   }
 
   public TypeRelation getOptTypeRelation() {

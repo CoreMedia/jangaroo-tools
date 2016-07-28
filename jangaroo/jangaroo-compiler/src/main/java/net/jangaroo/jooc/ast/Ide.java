@@ -262,7 +262,6 @@ public class Ide extends NodeImplBase {
       }
       //todo check whether super method exists and is non-static
     }
-    checkDefinedAccessChain();
     if (isBoundMethodCandidate(exprParent, parentExpr)) {
       IdeDeclaration memberDeclaration = getMemberDeclaration();
       // check candidates for instance methods, accessed as function:
@@ -299,30 +298,6 @@ public class Ide extends NodeImplBase {
       }
     }
     addExternalUsage(false);
-    //todo handle references to static super members
-    // check access to another class or a constant of another class; other class then must be initialized:
-    if (!(exprParent instanceof NewExpr) && !(exprParent instanceof IsExpr) && !(exprParent instanceof AsExpr)) {
-      ClassDeclaration classDeclaration = getScope().getClassDeclaration();
-      if (classDeclaration != null) {
-        if (isQualified()) {
-          // access to constant of other class?
-          // TODO: If the static member is a method, we should not add a class init.
-          //       Unfortunately, declaration information seems not to be available at this point in time.
-          if (exprParent instanceof ApplyExpr) {
-            // It seems to be a method. Static methods take care of initializing their class,
-            // but methods of plackage-scope variables do not initialize the compilation unit.
-            // Thus, we only add initialization if the compilation unit is a package-scope variable.
-            classDeclaration.addInitIfGlobalVar(getQualifier());
-          } else {
-            classDeclaration.addInitIfClassOrGlobalVar(getQualifier());
-          }
-        }
-        // access to other class?
-        if (!isQualifier()) {
-          classDeclaration.addInitIfClassOrGlobalVar(this);
-        }
-      }
-    }
   }
 
   private boolean isArgumentOfTypeCast(AstNode parentNode) {
@@ -346,21 +321,6 @@ public class Ide extends NodeImplBase {
     return ideDeclaration;
   }
 
-  private void checkDefinedAccessChain() {
-    if (!isQualified() && //this method is called for every node of a qualified ide tree, so we rely on the call on the root ide
-            !isDeclared() && !isValidPackageAccessChain()) {
-      throw JangarooParser.error(getIde(), "undeclared identifier '" + getName() + "'");
-    }
-  }
-
-  private boolean isValidPackageAccessChain() {
-    if (isQualifier()) {
-      final Ide qualifiedIde = getQualified();
-      return qualifiedIde.isDeclared() || qualifiedIde.isValidPackageAccessChain();
-    }
-    return false;
-  }
-
   private boolean isDeclared() {
     return getDeclaration(false) != null;
   }
@@ -375,14 +335,6 @@ public class Ide extends NodeImplBase {
             exprParent instanceof ObjectField ||
             exprParent instanceof ReturnStatement ||
             (exprParent instanceof AssignmentOpExpr && ((AssignmentOpExpr) exprParent).getArg2() == parentExpr);
-  }
-
-  public static IdeDeclaration resolveMember(final IdeDeclaration type, final Ide memberIde) {
-    IdeDeclaration declaration = null;
-    if (type != null) {
-      declaration = type.resolvePropertyDeclaration(memberIde.getName());
-    }
-    return declaration;
   }
 
   @Override

@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 
@@ -26,6 +27,15 @@ public class AsExpr extends InfixOpExpr {
 
   public AsExpr(Expr e1, JooSymbol symIs, Expr e2) {
     super(e1, symIs, e2);
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    ExpressionType targetType = getArg2().getType();
+    if (targetType != null && targetType.getMetaType() == ExpressionType.MetaType.CLASS) {
+      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, targetType.getDeclaration()));
+    }
   }
 
   @Override

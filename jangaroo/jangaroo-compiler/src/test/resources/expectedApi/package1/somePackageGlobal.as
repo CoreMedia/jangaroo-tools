@@ -6,5 +6,5 @@ import package1.someOtherPackage.SomeOtherClass;
 /**
  * Some package-global documentation;
  */
-public var somePackageGlobal:SomeOtherClass;
+public var somePackageGlobal:package1.someOtherPackage.SomeOtherClass;
 }

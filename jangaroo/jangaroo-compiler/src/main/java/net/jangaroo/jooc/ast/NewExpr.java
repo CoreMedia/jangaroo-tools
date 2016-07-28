@@ -55,6 +55,8 @@ public class NewExpr extends Expr {
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getApplyConstructor().analyze(this);
+    // since the constructor-apply-expression looks like a type cast, we can simply hand through its type:
+    setType(getApplyConstructor().getType());
   }
 
   public JooSymbol getSymbol() {

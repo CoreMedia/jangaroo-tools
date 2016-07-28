@@ -6,12 +6,14 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
@@ -182,8 +184,8 @@ final class MxmlToModelParser {
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
           if (atValue != null) {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-            DotExpr dotExpr = new DotExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_DOT, new Ide(atPropertyName + CONFIG_MODE_AT_SUFFIX));
-            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseImport(atValue).getIde());
+            Expr dotExpr = new ArrayIndexExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_LBRACK, new LiteralExpr(new JooSymbol(CompilerUtils.quote(atPropertyName + CONFIG_MODE_AT_SUFFIX))), MxmlAstUtils.SYM_RBRACK);
+            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseIde(atValue));
             constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
           }
         }
@@ -478,7 +480,7 @@ final class MxmlToModelParser {
     String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(value.getText(), untyped ? null : propertyType));
 
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    boolean untypedAccess = untyped || !propertyName.equals(propertyModel.getName());
+    boolean untypedAccess = true; // untyped || !propertyName.equals(propertyModel.getName());
 
     Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, null));
     return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
@@ -486,7 +488,7 @@ final class MxmlToModelParser {
 
   @Nonnull
   private static String getPropertyAssignmentCode(@Nonnull Ide variable, String propertyName, String attributeValueAsString) {
-    String leftHandSide = Ide.THIS.equals(variable.getName()) ? propertyName : MessageFormat.format("{0}.{1}", variable, propertyName);
+    String leftHandSide = MessageFormat.format("{0}[{1}]", variable.getName(), CompilerUtils.quote(propertyName));
     return MessageFormat.format("{0} = {1};", leftHandSide, attributeValueAsString);
   }
 

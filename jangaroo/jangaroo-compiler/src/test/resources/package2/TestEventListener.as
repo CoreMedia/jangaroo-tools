@@ -4,12 +4,22 @@ import ext.events.PanelEvent;
 
 public class TestEventListener {
 
+  private var panel:Panel = Panel({});
+
   public function TestEventListener() {
-    var panel:Panel = Panel({});
     panel.title = "not yet clicked.";
     panel.addEventListener( PanelEvent.FLOPS, function(event:PanelEvent):void {
-      panel.title = "clicked!";
+      getThis().getPanel().title = "clicked!";
+      panel.layout.getOwner().title = "clicked!";
     } );
+  }
+
+  public function getThis():TestEventListener {
+    return this;
+  }
+
+  public function getPanel():Panel {
+    return this.panel;
   }
 }
 }

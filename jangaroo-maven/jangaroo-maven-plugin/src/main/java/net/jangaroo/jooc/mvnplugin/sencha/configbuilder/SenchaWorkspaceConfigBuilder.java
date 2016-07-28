@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configbuilder;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,25 +19,15 @@ public class SenchaWorkspaceConfigBuilder extends SenchaConfigBuilder<SenchaWork
   }
 
   public SenchaWorkspaceConfigBuilder packagesDirs(List<String> paths) {
-    Map<String, Object> packages = getPackages();
+    Map<String, Object> packages = new LinkedHashMap<>();
     packages.put(DIR, paths);
     return nameValue(PACKAGES, packages);
   }
 
   public SenchaWorkspaceConfigBuilder packagesExtract(String path) {
-    Map<String, Object> packages = getPackages();
+    Map<String, Object> packages = new LinkedHashMap<>();
     packages.put(EXTRACT, path);
     return nameValue(PACKAGES, packages);
-  }
-
-  @Nonnull
-  private Map<String, Object> getPackages() {
-    @SuppressWarnings("unchecked")
-    Map<String, Object> packages = (Map<String, Object>) config.get(PACKAGES);
-    if (packages == null) {
-      packages = new LinkedHashMap<>();
-    }
-    return packages;
   }
 }
 

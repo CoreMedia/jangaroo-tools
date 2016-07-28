@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +31,7 @@ public class ObjectLiteral extends Expr {
   private CommaSeparatedList<ObjectField> fields;
   private JooSymbol optComma;
   private JooSymbol rBrace;
+  private Scope scope;
 
   /**
    * @param lBrace the left brace
@@ -56,6 +58,7 @@ public class ObjectLiteral extends Expr {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
     if (getFields() != null) {
       getFields().scope(scope);
     }
@@ -63,6 +66,7 @@ public class ObjectLiteral extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
+    setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration("Object")));
     if (getFields() != null) {
       getFields().analyze(this);
     }

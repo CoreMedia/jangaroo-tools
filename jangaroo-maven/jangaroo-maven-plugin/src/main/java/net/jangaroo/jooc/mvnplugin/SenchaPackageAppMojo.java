@@ -82,8 +82,10 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     if (StringUtils.isEmpty(senchaAppBuild)) {
       senchaAppBuild = SenchaUtils.PRODUCTION_PROFILE;
     }
-    if (!(SenchaUtils.PRODUCTION_PROFILE.equals(senchaAppBuild) || SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild))) {
-      throw new MojoExecutionException("'senchaAppBuild' must be one of 'production' or 'development'.");
+    if (!(SenchaUtils.PRODUCTION_PROFILE.equals(senchaAppBuild)
+            || SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)
+            || SenchaUtils.TESTING_PROFILE.equals(senchaAppBuild))) {
+      throw new MojoExecutionException("'senchaAppBuild' must be one of 'production', 'testing' or 'development'.");
     }
 
     prepareModule();
@@ -127,7 +129,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
 
-    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath() + File.separator + APP_JSON_FILENAME, null);
+    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null);
   }
 
   protected void configure(SenchaAppConfigBuilder configBuilder)

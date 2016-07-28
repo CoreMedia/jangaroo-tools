@@ -86,6 +86,11 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
         threadSafe = true)
 public class JooTestMojo extends AbstractMojo {
 
+  private static final int MAXIMUM_NUMBER_OF_RETRIES = 30;
+  private static final int WAITING_TIME = 1000;
+
+  private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
+
   /**
    * The maven project.
    */
@@ -293,11 +298,30 @@ public class JooTestMojo extends AbstractMojo {
             // okay, good-bye!
           }
         } else {
+          checkServerState(server);
           runTests(url);
         }
       } finally {
         stopServerIgnoreException(server);
       }
+    }
+  }
+
+  private void checkServerState(Server server) {
+    for (int i = 0; i < MAXIMUM_NUMBER_OF_RETRIES; i++) {
+      if (server.isStarted()) {
+        break;
+      } else {
+        try {
+          getLog().info("Server not ready yet i=" + i);
+          Thread.sleep(WAITING_TIME);
+        } catch (InterruptedException e) { // NOSONAR
+          // IGNORE
+        }
+      }
+    }
+    if (!server.isStarted()) {
+      getLog().error("Could not start jetty server");
     }
   }
 
@@ -344,6 +368,8 @@ public class JooTestMojo extends AbstractMojo {
       return;
     }
 
+    getLog().info(String.format("Generating Sencha App %s for unit tests...", webappDirectory));
+
     FileHelper.ensureDirectory(webappDirectory);
 
     String senchaAppName = getSenchaPackageName(project);
@@ -360,26 +386,21 @@ public class JooTestMojo extends AbstractMojo {
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(webappDirectory, arguments, getLog(), null);
     senchaCmdExecutor.execute();
 
-
-    createApp();
+    createAppJson();
   }
 
   private static boolean isTestDependency(Dependency dependency) {
     return Artifact.SCOPE_TEST.equals(dependency.getScope()) && Type.JAR_EXTENSION.equals(dependency.getType());
   }
 
-  protected String getDefaultsJsonFileName() {
-    return "default.test.app.json";
-  }
-
-  public void createApp() throws MojoExecutionException {
-    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), "app.json");
+  public void createAppJson() throws MojoExecutionException {
+    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), SenchaUtils.SENCHA_APP_FILENAME);
     getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
 
     SenchaAppConfigBuilder configBuilder = new SenchaAppConfigBuilder();
     try {
-      configBuilder.destFile(project.getBuild().getTestOutputDirectory() + SenchaUtils.SEPARATOR + "app.json");
-      configBuilder.defaults(getDefaultsJsonFileName());
+      configBuilder.destFile(appJsonFile);
+      configBuilder.defaults(DEFAULT_TEST_APP_JSON);
       configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
 
       // require the package to test:
@@ -394,7 +415,7 @@ public class JooTestMojo extends AbstractMojo {
 
       configBuilder.buildFile();
     } catch (IOException e) {
-      throw new MojoExecutionException("Could not build test app.json", e);
+      throw new MojoExecutionException("Could not build test " + SenchaUtils.SENCHA_APP_FILENAME, e);
     }
   }
 
@@ -503,7 +524,7 @@ public class JooTestMojo extends AbstractMojo {
     }
     String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
     StringBuilder builder = new StringBuilder(getJettyUrl(server))
-            .append("/").append(path);
+            .append("/").append(path).append("?cache"); // "?cache" because phantomjs@2.1.1. seems to have a problem with the cached resources
     if (debugTests) {
       builder.append("#joo.debug");
     }

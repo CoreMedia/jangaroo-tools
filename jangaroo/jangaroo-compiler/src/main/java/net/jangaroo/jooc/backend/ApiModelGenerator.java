@@ -144,11 +144,17 @@ public class ApiModelGenerator {
       this.compilationUnitModel = compilationUnitModel;
     }
 
-    @Override
+  @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     startRecordingCode();
     typeRelation.getType().visit(this);
-    ((TypedModel)modelStack.peek()).setType(consumeRecordedCode());
+    String type = consumeRecordedCode();
+    if (type != null) {
+      if (!type.contains(".")) {
+        type = typeRelation.getType().getIde().getDeclaration(true).getQualifiedNameStr();
+      }
+      ((TypedModel) modelStack.peek()).setType(type);
+    }
   }
 
   @Override

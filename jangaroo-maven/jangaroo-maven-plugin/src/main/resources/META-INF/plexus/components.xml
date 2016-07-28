@@ -9,6 +9,12 @@
       <instantiation-strategy>per-lookup</instantiation-strategy>
     </component>
 
+    <component>
+      <role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
+      <role-hint>JangarooResourcesExtension</role-hint>
+      <implementation>net.jangaroo.jooc.mvnplugin.lifecycle.JangarooResourcesExtension</implementation>
+    </component>
+
     <!--
        A custom artifact handler for jangaroo modules.
        This requires the plugin to be configured with <extensions> set to true

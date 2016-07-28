@@ -15,18 +15,21 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.types.ExpressionType;
+
 /**
  * @author Andreas Gawecki
+ * @author Frank Wienberg
  */
 public abstract class Expr extends NodeImplBase {
 
-  private IdeDeclaration type;
+  private ExpressionType type;
 
-  public IdeDeclaration getType() {
+  public ExpressionType getType() {
     return type;
   }
 
-  public void setType(final IdeDeclaration type) {//TODO compute type in more subclasses during analyze()
+  public void setType(final ExpressionType type) {//TODO compute type in more subclasses during analyze()
     this.type = type;
   }
 

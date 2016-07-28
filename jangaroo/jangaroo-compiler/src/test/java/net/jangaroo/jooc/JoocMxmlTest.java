@@ -20,6 +20,17 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testUsingNonIdentifierCharacterAfterMxmlNode() throws Exception {
+    File sourceFile = getFile("/package1/mxml/UsingNonIdentifierCharacterAfterMxmlNode.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    String expected = "unexpected tokens";
+    assertTrue("Expected error (unexpected tokens) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 7, 1);
+  }
+
+  @Test
   public void testInterfaceImplementingMxmlClass() throws Exception {
     assertCompilationResult("package1/mxml/InterfaceImplementingMxmlClass", ".mxml");
   }
@@ -60,6 +71,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testOldPropertyAccessSyntax() throws Exception {
+    assertCompilationResult("package1/mxml/TestOldPropertyAccessSyntax", ".mxml");
+  }
+
+  @Test
   public void testMxmlCannotResolveClass() throws Exception {
     File sourceFile = getFile("/package1/mxml/CannotResolveClass.mxml");
     config.addSourceFile(sourceFile);
@@ -97,10 +113,15 @@ public class JoocMxmlTest extends AbstractJoocTest {
     File sourceFile = getFile("/package1/mxml/UndefinedTypeInBinding.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
-    String expected = "undeclared identifier 'UndefinedType'";
-    assertTrue("Expected error (undefined identifier) did not occur",
+    String expected = "Unable to import package1.mxml.UndefinedType: error while parsing its source (see error above).";
+    assertTrue("Expected error (unable to import) did not occur",
             testLog.hasError(expected));
     assertErrorAt(expected, 4, 86);
+
+    String expected2 = "Undefined type: ext.config.UnknownClass";
+    assertTrue("Expected error (undefined type) did not occur",
+            testLog.hasError(expected2));
+    assertErrorAt(expected2, 12, 7);
   }
 
   @Test

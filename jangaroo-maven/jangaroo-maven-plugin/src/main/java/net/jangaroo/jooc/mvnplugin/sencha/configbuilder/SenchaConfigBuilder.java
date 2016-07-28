@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.sencha.configbuilder;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,7 +22,7 @@ import java.util.Map;
  */
 public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
   protected Map<String, Object> config = new LinkedHashMap<>();
-  private String destFilePath = null;
+  private File destFile = null;
   private String destFileComment = null;
 
   @SuppressWarnings("unchecked")
@@ -101,8 +100,8 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
   }
 
   @SuppressWarnings("unchecked")
-  public T destFile(String path) {
-    this.destFilePath = path;
+  public T destFile(File destFile) {
+    this.destFile = destFile;
     return (T) this;
   }
 
@@ -122,11 +121,10 @@ public class SenchaConfigBuilder<T extends SenchaConfigBuilder> {
    * @throws IOException if file could not be written
    */
   public File buildFile() throws IOException {
-    if (StringUtils.isBlank(destFilePath)) {
+    if (destFile == null) {
       throw new IllegalStateException("Cannot build file without file path being set.");
     }
 
-    File destFile = new File(destFilePath);
     try (PrintWriter pw = new PrintWriter(new FileWriter(destFile), false)) {
       if (destFileComment != null) {
         pw.println("/**");

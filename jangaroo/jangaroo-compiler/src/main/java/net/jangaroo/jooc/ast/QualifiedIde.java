@@ -150,8 +150,8 @@ public class QualifiedIde extends Ide {
 
   private IdeDeclaration resolveQualifiedIdeDeclaration() {
     IdeDeclaration prefixDeclaration = getQualifier().resolveDeclaration();
-    return prefixDeclaration != null
-            ? prefixDeclaration.resolvePropertyDeclaration(this.getName())
+    return prefixDeclaration instanceof TypeDeclaration
+            ? ((TypeDeclaration) prefixDeclaration).resolvePropertyDeclaration(this.getName())
             : null;
   }
 

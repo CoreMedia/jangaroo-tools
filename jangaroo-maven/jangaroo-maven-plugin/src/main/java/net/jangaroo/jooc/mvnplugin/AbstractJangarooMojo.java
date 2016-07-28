@@ -11,7 +11,7 @@ public abstract class AbstractJangarooMojo extends JangarooMojo {
    * Source directory to scan for files to compile.
    */
   @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
-  @Parameter(defaultValue = "${basedir}/src/main/joo")
+  @Parameter(defaultValue = "${project.build.sourceDirectory}", readonly = true)
   private File sourceDirectory;
 
   /**

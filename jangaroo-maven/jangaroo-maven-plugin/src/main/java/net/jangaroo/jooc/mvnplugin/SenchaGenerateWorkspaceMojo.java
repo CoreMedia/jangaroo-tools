@@ -50,13 +50,15 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
           "jangaroo-maven-plugin and it will be overwritten by the next call of the plugin's " +
           "goal \"generate-workspace\".";
 
+  private static final String SENCHA_TEST_APP_LOCATION_SUFFIX = SenchaUtils.SEPARATOR + "target" + SenchaUtils.SEPARATOR + "test-classes";
+
   @Parameter(defaultValue = "${session}")
   private MavenSession session;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
 
-  @Parameter(defaultValue = "${project.build.directory}", readonly = true)
+  @Parameter(defaultValue = "${basedir}", readonly = true)
   private File workingDirectory;
 
   @Override
@@ -112,10 +114,9 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
       writeSenchaCfg(senchaCfg);
 
       SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
-      String workspaceJsonPath = workingDirectory.getPath() + File.separator + SenchaUtils.SENCHA_WORKSPACE_FILENAME;
       configureDefaults(configBuilder, "default.workspace.json");
       configurePackagesAndApp(configBuilder);
-      writeFile(configBuilder, workspaceJsonPath, AUTO_CONTENT_COMMENT);
+      writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, AUTO_CONTENT_COMMENT);
     } else {
       getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
     }
@@ -167,10 +168,10 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
       for (MavenProject projectInReactor : projectsInReactor) {
         String packageType = projectInReactor.getPackaging();
         if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
-          packagePaths.add(SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + getRelativePathForSubProject(projectInReactor));
-
+          addIfAbsent(packagePaths, SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + getRelativePathForSubProject(projectInReactor));
+          addIfAbsent(appPaths, getRelativePathForSubProject(projectInReactor) + SENCHA_TEST_APP_LOCATION_SUFFIX);
         } else if (Type.JANGAROO_APP_PACKAGING.equals(packageType)) {
-          appPaths.add(getRelativePathForSubProject(projectInReactor));
+          addIfAbsent(appPaths, getRelativePathForSubProject(projectInReactor));
         }
       }
     }
@@ -401,5 +402,11 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
     Dependency dependency = MavenDependencyHelper.fromProject(project);
     Dependency remotePackagesDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
     return MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackagesDependency);
+  }
+
+  private static void addIfAbsent(List<String> aList, String value) {
+    if (!aList.contains(value)) {
+      aList.add(value);
+    }
   }
 }

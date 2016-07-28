@@ -19,7 +19,6 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 
@@ -29,7 +28,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +37,12 @@ import java.util.Set;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
-public class ClassDeclaration extends IdeDeclaration {
+public class ClassDeclaration extends TypeDeclaration {
 
   private JooSymbol symClass;
   private Extends optExtends;
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<>();
   private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<>();
-  private Set<String> classInit = new LinkedHashSet<>();
   private ClassBody body;
   private FunctionDeclaration constructor = null;
   private Type thisType;
@@ -146,10 +143,6 @@ public class ClassDeclaration extends IdeDeclaration {
     return staticMembers;
   }
 
-  public Set<String> getClassInit() {
-    return classInit;
-  }
-
   @Override
   public void scope(final Scope scope) {
     this.scope = scope;
@@ -245,32 +238,14 @@ public class ClassDeclaration extends IdeDeclaration {
     }
   }
 
+  @Override
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
     return members.get(memberName);
   }
 
+  @Override
   public TypedIdeDeclaration getStaticMemberDeclaration(String memberName) {
     return staticMembers.get(memberName);
-  }
-
-  public void addInitIfGlobalVar(Ide ide) {
-    addInitIf(ide, false);
-  }
-
-  public void addInitIfClassOrGlobalVar(Ide ide) {
-    addInitIf(ide, true);
-  }
-
-  private void addInitIf(Ide ide, boolean allowClass) {
-    final IdeDeclaration decl = ide.getDeclaration(false);
-    if (decl != this      // Classes should not try to init themselves. It does not help and it produces strange warnings.
-      && (allowClass && decl instanceof ClassDeclaration || decl instanceof VariableDeclaration) // no init necessary for package-scope functions!
-      && decl.isPrimaryDeclaration()) {
-      CompilationUnit compilationUnit = decl.getIde().getScope().getCompilationUnit();
-      if (compilationUnit.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-        classInit.add(decl.getQualifiedNameStr());
-      }
-    }
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
@@ -296,18 +271,8 @@ public class ClassDeclaration extends IdeDeclaration {
     return null;
   }
 
-  /**
-   * Lookup a non-static member of the given name
-   *
-   * @param ide the member name
-   * @return a non-static member if found, null otherwise
-   */
-  public IdeDeclaration resolvePropertyDeclaration(String ide) {
-    IdeDeclaration ideDeclaration = resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), false);
-    if (ideDeclaration == null) {
-      ideDeclaration = resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), true);
-    }
-    return ideDeclaration;
+  public IdeDeclaration resolvePropertyDeclaration(String ide, boolean isStatic) {
+    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), isStatic);
   }
 
   private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
@@ -365,7 +330,7 @@ public class ClassDeclaration extends IdeDeclaration {
     if ("Object".equals(superType.getIde().getQualifiedNameStr())) {
       return 1;
     }
-    IdeDeclaration superClassDecl = superType.getIde().getDeclaration();
+    TypeDeclaration superClassDecl = superType.getDeclaration();
     if (!(superClassDecl instanceof ClassDeclaration)) {
       throw new CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
     }
@@ -373,8 +338,9 @@ public class ClassDeclaration extends IdeDeclaration {
   }
 
 
+  @Override
   public ClassDeclaration getSuperTypeDeclaration() {
-    return superType == null ? null : (ClassDeclaration) superType.getIde().getDeclaration();
+    return superType == null ? null : (ClassDeclaration) superType.getDeclaration();
   }
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {

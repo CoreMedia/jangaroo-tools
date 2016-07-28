@@ -3,6 +3,15 @@
              xmlns="package1.*"
              implements="package1.mxml.YetAnotherInterface">
   <fx:Script><![CDATA[
+    public native function InterfaceImplementingMxmlClass(config:InterfaceImplementingMxmlClass = null);
+
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
+
+    [Bindable]
+    public native function get someProperty():String;
+
+    /** @private */
+    [Bindable]
+    public native function set someProperty(value:String):void;
     ]]></fx:Script>
 </ConfigClass>

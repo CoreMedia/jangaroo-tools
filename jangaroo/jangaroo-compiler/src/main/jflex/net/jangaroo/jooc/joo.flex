@@ -354,7 +354,9 @@ XmlComment = "<!--" ~"-->"
   \'                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
   "<"                             { return symbol(LT); }
   "</"                            { return symbol(LT_SLASH); }
-  "/>"                            { return symbol(SLASH_GT); }
+  "/>" / "<![CDATA["              { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(SLASH_GT); }
+  "/>" / "<"                      { return symbol(SLASH_GT); }
+  "/>"                            { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(SLASH_GT); }
   ">" / "<![CDATA["               { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
   ">" / "<"                       { return symbol(GT); }
   ">"                             { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
@@ -411,7 +413,12 @@ XmlComment = "<!--" ~"-->"
 }
 
 /* error catchall */
-<YYINITIAL,STRING_DQ> .|\n                     { error("unrecognized input token"); }
+<YYINITIAL,MXML> .|\n                     { error("unrecognized input token"); }
 <REGEXP_START,REGEXP_FIRST,REGEXP_REST> .|\n   { error("invalid regular expression literal"); } //todo be more precise
 <VECTOR_TYPE> .|\n                             { error("invalid Vector type"); }
+<XML_TEXT_CONTENT> <<EOF>>        { if (!getString().trim().isEmpty())  { error("unexpected tokens");
+                                    } else {
+                                      if (yymoreStreams()) yypopStream(); else return symbol(EOF);
+                                    }
+                                  }
 <<EOF>>                           { if (yymoreStreams()) yypopStream(); else return symbol(EOF); }

@@ -15,7 +15,7 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
       }
     }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){package1.ConfigClass.prototype.constructor.call(this);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
     var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
-    config_$1.foo = "bar";
+    config_$1["foo"] = "bar";
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

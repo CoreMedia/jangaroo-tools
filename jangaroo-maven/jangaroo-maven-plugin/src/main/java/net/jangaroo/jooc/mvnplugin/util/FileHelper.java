@@ -54,7 +54,7 @@ public final class FileHelper {
         pw.println(property);
       }
     } catch (IOException e) {
-      throw new MojoExecutionException("Could not append skip.sass and skip.slice to sencha.cfg of package", e);
+      throw new MojoExecutionException("Could not append properties to file " + file, e);
     }
   }
 
