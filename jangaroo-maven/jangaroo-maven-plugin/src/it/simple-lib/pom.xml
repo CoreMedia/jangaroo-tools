@@ -49,18 +49,4 @@ under the License.
     </plugins>
   </build>
 
-  <dependencies>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-runtime</artifactId>
-      <version>@project.version@</version>
-    </dependency>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>jangaroo-runtime</artifactId>
-      <version>@project.version@</version>
-      <type>pkg</type>
-    </dependency>
-  </dependencies>
-
 </project>
