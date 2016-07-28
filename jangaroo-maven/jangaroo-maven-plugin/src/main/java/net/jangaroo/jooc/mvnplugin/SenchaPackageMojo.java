@@ -182,7 +182,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     // sencha.cfg should be recreated
     // for normal packages skip generating css and slices
     if (senchaCfg.exists()) {
-      FileHelper.addToConfigFile(senchaCfg, ImmutableList.of("skip.sass=1", "skip.slice=1"));
+      FileHelper.addToConfigFile(senchaCfg, ImmutableList.of("skip.sass=1", "skip.slice=1", "skip.resources=1"));
     } else {
       throw new MojoExecutionException(String.format("Could not find sencha.cfg of package at '%s'", senchaCfg));
     }
