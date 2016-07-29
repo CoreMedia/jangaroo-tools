@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,5 +69,9 @@ public class ArrayIndexExpr extends Expr {
     super.analyze(parentNode);
     array.analyze(this);
     indexExpr.analyze(this);
+    ExpressionType arrayType = array.getType();
+    if (arrayType != null && arrayType.isArray()) {
+      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, arrayType.getDeclaration()));
+    }
   }
 }

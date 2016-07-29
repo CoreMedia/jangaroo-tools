@@ -120,35 +120,14 @@ public class IdeExpr extends Expr {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getIde().analyze(this);
-    getIde().analyzeAsExpr(parentNode, this);
+    Ide ide = getIde();
+    ide.analyze(this);
+    ide.analyzeAsExpr(parentNode, this);
     Expr normalizedExpr = getNormalizedExpr();
-    if (normalizedExpr != this) {
-      setType(normalizedExpr.getType());
-      return;
-    }
-    IdeDeclaration declaration = getIde().getDeclaration(false);
-    ExpressionType.MetaType metaType = null;
-    ClassDeclaration classDeclaration = null;
-    if (declaration instanceof ClassDeclaration) {
-      metaType = ExpressionType.MetaType.CLASS;
-      classDeclaration = (ClassDeclaration) declaration;
-    } else if (declaration instanceof Typed) {
-      TypeRelation optTypeRelation = ((Typed) declaration).getOptTypeRelation();
-      if (optTypeRelation != null) {
-        IdeDeclaration typeDeclaration = optTypeRelation.getType().resolveDeclaration();
-        if (typeDeclaration instanceof ClassDeclaration) {
-          metaType = declaration instanceof FunctionDeclaration && !((FunctionDeclaration)declaration).isGetterOrSetter()
-                  ? ExpressionType.MetaType.FUNCTION
-                  : ExpressionType.MetaType.INSTANCE;
-          classDeclaration = (ClassDeclaration) typeDeclaration;
-        }
-      }
-    }
-    if (metaType != null) {
-      setType(ExpressionType.create(metaType, classDeclaration));
-    }
-
+    ExpressionType type = normalizedExpr != this
+            ? normalizedExpr.getType()
+            : ExpressionType.create(ide.getDeclaration(false));
+    setType(type);
   }
 
   public JooSymbol getSymbol() {

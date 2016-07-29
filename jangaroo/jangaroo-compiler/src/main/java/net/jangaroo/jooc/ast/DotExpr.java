@@ -89,19 +89,8 @@ public class DotExpr extends PostfixOpExpr {
           if (!qualifierType.isDynamic()) {
             getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
           }
-          return;
-        }
-        if (memberDeclaration instanceof Typed) {
-          TypeRelation typeRelation = ((Typed) memberDeclaration).getOptTypeRelation();
-          if (typeRelation != null) {
-            TypeDeclaration memberTypeDeclaration = typeRelation.getType().getDeclaration();
-            if (memberTypeDeclaration != null) {
-              setType(ExpressionType.create(memberDeclaration instanceof FunctionDeclaration && !((FunctionDeclaration)memberDeclaration).isGetterOrSetter()
-                      ? ExpressionType.MetaType.FUNCTION
-                      : ExpressionType.MetaType.INSTANCE,
-                      memberTypeDeclaration));
-            }
-          }
+        } else {
+          setType(ExpressionType.create(memberDeclaration));
         }
       }
     }
