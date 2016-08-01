@@ -1,7 +1,9 @@
 {
   "name": "testing",
   "classpath": [
-    "src"
+    "src",
+    "$\u007btoolkit.name}/src",
+    "locale/en"
   ],
   "framework": "ext",
   "requires": [
