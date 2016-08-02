@@ -289,13 +289,25 @@ public class ClassDeclaration extends TypeDeclaration {
     final int chainSize = chain.size();
     chain.add(classDecl);
     IdeDeclaration declaration = inStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
-    if (declaration == null && classDecl.getSuperType() != null) {
-      declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, classDecl.getSuperType().getIde(), inStatic);
+    if (declaration == null) {
+      IdeDeclaration superTypeDeclaration = null;
+      if (!classDecl.isInterface()) {
+        Type superType = classDecl.getSuperType();
+        if (superType != null) {
+          superTypeDeclaration = superType.getIde().getDeclaration(false);
+        }
+      } else if (classDecl.getOptImplements() == null) {
+        // it is a top-level interface: simulate inheritance from Object!
+        superTypeDeclaration = classDecl.getIde().getScope().getCompiler().getCompilationUnit("Object").getPrimaryDeclaration();
+      }
+      if (superTypeDeclaration != null) {
+        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, superTypeDeclaration, inStatic);
+      }
     }
     if (declaration == null && classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
       while (implemented != null && declaration == null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead(), inStatic);
+        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead().getDeclaration(false), inStatic);
         implemented = implemented.getTail();
       }
     }
@@ -308,8 +320,7 @@ public class ClassDeclaration extends TypeDeclaration {
                                                 final ClassDeclaration classDecl,
                                                 final Set<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
-                                                final Ide superIde, boolean inStatic) {
-    IdeDeclaration superClassDecl = superIde.getDeclaration(false);
+                                                final IdeDeclaration superClassDecl, boolean inStatic) {
     if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
         throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");

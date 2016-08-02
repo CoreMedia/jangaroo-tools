@@ -40,6 +40,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testResolveMembers() throws Exception {
+    assertCompilationResult("package1/TestResolveMembers");
+  }
+
+  @Test
   public void testNoMultipleThisAliases() throws Exception {
     assertCompilationResult("package1/NoMultipleThisAliases");
   }
