@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import net.jangaroo.jooc.PackagerImpl;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
@@ -150,6 +151,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
 
   }
+
   private void createModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     File senchaCfg = new File(senchaPackageDirectory.getAbsolutePath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
@@ -188,6 +190,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
+
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     // copy files from src/main/sencha to local package dir "target/packages/local/package"
@@ -201,6 +204,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     // write package.json
     writePackageJson(configBuilder);
 
+    compileJavaScriptSources();
+
     // write target//.sencha/package/build.properties/build.properties
     getLog().info("Write " + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
     File buildPropertiesFile = new File(senchaPackageDirectory.getAbsolutePath() + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
@@ -209,6 +214,19 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
             "pkg.build.dir", "${package.dir}/build",
             "build.temp.dir", "${package.dir}/build/temp"
     ));
+  }
+
+  private void compileJavaScriptSources() throws MojoExecutionException {
+    try {
+      new PackagerImpl().doPackage(
+              new File(senchaPackageDirectory, "src"),
+              new File(senchaPackageDirectory, "overrides"),
+              new File(senchaPackageDirectory, "locale"),
+              senchaPackageDirectory,
+              project.getGroupId() + "__" + project.getArtifactId());
+    } catch (IOException e) {
+      throw new MojoExecutionException("exception while packaging JavaScript sources", e);
+    }
   }
 
   @Nonnull
@@ -228,9 +246,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     return pkg;
   }
 
-
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-
     getLog().info("Write package.json file");
     writeFile(configBuilder, senchaPackageDirectory.getPath(), SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
   }
@@ -249,9 +265,11 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     configBuilder.type(Type.THEME.equals(getType()) ? Type.THEME : Type.CODE);
 
     addRequiredClasses(configBuilder, null, getRequiredClasses());
+
     addRequiredClasses(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getRequiredClassesFromConfiguration(getProduction()));
     addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
     addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
+
   }
 
   @Nonnull

@@ -113,11 +113,25 @@
       "sass/src"
     ]
   },
-  "production": {},
+  "production": { },
   "testing": {},
   "development": {},
-  "output": "${package.dir}/build",
-  "classpath": "${package.dir}/src,${package.dir}/${toolkit.name}/src,${package.dir}/locale/en",
-  "overrides": "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides,${package.dir}/locale/${package.locale}"
 
+  "joo-classpath-development": "${package.dir}/${package.name}.js",
+  "joo-overrides-development": "${package.dir}/${package.name}-overrides.js,${package.dir}/${package.name}-overrides-${package.locale}.js",
+
+  "joo-classpath-production": "${package.dir}/src,${package.dir}/locale/en",
+  "joo-overrides-production": "${package.dir}/overrides,${package.dir}/locale/${package.locale}",
+
+  "joo-classpath-testing": "${package.joo-classpath-development}",
+  "joo-overrides-testing": "${package.joo-overrides-development}",
+
+  "classpath": [
+    "${package.joo-classpath-${build.environment}}"
+  ],
+  "overrides": [
+    "${package.joo-overrides-${build.environment}}"
+  ],
+
+  "output": "${package.dir}/build"
 }

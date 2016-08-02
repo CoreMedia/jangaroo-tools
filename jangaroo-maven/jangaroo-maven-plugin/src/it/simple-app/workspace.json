@@ -7,7 +7,7 @@
     "dir" : "${workspace.dir}/target/workspace/build"
   },
   "packages" : {
-    "dir" : [ "${workspace.dir}" ],
+    "dir" : "${workspace.dir}",
     "extract" : "${workspace.dir}/target/packages"
   }
 }
