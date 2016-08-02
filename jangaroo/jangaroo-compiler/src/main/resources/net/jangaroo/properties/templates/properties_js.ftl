@@ -15,7 +15,7 @@ Ext.define("${resourceBundle.fullClassName}<#if locale??>_${locale}</#if>", {
     "${import}"<#sep>,
 </#list>
 
-  ],
+  ]<#if stringProps?has_content>,</#if>
 </#if>
 <#list stringProps as property>
     <#if property.comment??>
