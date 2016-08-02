@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
@@ -129,6 +130,7 @@ public class AbstractJoocTest {
 
   void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as");
+    assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
