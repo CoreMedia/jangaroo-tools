@@ -11,12 +11,15 @@ import com.google.javascript.jscomp.WarningLevel;
 import net.jangaroo.jooc.api.Compressor;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -78,7 +81,8 @@ public class CompressorImpl implements Compressor {
       throw new IllegalArgumentException(compiler.getErrors()[0].description);
     }
 
-    try (PrintWriter writer = new PrintWriter(output)) {
+    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),
+            Charset.forName(OUTPUT_CHARSET)))) {
       writer.append(compiler.toSource());
       writer.printf("\n//# sourceMappingURL=%s\n", sourceMap.getName());
     }
