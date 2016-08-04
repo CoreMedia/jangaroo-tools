@@ -149,7 +149,7 @@
   ],
 
   "loader": {
-    "cache": false,
+    "cache": true,
     "cacheParam": "_dc"
   },
 
