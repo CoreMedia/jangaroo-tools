@@ -95,6 +95,7 @@ import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.util.MessageFormat;
+import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -237,11 +238,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     ExpressionType type = arg.getType();
     if (type != null) {
-      if (type.getMetaType() == ExpressionType.MetaType.CLASS) {
-        memberDeclaration = type.getDeclaration().getStaticMemberDeclaration(ide.getName());
-      } else {
-        memberDeclaration = type.getDeclaration().resolvePropertyDeclaration(ide.getName());
-      }
+      memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
     }
 
     String memberName = ide.getName();
@@ -635,7 +632,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
-    visitIde(ideWithTypeParam);
+    if (out.isWritingComment()) {
+      out.writeSymbol(ideWithTypeParam.getOriginalIde());
+    } else {
+      visitIde(ideWithTypeParam);
+    }
     out.beginComment();
     out.writeSymbol(ideWithTypeParam.getSymDotLt());
     ideWithTypeParam.getType().visit(this);
@@ -766,7 +767,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private String resolveBindable(DotExpr dotExpr, MethodType methodType) throws IOException {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
     ExpressionType lhsType = dotExpr.getArg().getType();
-    if (lhsType != null && lhsType.getMetaType() == ExpressionType.MetaType.INSTANCE) {
+    if (lhsType != null && lhsType.getAS3Type() == AS3Type.OBJECT) {
       MemberModel member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, lhsType.getDeclaration());
       return member == null ? null : member.getName();
     }
@@ -1290,7 +1291,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitForInStatement(final ForInStatement forInStatement) throws IOException {
     final Ide exprAuxIde = forInStatement.getExprAuxIde();
     ExpressionType exprType = forInStatement.getExpr().getType();
-    boolean iterateArrayMode = exprType != null && exprType.isArray();
+    boolean iterateArrayMode = exprType != null && exprType.isArrayLike();
     if (exprAuxIde != null && !iterateArrayMode) {
       new SemicolonTerminatedStatement(new VariableDeclaration(SYM_VAR, exprAuxIde, null, null), SYM_SEMICOLON).visit(this);
     }

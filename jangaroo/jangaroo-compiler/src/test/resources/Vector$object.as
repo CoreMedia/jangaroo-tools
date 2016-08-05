@@ -1,6 +1,6 @@
 package {
 [Native]
-public class Array {
+public class Vector$object {
 
   public native function push(...any):uint;
 

@@ -61,8 +61,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private List<String> compilableSuffixes = Arrays.asList(Jooc.PROPERTIES_SUFFIX, Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
   private final Scope globalScope = new DeclarationScope(null, null, this);
-  private final TypeDeclaration voidType = declareType(globalScope, AS3Type.VOID.toString());
-  private final TypeDeclaration anyType = declareType(globalScope, AS3Type.ANY.toString());
+  private final TypeDeclaration voidType = declareType(globalScope, AS3Type.VOID.toString(), false);
+  private final TypeDeclaration anyType = declareType(globalScope, AS3Type.ANY.toString(), true);
 
   {
     declareValues(globalScope, new String[]{Ide.THIS});
@@ -196,8 +196,8 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return new StringReader(output);
   }
 
-  private static TypeDeclaration declareType(Scope scope, String identifier) {
-    TypeDeclaration decl = new PredefinedTypeDeclaration(identifier);
+  private static TypeDeclaration declareType(Scope scope, String identifier, boolean dynamic) {
+    TypeDeclaration decl = new PredefinedTypeDeclaration(identifier, dynamic);
     decl.scope(scope);
     return decl;
   }

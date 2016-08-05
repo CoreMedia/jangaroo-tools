@@ -126,7 +126,7 @@ public class IdeExpr extends Expr {
     Expr normalizedExpr = getNormalizedExpr();
     ExpressionType type = normalizedExpr != this
             ? normalizedExpr.getType()
-            : ExpressionType.create(ide.getDeclaration(false));
+            : ide.getScope().getExpressionType(ide.getDeclaration(false));
     setType(type);
   }
 

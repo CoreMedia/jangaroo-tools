@@ -9,7 +9,11 @@ public enum AS3Type {
   INT("int", "0"),
   UINT("uint", "0"),
   STRING("String", "null"),
+  OBJECT("Object", "null"),
   ARRAY("Array", "null"),
+  FUNCTION("Function", "null"),
+  CLASS("Class", "null"),
+  VECTOR("Vector", "null"),
   REG_EXP("RegExp", "null"),
   DATE("Date", "null"),
   ANY("*", "undefined"),
@@ -25,6 +29,10 @@ public enum AS3Type {
 
   public static AS3Type typeByName(String name) {
     if (name != null) {
+      // special case: to handle different Vector types, the internal name is different:
+      if ("Vector$object".equals(name)) {
+        return VECTOR;
+      }
       for (AS3Type value : values()) {
         if (value.toString().equals(name)) {
           return value;

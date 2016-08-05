@@ -70,28 +70,14 @@ public class DotExpr extends PostfixOpExpr {
     super.analyze(parentNode);
     ide.analyze(this);
     ExpressionType qualifierExpressionType = getArg().getType();
-    TypeDeclaration qualifierType = null;
     if (qualifierExpressionType != null) {
-      switch (qualifierExpressionType.getMetaType()) {
-        case INSTANCE:
-        case CLASS:
-          qualifierType = qualifierExpressionType.getDeclaration();
-          break;
-        case FUNCTION:
-          qualifierType = ide.getScope().getClassDeclaration("Function");
-          break;
-      }
-    }
-    if (qualifierType != null) {
-      if (!AS3Type.ANY.name.equals(qualifierType.getName())) {
-        IdeDeclaration memberDeclaration = qualifierType.resolvePropertyDeclaration(getIde().getName(), qualifierExpressionType.getMetaType() == ExpressionType.MetaType.CLASS);
-        if (memberDeclaration == null) {
-          if (!qualifierType.isDynamic()) {
-            getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
-          }
-        } else {
-          setType(ExpressionType.create(memberDeclaration));
+      IdeDeclaration memberDeclaration = qualifierExpressionType.resolvePropertyDeclaration(getIde().getName());
+      if (memberDeclaration == null) {
+        if (!qualifierExpressionType.getDeclaration().isDynamic()) {
+          getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
         }
+      } else {
+        setType(getIde().getScope().getExpressionType(memberDeclaration));
       }
     }
   }

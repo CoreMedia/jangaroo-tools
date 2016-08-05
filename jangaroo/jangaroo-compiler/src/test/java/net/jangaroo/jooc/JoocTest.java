@@ -103,6 +103,35 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testCannotResolveMember() throws Exception {
+    File sourcefile = getFile("/package1/CannotResolveMember.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    assertCannotResolveWrongMember(7, 17);
+    assertCannotResolveWrongMember(8, 17);
+    assertCannotResolveWrongMember(9, 23);
+
+    assertCannotResolveWrongMember(11, 23);
+    assertCannotResolveWrongMember(12, 22);
+    assertCannotResolveWrongMember(13, 28);
+    assertCannotResolveWrongMember(14, 33);
+
+    assertCannotResolveWrongMember(16, 15);
+    assertCannotResolveWrongMember(17, 21);
+    assertCannotResolveWrongMember(18, 26);
+    assertCannotResolveWrongMember(19, 26);
+
+    assertCannotResolveWrongMember(22, 18);
+  }
+
+  private void assertCannotResolveWrongMember(int line, int column) {
+    String expected = String.format("cannot resolve member 'wrong%d'.", line);
+    assertTrue("Expected error (" + expected + ") did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, line, column);
+  }
+
+  @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
   }
@@ -141,6 +170,7 @@ public class JoocTest extends AbstractJoocTest {
 
   @Test
   public void testImplementInterface() throws Exception {
+    assertCompilationResult("package1/ImplementsInterface");
     assertApiCompilationResult("package1/ImplementsInterface");
   }
 

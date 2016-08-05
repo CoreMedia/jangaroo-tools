@@ -8,13 +8,18 @@ public class TestEventListener {
   [ArrayElementType("ext.Panel")]
   private var panels:Array = [];
 
+  [ArrayElementType("ext.Panel")]
+  private function getPanels():Array {
+    return panels;
+  }
+
   public function TestEventListener() {
     panel.title = "not yet clicked.";
     panel.addEventListener( PanelEvent.FLOPS, function(event:PanelEvent):void {
       getThis().getPanel().title = "clicked!";
       panel.layout.getOwner().title = "clicked!";
       panels.push(panel);
-      panels[0].title = "yes, clicked!";
+      getPanels()[0].title = "yes, clicked!";
     } );
   }
 

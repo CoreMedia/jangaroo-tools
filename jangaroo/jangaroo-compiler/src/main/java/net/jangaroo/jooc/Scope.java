@@ -18,6 +18,7 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
@@ -27,6 +28,8 @@ import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LoopStatement;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Statement;
+import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 public interface Scope {
 
@@ -75,4 +78,10 @@ public interface Scope {
   JangarooParser getCompiler();
 
   ClassDeclaration getClassDeclaration(String qname);
+
+  ExpressionType getExpressionType(AS3Type as3Type);
+
+  ExpressionType getExpressionType(AS3Type as3Type, ExpressionType typeParameter);
+
+  ExpressionType getExpressionType(IdeDeclaration declaration);
 }

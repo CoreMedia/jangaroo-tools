@@ -70,8 +70,8 @@ public class ArrayIndexExpr extends Expr {
     array.analyze(this);
     indexExpr.analyze(this);
     ExpressionType arrayType = array.getType();
-    if (arrayType != null && arrayType.isArray()) {
-      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, arrayType.getDeclaration()));
+    if (arrayType != null && arrayType.isArrayLike()) {
+      setType(arrayType.getTypeParameter());
     }
   }
 }

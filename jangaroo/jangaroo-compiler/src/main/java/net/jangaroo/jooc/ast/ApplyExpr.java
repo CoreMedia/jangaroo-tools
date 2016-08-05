@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -83,8 +84,8 @@ public class ApplyExpr extends Expr {
 
   private boolean isNonCoercingType(IdeExpr fun) {
     // treat any expression of type "Class" as a type cast:
-    return fun.getType() != null && fun.getType().getMetaType() == ExpressionType.MetaType.CLASS
-            && !isCoerceFunction(fun.getType().getDeclaration().getQualifiedNameStr());
+    return fun.getType() != null && fun.getType().getAS3Type() == AS3Type.CLASS
+            && !isCoerceFunction(fun.getIde().getQualifiedNameStr());
   }
 
   public static boolean isCoerceFunction(String qualifiedName) {
@@ -99,8 +100,8 @@ public class ApplyExpr extends Expr {
       getArgs().analyze(this);
     }
     ExpressionType type = getFun().getType();
-    if (type != null && type.getMetaType() != ExpressionType.MetaType.INSTANCE) {
-      setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, type.getDeclaration()));
+    if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
+      setType(type.getTypeParameter());
     }
   }
 

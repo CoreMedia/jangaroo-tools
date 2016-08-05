@@ -23,11 +23,18 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 public class PredefinedTypeDeclaration extends TypeDeclaration {
+  private final boolean dynamic;
 
   //todo define well-known types as final consts here
 
-  public PredefinedTypeDeclaration(final String name) {
+  public PredefinedTypeDeclaration(final String name, boolean dynamic) {
     super(new Ide(new JooSymbol(name)));
+    this.dynamic = dynamic;
+  }
+
+  @Override
+  public boolean isDynamic() {
+    return dynamic;
   }
 
   @Override

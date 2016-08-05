@@ -1,7 +1,10 @@
 package package1 {
+import ext.Panel;
 
 [Uses("Object")]
 [Uses("package1.Interface")]
+[Uses("Vector$object")]
+[Uses("ext.Panel")]
 public final class ImplementsInterface implements package1.Interface {
   /**
    * Field with ASDoc.
@@ -13,7 +16,7 @@ public final class ImplementsInterface implements package1.Interface {
    * Annotated field with ASDoc.
    */
   [Bar]
-  public var bar:Vector.<Vector.<String>>;
+  public var bar:Vector.<Vector.<Panel>>;
 
   public function ImplementsInterface() {
     super();

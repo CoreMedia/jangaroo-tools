@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
-import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
@@ -45,6 +44,7 @@ public class FunctionExpr extends Expr {
   private JooSymbol rParen;
   private BlockStatement optBody;
 
+  private Scope scope;
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
@@ -106,6 +106,7 @@ public class FunctionExpr extends Expr {
 
   @Override
   public void scope(Scope scope) {
+    this.scope = scope;
     classDeclaration = scope.getClassDeclaration();
     /*
     if (parentDeclaration == null) {
@@ -153,8 +154,7 @@ public class FunctionExpr extends Expr {
       optTypeRelation.analyze(this);
     }
     if (optTypeRelation != null) {
-      setType(ExpressionType.create(ExpressionType.MetaType.FUNCTION,
-              optTypeRelation.getType().resolveDeclaration()));
+      setType(scope.getExpressionType(AS3Type.FUNCTION, scope.getExpressionType(optTypeRelation.getType().resolveDeclaration())));
     }
     if (optBody != null) {
       optBody.analyze(this);

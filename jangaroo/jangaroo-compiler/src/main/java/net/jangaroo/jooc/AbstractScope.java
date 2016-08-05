@@ -15,18 +15,30 @@
 
 package net.jangaroo.jooc;
 
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LoopStatement;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Statement;
+import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeDeclaration;
+import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.Typed;
+import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
+
+import java.util.List;
 
 public abstract class AbstractScope implements Scope {
 
@@ -149,6 +161,97 @@ public abstract class AbstractScope implements Scope {
     }
     IdeDeclaration declaration = compilationUnit.getPrimaryDeclaration();
     return declaration instanceof ClassDeclaration ? (ClassDeclaration) declaration : null;
+  }
+
+  @Override
+  public ExpressionType getExpressionType(AS3Type as3Type) {
+    return getExpressionType(as3Type, null);
+  }
+
+  @Override
+  public ExpressionType getExpressionType(AS3Type as3Type, ExpressionType typeParameter) {
+    return new ExpressionType(getClassDeclaration(as3Type.name), typeParameter);
+  }
+
+  public ExpressionType getExpressionType(IdeDeclaration declaration) {
+    if (declaration instanceof TypeDeclaration) {
+      return getExpressionType(AS3Type.CLASS, new ExpressionType((TypeDeclaration) declaration));
+    }
+    if (declaration instanceof Typed) {
+      TypeRelation typeRelation = ((Typed) declaration).getOptTypeRelation();
+      if (typeRelation != null) {
+        ExpressionType expressionType = getExpressionType(typeRelation.getType());
+        if (expressionType != null) {
+          if (expressionType.getAS3Type() == AS3Type.ARRAY) {
+            TypeDeclaration typeDeclaration = findArrayElementType(declaration);
+            if (typeDeclaration != null) {
+              expressionType = new ExpressionType(typeRelation.getType().getDeclaration(), new ExpressionType(typeDeclaration));
+            }
+          }
+          return declaration instanceof FunctionDeclaration && !((FunctionDeclaration) declaration).isGetterOrSetter()
+                          ? getExpressionType(AS3Type.FUNCTION, expressionType) : expressionType;
+        }
+      }
+    }
+    return null;
+  }
+
+  private ExpressionType getExpressionType(Type type) {
+    TypeDeclaration memberTypeDeclaration = type.getDeclaration();
+    if (memberTypeDeclaration != null) {
+      ExpressionType typeParameter = type.getIde() instanceof IdeWithTypeParam
+              ? getExpressionType(((IdeWithTypeParam) type.getIde()).getType()) : null;
+      return new ExpressionType(memberTypeDeclaration, typeParameter);
+    }
+    return null;
+  }
+
+  private static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
+
+  private static TypeDeclaration findArrayElementType(IdeDeclaration declaration) {
+    // find [ArrayElementType("...")] annotation:
+    Annotation annotation = findAnnotation(declaration, ARRAY_ELEMENT_TYPE_ANNOTATION_NAME);
+    if (annotation != null) {
+      JangarooParser compiler = declaration.getIde().getScope().getCompiler();
+      CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
+      if (annotationParameters == null) {
+        compiler.getLog().error(declaration.getSymbol(), "[ArrayElementType] must provide a class reference.");
+      } else {
+        AnnotationParameter firstParameter = annotationParameters.getHead();
+        Object elementType = firstParameter.getValue().getSymbol().getJooValue();
+        if (elementType instanceof String) {
+          CompilationUnit compilationUnit = compiler.getCompilationUnit((String) elementType);
+          if (compilationUnit == null) {
+            compiler.getLog().error(firstParameter.getSymbol(), String.format("[ArrayElementType] class reference '%s' not found.", elementType));
+          } else {
+            IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+            if (!(primaryDeclaration instanceof TypeDeclaration)) {
+              compiler.getLog().error(firstParameter.getSymbol(), String.format("[ArrayElementType] references '%s', which is not a class.", elementType));
+            } else {
+              return  (TypeDeclaration) primaryDeclaration;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static Annotation findAnnotation(IdeDeclaration declaration, String annotationName) {
+    ClassDeclaration classDeclaration = declaration.getIde().getScope().getClassDeclaration();
+    List<? extends AstNode> children = classDeclaration.getBody().getChildren();
+    int declarationIndex = children.indexOf(declaration);
+    for (int index = declarationIndex - 1; index >= 0; --index) {
+      AstNode astNode = children.get(index);
+      if (!(astNode instanceof Annotation)) {
+        return null;
+      }
+      Annotation annotation = (Annotation) astNode;
+      if (annotation.getMetaName().equals(annotationName)) {
+        return annotation;
+      }
+    }
+    return null;
   }
 
   @Override

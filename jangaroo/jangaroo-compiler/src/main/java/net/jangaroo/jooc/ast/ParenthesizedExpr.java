@@ -80,11 +80,6 @@ public class ParenthesizedExpr<E extends Expr> extends Expr {
   }
 
   @Override
-  public ExpressionType getType() {
-    return expr == null ? null : expr.getType();
-  }
-
-  @Override
   public boolean isStandAloneConstant() {
     return expr == null || expr.isStandAloneConstant();
   }

@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class IsExpr extends InfixOpExpr {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    setType(ExpressionType.create(ExpressionType.MetaType.INSTANCE, scope.getClassDeclaration(AS3Type.BOOLEAN.name)));
+    setType(scope.getExpressionType(AS3Type.BOOLEAN));
   }
 
   @Override
