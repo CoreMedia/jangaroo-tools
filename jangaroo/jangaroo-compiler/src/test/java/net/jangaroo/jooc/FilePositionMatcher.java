@@ -10,7 +10,7 @@ class FilePositionMatcher extends CustomTypeSafeMatcher<FilePosition> {
   private final int column;
 
   FilePositionMatcher(int line, int column) {
-    super(String.format("file posisition %s:%s", line, column));
+    super(String.format("file position %s:%s", line, column));
     this.line = line;
     this.column = column;
   }
