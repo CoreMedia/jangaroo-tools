@@ -21,6 +21,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -298,7 +299,7 @@ public class ClassDeclaration extends TypeDeclaration {
         }
       } else if (classDecl.getOptImplements() == null) {
         // it is a top-level interface: simulate inheritance from Object!
-        superTypeDeclaration = classDecl.getIde().getScope().getCompiler().getCompilationUnit("Object").getPrimaryDeclaration();
+        superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
       }
       if (superTypeDeclaration != null) {
         declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, superTypeDeclaration, inStatic);
