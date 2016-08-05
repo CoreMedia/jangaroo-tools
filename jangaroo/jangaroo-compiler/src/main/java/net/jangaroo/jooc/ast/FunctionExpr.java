@@ -152,9 +152,7 @@ public class FunctionExpr extends Expr {
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-    }
-    if (optTypeRelation != null) {
-      setType(scope.getExpressionType(AS3Type.FUNCTION, scope.getExpressionType(optTypeRelation.getType().resolveDeclaration())));
+      setType(scope.getFunctionExpressionType(optTypeRelation));
     }
     if (optBody != null) {
       optBody.analyze(this);
