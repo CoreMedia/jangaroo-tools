@@ -152,7 +152,7 @@ public class FunctionExpr extends Expr {
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-      setType(scope.getFunctionExpressionType(optTypeRelation));
+      setType(scope.getFunctionSignature(params, scope.getExpressionType(optTypeRelation)));
     }
     if (optBody != null) {
       optBody.analyze(this);

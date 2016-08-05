@@ -59,4 +59,23 @@ public class ExpressionType {
     }
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ExpressionType that = (ExpressionType) o;
+    return declaration.equals(that.declaration) && (typeParameter != null ? typeParameter.equals(that.typeParameter) : that.typeParameter == null);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = declaration.hashCode();
+    result = 31 * result + (typeParameter != null ? typeParameter.hashCode() : 0);
+    return result;
+  }
 }

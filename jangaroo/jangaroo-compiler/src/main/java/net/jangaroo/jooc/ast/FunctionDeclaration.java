@@ -19,6 +19,8 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
+import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,6 +39,8 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean isDeclaredInInterface = false;
   private boolean containsSuperConstructorCall = false;
   private boolean thisAliased;
+
+  private Scope scope;
 
   private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS = // NOSONAR there is no simpler way to tell it; we need all these flags
           MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
@@ -149,6 +153,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public void scope(Scope scope) {
+    this.scope = scope;
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
     // todo: temporarily resetting the ide field looks weird
     Ide oldIde = getIde();
@@ -206,9 +211,26 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode); // computes modifiers
     fun.analyze(this);
 
+    // always compute method signature, so that possible errors are logged:
+    FunctionSignature methodSignature = getMethodSignature();
+    if (isOverride()) {
+      IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
+      CompileLog log = getIde().getScope().getCompiler().getLog();
+      if (!(superDeclaration instanceof FunctionDeclaration)) {
+        log.error(getFun().getSymbol(), "method must override method, not field.");
+      } else {
+        FunctionDeclaration superMethodDeclaration = (FunctionDeclaration) superDeclaration;
+        FunctionSignature superMethodSignature = superMethodDeclaration.getMethodSignature();
+        if (!methodSignature.equals(superMethodSignature)) {
+          log.error(getFun().getSymbol(), "Incompatible override, should have signature '" + superMethodDeclaration.getMethodSignatureDescription() + "'");
+        }
+      }
+    }
+    // TODO: else check that method does not conflict with an existing member.
+
     if (isPublicApi()) {
       // This method will be rendered into the public API stubs.
-      Parameters params = fun.getParams();
+      Parameters params = getParams();
       while (params != null) {
         Parameter parameter = params.getHead();
         if (isClassMember() && isPublicApi() && parameter.getOptInitializer() != null) {
@@ -220,6 +242,51 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
       addPublicApiDependencyOn(fun.getOptTypeRelation());
     }
+  }
+
+  public FunctionSignature getMethodSignature() {
+    return scope.getFunctionSignature(getParams(), scope.getExpressionType(getOptTypeRelation()));
+  }
+
+  public String getMethodSignatureDescription() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("(");
+    boolean isFirst = true;
+    for (Parameters parameters = getParams(); parameters != null; parameters = parameters.getTail()) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        builder.append(", ");
+      }
+      Parameter parameter = parameters.getHead();
+      if (parameter.isRest()) {
+        builder.append("...");
+      }
+      builder.append(parameter.getName());
+      appendOptTypeRelation(builder, parameter.getOptTypeRelation());
+      appendOptInitializer(builder, parameter.getOptInitializer());
+    }
+    builder.append(")");
+    appendOptTypeRelation(builder, getOptTypeRelation());
+    return builder.toString();
+  }
+
+  private void appendOptInitializer(StringBuilder builder, Initializer optInitializer) {
+    if (optInitializer != null) {
+      builder.append(" = ").append(optInitializer.getValue().getSymbol().getText());
+    }
+  }
+
+  private static void appendOptTypeRelation(StringBuilder builder, TypeRelation optTypeRelation) {
+    if (optTypeRelation != null) {
+      builder.append(":").append(toString(optTypeRelation.getType().resolveDeclaration()));
+    }
+  }
+
+  private static String toString(TypeDeclaration declaration) {
+    return declaration.getIde() instanceof IdeWithTypeParam
+            ? String.format("Vector.<%s>", toString(((IdeWithTypeParam) declaration.getIde()).getType().resolveDeclaration()))
+            : declaration.getQualifiedNameStr();
   }
 
   /**

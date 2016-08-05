@@ -30,14 +30,18 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LoopStatement;
 import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractScope implements Scope {
@@ -173,10 +177,38 @@ public abstract class AbstractScope implements Scope {
   }
 
   @Override
-  public ExpressionType getFunctionExpressionType(TypeRelation returnTypeRelation) {
-    Type returnType = returnTypeRelation.getType();
-    return getExpressionType(AS3Type.FUNCTION, returnType == null ? null
-            : getExpressionType(returnType.resolveDeclaration()));
+  public FunctionSignature getFunctionSignature(Parameters params, ExpressionType returnType) {
+    List<ExpressionType> parameterTypes = new ArrayList<>();
+    int minArgumentCount = 0;
+    boolean hasRest = false;
+    boolean optionalEncountered = false;
+    for (Parameters current = params; current != null; current = current.getTail()) {
+      Parameter parameter = current.getHead();
+      if (hasRest) {
+        getCompiler().getLog().error(parameter.getSymbol(), "rest (...) parameter may not be followed by more parameters.");
+        break;
+      }
+      parameterTypes.add(getExpressionType(parameter.getOptTypeRelation()));
+      if (parameter.isRest()) {
+        hasRest = true;
+      } else if (parameter.getOptInitializer() != null) {
+        optionalEncountered = true;
+      } else {
+        if (optionalEncountered) {
+          getCompiler().getLog().error(parameter.getSymbol(), "all parameters following an optional parameter must also be optional.");
+        } else {
+          ++minArgumentCount;
+        }
+      }
+    }
+    return new FunctionSignature(getClassDeclaration(AS3Type.FUNCTION.name), minArgumentCount, hasRest,
+            parameterTypes, returnType);
+  }
+
+  @Override
+  public ExpressionType getExpressionType(TypeRelation typeRelation) {
+    return typeRelation == null || typeRelation.getType() == null ? null
+            : getExpressionType(typeRelation.getType());
   }
 
   public ExpressionType getExpressionType(IdeDeclaration declaration) {
@@ -194,8 +226,13 @@ public abstract class AbstractScope implements Scope {
               expressionType = new ExpressionType(typeRelation.getType().getDeclaration(), new ExpressionType(typeDeclaration));
             }
           }
-          return declaration instanceof FunctionDeclaration && !((FunctionDeclaration) declaration).isGetterOrSetter()
-                          ? getExpressionType(AS3Type.FUNCTION, expressionType) : expressionType;
+          if (declaration instanceof FunctionDeclaration) {
+            FunctionDeclaration functionDeclaration = (FunctionDeclaration) declaration;
+            if (!functionDeclaration.isGetterOrSetter()) {
+              return getFunctionSignature(functionDeclaration.getParams(), expressionType);
+            }
+          }
+          return expressionType;
         }
       }
     }
@@ -203,11 +240,11 @@ public abstract class AbstractScope implements Scope {
   }
 
   private ExpressionType getExpressionType(Type type) {
-    TypeDeclaration memberTypeDeclaration = type.getDeclaration();
-    if (memberTypeDeclaration != null) {
+    TypeDeclaration typeDeclaration = type.getDeclaration();
+    if (typeDeclaration != null) {
       ExpressionType typeParameter = type.getIde() instanceof IdeWithTypeParam
               ? getExpressionType(((IdeWithTypeParam) type.getIde()).getType()) : null;
-      return new ExpressionType(memberTypeDeclaration, typeParameter);
+      return new ExpressionType(typeDeclaration, typeParameter);
     }
     return null;
   }
