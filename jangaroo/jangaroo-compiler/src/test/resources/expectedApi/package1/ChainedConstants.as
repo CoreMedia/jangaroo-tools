@@ -12,6 +12,6 @@ public class ChainedConstants {
 
   public static const ANOTHER_METHOD_TYPE:String;
 
-  public static const THE_BLA:String = SomeOtherClass.BLA;
+  public static const THE_BLA:int = SomeOtherClass.BLA;
 }
 }
