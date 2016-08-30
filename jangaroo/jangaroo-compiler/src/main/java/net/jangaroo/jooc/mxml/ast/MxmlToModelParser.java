@@ -68,8 +68,8 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private void renderConfigAuxVar(@Nonnull Ide ide, Ide type, boolean useCast) {
-    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type, useCast));
+  private void renderConfigAuxVar(@Nonnull Ide ide, Ide type) {
+    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
   private void processAttributes(XmlElement objectNode, CompilationUnitModel type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
@@ -300,7 +300,7 @@ final class MxmlToModelParser {
     if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar(objectElement, id);
-      renderConfigAuxVar(configVariable, typeIde, true);
+      renderConfigAuxVar(configVariable, typeIde);
       if (targetVariableName == null) {
         targetVariableName = createAuxVar(objectElement).getName();
       }

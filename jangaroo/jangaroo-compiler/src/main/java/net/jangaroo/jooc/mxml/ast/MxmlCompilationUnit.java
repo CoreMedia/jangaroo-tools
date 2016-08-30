@@ -51,7 +51,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final IsNativeConstructor isNativeConstructor = new IsNativeConstructor(this);
   private final IsInitMethod isInitMethod = new IsInitMethod();
 
-  private final Collection<String> importedSymbols = new HashSet<String>();
+  private final Collection<String> importedSymbols = new HashSet<>();
 
   private final InputSource source;
   private final XmlElement rootNode;
@@ -66,7 +66,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private Scope constructorScope;
 
   private MxmlToModelParser mxmlToModelParser;
-  private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<String, VariableDeclaration>();
+  private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
@@ -130,7 +130,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       superConfigVar = createAuxVar(MxmlUtils.CONFIG);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
-      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration, true);
+      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration);
       constructorBodyDirectives.add(variableDeclaration);
     }
 
@@ -139,7 +139,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     } else {
       Ide defaultsConfigVar = createAuxVar(DEFAULTS);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
-      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration, false);
+      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration);
       constructorBodyDirectives.add(variableDeclaration);
 
       createFields(defaultsConfigVar);
@@ -147,7 +147,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       getDirectives().add(importDirective);
       Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
 
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
+      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
       AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ, applyExpr);
@@ -159,7 +159,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
+      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
       Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
