@@ -22,7 +22,7 @@ public final class CompilerUtils {
   }
 
   public static String qName(String packageName, String className) {
-    return packageName.length() == 0 ? className : packageName + "." + className;
+    return packageName == null || packageName.length() == 0 ? className : packageName + "." + className;
   }
 
   public static String packageName(String qName) {
