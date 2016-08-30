@@ -12,7 +12,7 @@ public class SimpleMxmlClass extends ConfigClass{
 
     public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
     var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
-    var defaults_$1/*:SimpleMxmlClass*/ ={};
+    var defaults_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
     AS3.setBindable(defaults_$1,"bar" , "FOO & BAR!");
     AS3.setBindable(defaults_$1,"computed" , 'B' + 'AR!');
     AS3.setBindable(defaults_$1,"num" , 123);
