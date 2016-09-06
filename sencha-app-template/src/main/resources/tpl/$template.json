@@ -14,9 +14,5 @@
         "validators": [{
             "type": "presence"
         }]
-    }]/*,
-    "conditional": {
-        "$meta": "test($values)",
-        "view/users": "appName"
-    }*/
+    }]
 }
