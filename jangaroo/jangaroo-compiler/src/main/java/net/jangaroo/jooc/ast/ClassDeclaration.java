@@ -27,12 +27,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Andreas Gawecki
@@ -51,6 +49,8 @@ public class ClassDeclaration extends TypeDeclaration {
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private int inheritanceLevel = -1;
+
+  private List<ClassDeclaration> assignableClasses;
 
   private Implements optImplements;
   private Scope scope;
@@ -276,59 +276,70 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public IdeDeclaration resolvePropertyDeclaration(String ide, boolean isStatic) {
-    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), isStatic);
+    IdeDeclaration declaration = null;
+    ensureAssignableClasses();
+    for (ClassDeclaration classDecl: assignableClasses) {
+      declaration = isStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
+      if (declaration != null) {
+        break;
+      }
+    }
+    return declaration;
   }
 
-  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
-    if (visited.contains(classDecl)) {
-      if (chain.contains(classDecl)) {
-        throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
-      }
-      return null;
+
+   private void resolveAssignablesDeclaration1(ClassDeclaration classDecl, List<ClassDeclaration> result, Deque<ClassDeclaration> chain) {
+    if (result.contains(classDecl)) {
+      return;
     }
-    visited.add(classDecl);
+    result.add(classDecl);
     final int chainSize = chain.size();
     chain.add(classDecl);
-    IdeDeclaration declaration = inStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
-    if (declaration == null) {
-      IdeDeclaration superTypeDeclaration = null;
-      if (!classDecl.isInterface()) {
-        Type superType = classDecl.getSuperType();
-        if (superType != null) {
-          superTypeDeclaration = superType.getIde().getDeclaration(false);
-        }
-      } else if (classDecl.getOptImplements() == null) {
-        // it is a top-level interface: simulate inheritance from Object!
-        superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
+
+    IdeDeclaration superTypeDeclaration = null;
+    if (!classDecl.isInterface()) {
+      if (classDecl.getSuperType() != null) {
+        superTypeDeclaration = classDecl.getSuperType().getIde().getDeclaration(false);
       }
-      if (superTypeDeclaration != null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, superTypeDeclaration, inStatic);
-      }
+    } else if (classDecl.getOptImplements() == null) {
+      // it is a top-level interface: simulate inheritance from Object!
+      superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
     }
-    if (declaration == null && classDecl.getOptImplements() != null) {
+    if (superTypeDeclaration != null) {
+      resolveAssignablesInSuper(result, chain, superTypeDeclaration);
+    }
+    if (classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
-      while (implemented != null && declaration == null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead().getDeclaration(false), inStatic);
+      while (implemented != null) {
+        resolveAssignablesInSuper(result, chain, implemented.getHead().getDeclaration(false));
         implemented = implemented.getTail();
       }
     }
     chain.removeLast();
     assert chainSize == chain.size();
-    return declaration;
   }
 
-  private IdeDeclaration resolvePropertyInSuper(final String ide,
-                                                final ClassDeclaration classDecl,
-                                                final Set<ClassDeclaration> visited,
+  private void resolveAssignablesInSuper(final List<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
-                                                final IdeDeclaration superClassDecl, boolean inStatic) {
+                                                final IdeDeclaration superClassDecl) {
     if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
-        throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
+        throw new CompilerError(superClassDecl.getSymbol(), "expected class identifier");
       }
-      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain, inStatic);
+      resolveAssignablesDeclaration1((ClassDeclaration) superClassDecl, visited, chain);
     }
-    return null;
+  }
+
+  public boolean isAssignableTo(ClassDeclaration classToCheck) {
+    ensureAssignableClasses();
+    return this.equals(classToCheck) || assignableClasses.contains(classToCheck);
+  }
+
+  private void ensureAssignableClasses() {
+    if (assignableClasses == null) {
+      assignableClasses = new ArrayList<>();
+      resolveAssignablesDeclaration1(this, assignableClasses, new LinkedList<ClassDeclaration>());
+    }
   }
 
   public int getInheritanceLevel() {
