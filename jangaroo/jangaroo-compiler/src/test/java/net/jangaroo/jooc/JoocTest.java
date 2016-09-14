@@ -367,7 +367,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentArray() throws Exception {
+  public void testCorrectAssignmentArray() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentArray");
   }
 
@@ -377,7 +377,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentBoolean() throws Exception {
+  public void testCorrectAssignmentBoolean() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentBoolean");
   }
 
@@ -387,7 +387,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentNumber() throws Exception {
+  public void testCorrectAssignmentNumber() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentNumber");
   }
 
@@ -397,12 +397,12 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentRegExp() throws Exception {
+  public void testCorrectAssignmentRegExp() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentRegExp");
   }
 
   @Test
-  public void testCorrectAssingnmentObject() throws Exception {
+  public void testCorrectAssignmentObject() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentObject");
   }
 
@@ -412,7 +412,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentSquareToRectangle() throws Exception {
+  public void testCorrectAssignmentSquareToRectangle() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentSquareToRectangle");
   }
 
@@ -427,7 +427,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentString() throws Exception {
+  public void testCorrectAssignmentString() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentString");
   }
 
@@ -437,7 +437,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testCorrectAssingnmentWildcard() throws Exception {
+  public void testCorrectAssignmentWildcard() throws Exception {
     assertNoCompilationFailures("assignment/CorrectAssignmentWildcard");
   }
 
@@ -447,7 +447,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testIncorrectAssingnmentArray() throws Exception {
+  public void testIncorrectAssignmentArray() throws Exception {
     File sourcefile = getFile("/assignment/IncorrectAssignmentArray.as");
     config.addSourceFile(sourcefile);
     jooc.run();
@@ -543,7 +543,7 @@ public class JoocTest extends AbstractJoocTest {
 
 
   @Test
-  public void testDeclarationAssingnmentDate() throws Exception {
+  public void testIncorrectDeclarationAssingnmentDate() throws Exception {
 
     // TOOD assignment like: var x:String = ""; => will result in a VariableDeclaration
     int firstLineOfError = 13;

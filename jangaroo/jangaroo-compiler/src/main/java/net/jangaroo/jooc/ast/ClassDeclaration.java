@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,8 @@ import java.util.Map;
  * @author Frank Wienberg
  */
 public class ClassDeclaration extends TypeDeclaration {
+
+  private static final String OBJECT_CLASSNAME = "Object";
 
   private JooSymbol symClass;
   private Extends optExtends;
@@ -152,8 +155,8 @@ public class ClassDeclaration extends TypeDeclaration {
 
     // define these here so they get the right scope:
     thisType = new Type(new Ide(getIde().getSymbol()));
-    superType = isInterface() || "Object".equals(getQualifiedNameStr()) ? null
-            : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
+    superType = isInterface() || isObject(getQualifiedNameStr()) ? null
+            : new Type(getOptExtends() == null ? new Ide(OBJECT_CLASSNAME) : getOptExtends().getSuperClass());
 
     thisType.scope(scope);
     if (superType != null) {
@@ -295,6 +298,7 @@ public class ClassDeclaration extends TypeDeclaration {
     IdeDeclaration superTypeDeclaration = null;
     if (!classDecl.isInterface()) {
       if (classDecl.getSuperType() != null) {
+        // used to be based on Type, now it can lead to ClassDeclarations not yet available to be loaded twice
         superTypeDeclaration = classDecl.getSuperType().getIde().getDeclaration(false);
       }
     } else if (classDecl.getOptImplements() == null) {
@@ -328,7 +332,15 @@ public class ClassDeclaration extends TypeDeclaration {
 
   public boolean isAssignableTo(ClassDeclaration classToCheck) {
     ensureAssignableClasses();
-    return this.equals(classToCheck) || assignableClasses.contains(classToCheck);
+
+    // TODO should use "|| assignableClasses.contains(classToCheck)" and not iterate over the list
+    boolean result = getQualifiedNameStr().equals(classToCheck.getQualifiedNameStr());
+
+    Iterator<ClassDeclaration> iterator = assignableClasses.iterator();
+    while(!result && iterator.hasNext()) {
+      result = iterator.next().getQualifiedNameStr().equals(classToCheck.getQualifiedNameStr());
+    }
+    return result;
   }
 
   private void ensureAssignableClasses() {
@@ -349,7 +361,7 @@ public class ClassDeclaration extends TypeDeclaration {
     if (superType == null) {
       return 0;
     }
-    if ("Object".equals(superType.getIde().getQualifiedNameStr())) {
+    if (isObject(superType.getIde().getQualifiedNameStr())) {
       return 1;
     }
     TypeDeclaration superClassDecl = superType.getDeclaration();
@@ -367,5 +379,13 @@ public class ClassDeclaration extends TypeDeclaration {
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
+  }
+
+  private static boolean isObject(String fullyQualifiedName) {
+    return OBJECT_CLASSNAME.equals(fullyQualifiedName);
+  }
+
+  public boolean isObject() {
+    return isObject(getQualifiedNameStr());
   }
 }
