@@ -5,12 +5,8 @@ import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstVisitorBase;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
-import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.model.ClassModel;
-import net.jangaroo.jooc.model.CompilationUnitModel;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
@@ -24,19 +20,13 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
   static final String VARIABLE_DECLARATION_ERROR_MESSAGE = "Initializer type %s is not assignable to variable type %s";
 
   private CompileLog log;
-  private Jooc jooc;
 
-  public CheckAssignmentAndDeclationVisitor(Jooc jooc, CompileLog log) {
-    this.jooc = jooc;
+  public CheckAssignmentAndDeclationVisitor(CompileLog log) {
     this.log = log;
   }
 
   @Override
   public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
-
-    AS3Type expectedType = getAS3Type(assignmentOpExpr.getArg1());
-    ExpressionType type = assignmentOpExpr.getType();
-    TypeDeclaration declaration = type == null ? null : type.getDeclaration();
 
     long opSym = assignmentOpExpr.getOp().sym;
     if (opSym == sym.PLUSEQ) {
@@ -48,11 +38,8 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
       return;
     }
 
-    // TODO
-    // ExpressionType expected = assignmentOpExpr.getType();
-    // ExpressionType actual = assignmentOpExpr.getArg2().getType();
-
-    validateTypes(assignmentOpExpr.getArg2().getSymbol(), declaration, expectedType, assignmentOpExpr.getArg2(), false);
+    ExpressionType expected = assignmentOpExpr.getArg1().getType();
+    validateTypes(assignmentOpExpr.getArg2().getSymbol(), expected, assignmentOpExpr.getArg2(), false);
   }
 
   @Override
@@ -61,98 +48,53 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
       return;
     }
     Expr actualExpression = variableDeclaration.getOptInitializer().getValue();
-    TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
 
+    ExpressionType expected = variableDeclaration.getIde().getScope().getExpressionType(variableDeclaration);
 
-    // ExpressionType expected = variableDeclaration.getIde().getScope().getExpressionType(variableDeclaration);
-    // ExpressionType actual = actualExpression.getType();
-
-
-
-    validateTypes(actualExpression.getSymbol(), getTypeDeclarationFromTypeRelation(typeRelation),
-            getAS3TypeFromTypeRelation(typeRelation), actualExpression, true);
+    validateTypes(actualExpression.getSymbol(), expected, actualExpression, true);
   }
 
   private void validateTypes(@Nonnull JooSymbol symbol,
-                             @Nullable TypeDeclaration expectedTypeDeclaration,
-                             @Nullable AS3Type expectedType,
+                             @Nullable ExpressionType expectedType,
                              @Nonnull Expr actualExpression,
                              boolean isDeclaration) {
 
-    ExpressionType actualExpressionType = actualExpression.getType();
-    AS3Type actualType = actualExpressionType != null ? actualExpressionType.getAS3Type() : null;
-
-    // no need to check anything that can be anything
-    // expectedType == null e.g. in mxml: private var config:AllElement
-    if (AS3Type.ANY.equals(actualType) || canBeEverything(expectedTypeDeclaration, expectedType)) {
+    if (expectedType == null
+            || AS3Type.ANY.equals(expectedType.getAS3Type()) ||  AS3Type.BOOLEAN.equals(expectedType.getAS3Type())) {
       return;
     }
 
-    // check if this is a regular expression
-    if (AS3Type.REG_EXP.equals(expectedType) && sym.REGEXP_LITERAL == actualExpression.getSymbol().sym) {
-      return;
-    }
-
-    // check if this is supposed to be a string or number but is not
-    validateSimpleTypes(symbol, expectedType, actualExpression, isDeclaration);
+    TypeDeclaration expectedTypeDeclaration = expectedType.getDeclaration();
 
     /*  e.g. ArrayLiteral, type = null, LiteralExpression sym=95, 96, 98 (Int, Float,String) */
-    if ( actualExpressionType == null) {
-      return;
-    }
-
-    if (AS3Type.VECTOR.equals(expectedType)) {
-      // cannot handle vectors yet
-      return;
-    }
-
-    // you can only set void to Boolean, Object and Any, which was already checked
-    if (AS3Type.VOID.equals(actualExpressionType.getAS3Type())) {
-      logException(actualExpression.getSymbol(), expectedType, AS3Type.VOID, isDeclaration);
-    }
-
-    TypeDeclaration actualExpressionTypeDeclaration = actualExpressionType.getDeclaration();
-    ClassDeclaration actualClassDeclaration = actualExpressionTypeDeclaration instanceof ClassDeclaration ?
-            (ClassDeclaration) actualExpressionTypeDeclaration : actualExpressionTypeDeclaration.getClassDeclaration();
-
-    if (actualClassDeclaration == null) {
-      return;
-    }
-
-    ClassDeclaration expectedClassDeclaration = expectedTypeDeclaration instanceof ClassDeclaration ?
-            (ClassDeclaration) expectedTypeDeclaration : expectedTypeDeclaration.getClassDeclaration();
-
-    //  "Object".equals(actualClassDeclaration.getName() would be required for config declaration in mxml files: private var config:AllElements
-    if ("Object".equals(expectedClassDeclaration.getName())) {
-      // Object can be everything, even a void
+    if ( actualExpression.getType() == null) {
+      if ((expectedTypeDeclaration instanceof ClassDeclaration)
+              && !((ClassDeclaration)expectedTypeDeclaration).isObject()) {
+        // this is a LiteralExpr, check types, but only if we do not expect it is supposed to be an object anyway
+        validateSimpleTypes(symbol, expectedType.getAS3Type(), actualExpression, isDeclaration);
+      }
       return;
     }
 
     // actual must be equal to or implement/extend expected
-    // !resolveable(expectedClassDeclaration, actualClassDeclaration)
-    if (!(AS3Type.isNumber(expectedType) && AS3Type.isNumber(actualExpression.getType().getAS3Type()))
-            && !actualClassDeclaration.isAssignableTo(expectedClassDeclaration)) {
-      logException(actualExpression.getSymbol(), expectedClassDeclaration.getName(), actualClassDeclaration.getName(), isDeclaration);
+    if (!actualExpression.getType().isAssignableTo(expectedType)) {
+      logException(symbol, expectedTypeDeclaration.getName(),
+              actualExpression.getType().getDeclaration().getName(), isDeclaration);
     }
 
   }
 
-  private static boolean canBeEverything(@Nullable TypeDeclaration expectedTypeDeclaration, @Nullable AS3Type expectedType) {
-    return (expectedType == null && expectedTypeDeclaration == null) || expectedTypeDeclaration == null
-            || isObjectBooleanOrAnything(expectedType);
-  }
-
   private void validateSimpleTypes(JooSymbol symbol, AS3Type expectedType, Expr actualExpression, boolean isDeclaration) {
-    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL )
-            && !(AS3Type.NUMBER.equals(expectedType) || AS3Type.INT.equals(expectedType) || AS3Type.UINT.equals(expectedType))) {
+
+    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !AS3Type.isNumber(expectedType)) {
       // this is supposed to be a number but is not
       logException(symbol, expectedType, AS3Type.INT, isDeclaration);
-    } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL )
-            && !AS3Type.STRING.equals(expectedType))  {
+    } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL ) && !AS3Type.STRING.equals(expectedType))  {
       // this is supposed to be a string but is not
       logException(symbol, expectedType, AS3Type.STRING, isDeclaration);
     }
   }
+
 
   private void logException(JooSymbol jooSymbol, AS3Type expectedType, AS3Type actualType, boolean declaration) {
     String actualTypeString = actualType == null ? null : actualType.name;
@@ -162,43 +104,7 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
   }
 
   private void logException(JooSymbol jooSymbol, String expectedType, String actualType, boolean declaration) {
-
-    String logMessage = declaration ? VARIABLE_DECLARATION_ERROR_MESSAGE :
-            ASSIGNED_EXPRESSION_ERROR_MESSAGE;
-
-    String msg = String.format(logMessage, actualType, expectedType);
-    log.error(jooSymbol, msg);
-  }
-
-  private static AS3Type getAS3Type(@Nonnull Expr expr) {
-    return expr.getType() == null ? null : expr.getType().getAS3Type();
-  }
-
-  private static boolean isObjectBooleanOrAnything(AS3Type type) {
-    return AS3Type.ANY.equals(type) || AS3Type.OBJECT.equals(type) || AS3Type.BOOLEAN.equals(type);
-  }
-
-  @Nullable
-  private ClassModel getClassModel(@Nonnull String fullName) {
-    CompilationUnitModel compilationUnitModel = jooc.resolveCompilationUnit(fullName);
-    return compilationUnitModel.getClassModel();
-  }
-
-  private AS3Type getAS3TypeFromTypeRelation(TypeRelation typeRelation) {
-    //
-    Type type = null;
-    if (typeRelation != null) {
-      type = typeRelation.getType();
-    }
-    return  type == null ? null : AS3Type.typeByName(type.getDeclaration().getQualifiedNameStr());
-  }
-
-  private TypeDeclaration getTypeDeclarationFromTypeRelation(TypeRelation typeRelation) {
-    //
-    Type type = null;
-    if (typeRelation != null) {
-      type = typeRelation.getType();
-    }
-    return  type == null ? null : type.getDeclaration();
+    String logMessage = declaration ? VARIABLE_DECLARATION_ERROR_MESSAGE : ASSIGNED_EXPRESSION_ERROR_MESSAGE;
+    log.error(jooSymbol, String.format(logMessage, actualType, expectedType));
   }
 }

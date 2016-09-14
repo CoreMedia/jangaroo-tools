@@ -282,6 +282,9 @@ public abstract class AbstractScope implements Scope {
 
   private static Annotation findAnnotation(IdeDeclaration declaration, String annotationName) {
     ClassDeclaration classDeclaration = declaration.getIde().getScope().getClassDeclaration();
+    if (classDeclaration == null) {
+      return null;
+    }
     List<? extends AstNode> children = classDeclaration.getBody().getChildren();
     int declarationIndex = children.indexOf(declaration);
     for (int index = declarationIndex - 1; index >= 0; --index) {
