@@ -304,7 +304,6 @@ public class JoocTest extends AbstractJoocTest {
     assertCompilationResult("package1/TestBind");
   }
 
-  @Ignore
   @Test
   public void testHelperClasses() throws Exception {
     assertCompilationResult("package1/TestHelperClasses");

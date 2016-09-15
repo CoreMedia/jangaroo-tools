@@ -237,7 +237,21 @@ public class ClassDeclaration extends TypeDeclaration {
   public void registerMember(TypedIdeDeclaration memberDeclaration) {
     String name = memberDeclaration.getName();
     if (name.length() != 0) {
-      (memberDeclaration.isStatic() ? staticMembers : members).put(name, memberDeclaration);
+      Map<String, TypedIdeDeclaration> targetMembers = memberDeclaration.isStatic() ? staticMembers : members;
+      TypedIdeDeclaration previousDeclaration = targetMembers.get(name);
+      if (previousDeclaration instanceof FunctionDeclaration) {
+        FunctionDeclaration previousFunctionDeclaration = (FunctionDeclaration) previousDeclaration;
+        if (previousFunctionDeclaration.isGetterOrSetter()) {
+          memberDeclaration = PropertyDeclaration.addDeclaration(previousFunctionDeclaration, memberDeclaration);
+          if (memberDeclaration == null) {
+            // TODO: handle all kinds of errors: two getters, two setters, other duplicate declarations
+            // For now, ignore the new member.
+            return;
+          }
+        }
+      }
+
+      targetMembers.put(name, memberDeclaration);
     }
   }
 
@@ -276,14 +290,30 @@ public class ClassDeclaration extends TypeDeclaration {
 
   public IdeDeclaration resolvePropertyDeclaration(String ide, boolean isStatic) {
     IdeDeclaration declaration = null;
+    FunctionDeclaration getterOrSetter = null;
     ensureAssignableClasses();
     for (ClassDeclaration classDecl: assignableClasses) {
       declaration = isStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
+      if (getterOrSetter == null) {
+        // we are still looking for getter or setter:
+        if (declaration instanceof FunctionDeclaration && ((FunctionDeclaration)declaration).isGetterOrSetter()) {
+          // found a getter or setter; remember it:
+          getterOrSetter = (FunctionDeclaration) declaration;
+          // keep on searching for the complementing setter or getter:
+          declaration = null;
+        }
+      } else {
+        // we already found a getter or setter...
+        if (declaration != null) {
+          // ...and now found another declaration, so try to merge both:
+          declaration = PropertyDeclaration.addDeclaration(getterOrSetter, declaration);
+        }
+      }
       if (declaration != null) {
-        break;
+        return declaration;
       }
     }
-    return declaration;
+    return getterOrSetter;
   }
 
 

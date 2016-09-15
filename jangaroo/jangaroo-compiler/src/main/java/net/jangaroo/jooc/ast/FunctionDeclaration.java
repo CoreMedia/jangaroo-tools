@@ -49,19 +49,13 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
                              BlockStatement optBody,
                              JooSymbol optSymSemicolon) {
-    super(am, ide, computeTypeRelation(symGetOrSet, params, optTypeRelation));
+    super(am, ide, optTypeRelation);
     this.fun = new FunctionExpr(this, symFunction, ide, lParen, params, rParen, optTypeRelation, optBody);
     this.symGetOrSet = symGetOrSet;
     this.optSymSemicolon = optSymSemicolon;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
       throw JangarooParser.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
-  }
-
-  private static TypeRelation computeTypeRelation(JooSymbol symGetOrSet, Parameters params, TypeRelation optTypeRelation) {
-    return isSetter(symGetOrSet)
-            ? params == null ? null : params.getHead().getOptTypeRelation()
-            : optTypeRelation;
   }
 
   @Override
@@ -216,8 +210,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     if (isOverride()) {
       IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
       CompileLog log = getIde().getScope().getCompiler().getLog();
+      if (superDeclaration instanceof PropertyDeclaration) {
+        superDeclaration = ((PropertyDeclaration) superDeclaration).getAccessor(isSetter());
+      }
       if (!(superDeclaration instanceof FunctionDeclaration)) {
-        log.error(getFun().getSymbol(), "method must override method, not field.");
+        log.error(getFun().getSymbol(), "Method does not override method from super class");
       } else {
         FunctionDeclaration superMethodDeclaration = (FunctionDeclaration) superDeclaration;
         FunctionSignature superMethodSignature = superMethodDeclaration.getMethodSignature();
