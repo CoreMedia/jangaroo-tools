@@ -201,10 +201,6 @@ public class ClassDeclaration extends TypeDeclaration {
     super.analyze(parentNode);
     if (getOptExtends() != null) {
       getOptExtends().analyze(this);
-      String packageName = getOptExtends().getSuperClass().getDeclaration().getPackageDeclaration().getQualifiedNameStr();
-      if (packageName.length() > 0 && parentNode instanceof CompilationUnit) {
-        ((CompilationUnit)parentNode).getAuxVarForPackage(scope, packageName);
-      }
     } else if (superType != null) {
       // establish dependency on and import of "Object" compilation unit:
       new Extends(null, superType.getIde()).analyze(this);

@@ -173,7 +173,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   Ide createAuxVar(String name) {
-    return constructorScope.createAuxVar(null, name);
+    return constructorScope.createAuxVar(name);
   }
 
   void preProcessClassBodyDirectives() {

@@ -55,7 +55,7 @@ public interface Scope {
    * Preferred name must be a valid AS identifier!
    * @see Ide#IDE_PATTERN
    */
-  Ide createAuxVar(Scope lookupScope, String preferredName);
+  Ide createAuxVar(String preferredName);
 
   LoopStatement getCurrentLoop();
 

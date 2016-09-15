@@ -72,15 +72,6 @@ public class CompilationUnit extends NodeImplBase {
     return directives;
   }
 
-  public String getAuxVarForPackage(Scope lookupScope, String packageQName) {
-    String auxVar = auxVarsByPackage.get(packageQName);
-    if (auxVar == null) {
-      auxVar = scope.createAuxVar(lookupScope, null).getName();
-      auxVarsByPackage.put(packageQName, auxVar);
-    }
-    return auxVar;
-  }
-
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCompilationUnit(this);

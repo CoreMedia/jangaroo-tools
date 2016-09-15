@@ -112,8 +112,8 @@ public abstract class AbstractScope implements Scope {
   }
 
   @Override
-  public Ide createAuxVar(Scope lookupScope, String preferredName) {
-    return parent.createAuxVar(lookupScope, null);
+  public Ide createAuxVar(String preferredName) {
+    return parent.createAuxVar(null);
   }
 
   @Override

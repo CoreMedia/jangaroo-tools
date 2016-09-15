@@ -207,17 +207,17 @@ public class DeclarationScope extends AbstractScope {
 
   @Override
   public Ide findFreeAuxVar(String preferredName) {
-    int i = 1;
-    String auxVarName = null != preferredName ? preferredName + "_$" : "$";
-    Ide auxVar = new Ide(new JooSymbol(auxVarName + i));
-    while(null != lookupDeclaration(auxVar)) {
-      auxVar = new Ide(new JooSymbol(auxVarName + (++i)));
+    String auxVarNamePrefix = null != preferredName ? preferredName + "_$" : "$";
+    for (int i = 1; ; ++i) {
+      String auxVarName = auxVarNamePrefix + i;
+      if (!ides.containsKey(auxVarName)) {
+        return new Ide(new JooSymbol(auxVarName));
+      }
     }
-    return auxVar;
   }
 
   @Override
-  public Ide createAuxVar(Scope lookupScope, String preferredName) {
+  public Ide createAuxVar(String preferredName) {
     Ide auxVar = findFreeAuxVar(preferredName);
     new VariableDeclaration(null, auxVar, null).scope(this);
     return auxVar;
