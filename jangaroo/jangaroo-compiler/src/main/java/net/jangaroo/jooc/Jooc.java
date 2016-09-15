@@ -18,6 +18,7 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -164,6 +165,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           }
 
           implementedMembersAnalyzer.analyzeImplementedMembers(unit);
+
+          CheckAssignmentAndDeclationVisitor checkAssignmentAndDeclationVisitor = new CheckAssignmentAndDeclationVisitor(log);
+          unit.visit(new TransitiveAstVisitor(checkAssignmentAndDeclationVisitor));
         }
       }
 

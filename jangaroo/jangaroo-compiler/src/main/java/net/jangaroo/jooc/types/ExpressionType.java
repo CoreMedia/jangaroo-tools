@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.types;
 
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.utils.AS3Type;
@@ -57,6 +58,46 @@ public class ExpressionType {
     } else {
       return getDeclaration().resolvePropertyDeclaration(memberName);
     }
+  }
+
+  public boolean isAssignableTo(@Nonnull ExpressionType toCheck) {
+
+    if (as3Type == null || AS3Type.ANY.equals(as3Type) ||  AS3Type.BOOLEAN.equals(as3Type)) {
+      // this expression type can be anything
+      return true;
+    }
+
+    ClassDeclaration toCheckClassDeclaration = toCheck.getDeclaration() instanceof ClassDeclaration ?
+            (ClassDeclaration) toCheck.getDeclaration() : null;
+
+    if (toCheckClassDeclaration != null && toCheckClassDeclaration.isObject()) {
+      // everything can be an object
+      return true;
+    }
+    AS3Type expectedAS3Type = toCheck.getAS3Type();
+
+    if (AS3Type.isNumber(expectedAS3Type) && AS3Type.isNumber(as3Type)) {
+      return true;
+    }
+
+    if (AS3Type.VECTOR.equals(toCheck.getAS3Type())) {
+      // cannot handle vectors yet
+      return true;
+    }
+    // special case reg exp, not required any more for some reason
+    /* if (AS3Type.REG_EXP.equals(expectedAS3Type) && sym.REGEXP_LITERAL == actualSym) {
+      return true;
+    }*/
+
+    // what about simple types here? currently handled in Visitor
+
+    if (toCheckClassDeclaration == null || !(getDeclaration() instanceof ClassDeclaration)) {
+      // this is either a void declaration, cannot be any as this was already checked
+      return as3Type.equals(expectedAS3Type);
+    }
+
+    ClassDeclaration currentDeclaration = (ClassDeclaration) getDeclaration();
+    return currentDeclaration.isAssignableTo(((ClassDeclaration) toCheck.getDeclaration()));
   }
 
   @Override
