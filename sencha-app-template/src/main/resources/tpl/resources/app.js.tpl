@@ -1,2 +1,2 @@
-// my comment
+// Define the application class
 Ext.application("{applicationClass}");
