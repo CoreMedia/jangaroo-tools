@@ -161,8 +161,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       setConstructor(true);
       classDeclaration.setConstructor(this);
       setIde(null); // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
-    } else if (isSetter()) {
-      setIde(null);
     }
     isDeclaredInInterface = classDeclaration != null && classDeclaration.isInterface();
     super.scope(scope);
@@ -215,7 +213,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
     // always compute method signature, so that possible errors are logged:
     FunctionSignature methodSignature = getMethodSignature();
-    if (isOverride() && getIde() != null && getIde().getScope() != null) {
+    if (isOverride()) {
       IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
       CompileLog log = getIde().getScope().getCompiler().getLog();
       if (!(superDeclaration instanceof FunctionDeclaration)) {
