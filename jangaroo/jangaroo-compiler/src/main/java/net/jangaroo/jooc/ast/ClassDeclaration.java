@@ -234,7 +234,21 @@ public class ClassDeclaration extends TypeDeclaration {
   public void registerMember(TypedIdeDeclaration memberDeclaration) {
     String name = memberDeclaration.getName();
     if (name.length() != 0) {
-      (memberDeclaration.isStatic() ? staticMembers : members).put(name, memberDeclaration);
+      Map<String, TypedIdeDeclaration> targetMembers = memberDeclaration.isStatic() ? staticMembers : members;
+      TypedIdeDeclaration previousDeclaration = targetMembers.get(name);
+      if (previousDeclaration instanceof FunctionDeclaration) {
+        FunctionDeclaration previousFunctionDeclaration = (FunctionDeclaration) previousDeclaration;
+        if (previousFunctionDeclaration.isGetterOrSetter()) {
+          memberDeclaration = PropertyDeclaration.addDeclaration(previousFunctionDeclaration, memberDeclaration);
+          if (memberDeclaration == null) {
+            // TODO: handle all kinds of errors: two getters, two setters, other duplicate declarations
+            // For now, ignore the new member.
+            return;
+          }
+        }
+      }
+
+      targetMembers.put(name, memberDeclaration);
     }
   }
 
@@ -272,10 +286,10 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public IdeDeclaration resolvePropertyDeclaration(String ide, boolean isStatic) {
-    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), isStatic);
+    return resolvePropertyDeclaration1(ide, null, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), isStatic);
   }
 
-  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
+  private IdeDeclaration resolvePropertyDeclaration1(String ide, FunctionDeclaration getterOrSetter, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
     if (visited.contains(classDecl)) {
       if (chain.contains(classDecl)) {
         throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
@@ -286,7 +300,11 @@ public class ClassDeclaration extends TypeDeclaration {
     final int chainSize = chain.size();
     chain.add(classDecl);
     IdeDeclaration declaration = inStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
-    if (declaration == null) {
+    if (getterOrSetter != null && declaration != null) {
+      declaration = PropertyDeclaration.addDeclaration(getterOrSetter, declaration);
+    }
+    if (declaration == null || declaration instanceof FunctionDeclaration && ((FunctionDeclaration)declaration).isGetterOrSetter()) {
+      getterOrSetter = (FunctionDeclaration) declaration;
       IdeDeclaration superTypeDeclaration = null;
       if (!classDecl.isInterface()) {
         Type superType = classDecl.getSuperType();
@@ -298,13 +316,16 @@ public class ClassDeclaration extends TypeDeclaration {
         superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
       }
       if (superTypeDeclaration != null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, superTypeDeclaration, inStatic);
+        IdeDeclaration superDeclaration = resolvePropertyInSuper(ide, getterOrSetter, classDecl, visited, chain, superTypeDeclaration, inStatic);
+        if (superDeclaration != null) {
+          declaration = superDeclaration;
+        }
       }
     }
     if (declaration == null && classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
       while (implemented != null && declaration == null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead().getDeclaration(false), inStatic);
+        declaration = resolvePropertyInSuper(ide, null, classDecl, visited, chain, implemented.getHead().getDeclaration(false), inStatic);
         implemented = implemented.getTail();
       }
     }
@@ -314,6 +335,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   private IdeDeclaration resolvePropertyInSuper(final String ide,
+                                                final FunctionDeclaration getterOrSetter,
                                                 final ClassDeclaration classDecl,
                                                 final Set<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
@@ -322,7 +344,7 @@ public class ClassDeclaration extends TypeDeclaration {
       if (!(superClassDecl instanceof ClassDeclaration)) {
         throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
       }
-      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain, inStatic);
+      return resolvePropertyDeclaration1(ide, getterOrSetter, (ClassDeclaration) superClassDecl, visited, chain, inStatic);
     }
     return null;
   }
