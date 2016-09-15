@@ -43,7 +43,6 @@ import java.util.regex.Pattern;
  */
 public class DeclarationScope extends AbstractScope {
 
-  private static final Pattern AUX_VAR_NAME_PATTERN = Pattern.compile("\\$([0-9]+)");
   private final JangarooParser compiler;
 
   private AstNode definingNode;
@@ -127,13 +126,6 @@ public class DeclarationScope extends AbstractScope {
     final String name = ide.getName();
     if (importsByName.containsKey(name)) {
       throw new CompilerError(ide.getSymbol(), "attempt to redefine an imported identifier " + name);
-    }
-    if (AUX_VAR_NAME_PATTERN.matcher(name).matches()) {
-      DeclarationScope packageDeclarationScope = getPackageDeclarationScope();
-      if (packageDeclarationScope != null && packageDeclarationScope != this) {
-        // also declare local auxiliary vars in package scope to reserve them so they are not used for package names:
-        new VariableDeclaration(null, new Ide(name), null).scope(packageDeclarationScope);
-      }
     }
     return ides.put(name, decl);
   }
