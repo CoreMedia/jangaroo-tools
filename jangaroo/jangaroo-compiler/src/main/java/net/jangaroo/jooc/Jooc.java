@@ -68,7 +68,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
 
-  private List<FileInputSource> compileQueue = new ArrayList<FileInputSource>();
+  private List<FileInputSource> compileQueue = new ArrayList<>();
 
   public Jooc() {
     this(new JoocConfiguration());
@@ -82,6 +82,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     super(config, log);
   }
 
+  @Override
   public JoocConfiguration getConfig() {
     return (JoocConfiguration) super.getConfig();
   }
@@ -311,7 +312,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   }
 
   private void reportPublicApiViolations(CompilationUnit unit) {
-    for (String qName : unit.getDependencies()) {
+    Set<String> dependenciesForPublicAPICheck = new HashSet<>(unit.getDependencies());
+    dependenciesForPublicAPICheck.addAll(unit.getPublicApiDependencies());
+    for (String qName : dependenciesForPublicAPICheck) {
       CompilationUnit compilationUnit = getCompilationUnit(qName);
       if (getInputSource(compilationUnit) instanceof ZipEntryInputSource
         && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {

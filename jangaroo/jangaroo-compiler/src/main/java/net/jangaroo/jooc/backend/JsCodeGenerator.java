@@ -435,8 +435,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private String[] collectDependencies(CompilationUnit compilationUnit, Boolean required) throws IOException {
-    Set<String> requires = new TreeSet<String>();
-    Collection<String> dependentCompilationUnits = compilationUnit.getDependencies();
+    Set<String> requires = new TreeSet<>();
+    Collection<String> dependentCompilationUnits = compilationUnit.getTransitiveDependencies();
     for (String dependentCUId : dependentCompilationUnits) {
       if (required != null && compilationUnit.isRequiredDependency(dependentCUId) != required) {
         continue;

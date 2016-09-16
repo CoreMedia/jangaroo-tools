@@ -145,7 +145,7 @@ public class DependencyGraph {
     // the dependencies stored in the compilation unit. Required
     // dependencies stored in the compilation unit are used as additional
     // dependencies on the init level to ensure the initialization order.
-    for (String dependency : compilationUnit.getDependencies()) {
+    for (String dependency : compilationUnit.getTransitiveDependencies()) {
       dependencyGraph.put(new Dependency(compilationUnit, DependencyLevel.DYNAMIC),
               new Dependency(dependency, DependencyLevel.DYNAMIC));
       boolean isRequired = compilationUnit.isRequiredDependency(dependency);

@@ -23,6 +23,7 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,8 +44,9 @@ public class CompilationUnit extends NodeImplBase {
 
   private Map<String, Boolean> dependencies = new LinkedHashMap<>();
   private Set<String> dependenciesInModule = new LinkedHashSet<>();
-  private List<String> resourceDependencies = new ArrayList<String>();
-  private Set<String> publicApiDependencies = new LinkedHashSet<String>();
+  private List<String> resourceDependencies = new ArrayList<>();
+  private Set<String> publicApiDependencies = new LinkedHashSet<>();
+  private Map<String, Boolean> usesDependencies = new LinkedHashMap<>();
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
 
@@ -61,7 +63,7 @@ public class CompilationUnit extends NodeImplBase {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    List<AstNode> result = new ArrayList<AstNode>(makeChildren(super.getChildren(), packageDeclaration, directives, primaryDeclaration));
+    List<AstNode> result = new ArrayList<>(makeChildren(super.getChildren(), packageDeclaration, directives, primaryDeclaration));
     if (primaryDeclaration instanceof ClassDeclaration) {
       result.addAll(((ClassDeclaration) primaryDeclaration).getSecondaryDeclarations());
     }
@@ -133,12 +135,18 @@ public class CompilationUnit extends NodeImplBase {
     return publicApiDependencies;
   }
 
+  public Set<String> getTransitiveDependencies() {
+    Set<String> transitiveDependencies = new HashSet<>(dependencies.keySet());
+    transitiveDependencies.addAll(usesDependencies.keySet());
+    return transitiveDependencies;
+  }
+
   public Set<String> getDependencies() {
     return dependencies.keySet();
   }
 
   public boolean isRequiredDependency(String qName) {
-    return dependencies.get(qName);
+    return Boolean.TRUE.equals(usesDependencies.get(qName));
   }
 
   public Set<String> getDependenciesInModule() {
@@ -157,7 +165,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public List<Annotation> getAnnotations() {
-    List<Annotation> annotations = new ArrayList<Annotation>();
+    List<Annotation> annotations = new ArrayList<>();
     for (AstNode directive : getDirectives()) {
       if (directive instanceof Annotation) {
         annotations.add((Annotation)directive);
@@ -176,7 +184,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public List<Annotation> getAnnotations(String name) {
-    List<Annotation> annotations = new ArrayList<Annotation>();
+    List<Annotation> annotations = new ArrayList<>();
     for (Annotation annotation : getAnnotations()) {
       if (name.equals(annotation.getMetaName())) {
         annotations.add(annotation);
@@ -216,15 +224,18 @@ public class CompilationUnit extends NodeImplBase {
       String qName = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
       // Dependencies on other modules may always be considered required,
       // because they cannot lead to cycles.
-      boolean alreadyRequired = Boolean.TRUE.equals(dependencies.get(qName));
+      boolean alreadyRequired = Boolean.TRUE.equals(usesDependencies.get(qName));
       boolean inModule = otherUnit.isInSourcePath();
-      dependencies.put(qName, required || alreadyRequired || !inModule);
+      usesDependencies.put(qName, required || alreadyRequired || !inModule);
+      if (Boolean.TRUE.equals(usesDependencies.get(qName))) {
+        dependencies.put(qName, true);
+      }
       if (inModule) {
         dependenciesInModule.add(qName);
       } else {
         for (Annotation annotation : otherUnit.getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
           for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
-            dependencies.put(scope.getCompiler().getCompilationUnit(value).getPrimaryDeclaration().getQualifiedNameStr(), true);
+            usesDependencies.put(scope.getCompiler().getCompilationUnit(value).getPrimaryDeclaration().getQualifiedNameStr(), true);
           }
         }
       }
@@ -232,7 +243,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   private List<String> getAnnotationDefaultParameterStringValues(Annotation annotation) {
-    List<String> values = new ArrayList<String>();
+    List<String> values = new ArrayList<>();
     CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
     while (current != null) {
       AnnotationParameter head = current.getHead();
