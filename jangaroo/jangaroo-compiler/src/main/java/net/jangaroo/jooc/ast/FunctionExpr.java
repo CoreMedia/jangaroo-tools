@@ -45,6 +45,7 @@ public class FunctionExpr extends Expr {
   private BlockStatement optBody;
 
   private Scope scope;
+  private Scope bodyScope;
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
@@ -95,6 +96,10 @@ public class FunctionExpr extends Expr {
     return optBody;
   }
 
+  public Scope getBodyScope() {
+    return bodyScope;
+  }
+
   @Override
   public JooSymbol getSymbol() {
     return symFunction;
@@ -130,6 +135,7 @@ public class FunctionExpr extends Expr {
         scope(implicitParams, scope);
         withNewDeclarationScope(FunctionExpr.this, scope, new Scoped() {
           public void run(final Scope scope) {
+            bodyScope = scope;
             if (params != null) {
               params.scope(scope);
             }

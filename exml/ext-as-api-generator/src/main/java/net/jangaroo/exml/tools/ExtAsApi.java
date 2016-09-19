@@ -179,7 +179,7 @@ public class ExtAsApi {
       if (inputSource.isDirectory()) {
         parseDirectory(jangarooParser, inputSource);
       } else {
-        CompilationUnit compilationUnit = jangarooParser.importSource(inputSource, false);
+        CompilationUnit compilationUnit = jangarooParser.importSource(inputSource);
         System.out.println("Parsed: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr());
       }
     }

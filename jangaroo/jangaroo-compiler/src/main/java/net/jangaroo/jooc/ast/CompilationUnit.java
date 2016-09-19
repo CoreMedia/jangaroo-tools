@@ -23,6 +23,7 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import java.util.Set;
 public class CompilationUnit extends NodeImplBase {
   protected PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
+  private Scope directivesScope;
   private List<AstNode> directives;
   protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
@@ -59,6 +61,10 @@ public class CompilationUnit extends NodeImplBase {
     this.rBrace = rBrace;
   }
 
+  public String getQualifiedNameStr() {
+    return getPrimaryDeclaration().getQualifiedNameStr();
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     List<AstNode> result = new ArrayList<AstNode>(makeChildren(super.getChildren(), packageDeclaration, directives, primaryDeclaration));
@@ -72,6 +78,21 @@ public class CompilationUnit extends NodeImplBase {
     return directives;
   }
 
+  public void addDirective(Directive directive) {
+    if (!(directives instanceof ArrayList)) {
+      directives = new ArrayList<>(directives);
+    }
+    directives.add(directive);
+    if (directivesScope != null) {
+      directive.scope(directivesScope);
+    }
+  }
+
+  public void addDirectives(Collection<? extends Directive> directives) {
+    for (Directive directive : directives) {
+      addDirective(directive);
+    }
+  }
   @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitCompilationUnit(this);
@@ -87,6 +108,7 @@ public class CompilationUnit extends NodeImplBase {
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override
       public void run(final Scope scope) {
+        directivesScope = scope;
         Ide packageIde = packageDeclaration.getIde();
         packageDeclaration.scope(scope);
         if (packageIde != null) {

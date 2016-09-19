@@ -5,6 +5,7 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -238,31 +239,26 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
   }
 
-  public CompilationUnit importSource(InputSource source, boolean forceParse) {
-    if (!forceParse) {
-      CompilationUnit unit = compilationUnitsByInputSource.get(source);
-      if (unit != null) {
-        return unit;
-      }
+  public CompilationUnit importSource(InputSource source) {
+    CompilationUnit unit = compilationUnitsByInputSource.get(source);
+    if (unit != null) {
+      return unit;
     }
 
     String fileName = source.getName();
     if (!hasCompilableSuffix(fileName)) {
       throw error("Input file must end with one of '" + getCompilableSuffixes() + "': " + fileName);
     }
-    CompilationUnit unit = doParse(source, log, config.getSemicolonInsertionMode());
-    if (null != unit) {
-      unit.scope(globalScope);
-    }
+    unit = doParse(source, log, config.getSemicolonInsertionMode());
     if (null == unit) {
       return null;
     }
-
-    String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
-    String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
-    compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
+    compilationUnitsByQName.put(unit.getQualifiedNameStr(), unit);
+
+    unit.scope(globalScope);
+
     return unit;
   }
 
@@ -297,11 +293,38 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
       if (source == null) {
         return null;
       }
-      compilationUnit = importSource(source, false);
+      compilationUnit = importSource(source);
     }
     return compilationUnit;
   }
 
+  private CompilationUnit getCompilationUnit2(@Nonnull String qname) {
+    CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
+    boolean isMxmlClass = false;
+    if (compilationUnit == null) {
+      // The compilation unit has not yet been parsed.
+      InputSource source = findSource(qname);
+      if (source != null) {
+        if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+          isMxmlClass = true;
+          // MXML files denote classes.
+          isClassByQName.put(qname, true);
+          compilationUnit = doParse(source, log, config.getSemicolonInsertionMode());
+        } else {
+          compilationUnit = importSource(source);
+        }
+      }
+    }
+    if (compilationUnit == null) {
+      throw error("Undefined type: " + qname);
+    }
+
+    isClassByQName.put(qname, isMxmlClass || compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration);
+    if(isMxmlClass) {
+      compilationUnit.scope(globalScope);
+    }
+    return compilationUnit;
+  }
   /**
    * Return true if the argument name identifies a class.
    *
@@ -316,7 +339,7 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
     if (result != null) {
       return result;
     }
-    resolveCompilationUnit(name);
+    getCompilationUnit2(name);
     return isClassByQName.get(name);
   }
 
@@ -331,35 +354,10 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
         throw error("Cyclic dependency involving " + fullClassName + ", " +
                 "possibly a cyclic inheritance relation");
       }
-      compilationUnitModelsByQName.put(fullClassName, null);
-
-      CompilationUnit compilationUnit = compilationUnitsByQName.get(fullClassName);
-      boolean isMxmlClass = false;
-      if (compilationUnit == null) {
-        // The compilation unit has not yet been parsed.
-        InputSource source = findSource(fullClassName);
-        if (source != null) {
-          if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
-            isMxmlClass = true;
-            // MXML files denote classes.
-            isClassByQName.put(fullClassName, true);
-            compilationUnit = doParse(source, log, config.getSemicolonInsertionMode());
-          } else {
-            compilationUnit = getCompilationUnit(fullClassName);
-          }
-        }
-      }
-      if (compilationUnit == null) {
-        throw error("Undefined type: " + fullClassName);
-      }
-
       compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
       compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
-      isClassByQName.put(fullClassName, isMxmlClass || compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
+      CompilationUnit compilationUnit = getCompilationUnit2(fullClassName);
 
-      if(isMxmlClass) {
-        compilationUnit.scope(globalScope);
-      }
       try {
         new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
       } catch (IOException e) {

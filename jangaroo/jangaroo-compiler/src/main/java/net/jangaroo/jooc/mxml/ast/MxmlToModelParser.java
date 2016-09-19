@@ -9,7 +9,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
@@ -431,7 +430,7 @@ final class MxmlToModelParser {
   @Nonnull
   private Ide createAuxVar(@Nonnull JooSymbol symbol, @Nonnull String prefix) {
     String preferredName = CompilerUtils.uncapitalize(prefix.replaceAll("-", "\\$")) + '_' + symbol.getLine() + '_' + symbol.getColumn();
-    return compilationUnit.createAuxVar(preferredName);
+    return new Ide(preferredName);
   }
 
   private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull AnnotationModel event) {

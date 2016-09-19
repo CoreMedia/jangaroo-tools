@@ -17,8 +17,10 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
