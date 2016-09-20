@@ -212,7 +212,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
             "pkg.file.name", "${package.name}.pkg",
             "pkg.build.dir", "${package.dir}/build",
-            "build.temp.dir", "${package.dir}/build/temp"
+            "build.temp.dir", "${package.dir}/build/temp",
+            "build.compile.js.compress", ""
     ));
   }
 
