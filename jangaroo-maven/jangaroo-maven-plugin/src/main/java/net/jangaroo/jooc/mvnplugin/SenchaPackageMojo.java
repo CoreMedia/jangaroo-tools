@@ -155,9 +155,10 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   private void createModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
     File senchaCfg = new File(senchaPackageDirectory.getAbsolutePath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
-    // make sure senchaCfg does not exist
-    if (senchaCfg.exists() && !senchaCfg.delete()) {
-      throw new MojoExecutionException("Could not delete " + senchaCfg);
+
+    if (senchaCfg.exists()) {
+      getLog().info("Sencha package already exists, skip generating one");
+      return;
     }
 
     // This is a workaround
