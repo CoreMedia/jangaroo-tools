@@ -76,7 +76,7 @@ public class ExpressionType {
     }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
-    if (AS3Type.isNumber(expectedAS3Type) && AS3Type.isNumber(as3Type)) {
+    if (isNumber(expectedAS3Type) && isNumber(as3Type)) {
       return true;
     }
 
@@ -119,4 +119,9 @@ public class ExpressionType {
     result = 31 * result + (typeParameter != null ? typeParameter.hashCode() : 0);
     return result;
   }
+
+  public static boolean isNumber(AS3Type type) {
+    return AS3Type.NUMBER.equals(type) || AS3Type.INT.equals(type) || AS3Type.UINT.equals(type);
+  }
+
 }
