@@ -142,6 +142,14 @@ public class AbstractJoocTest {
     verifyClassOutput(relativeClassFileName, expectedPath);
   }
 
+  void assertNoCompilationFailures(String relativeClassFileName) throws URISyntaxException, IOException {
+    compile(".as", relativeClassFileName);
+
+    File destFile = outputFile(outputFolder, relativeClassFileName, ".js");
+    assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
+    assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
+  }
+
   void verifyClassOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
     verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".js");
   }

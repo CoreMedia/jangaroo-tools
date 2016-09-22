@@ -26,6 +26,8 @@
     public static const ANOTHER_CONSTANT:String = allElements.ANOTHER_CONSTANT;
     public static const CODE_CONSTANT:int = allElements.CODE_CONSTANT;
 
+    private var config:AllElements;
+
     private var myProperty:String;
     private var myVar:String;
     private var myVar2:Object;
