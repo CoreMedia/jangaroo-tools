@@ -4,6 +4,7 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,7 +77,7 @@ public class ExpressionType {
     }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
-    if (AS3Type.isNumber(expectedAS3Type) && AS3Type.isNumber(as3Type)) {
+    if (CompilerUtils.isNumber(expectedAS3Type) && CompilerUtils.isNumber(as3Type)) {
       return true;
     }
 
