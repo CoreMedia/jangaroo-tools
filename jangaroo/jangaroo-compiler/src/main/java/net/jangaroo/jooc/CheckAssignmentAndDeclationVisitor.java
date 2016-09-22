@@ -86,7 +86,7 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
 
   private void validateSimpleTypes(JooSymbol symbol, AS3Type expectedType, Expr actualExpression, boolean isDeclaration) {
 
-    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !AS3Type.isNumber(expectedType)) {
+    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !ExpressionType.isNumber(expectedType)) {
       // this is supposed to be a number but is not
       logException(symbol, expectedType, AS3Type.INT, isDeclaration);
     } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL ) && !AS3Type.STRING.equals(expectedType))  {

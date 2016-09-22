@@ -47,10 +47,6 @@ public enum AS3Type {
     return type == null ? "null" : type.defaultValue;
   }
 
-  public static boolean isNumber(AS3Type type) {
-    return NUMBER.equals(type) || INT.equals(type) || UINT.equals(type);
-  }
-
   @Override
   public String toString() {
     return name;
