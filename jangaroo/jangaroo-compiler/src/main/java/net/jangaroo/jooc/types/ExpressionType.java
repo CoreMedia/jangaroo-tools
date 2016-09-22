@@ -97,7 +97,16 @@ public class ExpressionType {
     }
 
     ClassDeclaration currentDeclaration = (ClassDeclaration) getDeclaration();
-    return currentDeclaration.isAssignableTo(((ClassDeclaration) toCheck.getDeclaration()));
+    if (AS3Type.CLASS.equals(as3Type) && getTypeParameter() != null) {
+      TypeDeclaration typeDeclaration = getTypeParameter().getDeclaration();
+      if (typeDeclaration instanceof ClassDeclaration) {
+        currentDeclaration = (ClassDeclaration) typeDeclaration;
+      } else {
+        // can this even happen?
+        return true;
+      }
+    }
+    return currentDeclaration.isAssignableTo((ClassDeclaration) toCheck.getDeclaration());
   }
 
   @Override

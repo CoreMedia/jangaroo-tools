@@ -13,10 +13,7 @@ public class CorrectAssignmentString {
     x = getString();
     // TODO access of array without type?
     x = anArray[0];
-    var y;
-    y = "juhu";
-    var z:Object;
-    z = "juhu";
+    x = new String
     // vector with type
   }
 
