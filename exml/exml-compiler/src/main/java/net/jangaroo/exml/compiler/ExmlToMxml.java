@@ -2,7 +2,6 @@ package net.jangaroo.exml.compiler;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.generator.MxmlLibraryManifestGenerator;
-import net.jangaroo.exml.model.AnnotationAt;
 import net.jangaroo.exml.model.ConfigClass;
 import net.jangaroo.exml.model.ConfigClassRegistry;
 import net.jangaroo.exml.model.ConfigClassType;
@@ -223,7 +222,6 @@ public class ExmlToMxml {
           originalRootUri = uri;
           qName = null;
         } else if (Exmlc.EXML_ANNOTATION_NODE_NAME.equals(localName)) {
-          handleAnnotation(atts);
           inMetaData = true;
           qName = null;
         } else if (Exmlc.EXML_CFG_NODE_NAME.equals(localName)) {
@@ -855,18 +853,6 @@ public class ExmlToMxml {
         }
       }
       return prefix;
-    }
-
-    private String handleAnnotation(Attributes atts) {
-      AnnotationAt annotationAt = AnnotationAt.BOTH; // default for "at" is "both"
-      for (int i = 0; i < atts.getLength(); i++) {
-        if (Exmlc.EXML_ANNOTATION_AT_ATTRIBUTE.equals(atts.getLocalName(i))) {
-          // found "at" attribute: parse it (might throw ExmlcException)
-          annotationAt = Exmlc.parseAnnotationAtValue(atts.getValue(i));
-          break;
-        }
-      }
-      return annotationAt == AnnotationAt.CONFIG ? null : "fx:Metadata";
     }
 
     private void handleRootNode(Attributes atts) throws SAXException {
