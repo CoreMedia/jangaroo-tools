@@ -871,7 +871,7 @@ public class ExmlToMxml {
       String publicApiValue = atts.getValue(Exmlc.EXML_PUBLIC_API_ATTRIBUTE);
       if (publicApiValue != null && !publicApiValue.isEmpty()) {
         PublicApiMode publicApiMode = Exmlc.parsePublicApiMode(publicApiValue);
-        if (publicApiMode == PublicApiMode.TRUE) {
+        if (publicApiMode != PublicApiMode.FALSE) {
           isPublicApi = true;
         }
       }
