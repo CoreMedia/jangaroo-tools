@@ -23,7 +23,10 @@ import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author Andreas Gawecki
@@ -42,7 +45,8 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   private VariableDeclaration previousVariableDeclaration;
 
-  public VariableDeclaration(JooSymbol[] modifiers,
+  public VariableDeclaration(List<Annotation> annotations, 
+                             JooSymbol[] modifiers,
                              JooSymbol optSymConstOrVar,
                              Ide ide,
                              TypeRelation optTypeRelation,
@@ -50,7 +54,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              VariableDeclaration optNextVariableDeclaration,
                              JooSymbol optSymSemicolon) {
     // inherit modifiers of first declaration to those following this declaration
-    super(modifiers, ide, optTypeRelation);
+    super(annotations, modifiers, ide, optTypeRelation);
     this.optSymConstOrVar = optSymConstOrVar;
     this.optInitializer = optInitializer;
     this.optNextVariableDeclaration = optNextVariableDeclaration;
@@ -83,7 +87,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              Initializer optInitializer,
                              VariableDeclaration optNextVariableDeclaration,
                              JooSymbol optSymSemicolon) {
-    this(new JooSymbol[0], symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
+    this(Collections.<Annotation>emptyList(), new JooSymbol[0], symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
   }
 
   public VariableDeclaration(JooSymbol symConstOrVar,

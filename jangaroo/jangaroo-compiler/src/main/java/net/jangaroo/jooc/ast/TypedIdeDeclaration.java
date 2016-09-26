@@ -28,8 +28,8 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   private Ide namespace;
   private TypeRelation optTypeRelation;
 
-  TypedIdeDeclaration(JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
-    super(modifiers, ide);
+  TypedIdeDeclaration(List<Annotation> annotations, JooSymbol[] modifiers, Ide ide, TypeRelation optTypeRelation) {
+    super(annotations, modifiers, ide);
     this.namespace = findNamespace(modifiers);
     this.optTypeRelation = optTypeRelation;
   }

@@ -55,8 +55,8 @@ public class ClassDeclaration extends TypeDeclaration {
   private Implements optImplements;
   private Scope scope;
 
-  public ClassDeclaration(JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
-    super(modifiers, ide);
+  public ClassDeclaration(List<Annotation> annotations, JooSymbol[] modifiers, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
+    super(annotations, modifiers, ide);
     this.symClass = cls;
     this.optExtends = ext;
     this.optImplements = impl;

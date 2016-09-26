@@ -30,12 +30,13 @@ public class NamespaceDeclaration extends IdeDeclaration {
   private JooSymbol symNamespace;
   private JooSymbol optSymSemicolon;
 
-  public NamespaceDeclaration(JooSymbol[] modifiers,
+  public NamespaceDeclaration(List<Annotation> annotations,
+                              JooSymbol[] modifiers,
                               JooSymbol symNamespace,
                               Ide ide,
                               Initializer optInitializer,
                               JooSymbol optSymSemicolon) {
-    super(modifiers, ide);
+    super(annotations, modifiers, ide);
     assert SyntacticKeywords.NAMESPACE.equals(symNamespace.getText());
     this.symNamespace = symNamespace;
     this.optInitializer = optInitializer;

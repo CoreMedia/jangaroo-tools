@@ -21,6 +21,8 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.sym;
 
+import java.util.List;
+
 /**
  * Declarations are statements used to define entities such as variables, functions, classes,
  * and interfaces.
@@ -46,6 +48,8 @@ public abstract class Declaration extends Statement {
   protected static final int MODIFIERS_SCOPE =
           MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
+  private List<Annotation> annotations;
+
   private JooSymbol[] symModifiers;
   private JooSymbol[] symInheritedModifiers = new JooSymbol[0];
 
@@ -55,7 +59,8 @@ public abstract class Declaration extends Statement {
 
   private int modifiers = -1;
 
-  protected Declaration(JooSymbol[] modifiers) {
+  protected Declaration(List<Annotation> annotations, JooSymbol[] modifiers) {
+    this.annotations = annotations;
     this.symModifiers = modifiers.clone();
     computeModifiers();
   }
@@ -66,6 +71,10 @@ public abstract class Declaration extends Statement {
 
   public ClassDeclaration getClassDeclaration() {
     return classDeclaration;
+  }
+
+  public List<Annotation> getAnnotations() {
+    return annotations;
   }
 
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {

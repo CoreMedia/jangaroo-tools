@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -32,8 +33,8 @@ public abstract class IdeDeclaration extends Declaration {
 
   private Ide ide;
 
-  protected IdeDeclaration(JooSymbol[] modifiers, Ide ide) {
-    super(modifiers);
+  protected IdeDeclaration(List<Annotation> annotations, JooSymbol[] modifiers, Ide ide) {
+    super(annotations, modifiers);
     this.setIde(ide);
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
       JangarooParser.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
@@ -41,7 +42,7 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   protected IdeDeclaration(Ide ide) {
-    this(new JooSymbol[0], ide);
+    this(Collections.<Annotation>emptyList(), new JooSymbol[0], ide);
   }
 
   @Override
