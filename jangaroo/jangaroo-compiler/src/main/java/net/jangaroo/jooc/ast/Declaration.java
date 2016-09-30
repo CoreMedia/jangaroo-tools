@@ -21,6 +21,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.sym;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,6 +78,30 @@ public abstract class Declaration extends Statement {
     return annotations;
   }
 
+  public Annotation getAnnotation(String name) {
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        return annotation;
+      }
+    }
+    return null;
+  }
+
+  public List<Annotation> getAnnotations(String name) {
+    List<Annotation> annotations = new ArrayList<>();
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        annotations.add(annotation);
+      }
+    }
+    return annotations;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), getAnnotations());
+  }
+
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {
     setSymInheritedModifiers(modifiers);
     computeModifiers();
@@ -120,6 +145,7 @@ public abstract class Declaration extends Statement {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
+    analyze(this, getAnnotations());
     checkAllowedModifiers();
   }
 
@@ -200,6 +226,7 @@ public abstract class Declaration extends Statement {
     setParentDeclaration(scope.getDefiningNode());
     setClassDeclaration(scope.getClassDeclaration());
     compilationUnit = scope.getCompilationUnit();
+    scope(getAnnotations(), scope);
   }
 
   public JooSymbol[] getSymInheritedModifiers() {

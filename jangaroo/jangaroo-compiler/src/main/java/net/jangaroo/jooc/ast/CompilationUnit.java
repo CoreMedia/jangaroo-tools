@@ -38,7 +38,7 @@ import java.util.Set;
 public class CompilationUnit extends NodeImplBase {
   protected PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
-  private List<AstNode> directives;
+  private List<Directive> directives;
   protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
@@ -50,7 +50,7 @@ public class CompilationUnit extends NodeImplBase {
   private Scope scope;
   private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
 
-  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<AstNode> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
+  public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<Directive> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
     this.lBrace = lBrace;
     this.directives = directives;
@@ -70,7 +70,7 @@ public class CompilationUnit extends NodeImplBase {
     return result;
   }
 
-  public List<AstNode> getDirectives() {
+  public List<Directive> getDirectives() {
     return directives;
   }
 
@@ -165,32 +165,7 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public List<Annotation> getAnnotations() {
-    List<Annotation> annotations = new ArrayList<>();
-    for (AstNode directive : getDirectives()) {
-      if (directive instanceof Annotation) {
-        annotations.add((Annotation)directive);
-      }
-    }
-    return annotations;
-  }
-
-  public Annotation getAnnotation(String name) {
-    for (Annotation annotation : getAnnotations()) {
-      if (name.equals(annotation.getMetaName())) {
-        return annotation;
-      }
-    }
-    return null;
-  }
-
-  public List<Annotation> getAnnotations(String name) {
-    List<Annotation> annotations = new ArrayList<>();
-    for (Annotation annotation : getAnnotations()) {
-      if (name.equals(annotation.getMetaName())) {
-        annotations.add(annotation);
-      }
-    }
-    return annotations;
+    return getPrimaryDeclaration().getAnnotations();
   }
 
   public JooSymbol getSymbol() {
@@ -200,7 +175,7 @@ public class CompilationUnit extends NodeImplBase {
   public CompilationUnit mapMixinInterface(CompilationUnit compilationUnit) {
     if (compilationUnit != null && compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
             && ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).isInterface()) {
-      Annotation mixinAnnotation = compilationUnit.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
+      Annotation mixinAnnotation = compilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
       if (mixinAnnotation != null) {
         Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
         if (mixinClassNames.hasNext()) {
@@ -233,7 +208,7 @@ public class CompilationUnit extends NodeImplBase {
       if (inModule) {
         dependenciesInModule.add(qName);
       } else {
-        for (Annotation annotation : otherUnit.getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
+        for (Annotation annotation : otherUnit.getPrimaryDeclaration().getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
           for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
             usesDependencies.put(scope.getCompiler().getCompilationUnit(value).getPrimaryDeclaration().getQualifiedNameStr(), true);
           }

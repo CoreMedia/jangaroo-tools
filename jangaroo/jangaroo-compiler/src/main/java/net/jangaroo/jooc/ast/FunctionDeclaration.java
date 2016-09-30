@@ -45,12 +45,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS = // NOSONAR there is no simpler way to tell it; we need all these flags
           MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
 
-  public FunctionDeclaration(List<Annotation> annotations, 
-                             List<JooSymbol> modifiers, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
+  public FunctionDeclaration(AnnotationsAndModifiers am, JooSymbol symFunction, JooSymbol symGetOrSet, Ide ide, JooSymbol lParen,
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
                              BlockStatement optBody,
                              JooSymbol optSymSemicolon) {
-    super(annotations, modifiers.toArray(new JooSymbol[modifiers.size()]), ide, computeTypeRelation(symGetOrSet, params, optTypeRelation));
+    super(am, ide, computeTypeRelation(symGetOrSet, params, optTypeRelation));
     this.fun = new FunctionExpr(this, symFunction, ide, lParen, params, rParen, optTypeRelation, optBody);
     this.symGetOrSet = symGetOrSet;
     this.optSymSemicolon = optSymSemicolon;
@@ -67,7 +66,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public List<? extends AstNode> getChildren() {
-    return makeChildren(fun); // do not call super.getChildren(), as fun already contains ide!
+    return makeChildren(getAnnotations(), fun); // do not call super.getChildren(), as fun already contains ide!
   }
 
   @Override

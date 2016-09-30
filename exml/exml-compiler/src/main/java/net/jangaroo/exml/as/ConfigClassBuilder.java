@@ -52,9 +52,6 @@ public class ConfigClassBuilder extends AstVisitorBase {
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     configClass = new ConfigClass();
     compilationUnit.getPackageDeclaration().visit(this);
-    for (AstNode node : compilationUnit.getDirectives()) {
-      node.visit(new ClassAnnotationsVisitor());
-    }
     compilationUnit.getPrimaryDeclaration().visit(this);
   }
 
@@ -66,6 +63,9 @@ public class ConfigClassBuilder extends AstVisitorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    for (Annotation annotation : classDeclaration.getAnnotations()) {
+      annotation.visit(this);
+    }
     String name = classDeclaration.getName();
     configClass.setName(name);
     ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
@@ -86,63 +86,61 @@ public class ConfigClassBuilder extends AstVisitorBase {
     }
   }
 
-  private class ClassAnnotationsVisitor extends AstVisitorBase {
-    @Override
-    public void visitAnnotation(Annotation annotation) throws IOException {
-      detectAsDoc(annotation);
-      detectExtConfigAnnotation(annotation);
-    }
+  @Override
+  public void visitAnnotation(Annotation annotation) {
+    detectAsDoc(annotation);
+    detectExtConfigAnnotation(annotation);
+  }
 
-    private void detectAsDoc(Annotation annotation) {
-      if (configClass.getDescription() == null) {
-        String description = parseDescription(annotation.getLeftBracket(), new JooSymbol[0]);
-        configClass.setDescription(description);
+  private void detectAsDoc(Annotation annotation) {
+    if (configClass.getDescription() == null) {
+      String description = parseDescription(annotation.getLeftBracket(), new JooSymbol[0]);
+      configClass.setDescription(description);
+    }
+  }
+
+  private void detectExtConfigAnnotation(Annotation annotation) {
+    if (EXT_CONFIG_META_NAME.equals(annotation.getMetaName())) {
+      if (configClass.getComponentClassName() != null) {
+        throw new CompilerError(annotation.getSymbol(), "Only one [" + EXT_CONFIG_META_NAME + "] annotation may be given.");
       }
-    }
 
-    private void detectExtConfigAnnotation(Annotation annotation) {
-      if (EXT_CONFIG_META_NAME.equals(annotation.getMetaName())) {
-        if (configClass.getComponentClassName() != null) {
-          throw new CompilerError(annotation.getSymbol(), "Only one [" + EXT_CONFIG_META_NAME + "] annotation may be given.");
-        }
-
-        CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
-        while (annotationParameters != null) {
-          AnnotationParameter annotationParameter = annotationParameters.getHead();
-          Ide optNameIde = annotationParameter.getOptName();
-          if (optNameIde != null) {
-            String parameterName = optNameIde.getName();
-            AstNode annotationParameterValue = annotationParameter.getValue();
-            String parameterValue = null;
-            if (annotationParameterValue != null) {
-              JooSymbol symbol = annotationParameterValue.getSymbol();
-              if (symbol.sym != sym.STRING_LITERAL) {
-                throw new CompilerError(symbol, "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
-              }
-              parameterValue = (String) symbol.getJooValue();
+      CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
+      while (annotationParameters != null) {
+        AnnotationParameter annotationParameter = annotationParameters.getHead();
+        Ide optNameIde = annotationParameter.getOptName();
+        if (optNameIde != null) {
+          String parameterName = optNameIde.getName();
+          AstNode annotationParameterValue = annotationParameter.getValue();
+          String parameterValue = null;
+          if (annotationParameterValue != null) {
+            JooSymbol symbol = annotationParameterValue.getSymbol();
+            if (symbol.sym != sym.STRING_LITERAL) {
+              throw new CompilerError(symbol, "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must be a string literal.");
             }
-            if (TARGET_ANNOTATION_PARAMETER_NAME.equals(parameterName)) {
-              if (parameterValue == null) {
-                throw new CompilerError(optNameIde.getSymbol(), "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must have a value.");
-              }
-              configClass.setComponentClassName(parameterValue);
-            } else {
-              try {
-                configClass.setType(ConfigClassType.fromExtConfigAttribute(parameterName));
-              } catch (IllegalArgumentException e) {
-                throw new CompilerError(optNameIde.getSymbol(), "'" + parameterName + "' is not a valid parameter of an [" + EXT_CONFIG_META_NAME + "] annotation (only 'xtype', 'ptype', 'type', 'gctype' are allowed).", e);
-              }
-              configClass.setTypeValue(parameterValue);
-            }
+            parameterValue = (String) symbol.getJooValue();
           }
-          annotationParameters = annotationParameters.getTail();
+          if (TARGET_ANNOTATION_PARAMETER_NAME.equals(parameterName)) {
+            if (parameterValue == null) {
+              throw new CompilerError(optNameIde.getSymbol(), "The " + parameterName + " parameter of an [" + EXT_CONFIG_META_NAME + "] annotation must have a value.");
+            }
+            configClass.setComponentClassName(parameterValue);
+          } else {
+            try {
+              configClass.setType(ConfigClassType.fromExtConfigAttribute(parameterName));
+            } catch (IllegalArgumentException e) {
+              throw new CompilerError(optNameIde.getSymbol(), "'" + parameterName + "' is not a valid parameter of an [" + EXT_CONFIG_META_NAME + "] annotation (only 'xtype', 'ptype', 'type', 'gctype' are allowed).", e);
+            }
+            configClass.setTypeValue(parameterValue);
+          }
         }
-        if (configClass.getComponentClassName() == null) {
-          throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
-        }
-        if (configClass.getType() == null) {
-          configClass.setType(ConfigClassType.CLASS);
-        }
+        annotationParameters = annotationParameters.getTail();
+      }
+      if (configClass.getComponentClassName() == null) {
+        throw new CompilerError(annotation.getSymbol(), "A " + TARGET_ANNOTATION_PARAMETER_NAME + " parameter must be provided for an [" + EXT_CONFIG_META_NAME + "] annotation.");
+      }
+      if (configClass.getType() == null) {
+        configClass.setType(ConfigClassType.CLASS);
       }
     }
   }

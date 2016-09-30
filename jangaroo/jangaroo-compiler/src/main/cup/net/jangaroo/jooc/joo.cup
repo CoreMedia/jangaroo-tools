@@ -28,7 +28,6 @@ import net.jangaroo.jooc.input.*;
 import net.jangaroo.jooc.mxml.*;
 import net.jangaroo.jooc.mxml.ast.*;
 
-
 action code {:
 
   MxmlParserHelper mxmlParserHelper() {
@@ -49,10 +48,6 @@ action code {:
 
   CompilationUnit createCompilationUnit(XmlElement element) throws Exception {
     return mxmlParserHelper().createCompilationUnit(element);
-  }
-
-  JooSymbol[] toSymbolArray(List symbols) {
-    return (JooSymbol[])symbols.toArray(new JooSymbol[symbols.size()]);
   }
 
 :};
@@ -152,7 +147,8 @@ nonterminal Implements implements;
 nonterminal Implements interfaceExtends;
 nonterminal Directive directive;
 nonterminal Annotation annotation;
-nonterminal ArrayList optAnnotations;
+nonterminal AnnotationsAndModifiers annotationsAndModifiers;
+nonterminal ArrayList annotations;
 nonterminal ArrayList optDirectives;
 nonterminal Expr lvalue;
 nonterminal FunctionDeclaration functionDeclaration;
@@ -296,10 +292,10 @@ classBodyDirective ::=
   ;
 
 classDeclaration ::=
-    optAnnotations:as modifiers:m CLASS:c ide:ide extends:e implements:i classBody:b
-    {: RESULT = new ClassDeclaration(as, toSymbolArray(m),c,ide,e,i,b); :}
-  | optAnnotations:as modifiers:m INTERFACE:i ide:ide interfaceExtends:ie classBody:b
-    {: RESULT = new ClassDeclaration(as, toSymbolArray(m),i,ide,null,ie,b); :}
+    annotationsAndModifiers:am CLASS:c ide:ide extends:e implements:i classBody:b
+    {: RESULT = new ClassDeclaration(am,c,ide,e,i,b); :}
+  | annotationsAndModifiers:am INTERFACE:i ide:ide interfaceExtends:ie classBody:b
+    {: RESULT = new ClassDeclaration(am,i,ide,null,ie,b); :}
   ;
 
 commaExpr ::=
@@ -351,10 +347,18 @@ directive ::=
     {: RESULT = new UseNamespaceDirective(u, n.getIde(), namespace, s); :}
   ;
 
-optAnnotations ::=
-    {: RESULT = new ArrayList(); :}
-  | annotation:a optAnnotations:as
-    {: RESULT = as; RESULT.add(0,a); :}
+annotationsAndModifiers ::=
+    modifiers:m
+    {: RESULT = new AnnotationsAndModifiers(null, m); :}
+  | annotations:as modifiers:m
+    {: RESULT = new AnnotationsAndModifiers(as, m); :}
+  ;
+
+annotations ::=
+    annotation:a
+    {: RESULT = new ArrayList(); RESULT.add(a); :}
+  | annotations:as annotation:a
+    {: RESULT = as; RESULT.add(a); :}
   ;
 
 annotation ::=
@@ -546,10 +550,8 @@ interfaceExtends ::=
   ;
 
 namespaceDeclaration ::=
-    optAnnotations:as modifiers:m EQ:eq STRING_LITERAL:l SEMICOLON:s
-    {: RESULT = new NamespaceDeclaration(as, toSymbolArray(m.subList(0, m.size()-2)),
-                                         (JooSymbol)m.get(m.size()-2), new Ide((JooSymbol)m.get(m.size()-1)),
-                                         new Initializer(eq, new LiteralExpr(l)), s);
+    annotationsAndModifiers:am EQ:eq STRING_LITERAL:l SEMICOLON:s
+    {: RESULT = new NamespaceDeclaration(am, new Initializer(eq, new LiteralExpr(l)), s);
     :}
   ;
 
@@ -559,14 +561,14 @@ functionExpr ::=
   ;
 
 functionDeclaration ::=
-    optAnnotations:as modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
-    {: RESULT = new FunctionDeclaration(as, m,f,null,ide,lp,params,rp,t,b,null); :}
-  | optAnnotations:as modifiers:m FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
-    {: RESULT = new FunctionDeclaration(as, m,f,null,ide,lp,params,rp,t,null,s); :}
-  | optAnnotations:as modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
-    {: RESULT = new FunctionDeclaration(as, m,f,getOrSet,ide,lp,params,rp,t,b,null); :}
-  | optAnnotations:as modifiers:m FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
-    {: RESULT = new FunctionDeclaration(as, m,f,getOrSet,ide,lp,params,rp,t,null,s); :}
+    annotationsAndModifiers:am FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+    {: RESULT = new FunctionDeclaration(am,f,null,ide,lp,params,rp,t,b,null); :}
+  | annotationsAndModifiers:am FUNCTION:f ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
+    {: RESULT = new FunctionDeclaration(am,f,null,ide,lp,params,rp,t,null,s); :}
+  | annotationsAndModifiers:am FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t block:b
+    {: RESULT = new FunctionDeclaration(am,f,getOrSet,ide,lp,params,rp,t,b,null); :}
+  | annotationsAndModifiers:am FUNCTION:f IDE:getOrSet ide:ide LPAREN:lp parameters:params RPAREN:rp optTypeRelation:t SEMICOLON:s
+    {: RESULT = new FunctionDeclaration(am,f,getOrSet,ide,lp,params,rp,t,null,s); :}
   ;
 
 ide ::=
@@ -847,8 +849,8 @@ forVariableDeclaration ::=
   ;
 
 variableDeclaration ::=
-  optAnnotations:as modifiers:m constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf SEMICOLON:s
-    {: RESULT = new VariableDeclaration(as, toSymbolArray(m), cov, ide, t, init, nf, s); :}
+  annotationsAndModifiers:am constOrVar:cov ide:ide optTypeRelation:t optInitializer:init optNextVariableDeclaration:nf SEMICOLON:s
+    {: RESULT = new VariableDeclaration(am, cov, ide, t, init, nf, s); :}
   ;
 
 optNextVariableDeclaration ::=

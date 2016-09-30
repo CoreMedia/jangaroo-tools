@@ -57,8 +57,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
 
-  private final List<Directive> constructorBodyDirectives = new LinkedList<Directive>();
-  private final List<Directive> classBodyDirectives = new LinkedList<Directive>();
+  private final List<Directive> constructorBodyDirectives = new LinkedList<>();
+  private final List<Directive> classBodyDirectives = new LinkedList<>();
   private final String classQName;
 
   private FunctionDeclaration initMethod;
@@ -70,7 +70,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<AstNode>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
+    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
     this.source = source;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
@@ -111,7 +111,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     for (JooSymbol jooSymbol : rootElementProcessor.getMetadata()) {
       List<Annotation> annotations = mxmlParserHelper.parseMetadata(jooSymbol);
       if(null != annotations) {
-        getDirectives().addAll(annotations);
+        primaryDeclaration.getAnnotations().addAll(annotations);
       }
     }
 

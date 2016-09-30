@@ -2,6 +2,8 @@ package net.jangaroo.jooc.mxml.ast;
 
 import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationsAndModifiers;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
@@ -38,6 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 class MxmlAstUtils {
@@ -63,6 +66,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
+  private static final List<Annotation> EMPTY_ANNOTATIONS = Collections.<Annotation>emptyList();
 
   @Nonnull
   static FunctionDeclaration createConstructor(@Nonnull FunctionDeclaration directive, @Nonnull List<Directive> constructorBodyDirectives) {
@@ -72,7 +76,7 @@ class MxmlAstUtils {
     if(null != firstSymbol) {
       whitespace = firstSymbol.getWhitespace();
     }
-    return new FunctionDeclaration(Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace)),
+    return new FunctionDeclaration(new AnnotationsAndModifiers(null, Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace))),
             SYM_FUNCTION,
             directive.getSymGetOrSet(),
             directive.getIde(),
@@ -90,7 +94,8 @@ class MxmlAstUtils {
     BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
     TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(ide));
     Parameters params = new Parameters(new Parameter(null, new Ide(MxmlUtils.CONFIG), typeRelation, new Initializer(SYM_EQ, new LiteralExpr(SYM_NULL))));
-    return new FunctionDeclaration(Collections.singletonList(SYM_PUBLIC), SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
+    return new FunctionDeclaration(new AnnotationsAndModifiers(null, Collections.singletonList(SYM_PUBLIC)),
+            SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
   }
 
   @Nonnull
@@ -103,7 +108,9 @@ class MxmlAstUtils {
     ClassBody classBody = new ClassBody(SYM_LBRACE, classBodyDirectives, SYM_RBRACE);
     String whitespace = MxmlUtils.toASDoc(rootNodeSymbol.getWhitespace());
 
-    return new ClassDeclaration(new JooSymbol[]{SYM_PUBLIC.withWhitespace(whitespace)}, SYM_CLASS, new Ide(CompilerUtils.className(classQName)), ext, impl, classBody);
+    return new ClassDeclaration(new AnnotationsAndModifiers(new LinkedList<>(), Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace))),
+            SYM_CLASS, new Ide(CompilerUtils.className(classQName)),
+            ext, impl, classBody);
   }
 
   @Nonnull
@@ -114,7 +121,7 @@ class MxmlAstUtils {
       value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     }
     Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    return new VariableDeclaration(new AnnotationsAndModifiers(null,null), SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
   }
 
   @Nonnull

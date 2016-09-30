@@ -163,7 +163,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private ClassDefinitionBuilder secondaryClassDefinitionBuilder;
   private CompilationUnit compilationUnit;
   private String factory;
-  private LinkedList<Metadata> currentMetadata = new LinkedList<Metadata>();
   private final MessageFormat $NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("{0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
   private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
@@ -308,23 +307,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
-    Ide optName = annotationParameter.getOptName();
-    visitIfNotNull(optName);
+    visitIfNotNull(annotationParameter.getOptName());
     writeOptSymbol(annotationParameter.getOptSymEq());
-    AstNode optValue = annotationParameter.getValue();
-    visitIfNotNull(optValue);
-    String name = optName == null ? DEFAULT_ANNOTATION_PARAMETER_NAME : optName.getName();
-    Object value;
-    if (optValue instanceof LiteralExpr) {
-      value = ((LiteralExpr) optValue).getValue().getJooValue();
-    } else if (optValue instanceof Ide) {
-      IdeDeclaration ideDeclaration = ((Ide) optValue).getDeclaration();
-      value = JsonObject.code(compilationUnitAccessCode(ideDeclaration));
-    } else {
-      value = null;
-    }
-
-    currentMetadata.getLast().args.add(new MetadataArgument(name, value));
+    visitIfNotNull(annotationParameter.getValue());
   }
 
   @Override
@@ -1490,6 +1475,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (variableDeclaration.hasPreviousVariableDeclaration()) {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
     }
+    visitAll(variableDeclaration.getAnnotations());
+    List<Metadata> currentMetadata = buildMetadata(variableDeclaration);
     if ((variableDeclaration.isClassMember() || variableDeclaration.isPrimaryDeclaration()) && !variableDeclaration.isPrivateStatic()) {
       if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(variableDeclaration).storeCurrentMetadata(
@@ -1509,7 +1496,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         visitIfNotNull(variableDeclaration.getOptInitializer());
         out.endComment();
       }
-      registerField(variableDeclaration);
+      registerField(variableDeclaration, currentMetadata);
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       generateFieldEndCode(variableDeclaration);
     } else {
@@ -1523,7 +1510,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Initializer optInitializer = variableDeclaration.getOptInitializer();
       if (optInitializer == null) {
         if (variableDeclaration.isPrimaryDeclaration() || variableDeclaration.isPrivateStatic()) {
-          String value = getValueFromEmbedMetadata();
+          String value = getValueFromEmbedMetadata(currentMetadata);
           if (value == null) {
             TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
             value = VariableDeclaration.getDefaultValue(typeRelation);
@@ -1536,7 +1523,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         if (variableDeclaration.isPrivateStatic() && mustInitializeInStaticCode(variableDeclaration)) {
           out.writeToken(";");
           generateFieldInitializerCode(variableDeclaration);
-          registerField(variableDeclaration);
+          registerField(variableDeclaration, currentMetadata);
         } else {
           optInitializer.visit(this);
         }
@@ -1544,16 +1531,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
     }
-    resetCurrentMetadata(variableDeclaration);
   }
 
-  private void resetCurrentMetadata(IdeDeclaration declaration) {
-    if (declaration.isClassMember() || declaration.isPrimaryDeclaration()) {
-      currentMetadata = new LinkedList<Metadata>();
-    }
-  }
-
-  private String getValueFromEmbedMetadata() {
+  private String getValueFromEmbedMetadata(List<Metadata> currentMetadata) {
     Metadata embedMetadata = Metadata.find(currentMetadata, Jooc.EMBED_ANNOTATION_NAME);
     if (embedMetadata != null) {
       String source = (String) embedMetadata.getArgumentValue(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
@@ -1568,10 +1548,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private void registerField(VariableDeclaration variableDeclaration) {
+  private void registerField(VariableDeclaration variableDeclaration, List<Metadata> currentMetadata) {
     String variableName = variableDeclaration.getName();
-
-    boolean isBindable = Metadata.find(currentMetadata, Jooc.BINDABLE_ANNOTATION_NAME) != null;
+    boolean isBindable = variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
     String value = null;
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
@@ -1597,7 +1576,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
         value = initialValueWriter.toString().trim();
       } else {
-        value = getValueFromEmbedMetadata();
+        value = getValueFromEmbedMetadata(currentMetadata);
         if (value == null) {
           TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
           value = VariableDeclaration.getDefaultValue(typeRelation);
@@ -1698,6 +1677,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    visitAll(functionDeclaration.getAnnotations());
     boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (isPrimaryDeclaration) {
@@ -1714,6 +1694,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
       String functionName = convertIdentifier(functionSymbol.getText());
+      List<Metadata> currentMetadata = buildMetadata(functionDeclaration);
       if (!isPrimaryDeclaration && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(functionDeclaration).storeCurrentMetadata(
                 functionName,
@@ -1818,15 +1799,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         generateFunTailCode(functionDeclaration.getFun());
       }
     }
-    resetCurrentMetadata(functionDeclaration);
   }
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    visitAll(classDeclaration.getAnnotations());
+    List<Metadata> currentMetadata = buildMetadata(classDeclaration);
     ClassDefinitionBuilder classDefinitionBuilder = classDeclaration.isPrimaryDeclaration()
             ? primaryClassDefinitionBuilder : (secondaryClassDefinitionBuilder = new ClassDefinitionBuilder());
     classDefinitionBuilder.storeCurrentMetadata("", currentMetadata);
-    currentMetadata = new LinkedList<Metadata>();
     out.beginComment();
     writeModifiers(out, classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
@@ -1853,6 +1834,41 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write("}");
       classDefinitionBuilder.members.put("constructor", new PropertyDefinition(constructorName));
     }
+  }
+
+  private List<Metadata> buildMetadata(Declaration declaration) {
+    List<Metadata> metadata = new LinkedList<>();
+    for (Annotation annotation : declaration.getAnnotations()) {
+      final Metadata m = new Metadata(annotation.getIde().getName());
+      m.args = buildMetadataArgs(annotation);
+      metadata.add(m);
+    }
+    return metadata;
+  }
+
+  private List<MetadataArgument> buildMetadataArgs(Annotation annotation) {
+    CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
+    if (annotationParameters == null) {
+      return Collections.emptyList();
+    }
+    List<MetadataArgument> args = new LinkedList<>();
+    for (; annotationParameters != null; annotationParameters = annotationParameters.getTail()) {
+      final AnnotationParameter annotationParameter = annotationParameters.getHead();
+      Ide optName = annotationParameter.getOptName();
+      AstNode optValue = annotationParameter.getValue();
+      String name = optName == null ? DEFAULT_ANNOTATION_PARAMETER_NAME : optName.getName();
+      Object value;
+      if (optValue instanceof LiteralExpr) {
+        value = ((LiteralExpr) optValue).getValue().getJooValue();
+      } else if (optValue instanceof Ide) {
+        IdeDeclaration ideDeclaration = ((Ide) optValue).getDeclaration();
+        value = JsonObject.code(compilationUnitAccessCode(ideDeclaration));
+      } else {
+        value = null;
+      }
+      args.add(new MetadataArgument(name, value));
+    }
+    return args;
   }
 
   private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon) throws IOException {
@@ -1895,6 +1911,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
+    visitAll(namespaceDeclaration.getAnnotations());
     out.beginString();
     writeModifiers(out, namespaceDeclaration);
     out.writeSymbol(namespaceDeclaration.getSymNamespace());
@@ -1962,7 +1979,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    currentMetadata.add(new Metadata(annotation.getIde().getName()));
     out.beginComment();
     out.writeSymbol(annotation.getLeftBracket());
     annotation.getIde().visit(this);
@@ -2049,7 +2065,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private static class Metadata {
     String name;
-    List<MetadataArgument> args = new ArrayList<MetadataArgument>();
+    List<MetadataArgument> args = new ArrayList<>();
 
     static Metadata find(List<Metadata> metadataList, String name) {
       for (Metadata metadata : metadataList) {
@@ -2091,11 +2107,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     StringBuilder staticCode = new StringBuilder();
     boolean super$Used = false;
 
-    void storeCurrentMetadata(String memberName, LinkedList<Metadata> currentMetadata) {
+    void storeCurrentMetadata(String memberName, List<Metadata> currentMetadata) {
       Object memberMetadata = metadata.get(memberName);
       List<Object> allMetadata = memberMetadata instanceof JsonArray
               ? ((JsonArray) memberMetadata).getItems()
-              : new LinkedList<Object>();
+              : new LinkedList<>();
       allMetadata.addAll(compress(currentMetadata));
       if (!allMetadata.isEmpty()) {
         metadata.set(memberName, new JsonArray(allMetadata.toArray()));
