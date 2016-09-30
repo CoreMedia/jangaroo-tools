@@ -334,4 +334,9 @@ public final class CompilerUtils {
     result.append(value, pos, value.length());
     return result.toString();
   }
+
+  public static boolean isNumber(AS3Type type) {
+    return AS3Type.NUMBER.equals(type) || AS3Type.INT.equals(type) || AS3Type.UINT.equals(type);
+  }
+
 }

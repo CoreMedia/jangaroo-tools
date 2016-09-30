@@ -64,6 +64,10 @@ class MxmlAstUtils {
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
 
+  private MxmlAstUtils() {
+    // hide constructor for utility class
+  }
+
   @Nonnull
   static FunctionDeclaration createConstructor(@Nonnull FunctionDeclaration directive, @Nonnull List<Directive> constructorBodyDirectives) {
     BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE);
@@ -107,12 +111,10 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type, boolean useCast) {
+  static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type) {
     TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
     Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
-    if(useCast) {
-      value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
-    }
+    value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     Initializer initializer = new Initializer(SYM_EQ, value);
     return new VariableDeclaration(SYM_EMPTY_MODIFIERS, SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
   }
