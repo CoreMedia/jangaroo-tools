@@ -32,8 +32,8 @@ public abstract class IdeDeclaration extends Declaration {
 
   private Ide ide;
 
-  protected IdeDeclaration(JooSymbol[] modifiers, Ide ide) {
-    super(modifiers);
+  protected IdeDeclaration(AnnotationsAndModifiers am, Ide ide) {
+    super(am.getAnnotations(), toSymbolArray(am.getModifiers()));
     this.setIde(ide);
     if (ide != null && PRIVATE_MEMBER_NAME.matcher(ide.getName()).matches()) {
       JangarooParser.warning(ide.getSymbol(), "Jangaroo identifier must not be an ActionScript identifier postfixed with a dollar sign ('$') followed by a number.");
@@ -41,7 +41,11 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   protected IdeDeclaration(Ide ide) {
-    this(new JooSymbol[0], ide);
+    this(new AnnotationsAndModifiers(null, null), ide);
+  }
+
+  protected static JooSymbol[] toSymbolArray(List symbols) {
+    return (JooSymbol[])symbols.toArray(new JooSymbol[symbols.size()]);
   }
 
   @Override

@@ -215,6 +215,7 @@ public class MxmlParserHelper {
     String template = TPL_EXPRESSION;
     int[] position = position(symbol, template);
     String input = String.format(template, text);
+    System.out.println(String.format("\nparsing '%s'", input));
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(input, position[0], position[1]).value;
     List<Directive> classBodyDirectives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
     if(null != classBodyDirectives) {

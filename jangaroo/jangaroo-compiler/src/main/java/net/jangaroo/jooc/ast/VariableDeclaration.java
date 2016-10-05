@@ -42,7 +42,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
 
   private VariableDeclaration previousVariableDeclaration;
 
-  public VariableDeclaration(JooSymbol[] modifiers,
+  public VariableDeclaration(AnnotationsAndModifiers am,
                              JooSymbol optSymConstOrVar,
                              Ide ide,
                              TypeRelation optTypeRelation,
@@ -50,7 +50,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              VariableDeclaration optNextVariableDeclaration,
                              JooSymbol optSymSemicolon) {
     // inherit modifiers of first declaration to those following this declaration
-    super(modifiers, ide, optTypeRelation);
+    super(am, ide, optTypeRelation);
     this.optSymConstOrVar = optSymConstOrVar;
     this.optInitializer = optInitializer;
     this.optNextVariableDeclaration = optNextVariableDeclaration;
@@ -58,7 +58,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (optNextVariableDeclaration != null) {
       optNextVariableDeclaration.previousVariableDeclaration = this;
       if (optSymSemicolon != null) {
-        optNextVariableDeclaration.setInheritedModifiers(modifiers);
+        optNextVariableDeclaration.setInheritedModifiers(toSymbolArray(am.getModifiers()));
       }
     }
   }
@@ -83,7 +83,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
                              Initializer optInitializer,
                              VariableDeclaration optNextVariableDeclaration,
                              JooSymbol optSymSemicolon) {
-    this(new JooSymbol[0], symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
+    this(new AnnotationsAndModifiers(null,null), symConstOrVar, ide, optTypeRelation, optInitializer, optNextVariableDeclaration, optSymSemicolon);
   }
 
   public VariableDeclaration(JooSymbol symConstOrVar,
@@ -148,7 +148,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
     } else if (isConst()
-      && getIde().getScope().getCompilationUnit().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+      && getIde().getScope().getCompilationUnit().getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       JangarooParser.warning(getOptSymConstOrVar(), "constant should be initialized");
     }
     if (getOptNextVariableDeclaration() != null) {

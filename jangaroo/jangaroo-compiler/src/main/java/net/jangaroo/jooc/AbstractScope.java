@@ -253,7 +253,7 @@ public abstract class AbstractScope implements Scope {
 
   private static TypeDeclaration findArrayElementType(IdeDeclaration declaration) {
     // find [ArrayElementType("...")] annotation:
-    Annotation annotation = findAnnotation(declaration, ARRAY_ELEMENT_TYPE_ANNOTATION_NAME);
+    Annotation annotation = declaration.getAnnotation(ARRAY_ELEMENT_TYPE_ANNOTATION_NAME);
     if (annotation != null) {
       JangarooParser compiler = declaration.getIde().getScope().getCompiler();
       CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
@@ -275,26 +275,6 @@ public abstract class AbstractScope implements Scope {
             }
           }
         }
-      }
-    }
-    return null;
-  }
-
-  private static Annotation findAnnotation(IdeDeclaration declaration, String annotationName) {
-    ClassDeclaration classDeclaration = declaration.getIde().getScope().getClassDeclaration();
-    if (classDeclaration == null) {
-      return null;
-    }
-    List<? extends AstNode> children = classDeclaration.getBody().getChildren();
-    int declarationIndex = children.indexOf(declaration);
-    for (int index = declarationIndex - 1; index >= 0; --index) {
-      AstNode astNode = children.get(index);
-      if (!(astNode instanceof Annotation)) {
-        return null;
-      }
-      Annotation annotation = (Annotation) astNode;
-      if (annotation.getMetaName().equals(annotationName)) {
-        return annotation;
       }
     }
     return null;

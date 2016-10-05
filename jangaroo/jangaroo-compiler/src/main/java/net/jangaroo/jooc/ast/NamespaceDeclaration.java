@@ -30,16 +30,26 @@ public class NamespaceDeclaration extends IdeDeclaration {
   private JooSymbol symNamespace;
   private JooSymbol optSymSemicolon;
 
-  public NamespaceDeclaration(JooSymbol[] modifiers,
+  public NamespaceDeclaration(AnnotationsAndModifiers am,
                               JooSymbol symNamespace,
                               Ide ide,
                               Initializer optInitializer,
                               JooSymbol optSymSemicolon) {
-    super(modifiers, ide);
+    super(am, ide);
     assert SyntacticKeywords.NAMESPACE.equals(symNamespace.getText());
     this.symNamespace = symNamespace;
     this.optInitializer = optInitializer;
     this.optSymSemicolon = optSymSemicolon;
+  }
+
+  public NamespaceDeclaration(AnnotationsAndModifiers am,
+                              Initializer optInitializer,
+                              JooSymbol optSymSemicolon) {
+    this(new AnnotationsAndModifiers(am.getAnnotations(), am.getModifiers().subList(0, am.getModifiers().size() - 2)),
+            am.getModifiers().get(am.getModifiers().size() - 2),
+            new Ide(am.getModifiers().get(am.getModifiers().size() - 1)),
+            optInitializer,
+            optSymSemicolon);
   }
 
   @Override

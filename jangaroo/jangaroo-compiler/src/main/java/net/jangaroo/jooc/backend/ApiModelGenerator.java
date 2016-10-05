@@ -526,6 +526,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    visitAnnotations(variableDeclaration);
     boolean isTopLevelDeclaration = modelStack.peek() instanceof CompilationUnitModel;
     if (variableDeclaration.isPublicApi() || isTopLevelDeclaration) {
       FieldModel fieldModel = new FieldModel();
@@ -552,8 +553,15 @@ public class ApiModelGenerator {
     }
   }
 
+  private void visitAnnotations(Declaration declaration) throws IOException {
+    for (Annotation annotation : declaration.getAnnotations()) {
+      visitAnnotation(annotation);
+    }
+  }
+
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    visitAnnotations(functionDeclaration);
     boolean isTopLevelDeclaration = modelStack.peek() instanceof CompilationUnitModel;
     if (functionDeclaration.isPublicApi() || isTopLevelDeclaration) {
       MethodModel methodModel = new MethodModel();
@@ -633,6 +641,7 @@ public class ApiModelGenerator {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    visitAnnotations(classDeclaration);
     ClassModel classModel = new ClassModel();
     getCurrent(CompilationUnitModel.class).setPrimaryDeclaration(classModel);
     modelStack.push(classModel);

@@ -18,6 +18,7 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -179,8 +180,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         CompilationUnit unit = importSource(source, false);
         if (unit != null) {
           // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
-          if (unit.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !unit.getPrimaryDeclaration().isNative()
-                  && unit.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
+          final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
+          if (primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !primaryDeclaration.isNative()
+                  && primaryDeclaration.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
             outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
           }
           if (getConfig().isGenerateApi()) {
@@ -317,7 +319,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     for (String qName : dependenciesForPublicAPICheck) {
       CompilationUnit compilationUnit = getCompilationUnit(qName);
       if (getInputSource(compilationUnit) instanceof ZipEntryInputSource
-        && compilationUnit.getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
+        && compilationUnit.getPackageDeclaration().getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
         File sourceFile = new File(unit.getSymbol().getFileName());
         if (getConfig().getPublicApiViolationsMode() == PublicApiViolationsMode.WARN) {

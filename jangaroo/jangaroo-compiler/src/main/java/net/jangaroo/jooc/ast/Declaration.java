@@ -21,6 +21,9 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.sym;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Declarations are statements used to define entities such as variables, functions, classes,
  * and interfaces.
@@ -46,6 +49,8 @@ public abstract class Declaration extends Statement {
   protected static final int MODIFIERS_SCOPE =
           MODIFIER_PRIVATE | MODIFIER_PROTECTED | MODIFIER_PUBLIC | MODIFIER_INTERNAL | MODIFIER_NAMESPACE;
 
+  private List<Annotation> annotations;
+
   private JooSymbol[] symModifiers;
   private JooSymbol[] symInheritedModifiers = new JooSymbol[0];
 
@@ -55,7 +60,8 @@ public abstract class Declaration extends Statement {
 
   private int modifiers = -1;
 
-  protected Declaration(JooSymbol[] modifiers) {
+  protected Declaration(List<Annotation> annotations, JooSymbol[] modifiers) {
+    this.annotations = annotations;
     this.symModifiers = modifiers.clone();
     computeModifiers();
   }
@@ -66,6 +72,34 @@ public abstract class Declaration extends Statement {
 
   public ClassDeclaration getClassDeclaration() {
     return classDeclaration;
+  }
+
+  public List<Annotation> getAnnotations() {
+    return annotations;
+  }
+
+  public Annotation getAnnotation(String name) {
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        return annotation;
+      }
+    }
+    return null;
+  }
+
+  public List<Annotation> getAnnotations(String name) {
+    List<Annotation> annotations = new ArrayList<>();
+    for (Annotation annotation : getAnnotations()) {
+      if (name.equals(annotation.getMetaName())) {
+        annotations.add(annotation);
+      }
+    }
+    return annotations;
+  }
+
+  @Override
+  public List<? extends AstNode> getChildren() {
+    return makeChildren(super.getChildren(), getAnnotations());
   }
 
   protected void setInheritedModifiers(final JooSymbol[] modifiers) {
@@ -111,6 +145,7 @@ public abstract class Declaration extends Statement {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
+    analyze(this, getAnnotations());
     checkAllowedModifiers();
   }
 
@@ -191,6 +226,7 @@ public abstract class Declaration extends Statement {
     setParentDeclaration(scope.getDefiningNode());
     setClassDeclaration(scope.getClassDeclaration());
     compilationUnit = scope.getCompilationUnit();
+    scope(getAnnotations(), scope);
   }
 
   public JooSymbol[] getSymInheritedModifiers() {
