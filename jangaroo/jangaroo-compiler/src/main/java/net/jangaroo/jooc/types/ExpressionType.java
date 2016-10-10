@@ -76,11 +76,15 @@ public class ExpressionType {
     }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
+    if (!AS3Type.OBJECT.equals(as3Type) && as3Type.equals(expectedAS3Type)) {
+      return true;
+    }
+
     if (isNumber(expectedAS3Type) && isNumber(as3Type)) {
       return true;
     }
 
-    if (AS3Type.VECTOR.equals(toCheck.getAS3Type())) {
+    if (AS3Type.VECTOR.equals(expectedAS3Type)) {
       // cannot handle vectors yet
       return true;
     }
