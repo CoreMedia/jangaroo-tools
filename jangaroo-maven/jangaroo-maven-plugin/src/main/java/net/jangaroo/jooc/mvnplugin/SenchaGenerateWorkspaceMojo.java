@@ -50,7 +50,7 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
           "jangaroo-maven-plugin and it will be overwritten by the next call of the plugin's " +
           "goal \"generate-workspace\".";
 
-  private static final String SENCHA_TEST_APP_LOCATION_SUFFIX = SenchaUtils.SEPARATOR + "target" + SenchaUtils.SEPARATOR + "test-classes";
+  private static final String SENCHA_TEST_APP_LOCATION_SUFFIX = SenchaUtils.SEPARATOR + "test-classes";
 
   @Parameter(defaultValue = "${session}")
   private MavenSession session;
@@ -169,7 +169,7 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
         String packageType = projectInReactor.getPackaging();
         if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
           addIfAbsent(packagePaths, SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + getRelativePathForSubProject(projectInReactor));
-          addIfAbsent(appPaths, getRelativePathForSubProject(projectInReactor) + SENCHA_TEST_APP_LOCATION_SUFFIX);
+          addIfAbsent(appPaths, getRelativePathForSubProject(projectInReactor, "") + SENCHA_TEST_APP_LOCATION_SUFFIX);
         } else if (Type.JANGAROO_APP_PACKAGING.equals(packageType)) {
           addIfAbsent(appPaths, getRelativePathForSubProject(projectInReactor));
         }
@@ -186,8 +186,13 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
   }
 
   private String getRelativePathForSubProject(MavenProject subProject) throws MojoExecutionException {
+    String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(subProject.getPackaging()) ?
+            SenchaUtils.APP_TARGET_DIRECTORY : SenchaUtils.LOCAL_PACKAGES_PATH;
+    return getRelativePathForSubProject(subProject, localPathToSrc);
+  }
+
+  private String getRelativePathForSubProject(MavenProject subProject, String localPathToSrc) throws MojoExecutionException {
     Path rootPath = project.getBasedir().toPath().normalize();
-    String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(subProject.getPackaging()) ? SenchaUtils.APP_TARGET_DIRECTORY : SenchaUtils.LOCAL_PACKAGES_PATH;
 
     Path path = Paths.get(subProject.getBuild().getDirectory() + localPathToSrc);
     Path relativePath = rootPath.relativize(path);
