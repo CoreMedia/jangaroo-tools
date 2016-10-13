@@ -6,22 +6,24 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CommaSeparatedList;
+import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.PropertyDeclaration;
+import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.model.AnnotationModel;
-import net.jangaroo.jooc.model.AnnotationPropertyModel;
-import net.jangaroo.jooc.model.ClassModel;
-import net.jangaroo.jooc.model.CompilationUnitModel;
-import net.jangaroo.jooc.model.FieldModel;
-import net.jangaroo.jooc.model.MemberModel;
-import net.jangaroo.jooc.model.MethodModel;
-import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,9 +75,9 @@ final class MxmlToModelParser {
     constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
-  private void processAttributes(XmlElement objectNode, CompilationUnitModel type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
+  private void processAttributes(XmlElement objectNode, CompilationUnit type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
-    ClassModel classModel = type == null ? null : type.getClassModel();
+    ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
     for (XmlAttribute attribute : objectNode.getAttributes()) {
       String propertyName = attribute.getLocalName();
@@ -85,11 +88,11 @@ final class MxmlToModelParser {
       if (noPrefix && !MxmlUtils.MXML_ID_ATTRIBUTE.equals(propertyName) ||
               isUntypedAccess) {
         JooSymbol value = attribute.getValue();
-        MemberModel propertyModel = null;
+        TypedIdeDeclaration propertyModel = null;
         if (!isUntypedAccess && classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
           if (propertyModel == null) {
-            AnnotationModel eventModel = findEvent(classModel, propertyName);
+            Annotation eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
               createEventHandlerCode(variable, value, eventModel);
               continue;
@@ -104,7 +107,7 @@ final class MxmlToModelParser {
     }
   }
 
-  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull MemberModel propertyModel) {
+  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull TypedIdeDeclaration propertyModel) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     // skip property assignment to target object if it was already contained in config object:
     if (generatingConfig || configVariable == null) {
@@ -114,15 +117,15 @@ final class MxmlToModelParser {
   }
 
 
-  private static AnnotationModel getAnnotationAtSetter(MemberModel memberModel, String annotationName) {
-    MemberModel setter = null;
-    if (memberModel instanceof PropertyModel) {
-      setter = ((PropertyModel) memberModel).getSetter();
-    } else if (memberModel instanceof FieldModel && !((FieldModel) memberModel).isConst()) {
+  private static Annotation getAnnotationAtSetter(TypedIdeDeclaration memberModel, String annotationName) {
+    TypedIdeDeclaration setter = null;
+    if (memberModel instanceof PropertyDeclaration) {
+      setter = ((PropertyDeclaration) memberModel).getSetter();
+    } else if (memberModel instanceof VariableDeclaration && !((VariableDeclaration) memberModel).isConst()) {
       setter = memberModel;
     }
     if (setter != null) {
-      Iterator<AnnotationModel> annotations = setter.getAnnotations(annotationName).iterator();
+      Iterator<Annotation> annotations = setter.getAnnotations(annotationName).iterator();
       if (annotations.hasNext()) {
         return annotations.next();
       }
@@ -131,26 +134,26 @@ final class MxmlToModelParser {
   }
 
   void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
-    CompilationUnitModel type = getCompilationUnitModel(objectNode);
+    CompilationUnit type = getCompilationUnitModel(objectNode);
     processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
     processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
   }
 
-  private void processChildNodes(XmlElement objectNode, CompilationUnitModel type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
+  private void processChildNodes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
-    ClassModel classModel = type == null ? null : type.getClassModel();
+    ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
-    MemberModel defaultPropertyModel = findDefaultPropertyModel(classModel);
+    TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
     List<XmlElement> defaultPropertyValues = new ArrayList<>();
     for (XmlElement element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
-        MemberModel propertyModel = null;
+        TypedIdeDeclaration propertyModel = null;
         String propertyName = element.getLocalName();
         if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
           if (classModel != null) {
             propertyModel = findPropertyModel(classModel, propertyName);
             if (propertyModel == null) {
-              AnnotationModel eventModel = findEvent(classModel, propertyName);
+              Annotation eventModel = findEvent(classModel, propertyName);
               if (eventModel != null) {
                 JooSymbol textContent = getTextContent(element);
                 createEventHandlerCode(variable, textContent, eventModel);
@@ -179,7 +182,7 @@ final class MxmlToModelParser {
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
-          String configMode = "Array".equals(propertyModel.getType()) ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+          String configMode = "Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName()) ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
           if (atValue != null) {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
@@ -196,23 +199,26 @@ final class MxmlToModelParser {
   }
 
   private void createChildElementsPropertyAssignmentCode(List<XmlElement> childElements, Ide variable,
-                                                         MemberModel propertyModel, boolean generatingConfig) {
-    boolean forceArray = "Array".equals(propertyModel.getType());
-    AnnotationModel extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
+                                                         TypedIdeDeclaration propertyModel, boolean generatingConfig) {
+    boolean forceArray = "Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName()); // TODO: improve Array detection!
+    Annotation extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
     Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
     String value = createArrayCodeFromChildElements(childElements, forceArray, useConfigObjects);
     if (extConfigAnnotation != null) {
-      AnnotationPropertyModel extractXType = extConfigAnnotation.getPropertiesByName().get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
-      if (extractXType != null) {
-        String extractXTypeToProperty = extractXType.getStringValue();
-        StringBuilder constructorCode = new StringBuilder();
-        if (extractXTypeToProperty != null) {
-          constructorCode.append("    ")
-                  .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
+      Map<String, Object> propertiesByName = extConfigAnnotation.getPropertiesByName();
+      if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER)) {
+        Object extractXType = propertiesByName.get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
+        if (extractXType == null || extractXType instanceof String) {
+          String extractXTypeToProperty = (String) extractXType;
+          StringBuilder constructorCode = new StringBuilder();
+          if (extractXTypeToProperty != null) {
+            constructorCode.append("    ")
+                    .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
+          }
+          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
+          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+          constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
         }
-        constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
-        constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
-        constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
       }
     }
     createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
@@ -261,7 +267,7 @@ final class MxmlToModelParser {
     Boolean useConfigObjects = defaultUseConfigObjects;
     if (useConfigObjects == null) {
       // let the class decide:
-      useConfigObjects = useConfigObjects(jangarooParser.resolveCompilationUnit(className).getClassModel());
+      useConfigObjects = useConfigObjects((ClassDeclaration) jangarooParser.resolveCompilationUnit(className).getPrimaryDeclaration());
     }
     String targetVariableName = null;   // name of the variable holding the object to build
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
@@ -297,7 +303,7 @@ final class MxmlToModelParser {
 
     Ide configVariable = null; // name of the variable holding the config object to use in the constructor
 
-    if (CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
+    if (CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar(objectElement, id);
       renderConfigAuxVar(configVariable, typeIde);
@@ -376,32 +382,40 @@ final class MxmlToModelParser {
     return value;
   }
 
-  private boolean useConfigObjects(ClassModel classModel) {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      Iterator<AnnotationModel> extConfigAnnotations = current.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
+  private boolean useConfigObjects(ClassDeclaration classModel) {
+    // special case Plugin (avoid having to check all interfaces):
+    CompilationUnit extPluginCompilationUnit = jangarooParser.getCompilationUnit("ext.Plugin");
+    if (extPluginCompilationUnit != null &&
+            classModel.isAssignableTo((ClassDeclaration) extPluginCompilationUnit.getPrimaryDeclaration())) {
+      return true;
+    }
+    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+      Iterator<Annotation> extConfigAnnotations = current.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
       if (extConfigAnnotations.hasNext()) {
-        AnnotationModel extConfigAnnotation = extConfigAnnotations.next();
+        Annotation extConfigAnnotation = extConfigAnnotations.next();
         return useConfigObjects(extConfigAnnotation, true);
-      }
-      // special case Plugin (avoid having to check all interfaces):
-      if (current.getInterfaces().contains("ext.Plugin") || current.getInterfaces().contains("Plugin")) {
-        return true;
       }
     }
     return false;
   }
 
-  private static Boolean useConfigObjects(AnnotationModel extConfigAnnotation, Boolean defaultValue) {
-    Map<String, AnnotationPropertyModel> propertiesByName = extConfigAnnotation.getPropertiesByName();
-    AnnotationPropertyModel flag = propertiesByName.get(EXT_CONFIG_CREATE_FLAG);
-    if (flag == null) {
-      // a given "extractXType" parameter implies to use config objects (create=false):
-      if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER)) {
-        return true;
+  private static Boolean useConfigObjects(Annotation extConfigAnnotation, Boolean defaultValue) {
+    CommaSeparatedList<AnnotationParameter> annotationParameters = extConfigAnnotation.getOptAnnotationParameters();
+    while (annotationParameters != null) {
+      AnnotationParameter annotationParameter = annotationParameters.getHead();
+      Ide annotationParameterName = annotationParameter.getOptName();
+      if (annotationParameterName != null) {
+        if (EXT_CONFIG_CREATE_FLAG.equals(annotationParameterName.getName())) {
+          AstNode value = annotationParameter.getValue();
+          return value instanceof LiteralExpr && "false".equals(((LiteralExpr) value).getValue().getJooValue());
+        } else if (EXT_CONFIG_EXTRACT_XTYPE_PARAMETER.equals(annotationParameterName.getName())) {
+          // a given "extractXType" parameter implies to use config objects (create=false):
+          return true;
+        }
       }
-      return defaultValue;
+      annotationParameters = annotationParameters.getTail();
     }
-    return "false".equals(flag.getValue());
+    return defaultValue;
   }
 
   private Ide createAuxVar(XmlElement element) {
@@ -433,17 +447,18 @@ final class MxmlToModelParser {
     return compilationUnit.createAuxVar(preferredName);
   }
 
-  private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull AnnotationModel event) {
-    AnnotationPropertyModel eventType = event.getPropertiesByName().get("type");
+  private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull Annotation event) {
+    Map<String, Object> eventPropertiesByName = event.getPropertiesByName();
+    Object eventType = eventPropertiesByName.get("type");
     String eventTypeStr;
-    if (eventType == null) {
-      eventTypeStr = "Object";
-    } else {
-      eventTypeStr = eventType.getStringValue();
+    if (eventType instanceof String) {
+      eventTypeStr = (String) eventType;
       compilationUnit.addImport(eventTypeStr);
+    } else {
+      eventTypeStr = "Object";
     }
-    AnnotationPropertyModel eventNameModel = event.getPropertiesByName().get("name");
-    String eventName = (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null)).getStringValue();
+    Object eventNameModel = eventPropertiesByName.get("name");
+    String eventName = (String) (eventNameModel != null ? eventNameModel : eventPropertiesByName.get(null));
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
     }
@@ -467,14 +482,14 @@ final class MxmlToModelParser {
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
-  private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull MemberModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
+  private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
     Directive propertyAssignment = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
     constructorBodyDirectives.add(propertyAssignment);
   }
 
   @Nonnull
-  private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull MemberModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    String propertyType = propertyModel.getType();
+  private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
+    String propertyType = propertyModel.getOptTypeRelation().getType().getIde().getName();
     boolean untyped = UNTYPED_MARKER.equals(propertyType);
     String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(value.getText(), untyped ? null : propertyType));
 
@@ -491,16 +506,14 @@ final class MxmlToModelParser {
     return MessageFormat.format("{0} = {1};", leftHandSide, attributeValueAsString);
   }
 
-  private static String getConfigOptionName(MemberModel propertyModel) {
-    if (propertyModel instanceof PropertyModel) {
-      MethodModel setter = ((PropertyModel) propertyModel).getSetter();
-      if (setter != null) { // should actually be there, or the assignment would not work!
-        Iterator<AnnotationModel> configOptionAnnotations = setter.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
-        if (configOptionAnnotations.hasNext()) {
-          AnnotationPropertyModel configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
-          if (configOption != null) {
-            return configOption.getStringValue();
-          }
+  private static String getConfigOptionName(TypedIdeDeclaration propertyModel) {
+    TypedIdeDeclaration setter = propertyModel instanceof PropertyDeclaration ? ((PropertyDeclaration) propertyModel).getSetter() : propertyModel;
+    if (setter != null) { // should actually be there, or the assignment would not work!
+      Iterator<Annotation> configOptionAnnotations = setter.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
+      if (configOptionAnnotations.hasNext()) {
+        Object configOption = configOptionAnnotations.next().getPropertiesByName().get(null);
+        if (configOption instanceof String) {
+          return (String) configOption;
         }
       }
     }
@@ -510,34 +523,34 @@ final class MxmlToModelParser {
   // ======================================== auxiliary methods ========================================
 
   @Nonnull
-  private CompilationUnitModel getCompilationUnitModel(XmlElement element) {
+  private CompilationUnit getCompilationUnitModel(XmlElement element) {
     String fullClassName = mxmlParserHelper.getClassNameForElement(jangarooParser, element);
     try {
-      return CompilationUnitModelUtils.getCompilationUnitModel(fullClassName, jangarooParser);
+      return jangarooParser.resolveCompilationUnit(fullClassName);
     } catch (CompilerError e) {
       // ugly to catch-and-rethrow, I know, but we need to add position information here...
       throw JangarooParser.error(element, e.getMessage());
     }
   }
 
-  private MemberModel findPropertyModel(ClassModel classModel, String propertyName) {
-    MemberModel propertyModel = null;
-    ClassModel superClassModel = getSuperClassModel(classModel);
+  private TypedIdeDeclaration findPropertyModel(ClassDeclaration classModel, String propertyName) {
+    TypedIdeDeclaration propertyModel = null;
+    ClassDeclaration superClassModel = getSuperClassModel(classModel);
     if (superClassModel != null) {
       propertyModel = findPropertyModel(superClassModel, propertyName);
     }
     if (propertyModel == null) {
-      MemberModel memberModel = classModel.getMember(propertyName);
-      if (memberModel != null && memberModel.isWritable()) {
+      TypedIdeDeclaration memberModel = classModel.getMemberDeclaration(propertyName);
+      if (memberModel != null) { // TODO: && memberModel.isWritable()) {
         propertyModel = memberModel;
       }
     }
     return propertyModel;
   }
 
-  private AnnotationModel findEvent(ClassModel classModel, String propertyName) {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      AnnotationModel eventModel = current.getEvent(propertyName);
+  private Annotation findEvent(ClassDeclaration classModel, String propertyName) {
+    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+      Annotation eventModel = getEvent(current, propertyName);
       if (eventModel != null) {
         return eventModel;
       }
@@ -545,9 +558,26 @@ final class MxmlToModelParser {
     return null;
   }
 
-  private MemberModel findDefaultPropertyModel(ClassModel classModel) {
-    for (ClassModel current = classModel; current != null; current = getSuperClassModel(current)) {
-      MemberModel defaultPropertyModel = current.findPropertyWithAnnotation(false, MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION);
+  private Annotation getEvent(ClassDeclaration classDeclaration, String propertyName) {
+    for (Annotation eventAnnotation : classDeclaration.getAnnotations("Event")) {
+      CommaSeparatedList<AnnotationParameter> annotationParameters = eventAnnotation.getOptAnnotationParameters();
+      while (annotationParameters != null) {
+        Ide name = annotationParameters.getHead().getOptName();
+        if (name != null && "name".equals(name.getName())) {
+          AstNode value = annotationParameters.getHead().getValue();
+          if (value instanceof LiteralExpr && propertyName.equals(value.getSymbol().getJooValue())) {
+            return eventAnnotation;
+          }
+        }
+      }
+      
+    }
+    return null;
+  }
+
+  private TypedIdeDeclaration findDefaultPropertyModel(ClassDeclaration classModel) {
+    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+      TypedIdeDeclaration defaultPropertyModel = findPropertyWithAnnotation(current, MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION);
       if (defaultPropertyModel != null) {
         return defaultPropertyModel;
       }
@@ -555,22 +585,26 @@ final class MxmlToModelParser {
     return null;
   }
 
-  @Nonnull
-  private MemberModel createDynamicPropertyModel(XmlElement element, CompilationUnitModel compilationUnitModel, String name, boolean allowAnyProperty) {
-    if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getClassModel() != null && !compilationUnitModel.getClassModel().isDynamic()) {
-      // dynamic property of a non-dynamic class: warn!
-      JangarooParser.warning(element.getSymbol(), "MXML: property " + name + " not found in class " + compilationUnitModel.getQName() + ".");
-    }
-    return new FieldModel(name, allowAnyProperty ? UNTYPED_MARKER : "*");
-  }
-
-  private ClassModel getSuperClassModel(ClassModel classModel) {
-    String superclass = classModel.getSuperclass();
-    if (superclass != null) {
-      CompilationUnitModel superCompilationUnitModel = jangarooParser.resolveCompilationUnit(superclass);
-      return superCompilationUnitModel.getClassModel();
+  private TypedIdeDeclaration findPropertyWithAnnotation(ClassDeclaration current, String annotation) {
+    for (TypedIdeDeclaration member : current.getMembers()) {
+      if (!member.getAnnotations(annotation).isEmpty()) {
+        return member;
+      }
     }
     return null;
+  }
+
+  @Nonnull
+  private TypedIdeDeclaration createDynamicPropertyModel(XmlElement element, CompilationUnit compilationUnitModel, String name, boolean allowAnyProperty) {
+    if (!allowAnyProperty && compilationUnitModel != null && compilationUnitModel.getPrimaryDeclaration() != null && !compilationUnitModel.getPrimaryDeclaration().isDynamic()) {
+      // dynamic property of a non-dynamic class: warn!
+      JangarooParser.warning(element.getSymbol(), "MXML: property " + name + " not found in class " + compilationUnitModel.getPrimaryDeclaration().getQualifiedNameStr() + ".");
+    }
+    return new VariableDeclaration(new JooSymbol("var"), new Ide(name), new TypeRelation(new JooSymbol(allowAnyProperty ? UNTYPED_MARKER : "*")));
+  }
+
+  private ClassDeclaration getSuperClassModel(ClassDeclaration classModel) {
+    return classModel.getSuperTypeDeclaration();
   }
 
   @Nonnull

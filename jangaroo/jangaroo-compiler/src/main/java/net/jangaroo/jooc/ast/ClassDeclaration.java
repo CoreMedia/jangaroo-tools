@@ -25,6 +25,7 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
@@ -258,6 +259,10 @@ public class ClassDeclaration extends TypeDeclaration {
   @Override
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
     return members.get(memberName);
+  }
+
+  public Collection<TypedIdeDeclaration> getMembers() {
+    return members.values();
   }
 
   @Override

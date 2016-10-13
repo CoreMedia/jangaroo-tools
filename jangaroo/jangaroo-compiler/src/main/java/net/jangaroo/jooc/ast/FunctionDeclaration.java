@@ -346,4 +346,27 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   public boolean isContainsSuperConstructorCall() {
     return containsSuperConstructorCall;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    FunctionDeclaration that = (FunctionDeclaration) o;
+
+    return getIde().getName().equals(that.getIde().getName()) &&
+            (symGetOrSet == that.symGetOrSet || symGetOrSet != null && that.symGetOrSet != null &&
+                    symGetOrSet.getText().equals(that.symGetOrSet.getText()));
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getIde().getName().hashCode();
+    result = 31 * result + (symGetOrSet != null ? symGetOrSet.getText().hashCode() : 0);
+    return result;
+  }
 }

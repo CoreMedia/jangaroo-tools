@@ -127,7 +127,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     Ide superConfigVar = null;
     // If the super constructor has a 'config' param, create a fresh var for that.
-    if(CompilationUnitModelUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
+    if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       superConfigVar = createAuxVar(MxmlUtils.CONFIG);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration);
@@ -228,7 +228,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return classBodyDirectives;
   }
 
-  String getClassQName() {
+  @Override
+  public String getQualifiedNameStr() {
     return classQName;
   }
 

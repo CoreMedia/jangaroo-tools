@@ -32,7 +32,7 @@ class ClassDeclarationBuilder {
 
   ClassDeclaration build() {
     RootElementProcessor rootElementProcessor = unit.getRootElementProcessor();
-    String classQName = unit.getClassQName();
+    String classQName = unit.getQualifiedNameStr();
     XmlElement rootNode = unit.getRootNode();
 
     // get super class name

@@ -20,6 +20,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +60,10 @@ public class CompilationUnit extends NodeImplBase {
       ((ClassDeclaration) primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
     }
     this.rBrace = rBrace;
+  }
+
+  public String getQualifiedNameStr() {
+    return CompilerUtils.qName(getPackageDeclaration().getQualifiedNameStr(), getPrimaryDeclaration().getName());
   }
 
   @Override

@@ -5,6 +5,7 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -12,14 +13,11 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.backend.ApiModelGenerator;
 import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.model.ClassModel;
-import net.jangaroo.jooc.model.CompilationUnitModel;
-import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
@@ -41,7 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser extends CompilationUnitModelResolver implements CompilationUnitRegistry {
+public class JangarooParser extends CompilationUnitResolver implements CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
   static final String UTF_8 = "UTF-8";
 
@@ -56,7 +54,6 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   private Map<CompilationUnit, InputSource> inputSourceByCompilationUnit = new HashMap<>();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
   private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
-  private Map<String, CompilationUnitModel> compilationUnitModelsByQName = new LinkedHashMap<String, CompilationUnitModel>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.PROPERTIES_SUFFIX, Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
@@ -251,18 +248,18 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
       throw error("Input file must end with one of '" + getCompilableSuffixes() + "': " + fileName);
     }
     CompilationUnit unit = doParse(source, log, config.getSemicolonInsertionMode());
-    if (null != unit) {
-      unit.scope(globalScope);
-    }
     if (null == unit) {
       return null;
     }
 
-    String prefix = unit.getPackageDeclaration().getQualifiedNameStr();
-    String qname = CompilerUtils.qName(prefix, unit.getPrimaryDeclaration().getIde().getName());
+    String qname = unit.getQualifiedNameStr();
+    // MXML files do not have a primary declaration before scoping, but are known to denote classes.
+    // This has to be stated before scoping to avoid cyclic importSource calls.
+    isClassByQName.put(qname, unit instanceof MxmlCompilationUnit || unit.getPrimaryDeclaration() instanceof ClassDeclaration);
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
+    unit.scope(globalScope);
     return unit;
   }
 
@@ -293,11 +290,11 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
   public CompilationUnit getCompilationUnit(String qname) {
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
+      // The compilation unit has not yet been parsed.
       InputSource source = findSource(qname);
-      if (source == null) {
-        return null;
+      if (source != null) {
+        compilationUnit = importSource(source, false);
       }
-      compilationUnit = importSource(source, false);
     }
     return compilationUnit;
   }
@@ -323,50 +320,12 @@ public class JangarooParser extends CompilationUnitModelResolver implements Comp
 
   @Override
   @Nonnull
-  public CompilationUnitModel resolveCompilationUnit(@Nonnull String fullClassName) {
-    CompilationUnitModel compilationUnitModel = compilationUnitModelsByQName.get(fullClassName);
-    if (compilationUnitModel == null) {
-      // Use a marker in the lookup table to identify infinite loops.
-      if (compilationUnitModelsByQName.containsKey(fullClassName)) {
-        throw error("Cyclic dependency involving " + fullClassName + ", " +
-                "possibly a cyclic inheritance relation");
-      }
-      compilationUnitModelsByQName.put(fullClassName, null);
-
-      CompilationUnit compilationUnit = compilationUnitsByQName.get(fullClassName);
-      boolean isMxmlClass = false;
-      if (compilationUnit == null) {
-        // The compilation unit has not yet been parsed.
-        InputSource source = findSource(fullClassName);
-        if (source != null) {
-          if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
-            isMxmlClass = true;
-            // MXML files denote classes.
-            isClassByQName.put(fullClassName, true);
-            compilationUnit = doParse(source, log, config.getSemicolonInsertionMode());
-          } else {
-            compilationUnit = getCompilationUnit(fullClassName);
-          }
-        }
-      }
-      if (compilationUnit == null) {
-        throw error("Undefined type: " + fullClassName);
-      }
-
-      compilationUnitModel = new CompilationUnitModel(CompilerUtils.packageName(fullClassName), new ClassModel(CompilerUtils.className(fullClassName)));
-      compilationUnitModelsByQName.put(fullClassName, compilationUnitModel);
-      isClassByQName.put(fullClassName, isMxmlClass || compilationUnitModel.getPrimaryDeclaration() instanceof ClassModel);
-
-      if(isMxmlClass) {
-        compilationUnit.scope(globalScope);
-      }
-      try {
-        new ApiModelGenerator(false).generateModel(compilationUnit, compilationUnitModel);
-      } catch (IOException e) {
-        throw error("Unexpected I/O error while building compilation unit model", e);
-      }
+  public CompilationUnit resolveCompilationUnit(@Nonnull String fullClassName) {
+    CompilationUnit compilationUnit = getCompilationUnit(fullClassName);
+    if (compilationUnit == null) {
+      throw error("Undefined type: " + fullClassName);
     }
-    return compilationUnitModel;
+    return compilationUnit;
   }
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {

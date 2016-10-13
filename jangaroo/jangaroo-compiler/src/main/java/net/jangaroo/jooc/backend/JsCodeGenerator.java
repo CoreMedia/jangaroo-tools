@@ -3,6 +3,7 @@ package net.jangaroo.jooc.backend;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import net.jangaroo.jooc.CodeGenerator;
+import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.Debug;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
@@ -60,6 +61,7 @@ import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
@@ -72,6 +74,7 @@ import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
@@ -83,14 +86,7 @@ import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
-import net.jangaroo.jooc.model.CompilationUnitModel;
-import net.jangaroo.jooc.model.CompilationUnitModelResolver;
-import net.jangaroo.jooc.model.FieldModel;
-import net.jangaroo.jooc.model.MemberModel;
-import net.jangaroo.jooc.model.MethodModel;
 import net.jangaroo.jooc.model.MethodType;
-import net.jangaroo.jooc.model.NamedModel;
-import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -154,7 +150,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("XML");
   }
 
-  private final CompilationUnitModelResolver compilationUnitModelResolver;
+  private final CompilationUnitResolver compilationUnitModelResolver;
 
   private boolean expressionMode = false;
   private Map<String,String> imports = new HashMap<String,String>();
@@ -182,7 +178,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   };
 
-  public JsCodeGenerator(JsWriter out, CompilationUnitModelResolver compilationUnitModelResolver) {
+  public JsCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out);
     this.compilationUnitModelResolver = compilationUnitModelResolver;
   }
@@ -269,7 +265,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       memberName = CompilerUtils.quote(memberName);
       closingToken = ")";
     } else if (memberDeclaration != null && !isAssignmentLHS(ide)) {
-      MemberModel getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+      TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (getter != null) {
         // found usage of an [Bindable]-annotated get function: call it via AS3.getBindable()!
         Expr normalizedArg = arg instanceof IdeExpr ? ((IdeExpr) arg).getNormalizedExpr() : arg;
@@ -429,18 +425,16 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
       String javaScriptName;
       String javaScriptNameToRequire;
-      CompilationUnitModel dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
 
-      NamedModel primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
+      IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
 
-      List<AnnotationModel> nativeAnnotations = primaryDeclaration instanceof AnnotatedModel ?
-              ((AnnotatedModel)primaryDeclaration).getAnnotations(Jooc.NATIVE_ANNOTATION_NAME) :
-              Collections.<AnnotationModel>emptyList();
+      List<Annotation> nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotations.isEmpty()) {
         javaScriptName = dependentCUId;
         javaScriptNameToRequire = javaScriptName;
       } else {
-        AnnotationModel nativeAnnotation = nativeAnnotations.get(0);
+        Annotation nativeAnnotation = nativeAnnotations.get(0);
         String javaScriptAlias = getNativeAnnotationValue(nativeAnnotation);
         if (javaScriptAlias != null) {
           javaScriptName = javaScriptAlias;
@@ -461,20 +455,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return requires.toArray(new String[requires.size()]);
   }
 
-  private String getNativeAnnotationValue(AnnotationModel nativeAnnotation) {
+  private String getNativeAnnotationValue(Annotation nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
   }
 
-  private String getNativeAnnotationRequireValue(AnnotationModel nativeAnnotation) {
+  private String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 
-  private static Object getAnnotationParameterValue(AnnotationModel nativeAnnotation, String name,
+  private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
                                                     Object defaultValue) {
-    Map<String, AnnotationPropertyModel> propertiesByName = nativeAnnotation.getPropertiesByName();
-    for (Map.Entry<String, AnnotationPropertyModel> entry : propertiesByName.entrySet()) {
+    Map<String, Object> propertiesByName = nativeAnnotation.getPropertiesByName();
+    for (Map.Entry<String, Object> entry : propertiesByName.entrySet()) {
       if (Objects.equals(entry.getKey(), name)) {
-        String stringValue = entry.getValue().getStringValue();
+        String stringValue = (String) entry.getValue();
         return stringValue == null ? defaultValue : stringValue;
       }
     }
@@ -753,7 +747,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     //System.err.println("*#*#*#* trying to find " + methodType + "ter for qIde " + qIde.getQualifiedNameStr());
     ExpressionType lhsType = dotExpr.getArg().getType();
     if (lhsType != null && lhsType.getAS3Type() == AS3Type.OBJECT) {
-      MemberModel member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, lhsType.getDeclaration());
+      TypedIdeDeclaration member = findMemberWithBindableAnnotation(dotExpr.getIde(), methodType, lhsType.getDeclaration());
       return member == null ? null : member.getName();
     }
     if (lhsType instanceof Typed) {
@@ -768,13 +762,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private MemberModel findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
+  private TypedIdeDeclaration findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
     String memberName = qIde.getIde().getText();
-    MemberModel member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
+    TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
 //              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
     if (member != null) {
-      List<AnnotationModel> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
+      List<Annotation> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
       if (bindableAnnotations.size() > 0) {
         return member;
       }
@@ -782,57 +776,55 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static Map<String, AnnotationPropertyModel> getBindablePropertiesByName(MemberModel member) {
+  private static Map<String, Object> getBindablePropertiesByName(TypedIdeDeclaration member) {
     return member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).get(0).getPropertiesByName();
   }
 
   private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
-    MemberModel member = findMemberWithBindableAnnotation(qIde, methodType, typeDeclaration);
+    TypedIdeDeclaration member = findMemberWithBindableAnnotation(qIde, methodType, typeDeclaration);
     return member == null ? null : getBindablePropertyName(methodType, member);
   }
 
-  private static String getBindablePropertyName(MethodType methodType, MemberModel member) {
-    AnnotationPropertyModel bindableAnnotationValue = getBindablePropertiesByName(member).get(null);
+  private static String getBindablePropertyName(MethodType methodType, TypedIdeDeclaration member) {
+    Object bindableAnnotationValue = getBindablePropertiesByName(member).get(null);
     if (bindableAnnotationValue == null) {
       return (methodType == MethodType.GET &&
-              "Boolean".equals(((MethodModel) member).getReturnModel().getType())
+              "Boolean".equals(member.getOptTypeRelation().getType().getIde().getName())
               ? "is" : methodType) + MxmlUtils.capitalize(member.getName());
     } else {
-      return bindableAnnotationValue.getStringValue();
+      return (String) bindableAnnotationValue;
     }
   }
 
-  private static String getBindableEventName(MemberModel member) {
-    AnnotationPropertyModel eventAnnotation = getBindablePropertiesByName(member).get("event");
-    return eventAnnotation == null ? null : eventAnnotation.getStringValue();
+  private static String getBindableEventName(TypedIdeDeclaration member) {
+    Object eventAnnotation = getBindablePropertiesByName(member).get("event");
+    return eventAnnotation instanceof String ? (String) eventAnnotation : null;
   }
 
 
-  private MemberModel lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
-                                                       MethodType methodType) throws IOException {
-    MemberModel member;
-    ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
-    if (superDeclaration != null) {
-      member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
-      if (member != null) {
-        return member;
+  private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
+                                                        MethodType methodType) throws IOException {
+    TypedIdeDeclaration member = classDeclaration.getMemberDeclaration(memberName);
+    if (member instanceof PropertyDeclaration) {
+      member = ((PropertyDeclaration) member).getAccessor(methodType == MethodType.SET);
+    }
+    if (member instanceof VariableDeclaration) {
+      if (((VariableDeclaration) member).isConst() && methodType == MethodType.SET) {
+        // cannot write a const:
+        member = null;
+      }
+    } else if (member instanceof FunctionDeclaration) {
+      FunctionDeclaration method = (FunctionDeclaration) member;
+      MethodType foundMethodType = method.isGetter() ? MethodType.GET : method.isSetter() ? MethodType.SET : null;
+      if (methodType != foundMethodType) {
+        member = null;
       }
     }
-    // TODO: also look in implemented interfaces first!
-
-    CompilationUnit compilationUnit = classDeclaration.getCompilationUnit();
-    if (compilationUnit == null) {
-      // predefined types (*, void) declare no properties:
-      return null;
-    }
-    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    CompilationUnitModel compilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(primaryDeclaration.getQualifiedNameStr());
-    member = compilationUnitModel.getClassModel().getMember(memberName);
-    if (member instanceof PropertyModel) {
-      member = ((PropertyModel) member).getMethod(methodType);
-    } else if (!(member instanceof FieldModel) ||
-            methodType == MethodType.SET && ((FieldModel) member).isConst()) {
-      member = null;
+    if (member == null) {
+      ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
+      if (superDeclaration != null) {
+        member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
+      }
     }
     return member;
   }
@@ -1053,8 +1045,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME.equals(funIde.getName())) {
       IdeDeclaration qualifierDeclaration = funIde.getQualifier().resolveDeclaration();
       if (qualifierDeclaration instanceof ClassDeclaration) {
-        CompilationUnitModel type = compilationUnitModelResolver.resolveCompilationUnit(qualifierDeclaration.getQualifiedNameStr());
-        if (type != null && type.getClassModel() != null) {
+        CompilationUnit type = compilationUnitModelResolver.resolveCompilationUnit(qualifierDeclaration.getQualifiedNameStr());
+        if (type != null && type.getPrimaryDeclaration() != null) {
           // check whether the type implements IObservable:
           return compilationUnitModelResolver.implementsInterface(type, MxmlUtils.EVENT_DISPATCHER_INTERFACE);
         }

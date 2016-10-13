@@ -9,13 +9,11 @@ import com.google.common.collect.Multimap;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.Implements;
-import net.jangaroo.jooc.model.ClassModel;
-import net.jangaroo.jooc.model.MemberModel;
-import net.jangaroo.jooc.model.MethodModel;
-import net.jangaroo.jooc.model.NamespacedModel;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -31,8 +29,8 @@ class ImplementedMembersAnalyzer {
 
   private Jooc jooc;
   private Collection<String> inspected = new HashSet<>();
-  private Multimap<String, MethodModel> membersByInterfaceQName = LinkedHashMultimap.create();
-  private Multimap<String, MethodModel> membersByClassQName = LinkedHashMultimap.create();
+  private Multimap<String, FunctionDeclaration> membersByInterfaceQName = LinkedHashMultimap.create();
+  private Multimap<String, FunctionDeclaration> membersByClassQName = LinkedHashMultimap.create();
 
   ImplementedMembersAnalyzer(Jooc jooc) {
     this.jooc = jooc;
@@ -50,7 +48,7 @@ class ImplementedMembersAnalyzer {
     String qName = classDeclaration.getQualifiedNameStr();
     boolean isInterface = classDeclaration.isInterface();
 
-    Collection<MethodModel> toBeImplemented = new LinkedHashSet<>();
+    Collection<TypedIdeDeclaration> toBeImplemented = new LinkedHashSet<>();
 
     Implements optImplements = classDeclaration.getOptImplements();
     if (null != optImplements) {
@@ -59,7 +57,7 @@ class ImplementedMembersAnalyzer {
 
         analyzeImplementedMembers(jooc.getCompilationUnit(superClassQName));
 
-        Collection<MethodModel> superClassMembers = membersByInterfaceQName.get(superClassQName);
+        Collection<FunctionDeclaration> superClassMembers = membersByInterfaceQName.get(superClassQName);
         if (isInterface) {
           // add inherited methods to current methods
           membersByInterfaceQName.putAll(qName, superClassMembers);
@@ -78,19 +76,19 @@ class ImplementedMembersAnalyzer {
       membersByClassQName.putAll(qName, membersByClassQName.get(superClassQName));
     }
 
-    ClassModel classModel = jooc.resolveCompilationUnit(qName).getClassModel();
-    Iterable<MethodModel> methodModels = Iterables.filter(classModel.getMembers(), MethodModel.class);
+    ClassDeclaration classModel = (ClassDeclaration) jooc.resolveCompilationUnit(qName).getPrimaryDeclaration();
+    Iterable<FunctionDeclaration> methodModels = Iterables.filter(classModel.getMembers(), FunctionDeclaration.class);
 
     if (isInterface) {
       membersByInterfaceQName.putAll(qName, methodModels);
     } else {
 
-      MethodModel constructor = classModel.getConstructor();
-      Iterable<MethodModel> publicNonStaticMethods = Iterables.filter(methodModels, Predicates.and(new Predicate<MethodModel>() {
+      FunctionDeclaration constructor = classModel.getConstructor();
+      Iterable<FunctionDeclaration> publicNonStaticMethods = Iterables.filter(methodModels, Predicates.and(new Predicate<FunctionDeclaration>() {
         @Override
-        public boolean apply(@Nullable MethodModel input) {
+        public boolean apply(@Nullable FunctionDeclaration input) {
           //noinspection ConstantConditions
-          return !input.isStatic() && NamespacedModel.PUBLIC.equals(input.getNamespace());
+          return !input.isStatic() && input.isPublic();
         }
       }, Predicates.not(Predicates.equalTo(constructor))));
 
@@ -98,19 +96,19 @@ class ImplementedMembersAnalyzer {
     }
 
     if (!isInterface) {
-      Collection<MethodModel> implemented = membersByClassQName.get(qName);
+      Collection<FunctionDeclaration> implemented = membersByClassQName.get(qName);
       toBeImplemented.addAll(membersByInterfaceQName.get(qName));
       toBeImplemented.removeAll(implemented);
       if (!toBeImplemented.isEmpty()) {
-        throw JangarooParser.error(optImplements, "Does not implement " + Iterables.transform(toBeImplemented, new Function<MemberModel, String>() {
+        throw JangarooParser.error(optImplements, "Does not implement " + Iterables.transform(toBeImplemented, new Function<TypedIdeDeclaration, String>() {
           @Nullable
           @Override
-          public String apply(@Nullable MemberModel input) {
+          public String apply(@Nullable TypedIdeDeclaration input) {
             //noinspection ConstantConditions
-            if (input.isAccessor()) {
-              return ((MethodModel)input).getMethodType() + " " + input.getName();
+            if (input instanceof FunctionDeclaration && ((FunctionDeclaration) input).isGetterOrSetter()) {
+              return ((FunctionDeclaration)input).getSymGetOrSet().getText() + " " + input.getName();
             }
-            return input.getName();
+            return input == null ? null : input.getName();
           }
         }));
       }
