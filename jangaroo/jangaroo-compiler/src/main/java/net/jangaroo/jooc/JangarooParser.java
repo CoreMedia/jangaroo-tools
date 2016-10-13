@@ -232,20 +232,18 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
     return CompilerUtils.fileNameFromQName(qname, is.getFileSeparatorChar(), extension);
   }
 
-  public CompilationUnit importSource(InputSource source, boolean forceParse) {
-    if (!forceParse) {
-      CompilationUnit unit = compilationUnitsByInputSource.get(source);
-      if (unit != null) {
-        return unit;
-      }
+  public CompilationUnit importSource(InputSource source) {
+    CompilationUnit unit = compilationUnitsByInputSource.get(source);
+    if (unit != null) {
+      return unit;
     }
 
     String fileName = source.getName();
     if (!hasCompilableSuffix(fileName)) {
       throw error("Input file must end with one of '" + getCompilableSuffixes() + "': " + fileName);
     }
-    CompilationUnit unit = doParse(source, log, config.getSemicolonInsertionMode());
-    if (null == unit) {
+    unit = doParse(source, log, config.getSemicolonInsertionMode());
+    if (unit == null) {
       return null;
     }
 
@@ -287,7 +285,7 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
       // The compilation unit has not yet been parsed.
       InputSource source = findSource(qname);
       if (source != null) {
-        compilationUnit = importSource(source, false);
+        compilationUnit = importSource(source);
       }
     }
     return compilationUnit;
