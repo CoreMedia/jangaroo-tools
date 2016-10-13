@@ -1,6 +1,6 @@
 package {
 [Native]
 public class String {
-  public native function substr(a:int, b:int):String;
+  public native function substr(a:int, b:int = -1):String;
 }
 }

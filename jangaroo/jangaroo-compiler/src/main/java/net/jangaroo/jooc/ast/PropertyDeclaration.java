@@ -37,6 +37,10 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
     return returnSetter ? setter : getter;
   }
 
+  public Iterable<FunctionDeclaration> getMethods() {
+    return Arrays.asList(getter, setter);
+  }
+
   @Override
   public boolean isClassMember() {
     return getter.isClassMember();

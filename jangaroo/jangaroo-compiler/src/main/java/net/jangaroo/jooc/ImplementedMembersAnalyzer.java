@@ -77,7 +77,7 @@ class ImplementedMembersAnalyzer {
     }
 
     ClassDeclaration classModel = (ClassDeclaration) jooc.resolveCompilationUnit(qName).getPrimaryDeclaration();
-    Iterable<FunctionDeclaration> methodModels = Iterables.filter(classModel.getMembers(), FunctionDeclaration.class);
+    Iterable<FunctionDeclaration> methodModels = classModel.getMethods();
 
     if (isInterface) {
       membersByInterfaceQName.putAll(qName, methodModels);

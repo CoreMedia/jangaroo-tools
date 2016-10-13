@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
@@ -23,6 +25,7 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -263,6 +266,18 @@ public class ClassDeclaration extends TypeDeclaration {
 
   public Collection<TypedIdeDeclaration> getMembers() {
     return members.values();
+  }
+
+  public Collection<FunctionDeclaration> getMethods() {
+    return FluentIterable.from(members.values()).transformAndConcat(new Function<TypedIdeDeclaration, Iterable<FunctionDeclaration>>() {
+      @Nullable
+      @Override
+      public Iterable<FunctionDeclaration> apply(@Nullable TypedIdeDeclaration typedIdeDeclaration) {
+        return typedIdeDeclaration instanceof FunctionDeclaration ? Collections.singleton((FunctionDeclaration) typedIdeDeclaration)
+                : typedIdeDeclaration instanceof PropertyDeclaration ? ((PropertyDeclaration) typedIdeDeclaration).getMethods()
+                : Collections.emptyList();
+      }
+    }).toList();
   }
 
   @Override

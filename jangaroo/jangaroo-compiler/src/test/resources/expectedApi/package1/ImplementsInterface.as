@@ -25,5 +25,7 @@ public final class ImplementsInterface implements package1.Interface {
   public native function doSomething():String;
 
   public native function get property():String;
+
+  public native function set property(value:String):void;
 }
 }
