@@ -5,7 +5,6 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -17,7 +16,6 @@ import net.jangaroo.jooc.config.ParserOptions;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.BOMStripperInputStream;
@@ -53,7 +51,6 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
   private Map<InputSource, CompilationUnit> compilationUnitsByInputSource = new HashMap<>();
   private Map<CompilationUnit, InputSource> inputSourceByCompilationUnit = new HashMap<>();
   private Map<String, CompilationUnit> compilationUnitsByQName = new LinkedHashMap<String, CompilationUnit>();
-  private Map<String, Boolean> isClassByQName = new LinkedHashMap<String, Boolean>();
   private MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
   private List<String> compilableSuffixes = Arrays.asList(Jooc.PROPERTIES_SUFFIX, Jooc.AS_SUFFIX, Jooc.MXML_SUFFIX);
 
@@ -253,9 +250,6 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
     }
 
     String qname = unit.getQualifiedNameStr();
-    // MXML files do not have a primary declaration before scoping, but are known to denote classes.
-    // This has to be stated before scoping to avoid cyclic importSource calls.
-    isClassByQName.put(qname, unit instanceof MxmlCompilationUnit || unit.getPrimaryDeclaration() instanceof ClassDeclaration);
     compilationUnitsByQName.put(qname, unit);
     compilationUnitsByInputSource.put(source, unit);
     inputSourceByCompilationUnit.put(unit, source);
@@ -306,15 +300,7 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
    * @return whether the argument name identifies a class
    */
   public boolean isClass(String name) {
-    if (name == null) {
-      return false;
-    }
-    Boolean result = isClassByQName.get(name);
-    if (result != null) {
-      return result;
-    }
-    resolveCompilationUnit(name);
-    return isClassByQName.get(name);
+    return name != null && resolveCompilationUnit(name).isClass();
   }
 
 

@@ -66,6 +66,10 @@ public class CompilationUnit extends NodeImplBase {
     return CompilerUtils.qName(getPackageDeclaration().getQualifiedNameStr(), getPrimaryDeclaration().getName());
   }
 
+  public boolean isClass() {
+    return getPrimaryDeclaration() instanceof ClassDeclaration;
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     List<AstNode> result = new ArrayList<>(makeChildren(super.getChildren(), packageDeclaration, directives, primaryDeclaration));

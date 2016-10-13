@@ -233,6 +233,12 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return classQName;
   }
 
+  @Override
+  public boolean isClass() {
+    // MXML files do not have a primary declaration before scoping, but are known to denote classes.
+    return true;
+  }
+
   XmlElement getRootNode() {
     return rootNode;
   }
