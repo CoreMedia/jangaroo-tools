@@ -130,7 +130,6 @@ public class AbstractJoocTest {
 
   void assertCompilationResult(String relativeClassFileName) throws URISyntaxException, IOException {
     assertCompilationResult(relativeClassFileName, ".as");
-    assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
@@ -139,6 +138,7 @@ public class AbstractJoocTest {
 
   void assertCompilationResult(String relativeClassFileName, String extension, String expectedPath) throws URISyntaxException, IOException {
     compile(extension, relativeClassFileName);
+    assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
     verifyClassOutput(relativeClassFileName, expectedPath);
   }
 
