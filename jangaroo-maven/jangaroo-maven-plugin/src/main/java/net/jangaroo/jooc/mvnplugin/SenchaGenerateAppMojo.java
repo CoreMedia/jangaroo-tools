@@ -13,6 +13,8 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
@@ -63,16 +65,17 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     }
 
     String senchaAppName = getSenchaPackageName(project);
+    String templateName = getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/tpl";
     String arguments = "generate app"
             + " -ext"
             + " -" + getToolkit()
-            + " --template " + SenchaUtils.getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/tpl"
+            + " --template " + templateName
             + " --path=\"\""
             + " --refresh=false"
             + " -DappName=" + senchaAppName
             + " -DapplicationClass=" + applicationClass
             + " " + senchaAppName;
-    getLog().info("Generating Sencha app module");
+
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
