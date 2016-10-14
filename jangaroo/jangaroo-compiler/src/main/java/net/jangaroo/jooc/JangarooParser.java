@@ -5,6 +5,7 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
@@ -37,7 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JangarooParser extends CompilationUnitResolver implements CompilationUnitRegistry {
+public class JangarooParser implements CompilationUnitResolver, CompilationUnitRegistry {
   public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
   static final String UTF_8 = "UTF-8";
 
@@ -347,6 +348,18 @@ public class JangarooParser extends CompilationUnitResolver implements Compilati
 
   public InputSource getInputSource(final CompilationUnit compilationUnit) {
     return inputSourceByCompilationUnit.get(compilationUnit);
+  }
+
+  @Override
+  public boolean implementsInterface(CompilationUnit classCompilationUnit, String anInterface) {
+    return classCompilationUnit != null && classCompilationUnit.isClass() &&
+            implementsInterface((ClassDeclaration) classCompilationUnit.getPrimaryDeclaration(), anInterface);
+  }
+
+  public boolean implementsInterface(@Nonnull ClassDeclaration classDeclaration, String anInterface) {
+    CompilationUnit interfaceCompilationUnit = getCompilationUnit(anInterface);
+    return interfaceCompilationUnit != null && interfaceCompilationUnit.isClass() &&
+            classDeclaration.isAssignableTo((ClassDeclaration) interfaceCompilationUnit.getPrimaryDeclaration());
   }
 
   private static class FilePositionImpl implements FilePosition {
