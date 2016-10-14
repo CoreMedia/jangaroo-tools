@@ -569,6 +569,7 @@ final class MxmlToModelParser {
             return eventAnnotation;
           }
         }
+        annotationParameters = annotationParameters.getTail();
       }
       
     }
