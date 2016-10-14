@@ -76,6 +76,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testCyclicUsages() throws Exception {
+    assertCompilationResult("package1/mxml/AInstantiatesB", ".mxml");
+  }
+
+  @Test
   public void testMxmlCannotResolveClass() throws Exception {
     File sourceFile = getFile("/package1/mxml/CannotResolveClass.mxml");
     config.addSourceFile(sourceFile);
