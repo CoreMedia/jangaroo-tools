@@ -8,7 +8,7 @@ public class Exml {
 
   public static const APPEND:int = 0;
 
-  public static native function apply(config:Object, overrideConfig:Object):Object;
+  public static native function apply(config:Object, overrideConfig:Object):*;
 
 }
 }
