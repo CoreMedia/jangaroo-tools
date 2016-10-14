@@ -299,7 +299,23 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
    * @return whether the argument name identifies a class
    */
   public boolean isClass(String name) {
-    return name != null && resolveCompilationUnit(name).isClass();
+    if (name == null) {
+      return false;
+    }
+
+    // fast path for MXML, so they don't get scoped too early:
+    CompilationUnit compilationUnit = compilationUnitsByQName.get(name);
+    if (compilationUnit == null) {
+      // The compilation unit has not yet been parsed.
+      InputSource source = findSource(name);
+      if (source != null) {
+        if (source.getName().endsWith(Jooc.MXML_SUFFIX)) {
+          return true;
+        }
+      }
+    }
+
+    return resolveCompilationUnit(name).isClass();
   }
 
 
