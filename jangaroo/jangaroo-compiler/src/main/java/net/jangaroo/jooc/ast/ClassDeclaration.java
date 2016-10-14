@@ -15,6 +15,8 @@
 
 package net.jangaroo.jooc.ast;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
@@ -23,22 +25,25 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
 public class ClassDeclaration extends TypeDeclaration {
+
+  private static final String OBJECT_CLASSNAME = "Object";
 
   private JooSymbol symClass;
   private Extends optExtends;
@@ -51,6 +56,8 @@ public class ClassDeclaration extends TypeDeclaration {
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
   private int inheritanceLevel = -1;
+
+  private List<ClassDeclaration> assignableClasses;
 
   private Implements optImplements;
   private Scope scope;
@@ -152,8 +159,8 @@ public class ClassDeclaration extends TypeDeclaration {
 
     // define these here so they get the right scope:
     thisType = new Type(new Ide(getIde().getSymbol()));
-    superType = isInterface() || "Object".equals(getQualifiedNameStr()) ? null
-            : new Type(getOptExtends() == null ? new Ide("Object") : getOptExtends().getSuperClass());
+    superType = isInterface() || isObject(getQualifiedNameStr()) ? null
+            : new Type(getOptExtends() == null ? new Ide(OBJECT_CLASSNAME) : getOptExtends().getSuperClass());
 
     thisType.scope(scope);
     if (superType != null) {
@@ -234,13 +241,43 @@ public class ClassDeclaration extends TypeDeclaration {
   public void registerMember(TypedIdeDeclaration memberDeclaration) {
     String name = memberDeclaration.getName();
     if (name.length() != 0) {
-      (memberDeclaration.isStatic() ? staticMembers : members).put(name, memberDeclaration);
+      Map<String, TypedIdeDeclaration> targetMembers = memberDeclaration.isStatic() ? staticMembers : members;
+      TypedIdeDeclaration previousDeclaration = targetMembers.get(name);
+      if (previousDeclaration instanceof FunctionDeclaration) {
+        FunctionDeclaration previousFunctionDeclaration = (FunctionDeclaration) previousDeclaration;
+        if (previousFunctionDeclaration.isGetterOrSetter()) {
+          memberDeclaration = PropertyDeclaration.addDeclaration(previousFunctionDeclaration, memberDeclaration);
+          if (memberDeclaration == null) {
+            // TODO: handle all kinds of errors: two getters, two setters, other duplicate declarations
+            // For now, ignore the new member.
+            return;
+          }
+        }
+      }
+
+      targetMembers.put(name, memberDeclaration);
     }
   }
 
   @Override
   public TypedIdeDeclaration getMemberDeclaration(String memberName) {
     return members.get(memberName);
+  }
+
+  public Collection<TypedIdeDeclaration> getMembers() {
+    return members.values();
+  }
+
+  public Collection<FunctionDeclaration> getMethods() {
+    return FluentIterable.from(members.values()).transformAndConcat(new Function<TypedIdeDeclaration, Iterable<FunctionDeclaration>>() {
+      @Nullable
+      @Override
+      public Iterable<FunctionDeclaration> apply(@Nullable TypedIdeDeclaration typedIdeDeclaration) {
+        return typedIdeDeclaration instanceof FunctionDeclaration ? Collections.singleton((FunctionDeclaration) typedIdeDeclaration)
+                : typedIdeDeclaration instanceof PropertyDeclaration ? ((PropertyDeclaration) typedIdeDeclaration).getMethods()
+                : Collections.emptyList();
+      }
+    }).toList();
   }
 
   @Override
@@ -272,59 +309,95 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public IdeDeclaration resolvePropertyDeclaration(String ide, boolean isStatic) {
-    return resolvePropertyDeclaration1(ide, this, new HashSet<ClassDeclaration>(), new LinkedList<ClassDeclaration>(), isStatic);
+    IdeDeclaration declaration = null;
+    FunctionDeclaration getterOrSetter = null;
+    ensureAssignableClasses();
+    for (ClassDeclaration classDecl: assignableClasses) {
+      declaration = isStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
+      if (getterOrSetter == null) {
+        // we are still looking for getter or setter:
+        if (declaration instanceof FunctionDeclaration && ((FunctionDeclaration)declaration).isGetterOrSetter()) {
+          // found a getter or setter; remember it:
+          getterOrSetter = (FunctionDeclaration) declaration;
+          // keep on searching for the complementing setter or getter:
+          declaration = null;
+        }
+      } else {
+        // we already found a getter or setter...
+        if (declaration != null) {
+          // ...and now found another declaration, so try to merge both:
+          declaration = PropertyDeclaration.addDeclaration(getterOrSetter, declaration);
+        }
+      }
+      if (declaration != null) {
+        return declaration;
+      }
+    }
+    return getterOrSetter;
   }
 
-  private IdeDeclaration resolvePropertyDeclaration1(String ide, ClassDeclaration classDecl, Set<ClassDeclaration> visited, Deque<ClassDeclaration> chain, boolean inStatic) {
-    if (visited.contains(classDecl)) {
-      if (chain.contains(classDecl)) {
-        throw new CompilerError(classDecl.getSymbol(), "cyclic superclass chain");
-      }
-      return null;
+
+   private void resolveAssignablesDeclaration1(ClassDeclaration classDecl, List<ClassDeclaration> result, Deque<ClassDeclaration> chain) {
+    if (result.contains(classDecl)) {
+      return;
     }
-    visited.add(classDecl);
+    result.add(classDecl);
     final int chainSize = chain.size();
     chain.add(classDecl);
-    IdeDeclaration declaration = inStatic ? classDecl.getStaticMemberDeclaration(ide) : classDecl.getMemberDeclaration(ide);
-    if (declaration == null) {
-      IdeDeclaration superTypeDeclaration = null;
-      if (!classDecl.isInterface()) {
-        Type superType = classDecl.getSuperType();
-        if (superType != null) {
-          superTypeDeclaration = superType.getIde().getDeclaration(false);
-        }
-      } else if (classDecl.getOptImplements() == null) {
-        // it is a top-level interface: simulate inheritance from Object!
-        superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
+
+    IdeDeclaration superTypeDeclaration = null;
+    if (!classDecl.isInterface()) {
+      if (classDecl.getSuperType() != null) {
+        // used to be based on Type, now it can lead to ClassDeclarations not yet available to be loaded twice
+        superTypeDeclaration = classDecl.getSuperType().getIde().getDeclaration(false);
       }
-      if (superTypeDeclaration != null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, superTypeDeclaration, inStatic);
-      }
+    } else if (classDecl.getOptImplements() == null) {
+      // it is a top-level interface: simulate inheritance from Object!
+      superTypeDeclaration = classDecl.getIde().getScope().getExpressionType(AS3Type.OBJECT).getDeclaration();
     }
-    if (declaration == null && classDecl.getOptImplements() != null) {
+    if (superTypeDeclaration != null) {
+      resolveAssignablesInSuper(result, chain, superTypeDeclaration);
+    }
+    if (classDecl.getOptImplements() != null) {
       CommaSeparatedList<Ide> implemented = classDecl.getOptImplements().getSuperTypes();
-      while (implemented != null && declaration == null) {
-        declaration = resolvePropertyInSuper(ide, classDecl, visited, chain, implemented.getHead().getDeclaration(false), inStatic);
+      while (implemented != null) {
+        resolveAssignablesInSuper(result, chain, implemented.getHead().getDeclaration(false));
         implemented = implemented.getTail();
       }
     }
     chain.removeLast();
     assert chainSize == chain.size();
-    return declaration;
   }
 
-  private IdeDeclaration resolvePropertyInSuper(final String ide,
-                                                final ClassDeclaration classDecl,
-                                                final Set<ClassDeclaration> visited,
+  private void resolveAssignablesInSuper(final List<ClassDeclaration> visited,
                                                 final Deque<ClassDeclaration> chain,
-                                                final IdeDeclaration superClassDecl, boolean inStatic) {
+                                                final IdeDeclaration superClassDecl) {
     if (superClassDecl != null) {
       if (!(superClassDecl instanceof ClassDeclaration)) {
-        throw new CompilerError(classDecl.getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
+        throw new CompilerError(superClassDecl.getSymbol(), "expected class identifier");
       }
-      return resolvePropertyDeclaration1(ide, (ClassDeclaration) superClassDecl, visited, chain, inStatic);
+      resolveAssignablesDeclaration1((ClassDeclaration) superClassDecl, visited, chain);
     }
-    return null;
+  }
+
+  public boolean isAssignableTo(ClassDeclaration classToCheck) {
+    ensureAssignableClasses();
+
+    // TODO should use "|| assignableClasses.contains(classToCheck)" and not iterate over the list
+    boolean result = getQualifiedNameStr().equals(classToCheck.getQualifiedNameStr());
+
+    Iterator<ClassDeclaration> iterator = assignableClasses.iterator();
+    while(!result && iterator.hasNext()) {
+      result = iterator.next().getQualifiedNameStr().equals(classToCheck.getQualifiedNameStr());
+    }
+    return result;
+  }
+
+  private void ensureAssignableClasses() {
+    if (assignableClasses == null) {
+      assignableClasses = new ArrayList<>();
+      resolveAssignablesDeclaration1(this, assignableClasses, new LinkedList<ClassDeclaration>());
+    }
   }
 
   public int getInheritanceLevel() {
@@ -338,7 +411,7 @@ public class ClassDeclaration extends TypeDeclaration {
     if (superType == null) {
       return 0;
     }
-    if ("Object".equals(superType.getIde().getQualifiedNameStr())) {
+    if (isObject(superType.getIde().getQualifiedNameStr())) {
       return 1;
     }
     TypeDeclaration superClassDecl = superType.getDeclaration();
@@ -356,5 +429,13 @@ public class ClassDeclaration extends TypeDeclaration {
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
+  }
+
+  private static boolean isObject(String fullyQualifiedName) {
+    return OBJECT_CLASSNAME.equals(fullyQualifiedName);
+  }
+
+  public boolean isObject() {
+    return isObject(getQualifiedNameStr());
   }
 }

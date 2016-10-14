@@ -19,12 +19,14 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static net.jangaroo.jooc.FilePositionMatcher.matchesPosition;
 
@@ -142,6 +144,14 @@ public class AbstractJoocTest {
     verifyClassOutput(relativeClassFileName, expectedPath);
   }
 
+  void assertNoCompilationFailures(String relativeClassFileName) throws URISyntaxException, IOException {
+    compile(".as", relativeClassFileName);
+
+    File destFile = outputFile(outputFolder, relativeClassFileName, ".js");
+    assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
+    assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
+  }
+
   void verifyClassOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
     verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".js");
   }
@@ -197,6 +207,8 @@ public class AbstractJoocTest {
   }
 
   File getFile(String absolutePath) throws URISyntaxException {
-    return new File(getClass().getResource(absolutePath).toURI());
+    URL resource = getClass().getResource(absolutePath);
+    assertNotNull(resource);
+    return new File(resource.toURI());
   }
 }

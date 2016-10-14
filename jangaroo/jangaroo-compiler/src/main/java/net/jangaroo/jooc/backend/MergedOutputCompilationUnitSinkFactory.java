@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.CompilationUnitRegistry;
+import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -8,7 +9,6 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
-import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,7 +23,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
   private File outputFile;
   private CompilationUnitSink sink;
 
-  public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile, final CompilationUnitModelResolver compilationUnitModelResolver, final CompilationUnitRegistry compilationUnitRegistry) {
+  public MergedOutputCompilationUnitSinkFactory(JoocOptions options, final File outputFile, final CompilationUnitResolver compilationUnitModelResolver, final CompilationUnitRegistry compilationUnitRegistry) {
     super(options, outputFile.getAbsoluteFile().getParentFile());
     this.outputFile = outputFile;
 

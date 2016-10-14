@@ -30,6 +30,10 @@ public final class ImplementsInterface implements Interface {
   public*/ function  get$property()/*:String*/ {
     return "prefix" + this.foo;
   }/*
+
+  public*/ function  set$property(value/*:String*/)/*:void*/ {
+    this.foo = value.substr("prefix".length);
+  }/*
 }
 }
 
@@ -41,7 +45,10 @@ public final class ImplementsInterface implements Interface {
       bar: null,
       constructor: ImplementsInterface$,
       doSomething: doSomething,
-      __accessors__: {property: {get: get$property}},
+      __accessors__: {property: {
+        get: get$property,
+        set: set$property
+      }},
       requires: ["package1.Interface"],
       uses: ["ext.Panel"]
     };

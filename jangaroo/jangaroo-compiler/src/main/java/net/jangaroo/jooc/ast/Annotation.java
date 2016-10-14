@@ -18,7 +18,9 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An annotation (square bracket meta data).
@@ -106,6 +108,22 @@ public class Annotation extends Directive {
 
   public JooSymbol getRightBracket() {
     return rightBracket;
+  }
+
+  public Map<String, Object> getPropertiesByName() {
+    Map<String, Object> result = new LinkedHashMap<>();
+    CommaSeparatedList<AnnotationParameter> annotationParameters = getOptAnnotationParameters();
+    while (annotationParameters != null) {
+      AnnotationParameter annotationParameter = annotationParameters.getHead();
+      String key = annotationParameter.getOptName() == null ? null : annotationParameter.getOptName().getName();
+      AstNode valueExpression = annotationParameter.getValue();
+      Object value = valueExpression instanceof LiteralExpr ? valueExpression.getSymbol().getJooValue()
+              : valueExpression instanceof Ide ? ((Ide) valueExpression).getQualifiedNameStr()
+              : null;
+      result.put(key, value);
+      annotationParameters = annotationParameters.getTail();
+    }
+    return result;
   }
 
 }

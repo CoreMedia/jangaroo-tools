@@ -19,6 +19,7 @@ import net.jangaroo.jooc.api.CompilationResult;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.backend.CompilationUnitSink;
 import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
 import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
@@ -157,7 +158,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
       ImplementedMembersAnalyzer implementedMembersAnalyzer = new ImplementedMembersAnalyzer(this);
       for (InputSource inputSource : compileQueue) {
-        CompilationUnit unit = importSource(inputSource, false);
+        CompilationUnit unit = importSource(inputSource);
         if (unit != null) {
           checkValidFileName(unit);
           unit.analyze(null);
@@ -166,6 +167,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           }
 
           implementedMembersAnalyzer.analyzeImplementedMembers(unit);
+
+          CheckAssignmentAndDeclationVisitor checkAssignmentAndDeclationVisitor = new CheckAssignmentAndDeclationVisitor(log);
+          unit.visit(new TransitiveAstVisitor(checkAssignmentAndDeclationVisitor));
         }
       }
 
@@ -177,7 +181,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
           outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
         }
-        CompilationUnit unit = importSource(source, false);
+        CompilationUnit unit = importSource(source);
         if (unit != null) {
           // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
           final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
@@ -390,7 +394,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 //    }
     FileInputSource inputSource = new FileInputSource(sourceDir, file, true);
     compileQueue.add(inputSource);
-    importSource(inputSource, true);
+    importSource(inputSource);
   }
 
   public static int run(String[] argv, CompileLog log) {

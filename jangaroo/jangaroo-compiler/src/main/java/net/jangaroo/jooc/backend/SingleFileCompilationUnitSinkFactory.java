@@ -4,6 +4,7 @@ import com.google.debugging.sourcemap.SourceMapFormat;
 import com.google.debugging.sourcemap.SourceMapGenerator;
 import com.google.debugging.sourcemap.SourceMapGeneratorFactory;
 import net.jangaroo.jooc.CompilationUnitRegistry;
+import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -11,7 +12,6 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
-import net.jangaroo.jooc.model.CompilationUnitModelResolver;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -29,9 +29,9 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   private final CompilationUnitRegistry compilationUnitRegistry;
   private String suffix;
   private boolean generateApi;
-  private final CompilationUnitModelResolver compilationUnitModelResolver;
+  private final CompilationUnitResolver compilationUnitModelResolver;
 
-  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitModelResolver compilationUnitModelResolver, CompilationUnitRegistry compilationUnitRegistry) {
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitResolver compilationUnitModelResolver, CompilationUnitRegistry compilationUnitRegistry) {
     super(options, destinationDir);
     this.suffix = suffix;
     this.generateApi = generateApi;
