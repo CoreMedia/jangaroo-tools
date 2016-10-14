@@ -134,9 +134,11 @@ final class MxmlToModelParser {
   }
 
   void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
-    CompilationUnit type = getCompilationUnitModel(objectNode);
-    processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
-    processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
+    if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
+      CompilationUnit type = getCompilationUnitModel(objectNode);
+      processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
+      processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
+    }
   }
 
   private void processChildNodes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
@@ -264,11 +266,6 @@ final class MxmlToModelParser {
       throw JangarooParser.error(objectElement.getSymbol(), e.getMessage(), e.getCause());
     }
     Ide typeIde = compilationUnit.addImport(className);
-    Boolean useConfigObjects = defaultUseConfigObjects;
-    if (useConfigObjects == null) {
-      // let the class decide:
-      useConfigObjects = useConfigObjects((ClassDeclaration) jangarooParser.resolveCompilationUnit(className).getPrimaryDeclaration());
-    }
     String targetVariableName = null;   // name of the variable holding the object to build
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
     String id = null;
@@ -301,12 +298,20 @@ final class MxmlToModelParser {
       targetVariableName = CompilerUtils.qName(qualifier, id);
     }
 
+    if (id != null && configVar != null // it is a declaration...
+            && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
+            && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty()) {
+      // prevent assigning a default value for such an empty declaration:
+      return null;
+    }
+
     Ide configVariable = null; // name of the variable holding the config object to use in the constructor
 
-    if (CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
+    if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
+            CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar(objectElement, id);
-      renderConfigAuxVar(configVariable, typeIde);
+      renderConfigAuxVar(configVariable, typeIde != null ? typeIde : new Ide(className));
       if (targetVariableName == null) {
         targetVariableName = createAuxVar(objectElement).getName();
       }
@@ -318,20 +323,13 @@ final class MxmlToModelParser {
 
     StringBuilder constructorCode = new StringBuilder();
     if (null != id) {
-      if (null != configVar // it is a declaration...
-              && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
-              && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty() // ...and no sub-elements or text content!
-              ) {
-        // prevent assigning a default value for such an empty declaration:
-        return null;
-      }
       constructorCode.append("    ").append(targetVariableName);
     } else if (configVariable == null) {
       // no config object was built: create variable for object to build now:
       targetVariableName = createAuxVar(objectElement).getName();
       constructorCode.append("    ")
               .append("var ").append(targetVariableName).append(":").append(className);
-    } else if (useConfigObjects) {
+    } else if (useConfigObjects(defaultUseConfigObjects, className)) {
       return configVariable.getName();
     } else {
       return value; // no aux var necessary
@@ -382,7 +380,11 @@ final class MxmlToModelParser {
     return value;
   }
 
-  private boolean useConfigObjects(ClassDeclaration classModel) {
+  private boolean useConfigObjects(Boolean defaultUseConfigObjects, String className) {
+    if (defaultUseConfigObjects != null) {
+      return defaultUseConfigObjects;
+    }
+    ClassDeclaration classModel = (ClassDeclaration) jangarooParser.resolveCompilationUnit(className).getPrimaryDeclaration();
     // special case Plugin (avoid having to check all interfaces):
     CompilationUnit extPluginCompilationUnit = jangarooParser.getCompilationUnit("ext.Plugin");
     if (extPluginCompilationUnit != null &&
