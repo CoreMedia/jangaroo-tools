@@ -407,7 +407,7 @@ final class MxmlToModelParser {
       if (annotationParameterName != null) {
         if (EXT_CONFIG_CREATE_FLAG.equals(annotationParameterName.getName())) {
           AstNode value = annotationParameter.getValue();
-          return value instanceof LiteralExpr && "false".equals(((LiteralExpr) value).getValue().getJooValue());
+          return value instanceof LiteralExpr && Boolean.FALSE.equals(((LiteralExpr) value).getValue().getJooValue());
         } else if (EXT_CONFIG_EXTRACT_XTYPE_PARAMETER.equals(annotationParameterName.getName())) {
           // a given "extractXType" parameter implies to use config objects (create=false):
           return true;
