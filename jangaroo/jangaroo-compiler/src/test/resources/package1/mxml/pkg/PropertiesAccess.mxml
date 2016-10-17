@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<local:PropertiesAccessBase
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        property_1="egal"
+        property_2="egaler"
+        property_3="am egalsten"
+        xmlns="exml:ext.config"
+        xmlns:local="package1.mxml.pkg.*"
+>
+</local:PropertiesAccessBase>

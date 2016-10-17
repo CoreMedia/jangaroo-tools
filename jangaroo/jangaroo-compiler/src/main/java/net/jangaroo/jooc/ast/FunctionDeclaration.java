@@ -49,19 +49,13 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
                              Parameters params, JooSymbol rParen, TypeRelation optTypeRelation,
                              BlockStatement optBody,
                              JooSymbol optSymSemicolon) {
-    super(am, ide, computeTypeRelation(symGetOrSet, params, optTypeRelation));
+    super(am, ide, optTypeRelation);
     this.fun = new FunctionExpr(this, symFunction, ide, lParen, params, rParen, optTypeRelation, optBody);
     this.symGetOrSet = symGetOrSet;
     this.optSymSemicolon = optSymSemicolon;
     if (isGetterOrSetter() && !(isGetter() || isSetter())) {
       throw JangarooParser.error(symGetOrSet, "Expected 'get' or 'set'.");
     }
-  }
-
-  private static TypeRelation computeTypeRelation(JooSymbol symGetOrSet, Parameters params, TypeRelation optTypeRelation) {
-    return isSetter(symGetOrSet)
-            ? params == null ? null : params.getHead().getOptTypeRelation()
-            : optTypeRelation;
   }
 
   @Override
@@ -161,8 +155,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       setConstructor(true);
       classDeclaration.setConstructor(this);
       setIde(null); // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
-    } else if (isSetter()) {
-      setIde(null);
     }
     isDeclaredInInterface = classDeclaration != null && classDeclaration.isInterface();
     super.scope(scope);
@@ -215,11 +207,14 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
     // always compute method signature, so that possible errors are logged:
     FunctionSignature methodSignature = getMethodSignature();
-    if (isOverride() && getIde() != null && getIde().getScope() != null) {
+    if (isOverride()) {
       IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
       CompileLog log = getIde().getScope().getCompiler().getLog();
+      if (superDeclaration instanceof PropertyDeclaration) {
+        superDeclaration = ((PropertyDeclaration) superDeclaration).getAccessor(isSetter());
+      }
       if (!(superDeclaration instanceof FunctionDeclaration)) {
-        log.error(getFun().getSymbol(), "method must override method, not field.");
+        log.error(getFun().getSymbol(), "Method does not override method from super class");
       } else {
         FunctionDeclaration superMethodDeclaration = (FunctionDeclaration) superDeclaration;
         FunctionSignature superMethodSignature = superMethodDeclaration.getMethodSignature();
@@ -350,5 +345,28 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   public boolean isContainsSuperConstructorCall() {
     return containsSuperConstructorCall;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    FunctionDeclaration that = (FunctionDeclaration) o;
+
+    return getIde().getName().equals(that.getIde().getName()) &&
+            (symGetOrSet == that.symGetOrSet || symGetOrSet != null && that.symGetOrSet != null &&
+                    symGetOrSet.getText().equals(that.symGetOrSet.getText()));
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getIde().getName().hashCode();
+    result = 31 * result + (symGetOrSet != null ? symGetOrSet.getText().hashCode() : 0);
+    return result;
   }
 }

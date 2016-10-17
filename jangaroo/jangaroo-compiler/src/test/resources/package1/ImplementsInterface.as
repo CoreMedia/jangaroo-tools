@@ -30,5 +30,9 @@ public final class ImplementsInterface implements Interface {
   public function get property():String {
     return "prefix" + foo;
   }
+
+  public function set property(value:String):void {
+    foo = value.substr("prefix".length);
+  }
 }
 }

@@ -125,6 +125,11 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testMxmlPropertiesAccess() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/PropertiesAccess", ".mxml");
+  }
+
+  @Test
   public void testMxmlSyntaxErrorInBinding() throws Exception {
     File sourceFile = getFile("/package1/mxml/SyntaxErrorInBinding.mxml");
     config.addSourceFile(sourceFile);
