@@ -10,7 +10,10 @@ import net.jangaroo.jooc.mxml.MxmlUtils;
 
 class CompilationUnitUtils {
   static boolean constructorSupportsConfigOptionsParameter(String classQName, CompilationUnitResolver resolver) {
-    CompilationUnit compilationUnitModel = resolver.resolveCompilationUnit(classQName);
+    CompilationUnit compilationUnitModel = resolver.resolveCompilationUnit(classQName, false);
+    if (compilationUnitModel instanceof MxmlCompilationUnit) {
+      return ((MxmlCompilationUnit) compilationUnitModel).constructorSupportsConfigOptionsParameter();
+    }
     ClassDeclaration classModel = (ClassDeclaration) compilationUnitModel.getPrimaryDeclaration();
     if (classModel != null) {
       FunctionDeclaration constructorModel = classModel.getConstructor();

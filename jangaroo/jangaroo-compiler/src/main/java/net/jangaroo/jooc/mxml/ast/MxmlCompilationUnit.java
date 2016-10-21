@@ -61,6 +61,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final List<Directive> classBodyDirectives = new LinkedList<>();
   private final String classQName;
 
+  private boolean constructorSupportsConfigOptionsParameter;
+
   private FunctionDeclaration initMethod;
   private Parameter constructorParam;
   private Scope constructorScope;
@@ -78,20 +80,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   @Override
-  public void scope(Scope scope) {
+  public void preScope(JangarooParser parser) {
     packageDeclaration = mxmlParserHelper.parsePackageDeclaration(classQName);
-
-    JangarooParser parser = scope.getCompiler();
-    constructorScope = new DeclarationScope(this, null, parser);
-    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this);
-
     rootElementProcessor.process(rootNode);
-
     // handle imports
     for (JooSymbol jooSymbol : rootElementProcessor.getImports()) {
       addImport(jooSymbol);
     }
-
     // init class declaration
     ClassDeclaration classDeclaration = new ClassDeclarationBuilder(parser, mxmlParserHelper, this).build();
     primaryDeclaration = classDeclaration;
@@ -106,7 +101,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
         }
       }
     }
-
     // handle annotations
     for (JooSymbol jooSymbol : rootElementProcessor.getMetadata()) {
       List<Annotation> annotations = mxmlParserHelper.parseMetadata(jooSymbol);
@@ -114,7 +108,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
         primaryDeclaration.getAnnotations().addAll(annotations);
       }
     }
-
     // find member variables
     for (Directive directive : classBodyDirectives) {
       if (directive instanceof VariableDeclaration) {
@@ -122,10 +115,18 @@ public class MxmlCompilationUnit extends CompilationUnit {
         classVariablesByName.put(variableDeclaration.getName(), variableDeclaration);
       }
     }
-
     preProcessClassBodyDirectives();
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    JangarooParser parser = scope.getCompiler();
+
+    constructorScope = new DeclarationScope(this, null, parser);
+    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this);
 
     Ide superConfigVar = null;
+    Ide superClassIde = ((ClassDeclaration)primaryDeclaration).getOptExtends().getSuperClass();
     // If the super constructor has a 'config' param, create a fresh var for that.
     if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       superConfigVar = createAuxVar(MxmlUtils.CONFIG);
@@ -176,6 +177,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return constructorScope.createAuxVar(name);
   }
 
+  public boolean constructorSupportsConfigOptionsParameter() {
+    return constructorSupportsConfigOptionsParameter;
+  }
+
   void preProcessClassBodyDirectives() {
     boolean hasNativeConstructor = false;
     for (int i = 0; i < classBodyDirectives.size(); i++) {
@@ -186,6 +191,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
         Parameters params = constructor.getParams();
         if(null != params) {
           constructorParam = params.getHead();
+          constructorSupportsConfigOptionsParameter = constructorParam.getName().equals(MxmlUtils.CONFIG);
         }
         classBodyDirectives.set(i, constructor);
       } else if (isInitMethod.apply(directive)) {
@@ -196,6 +202,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(!hasNativeConstructor) {
       // inserting constructor
       classBodyDirectives.add(MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives));
+      constructorSupportsConfigOptionsParameter = true;
     }
 
     if(null != initMethod) {

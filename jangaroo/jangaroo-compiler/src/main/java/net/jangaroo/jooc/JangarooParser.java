@@ -234,6 +234,10 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public CompilationUnit importSource(InputSource source) {
+    return importSource(source, true);
+  }
+
+  public CompilationUnit importSource(InputSource source, boolean needsScoping) {
     CompilationUnit unit = compilationUnitsByInputSource.get(source);
     if (unit != null) {
       return unit;
@@ -247,12 +251,14 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
     if (unit == null) {
       return null;
     }
-
-    String qname = unit.getQualifiedNameStr();
-    compilationUnitsByQName.put(qname, unit);
-    compilationUnitsByInputSource.put(source, unit);
-    inputSourceByCompilationUnit.put(unit, source);
-    unit.scope(globalScope);
+    unit.preScope(globalScope.getCompiler());
+    if (needsScoping) {
+      String qname = unit.getQualifiedNameStr();
+      compilationUnitsByQName.put(qname, unit);
+      compilationUnitsByInputSource.put(source, unit);
+      inputSourceByCompilationUnit.put(unit, source);
+      unit.scope(globalScope);
+    }
     return unit;
   }
 
@@ -281,12 +287,16 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public CompilationUnit getCompilationUnit(String qname) {
+    return getCompilationUnit(qname, true);
+  }
+
+  public CompilationUnit getCompilationUnit(String qname, boolean needsScoping) {
     CompilationUnit compilationUnit = compilationUnitsByQName.get(qname);
     if (compilationUnit == null) {
       // The compilation unit has not yet been parsed.
       InputSource source = findSource(qname);
       if (source != null) {
-        compilationUnit = importSource(source);
+        compilationUnit = importSource(source, needsScoping);
       }
     }
     return compilationUnit;
@@ -321,12 +331,18 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
 
   @Override
   @Nonnull
-  public CompilationUnit resolveCompilationUnit(@Nonnull String fullClassName) {
-    CompilationUnit compilationUnit = getCompilationUnit(fullClassName);
+  public CompilationUnit resolveCompilationUnit(@Nonnull String fullClassName, boolean needsScoping) {
+    CompilationUnit compilationUnit = getCompilationUnit(fullClassName, needsScoping);
     if (compilationUnit == null) {
       throw error("Undefined type: " + fullClassName);
     }
     return compilationUnit;
+  }
+
+  @Override
+  @Nonnull
+  public CompilationUnit resolveCompilationUnit(@Nonnull String fullClassName) {
+    return resolveCompilationUnit(fullClassName, true);
   }
 
   public MxmlComponentRegistry getMxmlComponentRegistry() {

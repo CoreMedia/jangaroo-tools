@@ -10,6 +10,9 @@ import javax.annotation.Nonnull;
 public interface CompilationUnitResolver {
 
   @Nonnull
+  CompilationUnit resolveCompilationUnit(@Nonnull String fullClassName, boolean needsScoping);
+
+  @Nonnull
   CompilationUnit resolveCompilationUnit(@Nonnull String qName);
 
   boolean implementsInterface(CompilationUnit classCompilationUnit, String anInterface);
