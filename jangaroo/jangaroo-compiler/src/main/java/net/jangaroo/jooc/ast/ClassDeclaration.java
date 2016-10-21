@@ -76,7 +76,23 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public FunctionDeclaration getConstructor() {
+    if (constructor == null && scope == null) {
+      constructor = findConstructor();
+    }
     return constructor;
+  }
+
+  private FunctionDeclaration findConstructor() {
+    for (Directive directive : getBody().getDirectives()) {
+      if (directive instanceof FunctionDeclaration) {
+        FunctionDeclaration fd = (FunctionDeclaration) directive;
+        fd.checkIfConstructor(this);
+        if (fd.isConstructor()) {
+          return fd;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -117,7 +133,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public void setConstructor(FunctionDeclaration methodDeclaration) {
-    if (constructor != null) {
+    if (constructor != null && constructor != methodDeclaration) {
       throw JangarooParser.error(methodDeclaration, "Only one constructor allowed per class");
     }
     constructor = methodDeclaration;

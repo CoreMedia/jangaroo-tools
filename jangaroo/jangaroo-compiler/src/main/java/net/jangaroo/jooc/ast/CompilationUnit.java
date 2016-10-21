@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -91,6 +92,9 @@ public class CompilationUnit extends NodeImplBase {
   private void addStarImport(final Ide packageIde) {
     ImportDirective importDirective = new ImportDirective(packageIde, AS3Type.ANY.toString());
     directives.add(0, importDirective);
+  }
+
+  public void preScope(JangarooParser parser) {
   }
 
   @Override

@@ -105,6 +105,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     return symGetOrSet != null && SyntacticKeywords.SET.equals(symGetOrSet.getText());
   }
 
+  @Override
   public final boolean isConstructor() {
     return isConstructor;
   }
@@ -151,12 +152,10 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
     // todo: temporarily resetting the ide field looks weird
     Ide oldIde = getIde();
-    if (classDeclaration != null && !isGetterOrSetter() && getIde().getName().equals(classDeclaration.getName())) {
-      setConstructor(true);
-      classDeclaration.setConstructor(this);
+    isDeclaredInInterface = classDeclaration != null && classDeclaration.isInterface();
+    if (checkIfConstructor(classDeclaration)) {
       setIde(null); // do NOT declare constructor ide in scope, as it would override the class, is not inherited, etc.!
     }
-    isDeclaredInInterface = classDeclaration != null && classDeclaration.isInterface();
     super.scope(scope);
     setIde(oldIde);
     //todo check correct override usage
@@ -198,6 +197,19 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       BlockStatement block = getBody();
       block.checkSuperConstructorCall();
     }
+  }
+
+  public boolean checkIfConstructor(ClassDeclaration classDeclaration) {
+    if (isConstructor(classDeclaration)) {
+      setConstructor(true);
+      classDeclaration.setConstructor(this);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean isConstructor(ClassDeclaration classDeclaration) {
+    return classDeclaration != null && !isGetterOrSetter() && getIde() != null && getIde().getName().equals(classDeclaration.getName());
   }
 
   public void analyze(AstNode parentNode) {
