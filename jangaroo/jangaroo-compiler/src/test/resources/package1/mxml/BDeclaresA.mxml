@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ext:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns:ext="ext.*"
+           xmlns:local="package1.mxml.*">
+  <fx:Script><![CDATA[
+    private var config:AInstantiatesB;
+
+    public native function AInstantiatesB(config:AInstantiatesB = null);
+    ]]></fx:Script>
+
+  <fx:Declarations>
+    <fx:String id="someProperty"/>
+    <local:AInstantiatesB id="myA"/>
+  </fx:Declarations>
+</ext:Panel>
