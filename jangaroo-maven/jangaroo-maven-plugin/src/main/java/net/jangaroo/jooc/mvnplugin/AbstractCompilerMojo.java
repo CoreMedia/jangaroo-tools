@@ -143,7 +143,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * By default, for packaging type <code>jangaroo-app</code>, the directory
    * <code>${project.build.directory}/app/locale</code>
    * is used, for packaging type <code>jangaroo-pkg</code>, it is
-   * <code>${project.build.directory}/packages/local/package/locale</code>.
+   * <code>${project.build.directory}/packages/${package.name}/locale</code>.
    */
   private File getLocalizedOutputDirectory() {
     return new File(getOutputDirectory(), SenchaUtils.SENCHA_LOCALE_PATH);

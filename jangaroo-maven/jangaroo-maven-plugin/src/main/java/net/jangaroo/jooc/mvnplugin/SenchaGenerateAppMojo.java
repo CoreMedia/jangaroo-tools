@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -13,8 +12,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
 /**
@@ -65,18 +62,6 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     }
 
     String senchaAppName = getSenchaPackageName(project);
-    String templateName = getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/tpl";
-    String arguments = "generate app"
-            + " -ext"
-            + " -" + getToolkit()
-            + " --template " + templateName
-            + " --path=\"\""
-            + " --refresh=false"
-            + " -DappName=" + senchaAppName
-            + " -DapplicationClass=" + applicationClass
-            + " " + senchaAppName;
-
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments, getLog(), getSenchaLogLevel());
-    senchaCmdExecutor.execute();
+    SenchaUtils.generateSenchaAppFromTemplate(workingDirectory, senchaAppName, applicationClass, getToolkit(), getLog(), getSenchaLogLevel());
   }
 }

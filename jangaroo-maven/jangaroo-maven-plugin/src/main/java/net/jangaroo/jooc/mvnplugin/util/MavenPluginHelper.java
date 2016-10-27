@@ -23,8 +23,11 @@ import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
 import org.codehaus.plexus.compiler.util.scan.mapping.SuffixMapping;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
+import org.codehaus.plexus.components.io.fileselectors.IncludeExcludeFileSelector;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -169,6 +172,8 @@ public class MavenPluginHelper {
 
   public static void extractFileTemplate(File targetDirectory,
                                          File templateFile,
+                                         String[] includes,
+                                         String[] excludes,
                                          ArchiverManager archiverManager) throws MojoExecutionException {
     UnArchiver unArchiver;
     try {
@@ -178,17 +183,17 @@ public class MavenPluginHelper {
     }
     unArchiver.setSourceFile(templateFile);
     unArchiver.setDestDirectory(targetDirectory);
+    if (includes != null || excludes != null) {
+      IncludeExcludeFileSelector fileSelector = new IncludeExcludeFileSelector();
+      fileSelector.setIncludes(includes);
+      fileSelector.setExcludes(excludes);
+      unArchiver.setFileSelectors(new FileSelector[]{fileSelector});
+    }
+
     unArchiver.extract();
   }
 
-  public static File getArtifactFile(ArtifactRepository localRepository,
-                                     List<ArtifactRepository> remoteRepositories,
-                                     ArtifactResolver artifactResolver,
-                                     Artifact artifact) throws MojoExecutionException {
-
-    return getRealArtifact(localRepository, remoteRepositories, artifactResolver, artifact).getFile();
-  }
-
+  @Nullable
   public static Artifact getArtifact(ArtifactRepository localRepository,
                                      List<ArtifactRepository> remoteRepositories,
                                      ArtifactResolver artifactResolver,
@@ -204,6 +209,7 @@ public class MavenPluginHelper {
     return getRealArtifact(localRepository, remoteRepositories, artifactResolver, templateArtifact);
   }
 
+  @Nullable
   private static Artifact getRealArtifact(ArtifactRepository localRepository,
                                           List<ArtifactRepository> remoteRepositories,
                                           ArtifactResolver artifactResolver,
@@ -214,7 +220,8 @@ public class MavenPluginHelper {
     artifactResolutionRequest.setRemoteRepositories(remoteRepositories);
     ArtifactResolutionResult result = artifactResolver.resolve(artifactResolutionRequest);
 
-    return result.getArtifacts().iterator().next();
+    Set<Artifact> artifacts = result.getArtifacts();
+    return artifacts.isEmpty() ? null : artifacts.iterator().next();
   }
 
 }

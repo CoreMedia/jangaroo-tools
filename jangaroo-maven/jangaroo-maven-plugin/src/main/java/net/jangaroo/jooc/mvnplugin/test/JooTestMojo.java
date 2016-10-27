@@ -149,6 +149,9 @@ public class JooTestMojo extends AbstractMojo {
   @Parameter(property = "jooUnitJettyHost", defaultValue = "localhost")
   private String jooUnitJettyHost;
 
+  @Parameter(defaultValue = SenchaUtils.TOOLKIT_CLASSIC)
+  private String toolkit;
+
   /**
    * Used to look up Artifacts in the remote repository.
    */
@@ -372,19 +375,7 @@ public class JooTestMojo extends AbstractMojo {
 
     FileHelper.ensureDirectory(webappDirectory);
 
-    String senchaAppName = getSenchaPackageName(project);
-    String arguments = "generate app"
-            + " -ext"
-            + " -" + SenchaUtils.TOOLKIT_CLASSIC
-            + " --template " + getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/tpl"
-            + " --path=\"\""
-            + " --refresh=false"
-            + " -DmoduleName=" + getSenchaPackageName(project)
-            + " -DtestSuite=" + testSuite
-            + " " + senchaAppName;
-    getLog().info("Generating Sencha app module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(webappDirectory, arguments, getLog(), null);
-    senchaCmdExecutor.execute();
+    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), senchaLogLevel);
 
     createAppJson();
   }

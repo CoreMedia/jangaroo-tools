@@ -39,7 +39,7 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
         if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
           targetPath = relativizePath(buildDir + SenchaUtils.APP_TARGET_DIRECTORY, outDir);
         } else {
-          targetPath = relativizePath(buildDir + SenchaUtils.LOCAL_PACKAGE_PATH, outDir);
+          targetPath = relativizePath(buildDir + SenchaUtils.getPackagesPath(project), outDir);
         }
         resource.setTargetPath(targetPath);
         resource.setFiltering(false);
