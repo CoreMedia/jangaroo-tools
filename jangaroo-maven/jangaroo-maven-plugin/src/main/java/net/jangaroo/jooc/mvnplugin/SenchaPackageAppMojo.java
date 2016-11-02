@@ -72,10 +72,10 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private List<String> additionalLocales = Collections.emptyList();
 
   /**
-   * Choose to create a 'development' build of the Sencha App instead of the standard 'production' build.
-   * Note that when you do a 'mvn install -DsenchaAppBuild=development', an incomplete artifact is installed!
+   * Choose to create a 'production' build of the Sencha App instead of the standard 'development' build.
+   * Note that when you do a 'mvn install -DsenchaAppBuild=production', the jangaroo build will be skipped!
    */
-  @Parameter(defaultValue = "${senchaAppBuild}")
+  @Parameter(defaultValue = SenchaUtils.DEVELOPMENT_PROFILE)
   private String senchaAppBuild;
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
@@ -142,7 +142,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     prepareModule();
     packageModule();
 
-    if (!skipJangarooApp) {
+    if (!skipJangarooApp && SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       File workingDirectory = generateJangarooApp();
 
       // refresh app
@@ -176,14 +176,9 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   private void copyFilesFromDevelopmentBuild(@Nonnull File workingDirectory) throws MojoExecutionException {
     // copy some files from the development app
-/*    FileHelper.copyDirectory(new File(senchaAppDirectory, SenchaUtils.SENCHA_DIRECTORYNAME + "/app"), new File(workingDirectory, SenchaUtils.SENCHA_DIRECTORYNAME));
-    // need for config-init.js and before--ext-load.js and also for build css files
-    FileHelper.copyDirectory(new File(senchaAppDirectory, "build/development/resources"), workingDirectory);
-    FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|index.html");*/
-
     FileHelper.copyDirectories(senchaAppDirectory, workingDirectory, ImmutableSet.of("build"));
     FileHelper.copyDirectory(new File(senchaAppDirectory, "build/development/resources"), workingDirectory);
-    FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|*.html|*.ico");
+    FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|.*\\.html|.*\\.ico");
   }
 
   private void createJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
@@ -335,7 +330,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
 
-    // TODO we do not want to build production!
+    // we need to build 'development'!
     buildSenchaApp(senchaAppDirectory, SenchaUtils.DEVELOPMENT_PROFILE);
 
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
@@ -389,20 +384,9 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       File jangarooAppJsonFile = new File(workingDirectory, SenchaUtils.SENCHA_APP_FILENAME);
       Map<String, Object> appJson = readJson(jangarooAppJsonFile);
 
+      @SuppressWarnings("unchecked")
       Map<String, String> outputMap = (Map<String, String>) appJson.get("output");
       outputMap.put("base", "${app.dir}");
-
-/*      // fix classic/js/path
-      Map<String, Object> classicMap = (Map<String, Object>) appJson.get("classic");
-      List<Map<String,String>> jsPaths = (List<Map<String,String>>) classicMap.get("js");
-      for(Map<String,String> jsConfig: jsPaths) {
-        String path = jsConfig.get("path");
-        String frameworkPrefix = "${framework.dir}/";
-        if (path.startsWith(frameworkPrefix)) {
-          jsConfig.put("path", path.substring(frameworkPrefix.length()));
-        }
-      }*/
-
       SenchaUtils.getObjectMapper().writerWithDefaultPrettyPrinter().writeValue(jangarooAppJsonFile, appJson);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not configure app.json", e);
