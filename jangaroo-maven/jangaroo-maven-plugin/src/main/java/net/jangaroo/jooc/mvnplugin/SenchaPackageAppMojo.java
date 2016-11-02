@@ -183,7 +183,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     FileHelper.copyDirectories(senchaAppDirectory, workingDirectory, ImmutableSet.of("build"));
     FileHelper.copyDirectory(new File(senchaAppDirectory, "build/development/resources"), workingDirectory);
-    FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|index.html");
+    FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|*.html");
   }
 
   private void createJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
