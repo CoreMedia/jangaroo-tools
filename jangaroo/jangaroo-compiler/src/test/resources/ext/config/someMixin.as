@@ -13,6 +13,7 @@ public class someMixin {
   /**
    * @private
    */
+  [ExtConfig(mode="append")]
   public native function set someList(value:Array):void;
 
 }

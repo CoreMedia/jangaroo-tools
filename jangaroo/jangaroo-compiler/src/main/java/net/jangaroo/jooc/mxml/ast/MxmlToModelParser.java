@@ -184,7 +184,7 @@ final class MxmlToModelParser {
           } else {
             createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
           }
-          String configMode = "Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName()) ? element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME) : "";
+          String configMode = getConfigMode(element, propertyModel);
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
           if (atValue != null) {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
@@ -198,6 +198,33 @@ final class MxmlToModelParser {
     if (!defaultPropertyValues.isEmpty()) {
       createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
     }
+  }
+
+  private static String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
+    if ("Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName())) {
+      String configMode = element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
+      if (!configMode.isEmpty()) {
+        return configMode;
+      }
+      Annotation extConfigAnnotation = propertyModel.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME);
+      if (extConfigAnnotation != null) {
+        CommaSeparatedList<AnnotationParameter> annotationParameters = extConfigAnnotation.getOptAnnotationParameters();
+        while (annotationParameters != null) {
+          Ide name = annotationParameters.getHead().getOptName();
+          if (name != null && CONFIG_MODE_ATTRIBUTE_NAME.equals(name.getName())) {
+            AstNode value = annotationParameters.getHead().getValue();
+            if (value instanceof LiteralExpr) {
+              Object jooValue = value.getSymbol().getJooValue();
+              if (jooValue instanceof String) {
+                return (String) jooValue;
+              }
+            }
+          }
+          annotationParameters = annotationParameters.getTail();
+        }
+      }
+    }
+    return "";
   }
 
   private void createChildElementsPropertyAssignmentCode(List<XmlElement> childElements, Ide variable,
