@@ -38,10 +38,10 @@ try
         return false;
     }
 
-    File appIndexHtml = new File ( appDir, "build/production/index.html" );
+    File appIndexHtml = new File ( appDir, "build/jangaroo-app/index.html" );
     if ( !appIndexHtml.exists() )
     {
-        print( "build/production/index.html file is missing." );
+        print( "build/jangaroo-app/index.html file is missing." );
         return false;
     }
 

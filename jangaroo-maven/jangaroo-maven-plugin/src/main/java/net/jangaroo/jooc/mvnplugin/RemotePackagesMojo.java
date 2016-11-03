@@ -92,7 +92,7 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
     unpackArtifact(remotePackagesTargetDir, testArtifactFromHelper);
   }
 
-  private void unpackArtifact(String remotePackagesTargetDir, Artifact artifact) throws MojoExecutionException {
+  private void unpackArtifact(String targetDir, Artifact artifact) throws MojoExecutionException {
     try {
 
       UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
@@ -104,8 +104,7 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
       if (MavenDependencyHelper.equalsGroupIdAndArtifactId(currentArtifactDependency, extFrameworkDependency)) {
         packageTargetDir = new File( getExtFrameworkDirectory(project) );
       } else {
-        packageTargetDir = new File(remotePackagesTargetDir
-                        + SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
+        packageTargetDir = new File(targetDir, SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
       }
 
       FileHelper.ensureDirectory(packageTargetDir);

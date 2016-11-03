@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -25,11 +26,13 @@ import java.util.Set;
         threadSafe = true)
 public class CompilerMojo extends AbstractCompilerMojo {
 
+  @Parameter(defaultValue = "${project.build.directory}")
+  private String buildDirectoryPath;
+
   /**
    * Sencha package output directory into whose 'src' sub-directory compiled classes are generated.
    * This property is used for <code>jangaroo-pkg</code> packaging type as {@link #getOutputDirectory}.
    */
-  @Parameter(defaultValue = "${project.build.directory}/packages/local/package")
   private File packageOutputDirectory;
 
   /**
@@ -80,7 +83,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected File getOutputDirectory() {
-    return Type.JANGAROO_PKG_PACKAGING.equals(getProject().getPackaging()) ? packageOutputDirectory : appOutputDirectory;
+    return Type.JANGAROO_PKG_PACKAGING.equals(getProject().getPackaging()) ? getPackageOutputDirectory() : appOutputDirectory;
   }
 
   public File getReportOutputDirectory() {
@@ -105,5 +108,12 @@ public class CompilerMojo extends AbstractCompilerMojo {
       joocConfiguration.setReportOutputDirectory(getReportOutputDirectory());
     }
     return joocConfiguration;
+  }
+
+  private File getPackageOutputDirectory() {
+    if (packageOutputDirectory == null) {
+      packageOutputDirectory = new File(buildDirectoryPath + SenchaUtils.getPackagesPath(getProject()));
+    }
+    return packageOutputDirectory;
   }
 }

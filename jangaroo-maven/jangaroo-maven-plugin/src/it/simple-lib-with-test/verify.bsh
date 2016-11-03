@@ -39,10 +39,10 @@ try
     }
 
 
-    File jsDir = new File ( target, "packages/local/package/src" );
+    File jsDir = new File ( target, "packages//test__simple-lib-with-test/src" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
-        print( "packages/local/package/src directory is missing or not a directory." );
+        print( "packages/test_simple-lib-with-test/src directory is missing or not a directory." );
         return false;
     }
 
