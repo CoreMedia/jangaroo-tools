@@ -73,10 +73,21 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   /**
    * Choose to create a 'production' build of the Sencha App instead of the standard 'development' build.
-   * Note that when you do a 'mvn install -DsenchaAppBuild=production', the jangaroo build will be skipped!
+   * Note that when you do a 'mvn install -DsenchaAppBuild=production', the <em>Jangaroo app</em> build will be skipped!
    */
-  @Parameter(defaultValue = SenchaUtils.DEVELOPMENT_PROFILE)
+  @Parameter(property = "senchaAppBuild", defaultValue = SenchaUtils.DEVELOPMENT_PROFILE)
   private String senchaAppBuild;
+
+  /**
+   * Skips the build process of a separate <em>Jangaroo Build App</em>.
+   * The <em>Jangaroo Build App</em> is required for building a Jar.
+   * <p />
+   * Enabling this option speeds up the build process.
+   *
+   * @since 4.0
+   */
+  @Parameter(property = "skipJangarooApp", defaultValue = "false")
+  private boolean skipJangarooApp;
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
   private File senchaAppDirectory;
@@ -89,9 +100,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   @Parameter
   private String applicationClass;
-
-  @Parameter(property = "skipJangarooApp", defaultValue = "false")
-  private boolean skipJangarooApp;
 
   /**
    * Used to look up Artifacts in the remote repository.
@@ -144,12 +152,11 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     if (!skipJangarooApp && SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       File workingDirectory = generateJangarooApp();
-
       // refresh app
       new SenchaCmdExecutor(workingDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
-
-      createJarFromJangarooBuild();
     }
+
+    createJar();
   }
 
   private File generateJangarooApp() throws MojoExecutionException {
@@ -263,14 +270,16 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     MavenPluginHelper.extractFileTemplate(targetDir, pkgArtifactFile, includes, excludes, archiverManager);
   }
 
-  private void createJarFromJangarooBuild() throws MojoExecutionException {
+  private void createJar() throws MojoExecutionException {
 
     File appProductionBuildDir = new File(senchaAppDirectory, JANGAROO_APP_DIRECTORY);
 
     File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
 
-    // add the Jangaroo compiler resources to the resulting JAR
-    archiver.addFileSet(fileSet( appProductionBuildDir ).prefixed( "META-INF/resources/" ));
+    if (!skipJangarooApp && SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
+      // add the Jangaroo compiler resources to the resulting JAR
+      archiver.addFileSet(fileSet( appProductionBuildDir ).prefixed( "META-INF/resources/" ));
+    }
 
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
