@@ -338,9 +338,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     if (!senchaAppDirectory.exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
-
-    // we need to build 'development'!
-    buildSenchaApp(senchaAppDirectory, SenchaUtils.DEVELOPMENT_PROFILE);
+    buildSenchaApp(senchaAppDirectory, senchaAppBuild);
 
     File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
     if (null == workspaceDir) {
