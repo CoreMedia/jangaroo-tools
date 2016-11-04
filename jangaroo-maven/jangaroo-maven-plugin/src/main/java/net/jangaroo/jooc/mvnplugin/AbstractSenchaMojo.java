@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -10,6 +11,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
@@ -26,8 +28,11 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.groupId}:${project.artifactId}")
   private String remotePackagesArtifact;
 
-  @Parameter(defaultValue = "net.jangaroo.com.sencha:ext-js")
-  private String extFrameworkArtifact;
+  /**
+   * a regexp matching the group and artifact id of a sencha framewrok artifact
+   */
+  @Parameter(defaultValue = "((net\\.jangaroo\\.com)|(com\\.coremedia))\\.sencha:ext-js(-pkg)?(-gpl)?")
+  private String extFrameworkArtifactRegexp;
 
   /**
    * The log level to use for Sencha Cmd.
@@ -37,6 +42,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
    */
   @Parameter(property = "senchaLogLevel")
   private String senchaLogLevel;
+
+  private volatile Pattern extFrameworkArtifactPattern;
 
   // ***********************************************************************
   // ************************* GETTERS *************************************
@@ -50,10 +57,16 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return extFrameworkDir;
   }
 
-  public String getExtFrameworkArtifact() {
-    return extFrameworkArtifact;
+  public Pattern getExtFrameworkArtifactPattern() {
+    if (extFrameworkArtifactPattern == null) {
+      extFrameworkArtifactPattern = Pattern.compile(getExtFrameworkArtifactRegexp());
+    }
+    return extFrameworkArtifactPattern;
   }
 
+  public String getExtFrameworkArtifactRegexp() {
+    return extFrameworkArtifactRegexp;
+  }
 
   public String getPackagesDir() {
     return packagesDir;
@@ -104,4 +117,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       throw new MojoExecutionException(String.format("Writing %s failed", destinationFileName), io);
     }
   }
+
+  protected boolean isExtFrameworkDependency(Dependency dependency) {
+    String key = dependency.getGroupId() + ":" + dependency.getArtifactId();
+    return getExtFrameworkArtifactPattern().matcher(key).matches();
+  }
+
 }

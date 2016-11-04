@@ -190,25 +190,18 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   private Set<String> getRequiredDependencies() throws MojoExecutionException {
     Set<String> requiredDependencies = new LinkedHashSet<>();
-
     Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
-
     Dependency remotePackageDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
-    Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
 
     List<Dependency> projectDependencies = resolveRequiredDependencies(project, remotePackageDependency);
     for (Dependency dependency : projectDependencies) {
-
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
-
-      if (SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency, extFrameworkDependency)
+      if (!isExtFrameworkDependency(dependency)
+              && SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency)
               && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency)) {
-
         requiredDependencies.add(senchaPackageNameForArtifact);
       }
-
     }
-
     return requiredDependencies;
   }
 

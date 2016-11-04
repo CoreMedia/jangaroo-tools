@@ -99,9 +99,10 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
       unArchiver.setSourceFile(artifact.getFile());
 
       File packageTargetDir;
-      Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
       Dependency currentArtifactDependency = MavenDependencyHelper.fromArtifact(artifact);
-      if (MavenDependencyHelper.equalsGroupIdAndArtifactId(currentArtifactDependency, extFrameworkDependency)) {
+      artifact.getGroupId();
+      artifact.getArtifactId();
+      if (isExtFrameworkDependency(currentArtifactDependency)) {
         packageTargetDir = new File( getExtFrameworkDirectory(project) );
       } else {
         packageTargetDir = new File(targetDir, SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));

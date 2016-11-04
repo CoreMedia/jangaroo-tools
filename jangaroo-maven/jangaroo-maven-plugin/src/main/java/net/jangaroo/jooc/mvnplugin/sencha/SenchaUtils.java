@@ -193,10 +193,8 @@ public class SenchaUtils {
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,
-                                                   @Nonnull Dependency remotePackageDependency,
-                                                   @Nonnull Dependency extFrameworkDependency) {
+                                                   @Nonnull Dependency remotePackageDependency) {
     return !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency, remotePackageDependency)
-            && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,extFrameworkDependency)
             && Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && !Artifact.SCOPE_TEST.equals(dependency.getScope());

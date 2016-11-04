@@ -232,12 +232,12 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
                                          MavenProject currentProject, MavenProject remoteAggregator) {
 
     Dependency remotePackageDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
-    Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
 
     for (Artifact artifact : currentProject.getArtifacts()) {
       Dependency dependency = MavenDependencyHelper.fromArtifact(artifact);
 
-      if (SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency, extFrameworkDependency)) {
+      if (!isExtFrameworkDependency(dependency) &&
+              SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency)) {
         // JAR remote dependencies from jangaroo-apps and jangaroo-pkgs will be added as PKG dependencies
         // to the aggregator POM so they need to be converted
         Dependency pkgDependency = convertToPkgDependency(dependency, remoteAggregator);
