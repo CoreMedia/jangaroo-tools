@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -118,8 +119,16 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     }
   }
 
+  protected boolean isExtFrameworkArtifact(Artifact artifact) {
+    return isExtFramework(artifact.getGroupId(), artifact.getArtifactId());
+  }
+
   protected boolean isExtFrameworkDependency(Dependency dependency) {
-    String key = dependency.getGroupId() + ":" + dependency.getArtifactId();
+    return isExtFramework(dependency.getGroupId(), dependency.getArtifactId());
+  }
+
+  private boolean isExtFramework(String groupId, String artifactId) {
+    String key = groupId + ":" + artifactId;
     return getExtFrameworkArtifactPattern().matcher(key).matches();
   }
 

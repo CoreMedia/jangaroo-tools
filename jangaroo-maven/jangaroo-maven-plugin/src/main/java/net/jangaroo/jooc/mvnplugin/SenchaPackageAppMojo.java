@@ -7,7 +7,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaWorkspaceConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -16,7 +15,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -376,13 +374,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private Map<String, Object> readJson(File jsonFile) throws IOException {
     //noinspection unchecked
     return (Map<String, Object>) SenchaUtils.getObjectMapper().readValue(jsonFile, Map.class);
-  }
-
-  private boolean isExtFrameworkArtifact(Artifact artifact) {
-    Dependency extFrameworkDependency = MavenDependencyHelper.fromKey(getExtFrameworkArtifact());
-
-    return extFrameworkDependency.getGroupId().equals(artifact.getGroupId())
-            && extFrameworkDependency.getArtifactId().equals(artifact.getArtifactId());
   }
 
   private void fixAppJson(File workingDirectory) throws MojoExecutionException {
