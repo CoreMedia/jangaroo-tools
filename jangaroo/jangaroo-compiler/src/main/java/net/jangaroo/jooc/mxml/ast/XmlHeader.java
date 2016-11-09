@@ -11,7 +11,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 /**
- * Helper class to verify the standard XML header <code>&lt;?xml version="..."?></code>.
+ * Helper class to verify the standard XML header <code>&lt;?xml version="..."?&gt;</code>.
  *
  * https://www.w3.org/TR/REC-xml/#sec-prolog-dtd
  */

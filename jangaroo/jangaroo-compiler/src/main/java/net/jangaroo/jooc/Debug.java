@@ -17,18 +17,17 @@ package net.jangaroo.jooc;
 
 /**
  * A class to provide debug facilities in java.
- * <p/>
+ * <p>
  * For <CODE>assertTrue</CODE>, to avoid evaluation of the boolean expression with
  * debugging turned off on sun's java interpreter and with sun's javac use the
  * following:
- * <p/>
  * <pre>
- *     Debug.assertTrue(Debug.enabled && anExpression, "error message");
+ *     Debug.assertTrue(Debug.enabled &amp;&amp; anExpression, "error message");
  * </pre>
- * <p/>
- * The short-cut semantics of '&&' will guarantee that anExpression will not be
+ * <p>
+ * The short-cut semantics of '&amp;&amp;' will guarantee that anExpression will not be
  * evaluated if enabled is set to false.
- * <p/>
+ * <p>
  * <CODE>Debug.print</CODE> also won't print its argument if <CODE>Debug.enabled</CODE> is false. If
  * the generation of the argument is already costly, you have to wrap it in an if-statement.
  *

@@ -67,7 +67,7 @@ public class JsonObject implements Json {
 
   /**
    * Make a pretty-printed JSON text of this JSONObject.
-   * <p/>
+   * <p>
    * Warning: This method assumes that the data structure is acyclic.
    *
    * @param indentFactor The number of spaces to add to each level of
@@ -84,7 +84,7 @@ public class JsonObject implements Json {
 
   /**
    * Make a prettyprinted JSON text of an object value.
-   * <p/>
+   * <p>
    * Warning: This method assumes that the data structure is acyclic.
    *
    *
@@ -118,7 +118,7 @@ public class JsonObject implements Json {
 
   /**
    * Make a prettyprinted JSON text of this JSONObject.
-   * <p/>
+   * <p>
    * Warning: This method assumes that the data structure is acyclical.
    *
    * @param indentFactor The number of spaces to add to each level of

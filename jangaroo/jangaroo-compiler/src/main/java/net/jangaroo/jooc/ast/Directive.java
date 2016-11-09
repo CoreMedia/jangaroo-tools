@@ -17,11 +17,11 @@ package net.jangaroo.jooc.ast;
 
 /**
  * Directives are language elements that can have an effect at compile time, load time or runtime.
- * <p/>
+ * <p>
  * Most directives have at least an effect at runtime, and are therefore Statements.
  * The Directives which do only have an effect at compile and/or load time (and are therefore not Statements)
  * are import and namespace directives.
- * <p/>
+ * <p>
  * todo is Annotation (Adobe: Metadata) really a Directive?
  *
  * @author Andreas Gawecki

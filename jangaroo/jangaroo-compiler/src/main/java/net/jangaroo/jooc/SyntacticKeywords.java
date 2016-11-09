@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * Identifiers with special meaning become keywords in certain syntactic contexts:
- * <p/>
+ * <p>
  * In a for-each-in statement between the 'for' token and the '(' token:
  * each
  * In a function definition between the 'function' token and an identifier token:
@@ -30,12 +30,12 @@ import java.util.Set;
  * namespace include
  * In an attribute list or wherever an attribute list can be used:
  * dynamic final native override static
- * <p/>
+ * <p>
  * It is a syntax error to use a syntactic keyword in a context where it is treated as a keyword:
- * <p/>
+ * <p>
  * namespace = "hello"
  * namespace()
- * <p/>
+ * <p>
  * In these cases, the grammar requires an identifier after the namespace keyword.
  */
 public interface SyntacticKeywords {

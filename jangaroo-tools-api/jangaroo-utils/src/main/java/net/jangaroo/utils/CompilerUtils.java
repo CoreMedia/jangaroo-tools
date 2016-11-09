@@ -175,9 +175,9 @@ public final class CompilerUtils {
    * Remove extension from filename.
    * ie
    * <pre>
-   * foo.txt --> foo
-   * a\b\c.jpg --> a\b\c
-   * a\b\c --> a\b\c
+   * foo.txt --&gt; foo
+   * a\b\c.jpg --&gt; a\b\c
+   * a\b\c --&gt; a\b\c
    * </pre>
    *
    * @param filename the path of the file
@@ -224,7 +224,7 @@ public final class CompilerUtils {
 
   /**
    * Produce a string in double quotes with backslash sequences in all the
-   * right places. A backslash will be inserted within </, allowing JSON
+   * right places. A backslash will be inserted within &lt;/, allowing JSON
    * text to be delivered in HTML. In JSON text, a string cannot contain a
    * control character or an unescaped quote or backslash.
    *

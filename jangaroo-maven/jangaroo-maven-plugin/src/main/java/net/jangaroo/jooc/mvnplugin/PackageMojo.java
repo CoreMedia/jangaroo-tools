@@ -21,7 +21,7 @@ import java.io.File;
  * Creates the jangaroo archive and attaches them to the project.<br>
  * The jangaroo archive is created by zipping the <code>outputDirectory</code>
  * (defaults to target/classes).
- * <p/>
+ * <p>
  * The <code>package</code> goal is executed in the <code>package</code> phase of the jangaroo lifecycle.
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})

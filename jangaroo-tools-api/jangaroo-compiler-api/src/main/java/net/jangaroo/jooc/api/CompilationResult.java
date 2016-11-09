@@ -17,7 +17,7 @@ public interface CompilationResult {
 
   /**
    * Return the result code of the last compilation run.
-   * This is one of the <codeRESULT_</code>... constants defined in this class.
+   * This is one of the <code>RESULT_</code>... constants defined in this class.
    * @return the compilation result code
    */
   int getResultCode();

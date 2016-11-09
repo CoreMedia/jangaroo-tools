@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Declarations are statements used to define entities such as variables, functions, classes,
  * and interfaces.
- * <p/>
+ * <p>
  * todo rename to Definition (ECMAScript/Adobe speak)
  *
  * @author Andreas Gawecki
