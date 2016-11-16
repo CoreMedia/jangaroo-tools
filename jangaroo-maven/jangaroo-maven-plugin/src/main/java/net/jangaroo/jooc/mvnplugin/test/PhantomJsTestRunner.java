@@ -62,6 +62,7 @@ public class PhantomJsTestRunner {
     final Commandline cmd = createCommandLine();
     final ArrayList<String> arguments = new ArrayList<String>();
     arguments.add("--debug=true");
+    arguments.add("--web-security=false");
     arguments.add(testRunner);
 
     arguments.add(testPageUrl);
