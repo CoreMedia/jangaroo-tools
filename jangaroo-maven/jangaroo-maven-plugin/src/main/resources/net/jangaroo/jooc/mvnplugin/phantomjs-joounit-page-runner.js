@@ -62,15 +62,17 @@ page.onError = function(e, stack) {
 //  phantom.exit(2);
 };
 page.onCallback = function(result) {
-  console.log("RESULT:\n" + result);
-  fs.write(system.args[2], result, "w");  
+  console.info("RESULT:\n" + result);
+  fs.write(system.args[2], result, "w");
+  page.close();
   phantom.exit(0);
 };
 var testUrl = system.args[1];
-console.log("opening " + testUrl);
+console.info("opening " + testUrl);
 page.open(system.args[1], {}, function(status) {
-  console.log("Test url status: " + status);
+  console.info("Test url status: " + status);
   if (status !== "success") {
+    page.close();
     phantom.exit(3);
   }
   window.setTimeout(function() {
