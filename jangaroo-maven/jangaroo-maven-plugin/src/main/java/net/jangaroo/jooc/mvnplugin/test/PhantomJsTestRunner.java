@@ -61,6 +61,7 @@ public class PhantomJsTestRunner {
   public boolean execute() throws CommandLineException {
     final Commandline cmd = createCommandLine();
     final ArrayList<String> arguments = new ArrayList<String>();
+    arguments.add("--debug=true");
     arguments.add(testRunner);
 
     arguments.add(testPageUrl);
