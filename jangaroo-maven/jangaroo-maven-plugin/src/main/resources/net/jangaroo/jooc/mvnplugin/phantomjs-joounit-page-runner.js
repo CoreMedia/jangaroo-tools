@@ -66,10 +66,7 @@ page.onCallback = function(result) {
   fs.write(system.args[2], result, "w");  
   phantom.exit(0);
 };
-var testUrl = system.args[1];
-console.log("opening " + testUrl);
 page.open(system.args[1], function(status) {
-  console.log("Test url status: " + status);
   if (status !== "success") {
     phantom.exit(3);
   }
