@@ -263,7 +263,7 @@ public class JooTestMojo extends AbstractMojo {
    * If not phantomjs executable (or an outdated one) is found, falls back to Selenium.
    */
   @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  @Parameter(property = "phantomjs.bin", defaultValue = "phantomjs")
+  @Parameter(property = "phantomjs.bin", defaultValue = "phantomjs --debug=true")
   private String phantomBin;
 
   /**
