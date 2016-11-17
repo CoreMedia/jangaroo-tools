@@ -267,6 +267,15 @@ public class JooTestMojo extends AbstractMojo {
   private String phantomBin;
 
   /**
+   * Additional phantomjs arguments.
+   *
+   * Example: phaontomjs.args="--debug=true --web-security=false"
+   */
+  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+  @Parameter(property = "phantomjs.args")
+  private String phantomArgs;
+
+  /**
    * The log level to use for Sencha Cmd.
    * The log level for Maven is kind of the base line which determines which log entries are actually shown in the output.
    * When you Maven log level is "info", no "debug" messages for Sencha Cmd are logged.
@@ -344,7 +353,7 @@ public class JooTestMojo extends AbstractMojo {
   private void executePhantomJs(File testResultOutputFile, PhantomJsTestRunner phantomJsTestRunner) throws MojoFailureException, MojoExecutionException {
     getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
     try {
-      final boolean exitCode = phantomJsTestRunner.execute();
+      final boolean exitCode = phantomJsTestRunner.execute(phantomArgs);
       if (exitCode) {
         evalTestOutput(new FileReader(testResultOutputFile));
       } else {

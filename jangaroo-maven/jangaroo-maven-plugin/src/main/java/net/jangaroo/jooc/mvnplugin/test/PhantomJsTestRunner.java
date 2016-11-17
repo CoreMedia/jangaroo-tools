@@ -58,9 +58,12 @@ public class PhantomJsTestRunner {
     return phantomjs;
   }
 
-  public boolean execute() throws CommandLineException {
+  public boolean execute(String args) throws CommandLineException {
     final Commandline cmd = createCommandLine();
     final ArrayList<String> arguments = new ArrayList<String>();
+    if (null != args) {
+      arguments.add(args);
+    }
     arguments.add(testRunner);
 
     arguments.add(testPageUrl);

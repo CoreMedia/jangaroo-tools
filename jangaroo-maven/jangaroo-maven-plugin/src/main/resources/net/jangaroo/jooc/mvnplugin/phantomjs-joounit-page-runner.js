@@ -1,6 +1,13 @@
 var system = require('system');
 var fs = require("fs");
 var page = require("webpage").create();
+
+/*
+ http://phantomjs.org/api/webpage/property/settings.html
+ (in milli-secs) defines the timeout after which any resource requested will stop trying and proceed with other parts of the page. onResourceTimeout callback will be called on timeout.
+ */
+page.settings.resourceTimeout = 500;
+
 if (system.args.length !== 4) {
   console.info("USAGE: phantomjs-joounit-page-runner.js <page-url> <test-result-filename> <timeout>, instead found " + (system.args.length - 1) + " arguments.");
   phantom.exit(1);
@@ -10,6 +17,11 @@ page.onResourceRequested = function(request) {
 };
 page.onResourceReceived = function(response) {
   console.log("Response #" + response.id + " (" + response.stage + "): " + response.url + ": " + response.statusText);
+};
+page.onResourceTimeout = function(request) {
+  console.error('Response timeout (#' + request.id + '): ' + JSON.stringify(request));
+  page.close();
+  phantom.exit(42);
 };
 page.onInitialized = function() {
   page.evaluate(function() {
@@ -59,15 +71,19 @@ page.onError = function(e, stack) {
   stack.forEach(function(item, i) {
     console.error("[ERROR]", (stack.length - i) + ".", item.file, ':', item.line, item.function ? ' (in function "' + item.function + '")' : '');
   });
-//  phantom.exit(2);
 };
 page.onCallback = function(result) {
   console.log("RESULT:\n" + result);
-  fs.write(system.args[2], result, "w");  
+  fs.write(system.args[2], result, "w");
+  page.close();
   phantom.exit(0);
 };
-page.open(system.args[1], function(status) {
+var testUrl = system.args[1];
+console.log("opening " + testUrl);
+page.open(system.args[1], {}, function(status) {
+  console.info("Test url status: " + status);
   if (status !== "success") {
+    page.close();
     phantom.exit(3);
   }
   window.setTimeout(function() {
@@ -75,5 +91,5 @@ page.open(system.args[1], function(status) {
        console.error("phantomjs> timeout, no result!");
        phantom.exit(4);
     }
-  }, system.args[3]);
+  }, system.args[3] * 0.9);
 });
