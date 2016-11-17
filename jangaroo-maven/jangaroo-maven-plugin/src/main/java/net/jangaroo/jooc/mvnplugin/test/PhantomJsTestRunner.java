@@ -20,6 +20,7 @@ public class PhantomJsTestRunner {
 
   public static final Pattern LOG_LEVEL_PATTERN = Pattern.compile("^\\[([A-Z]+)\\]\\s*(.*)$");
 
+  private static int INITIAL_RESOURCE_TIMEOUT_MS = 500;
   private static volatile Boolean phantomjsExecutableFound;
 
   private final String testPageUrl;
@@ -58,56 +59,42 @@ public class PhantomJsTestRunner {
     return phantomjs;
   }
 
-  public boolean execute() throws CommandLineException {
-    final Commandline cmd = createCommandLine();
-    final ArrayList<String> arguments = new ArrayList<String>();
-    arguments.add(testRunner);
+  public boolean execute(String args) throws CommandLineException {
+    int resourceTimeoutMs = INITIAL_RESOURCE_TIMEOUT_MS;
+    long started = System.currentTimeMillis() + 100;
 
-    arguments.add(testPageUrl);
-    arguments.add(testResultFilename);
-    arguments.add(String.valueOf(timeout));
-    cmd.addArguments(arguments.toArray(new String[arguments.size()]));
+    final StreamConsumer outConsumer = new LoggingStreamConsumer();
+    final StreamConsumer errConsumer = new WarningStreamConsumer();
 
-    final StreamConsumer outConsumer = new StreamConsumer() {
-      @Override
-      public void consumeLine(String line) {
-        Matcher matcher = LOG_LEVEL_PATTERN.matcher(line);
-        String logLevel;
-        String msg;
-        if (matcher.matches()) {
-          logLevel = matcher.group(1);
-          msg = matcher.group(2);
-        } else {
-          logLevel = "DEBUG";
-          msg = line;
-        }
-        if ("ERROR".equals(logLevel)) {
-          log.error(msg);
-        } else if ("WARN".equals(logLevel)) {
-          log.warn(msg);
-        } else if ("INFO".equals(logLevel)) {
-          log.info(msg);
-        } else {
-          log.debug(msg);
-        }
-      }
-    };
-    final StreamConsumer errConsumer = new StreamConsumer() {
-      @Override
-      public void consumeLine(String line) {
-        log.warn(line);
-      }
-    };
-    log.info("executing phantomjs cmd: " + cmd.toString());
     for (int tryCount = 0; tryCount <= maxRetriesOnCrashes; ++tryCount) {
-      int returnCode = CommandLineUtils.executeCommandLine(cmd, outConsumer, errConsumer, timeout);
+      Commandline cmd = createCommandLine(args, resourceTimeoutMs);
+      if (tryCount == 0) {
+        log.info("executing phantomjs cmd: " + cmd.toString());
+      }
+      int returnCode = CommandLineUtils.executeCommandLine(cmd, outConsumer, errConsumer, getTimeoutInSeconds(started));
       if (returnCode >= 0 && returnCode <= 4) { // valid phantomjs-joounit-page-runner return codes!
         return returnCode == 0;
       }
       log.warn(String.format("unexpected result %d from phantomjs run #%d", returnCode, tryCount + 1));
+
+      // seems that phantomjs keeps state and needs some time to recover .... really ?
+      try {
+        Thread.sleep(resourceTimeoutMs);
+      } catch (InterruptedException e) { // NOSONAR
+        // IGNORE
+      }
+      // increase resource timeout but not beyond a second
+      resourceTimeoutMs = Math.min(resourceTimeoutMs + 100, 1000);
     }
     log.error(String.format("Got %d unexpected results from phantomjs, giving up.", maxRetriesOnCrashes + 1));
     return false;
+  }
+
+  /**
+   * Compute remaining timeout: The configured timeout without time already spent for trying
+   */
+  private int getTimeoutInSeconds(long started) {
+    return timeout - (int)((System.currentTimeMillis() - started) / 1000);
   }
 
   public boolean canRun() {
@@ -145,9 +132,20 @@ public class PhantomJsTestRunner {
     return false;
   }
 
-  private Commandline createCommandLine() {
+  private Commandline createCommandLine(String args, int resourceTimeout) {
     final Commandline commandline = new Commandline();
     commandline.setExecutable(phantomjs);
+    final ArrayList<String> arguments = new ArrayList<>();
+    if (null != args) {
+      arguments.add(args);
+    }
+    arguments.add(testRunner);
+
+    arguments.add(testPageUrl);
+    arguments.add(testResultFilename);
+    arguments.add(String.valueOf(resourceTimeout));
+    commandline.addArguments(arguments.toArray(new String[arguments.size()]));
+
     return commandline;
   }
 
@@ -161,4 +159,35 @@ public class PhantomJsTestRunner {
             '}';
   }
 
+  private class LoggingStreamConsumer implements StreamConsumer {
+    @Override
+    public void consumeLine(String line) {
+      Matcher matcher = LOG_LEVEL_PATTERN.matcher(line);
+      String logLevel;
+      String msg;
+      if (matcher.matches()) {
+        logLevel = matcher.group(1);
+        msg = matcher.group(2);
+      } else {
+        logLevel = "DEBUG";
+        msg = line;
+      }
+      if ("ERROR".equals(logLevel)) {
+        log.error(msg);
+      } else if ("WARN".equals(logLevel)) {
+        log.warn(msg);
+      } else if ("INFO".equals(logLevel)) {
+        log.info(msg);
+      } else {
+        log.debug(msg);
+      }
+    }
+  }
+
+  private class WarningStreamConsumer implements StreamConsumer {
+    @Override
+    public void consumeLine(String line) {
+      log.warn(line);
+    }
+  }
 }
