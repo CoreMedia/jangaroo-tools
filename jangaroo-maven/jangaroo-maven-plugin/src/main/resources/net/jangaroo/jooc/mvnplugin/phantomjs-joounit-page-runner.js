@@ -14,7 +14,7 @@ var resultFile = system.args[2];
  http://phantomjs.org/api/webpage/property/settings.html
  (in milli-secs) defines the timeout after which any resource requested will stop trying and proceed with other parts of the page. onResourceTimeout callback will be called on timeout.
  */
-page.settings.resourceTimeout = args[3];
+page.settings.resourceTimeout = system.args[3];
 
 page.onResourceRequested = function(request) {
   console.log("Request #" + request.id + ": " + request.method + " " + request.url);

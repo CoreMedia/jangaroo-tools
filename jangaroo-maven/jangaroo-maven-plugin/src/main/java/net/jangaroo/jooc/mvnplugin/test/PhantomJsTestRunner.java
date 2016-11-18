@@ -24,6 +24,8 @@ public class PhantomJsTestRunner {
   private static volatile Boolean phantomjsExecutableFound;
 
   private final String testPageUrl;
+  private final boolean phantomjsDebug;
+  private final boolean phantomjsWebSecurity;
   private String testResultFilename;
   private final String phantomjs;
   private final Log log;
@@ -38,9 +40,11 @@ public class PhantomJsTestRunner {
    * @param testRunner          the test bootstrap script to be loaded in phantomjs
    * @param timeout             timeout in seconds
    * @param maxRetriesOnCrashes number of retries when receiving unexpected result from phantomjs (crash?)
+   * @param phantomjsDebug
+   * @param phantomjsWebSecurity
    * @param log                 the maven log
    */
-  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, int maxRetriesOnCrashes, Log log) {
+  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, int maxRetriesOnCrashes, boolean phantomjsDebug, boolean phantomjsWebSecurity, Log log) {
     this.phantomjs = makeOsSpecific(phantomjs);
     this.testPageUrl = testPageUrl;
     this.testResultFilename = testResultFilename;
@@ -48,6 +52,8 @@ public class PhantomJsTestRunner {
     this.timeout = timeout;
     this.maxRetriesOnCrashes = maxRetriesOnCrashes;
     this.log = log;
+    this.phantomjsDebug = phantomjsDebug;
+    this.phantomjsWebSecurity = phantomjsWebSecurity;
   }
 
   private static String makeOsSpecific(String phantomjs) {
@@ -59,7 +65,7 @@ public class PhantomJsTestRunner {
     return phantomjs;
   }
 
-  public boolean execute(String args) throws CommandLineException {
+  public boolean execute() throws CommandLineException {
     int resourceTimeoutMs = INITIAL_RESOURCE_TIMEOUT_MS;
     long started = System.currentTimeMillis() + 100;
 
@@ -67,7 +73,7 @@ public class PhantomJsTestRunner {
     final StreamConsumer errConsumer = new WarningStreamConsumer();
 
     for (int tryCount = 0; tryCount <= maxRetriesOnCrashes; ++tryCount) {
-      Commandline cmd = createCommandLine(args, resourceTimeoutMs);
+      Commandline cmd = createCommandLine(resourceTimeoutMs);
       if (tryCount == 0) {
         log.info("executing phantomjs cmd: " + cmd.toString());
       }
@@ -132,13 +138,13 @@ public class PhantomJsTestRunner {
     return false;
   }
 
-  private Commandline createCommandLine(String args, int resourceTimeout) {
+  private Commandline createCommandLine(int resourceTimeout) {
     final Commandline commandline = new Commandline();
     commandline.setExecutable(phantomjs);
     final ArrayList<String> arguments = new ArrayList<>();
-    if (null != args) {
-      arguments.add(args);
-    }
+    arguments.add("--debug=" + String.valueOf(phantomjsDebug));
+    arguments.add("--web-security=" + String.valueOf(phantomjsWebSecurity));
+
     arguments.add(testRunner);
 
     arguments.add(testPageUrl);

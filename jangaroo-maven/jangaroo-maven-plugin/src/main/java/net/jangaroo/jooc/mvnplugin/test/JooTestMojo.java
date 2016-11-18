@@ -267,13 +267,18 @@ public class JooTestMojo extends AbstractMojo {
   private String phantomBin;
 
   /**
-   * Additional phantomjs arguments.
-   *
-   * Example: phaontomjs.args="--debug=true --web-security=false"
+   * Set this to true to enable phantomjs debug output
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  @Parameter(property = "phantomjs.args")
-  private String phantomArgs;
+  @Parameter(defaultValue = "false")
+  private boolean phantomjsDebug;
+
+
+  /**
+   * Set this to false to disable phantomjs web security
+   */
+  @Parameter(defaultValue = "true")
+  private boolean phantomjsWebSecurity;
+
 
   /**
    * The log level to use for Sencha Cmd.
@@ -339,7 +344,7 @@ public class JooTestMojo extends AbstractMojo {
       File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
       File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
       FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, getLog());
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, phantomjsDebug, phantomjsWebSecurity, getLog());
       if (phantomJsTestRunner.canRun()) {
         executePhantomJs(testResultOutputFile, phantomJsTestRunner);
       } else {
@@ -353,7 +358,7 @@ public class JooTestMojo extends AbstractMojo {
   private void executePhantomJs(File testResultOutputFile, PhantomJsTestRunner phantomJsTestRunner) throws MojoFailureException, MojoExecutionException {
     getLog().info("running phantomjs: " + phantomJsTestRunner.toString());
     try {
-      final boolean exitCode = phantomJsTestRunner.execute(phantomArgs);
+      final boolean exitCode = phantomJsTestRunner.execute();
       if (exitCode) {
         evalTestOutput(new FileReader(testResultOutputFile));
       } else {
