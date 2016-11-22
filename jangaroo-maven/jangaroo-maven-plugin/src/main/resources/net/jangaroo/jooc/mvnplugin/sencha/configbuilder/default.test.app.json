@@ -14,14 +14,22 @@
       "bundle": true
     }
   ],
+  "classic" : {
+    "js" : [ {
+      "path" : "${framework.dir}/build/ext-all-rtl-debug-sourcemap.js"
+    } ]
+  },
   "loader": {
     "cache": false,
     "cacheParam": "_dc"
   },
   "bootstrap": {
     "base": "${app.dir}",
-    "manifest": "classic.json",
-    "microloader": "bootstrap.js"
+    "microloader": "bootstrap.js",
+    "manifest": {
+      "path": "classic.json",
+      "exclude": "" // needed to prevent sencha app build from removing the loadOrder property
+    }
   },
   "toolkit": "classic",
   "packageDependencyOrder": []
