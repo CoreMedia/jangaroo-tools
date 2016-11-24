@@ -327,6 +327,13 @@ public class JooTestMojo extends AbstractMojo {
 
   private void runTests(String url) throws MojoFailureException, MojoExecutionException {
     try {
+      new NashornTestRunner(getLog(), url, jooUnitTestExecutionTimeout).doit();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    if(true) return;
+
+    try {
       File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
       File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
       FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);

@@ -1,0 +1,43 @@
+{
+  "paths": {
+    "Test.TestClass": "src/test/resources/testModule.js"
+  },
+  "loadOrder": [],
+  "classes":  {
+    "Test.TestClass": {
+      "idx": 42,
+      "alias": [],
+      "alternates": []
+    }
+  },
+  "packages": {
+  },
+  "js": [
+    {
+      "path": "src/test/resources/testModule.js"
+    }
+  ],
+  "cache": {
+    "enable": false,
+    "deltas": "deltas"
+  },
+  "fashion": {
+    "inliner": {
+      "enable": false
+    }
+  },
+  "name": "testing",
+  "framework": "ext",
+  "loader": {
+    "cache": false,
+    "cacheParam": "_dc"
+  },
+  "toolkit": "classic",
+  "packageDependencyOrder": [],
+  "profile": "",
+  "hash": "3214b42ddd69932247817ae321056d9825503cea",
+  "resources": {
+    "path": "./resources"
+  },
+  "css":[]
+}
