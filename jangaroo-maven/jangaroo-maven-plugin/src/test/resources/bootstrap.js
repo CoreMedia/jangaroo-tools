@@ -1536,9 +1536,18 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
 
                 // for async modes, we have some options
                 if (!sync) {
+                  if (!me.isCss() && typeof(load) === "function") {
+                    var loadUrl = me.getLoadUrl();
+                    _debug("loading entry " + loadUrl + " into nashorn/EnvJS");
+                    me.loading = me.evaluating = true;
+                    load(loadUrl);
+                    me.loading = me.evaluating = false;
+                    me.loaded = me.evaluated = true;
+                  }
+
                   // if cross domain, just inject the script tag and let the onload
                   // events drive the progression
-                  if(me.isCrossDomain()) {
+                  else if(me.isCrossDomain()) {
                     return me.loadCrossDomain();
                   }
                   // for IE, use the readyStateChange allows us to load scripts in parallel
