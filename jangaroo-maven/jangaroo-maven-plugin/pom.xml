@@ -207,6 +207,10 @@
         <filtering>true</filtering>
         <directory>src/main/resources</directory>
       </resource>
+      <resource>
+        <filtering>false</filtering>
+        <directory>src/main/js</directory>
+      </resource>
     </resources>
     <plugins>
       <plugin>
