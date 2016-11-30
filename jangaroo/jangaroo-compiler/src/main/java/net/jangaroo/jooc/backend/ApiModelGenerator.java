@@ -714,7 +714,14 @@ public class ApiModelGenerator {
     recordAsdoc(annotation.getLeftBracket());
     consumeRecordedAsdoc();
     annotation.getIde().visit(this);
-    visitIfNotNull(annotation.getOptAnnotationParameters());
+    CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
+    if (Jooc.BINDABLE_ANNOTATION_NAME.equals(annotation.getMetaName()) &&
+            (annotationParameters == null || annotationParameters.getHead() == null)) {
+      // special case: mxmlc (used for ASDoc) does not like [Bindable] on interface / native methods w/o "event":
+      annotationModel.addProperty(new AnnotationPropertyModel("event", "\"DUMMY\""));
+    } else {
+      visitIfNotNull(annotationParameters);
+    }
     modelStack.pop();
     annotationModels.add(annotationModel);
   }
