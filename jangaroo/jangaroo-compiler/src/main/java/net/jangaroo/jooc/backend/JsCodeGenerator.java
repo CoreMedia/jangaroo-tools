@@ -785,9 +785,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static String getBindablePropertyName(MethodType methodType, TypedIdeDeclaration member) {
     Object bindableAnnotationValue = getBindablePropertiesByName(member).get(null);
     if (bindableAnnotationValue == null) {
-      return (methodType == MethodType.GET &&
-              "Boolean".equals(member.getOptTypeRelation().getType().getIde().getName())
-              ? "is" : methodType) + MxmlUtils.capitalize(member.getName());
+      return methodType + MxmlUtils.capitalize(member.getName());
     } else {
       return (String) bindableAnnotationValue;
     }
