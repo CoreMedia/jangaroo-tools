@@ -47,7 +47,7 @@ public class UsingSomeNativeClass {
       constructor: UsingSomeNativeClass$,
       getSomeNativeAccessor: get$someNativeAccessor,
       getAnotherNativeAccessor: get$anotherNativeAccessor,
-      isMonkey: get$monkey,
+      getMonkey: get$monkey,
       setMonkey: set$monkey,
       config: {
         someNativeAccessor: undefined,

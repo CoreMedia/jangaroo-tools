@@ -1710,14 +1710,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             String accessorPrefix = functionDeclaration.getSymGetOrSet().getText();
             String accessorName = (String) bindableAnnotation.getArgumentValue(DEFAULT_ANNOTATION_PARAMETER_NAME);
             members.put(functionName, new PropertyDefinition("undefined", true, true));
-            if (accessorName != null) {
-              methodName = accessorName;
-            } else {
-              TypeRelation typeRelation = functionDeclaration.getOptTypeRelation();
-              String methodPrefix = functionDeclaration.isGetter() && typeRelation != null &&
-                      "Boolean".equals(typeRelation.getType().getIde().getName()) ? "is" : accessorPrefix;
-              methodName = methodPrefix + MxmlUtils.capitalize(functionName);
-            }
+            methodName = accessorName != null ? accessorName : accessorPrefix + MxmlUtils.capitalize(functionName);
             functionName = accessorPrefix + "$" + functionName;
             isAccessor = false;
           }
