@@ -82,6 +82,10 @@ public class ExtAsApi {
     return originalQName == null ? null : extJsNameMappingProperties.getProperty(originalQName, originalQName);
   }
 
+  public boolean hasReferenceQName(String newQName) {
+    return extJsNameMappingProperties.containsValue(newQName);
+  }
+
   public List<String> getReferenceQNames(String newQName) {
     if (newQName == null) {
       return null;

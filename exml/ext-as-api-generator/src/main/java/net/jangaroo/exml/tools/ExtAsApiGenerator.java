@@ -295,7 +295,7 @@ public class ExtAsApiGenerator {
             : classModel.getMember(referenceMemberModel.isStatic(), referenceMemberName);
     if (memberModel == null) {
       CompilationUnitModel superclass = compilationUnitModelRegistry.getSuperclassCompilationUnit(classModel);
-      if (superclass != null) {
+      if (superclass != null && !referenceApi.hasReferenceQName(superclass.getQName())) {
         return findMemberModel(superclass, referenceMemberModel);
       }
     }
