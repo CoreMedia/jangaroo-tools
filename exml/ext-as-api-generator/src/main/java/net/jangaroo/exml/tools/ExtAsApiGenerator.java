@@ -962,26 +962,17 @@ public class ExtAsApiGenerator {
       // simplify "extends Base mixins Mixin-that-extends-Base" to "extends Mixin-that-extends-Base":
       replaceMixinByExtends(extClass, "Ext.dom.Element");
 
+      // all classes that are mapped explicitly must remain part of the API:
+      if (getActionScriptName(extClass) != null) {
+        continue;
+      }
+
       // Classes to remove from public API:
       // explicitly marked private OR
       // a built-in type / class OR
       // Ext enums - they are just for documentation, so treat them as private API, too.
       if (extClass.private_ || JsCodeGenerator.PRIMITIVES.contains(extClass.name) || extClass.name.startsWith("Ext.enums.")) {
         privateClasses.add(extClass);
-      }
-    }
-
-    if (referenceApi != null) {
-      // all classes that already exist in the reference API must stay public API:
-      for (ExtClass extClass : extClasses) {
-        String jooClassName = getActionScriptName(extClass);
-        if (jooClassName != null) {
-          List<CompilationUnitModel> referenceDeclarations = getReferenceDeclarations(jooClassName);
-          if (referenceDeclarations != null && !referenceDeclarations.isEmpty()) {
-            System.out.printf(" (added 'private' API class %s because it appears in Ext 3.4 reference API as %s.)%n", extClass.name, referenceDeclarations.get(0).getQName());
-            privateClasses.remove(extClass);
-          }
-        }
       }
     }
 
@@ -1000,7 +991,7 @@ public class ExtAsApiGenerator {
         System.out.println(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1));
       }
     }
-    System.out.println("*****END ADD TO JS-AS-NAME-MAPPING:");
+    System.out.println("*****END ADD TO JS-AS-NAME-MAPPING");
   }
 
   private static CompilationUnitModel getReferenceDeclaration(String jooClassName) {
