@@ -59,6 +59,11 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       PomConverter.removeExmlPlugin(getProject().getBasedir());
     }
 
+    if (!renameOnly && "jangaroo".equals(getProject().getPackaging())) {
+      getLog().info("changing packaging from jangaroo to jangaroo-pkg");
+      PomConverter.changePackaging(getProject().getBasedir());
+    }
+
     if (!isExmlProject()) {
       getLog().info("not an EXML project, skipping MXML conversion");
       return;

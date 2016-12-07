@@ -37,6 +37,15 @@ public class PomConverter {
   }
 
   /**
+   * Change the packaging from jangaroo to jangaroo-pkg in a POM within the given directory.
+   */
+  public static void changePackaging(File projectBaseDir) throws MojoExecutionException {
+    Document document = readPom(projectBaseDir);
+    changePackaging(document);
+    writePom(document, projectBaseDir);
+  }
+
+  /**
    * Parses a POM from a given directory into a DOM document.
    */
   private static Document readPom(File projectBaseDir) throws MojoExecutionException {
@@ -64,23 +73,23 @@ public class PomConverter {
       String pom = readFileToString(pomFile);
       String trailingWhitespace = pom.substring(pom.lastIndexOf('>') + 1);
 
-      PrintWriter pomWriter = new PrintWriter(pomFile);
-      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+      try (PrintWriter pomWriter = new PrintWriter(pomFile)) {
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
 
-      // the transformer does not reproduce the new line after the XML declaration, so we do it on our own
-      // see https://bugs.openjdk.java.net/browse/JDK-7150637
-      transformer.setOutputProperty(OMIT_XML_DECLARATION, "yes");
-      if (document.getXmlEncoding() != null) {
-        pomWriter.print("<?xml version=\"");
-        pomWriter.print(document.getXmlVersion());
-        pomWriter.print("\" encoding=\"");
-        pomWriter.print(document.getXmlEncoding());
-        pomWriter.println("\"?>");
+        // the transformer does not reproduce the new line after the XML declaration, so we do it on our own
+        // see https://bugs.openjdk.java.net/browse/JDK-7150637
+        transformer.setOutputProperty(OMIT_XML_DECLARATION, "yes");
+        if (document.getXmlEncoding() != null) {
+          pomWriter.print("<?xml version=\"");
+          pomWriter.print(document.getXmlVersion());
+          pomWriter.print("\" encoding=\"");
+          pomWriter.print(document.getXmlEncoding());
+          pomWriter.println("\"?>");
+        }
+
+        transformer.transform(new DOMSource(document), new StreamResult(pomWriter));
+        pomWriter.write(trailingWhitespace);
       }
-
-      transformer.transform(new DOMSource(document), new StreamResult(pomWriter));
-      pomWriter.write(trailingWhitespace);
-      pomWriter.close();
     } catch (IOException e) {
       throw new MojoExecutionException("error while generating modified POM", e);
     } catch (TransformerException e) {
@@ -101,6 +110,23 @@ public class PomConverter {
       removeExmlPlugin(pluginsNode);
       pluginsNode = (Node) xPath.evaluate("/project/build/pluginManagement/plugins", document, NODE);
       removeExmlPlugin(pluginsNode);
+    } catch (XPathException e) {
+      throw new MojoExecutionException("error while generating modified POM", e);
+    }
+  }
+
+  /**
+   * Changes the packaging from jangaroo to jangaroo-pkg in {@code /project/packaging}
+   */
+  private static void changePackaging(Document document) throws MojoExecutionException {
+    try {
+      XPathFactory xPathFactory = XPathFactory.newInstance();
+      XPath xPath = xPathFactory.newXPath();
+
+      Node packagingNode = (Node) xPath.evaluate("/project/packaging[text() = 'jangaroo']", document, NODE);
+      if (packagingNode != null) {
+        packagingNode.setTextContent("jangaroo-pkg");
+      }
     } catch (XPathException e) {
       throw new MojoExecutionException("error while generating modified POM", e);
     }
