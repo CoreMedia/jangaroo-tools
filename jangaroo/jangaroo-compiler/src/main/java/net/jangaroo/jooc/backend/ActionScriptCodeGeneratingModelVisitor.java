@@ -18,6 +18,7 @@ import net.jangaroo.jooc.model.PropertyModel;
 import net.jangaroo.jooc.model.ReturnModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.model.ValuedModel;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -248,12 +249,19 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
 
   @Override
   public void visitAnnotationProperty(AnnotationPropertyModel annotationPropertyModel) {
-    if (isEmpty(annotationPropertyModel.getName())) {
-      output.print(annotationPropertyModel.getValue());
-    } else if (isEmpty(annotationPropertyModel.getValue())) {
-      output.print(annotationPropertyModel.getName());
+    String name = annotationPropertyModel.getName();
+    String value = annotationPropertyModel.getValue();
+    String unquoted = CompilerUtils.unquote(value);
+    if (unquoted != null) {
+      // escape "<" and "'" (single quote), or asdoc tool will fail:
+      value = CompilerUtils.quote(unquoted.replaceAll("<", "&lt;").replaceAll("'", "&quot;"));
+    }
+    if (isEmpty(name)) {
+      output.print(value);
+    } else if (isEmpty(value)) {
+      output.print(name);
     } else {
-      output.printf("%s = %s", annotationPropertyModel.getName(), annotationPropertyModel.getValue());
+      output.printf("%s = %s", name, value);
     }
   }
 
@@ -265,6 +273,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         if (matcher.matches()) {
           line = matcher.group(1);
         }
+        // asdoc tool does not like "@" that is not followed by a directive.
+        // Thus, we escape all "@"s not following white-space or "*" (so that /**@private*/ still works):
+        line = line.replaceAll("([^\\s*])@", "$1&#64;");
         indent(); output.println(" " + ("* " + line).trim());
       }
       indent(); output.println(" */");
