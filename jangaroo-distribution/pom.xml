@@ -3,7 +3,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>4.0.40-SNAPSHOT</version>
+    <version>4.0.40</version>
     <relativePath>../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <packaging>pom</packaging>
@@ -19,7 +19,7 @@
     <url>http://github.com/CoreMedia/jangaroo-tools</url>
     <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>jangaroo-tools-4.0.40</tag>
   </scm>
 
   <dependencies>
