@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Cfg;
@@ -492,9 +493,23 @@ public class ExtAsApiGenerator {
     if (deprecation != null) {
       final AnnotationModel deprecated = new AnnotationModel("Deprecated");
       if (deprecation.text != null && !deprecation.text.matches("\\s*")) {
-        deprecated.addProperty(new AnnotationPropertyModel(
-                "message",
-                CompilerUtils.quote(deprecation.text.replace("<p>", "").replace("</p>", ""))));
+        Matcher replacementMatcher = Pattern.compile("<a href=\"#!/api/.*\" rel=\"(.*)\" class=\"docClass\">.*</a>").matcher(deprecation.text);
+        String name;
+        String value;
+        if (replacementMatcher.find()) {
+          name = "replacement";
+          String reference = replacementMatcher.group(1);
+          Matcher referenceMatcher = Pattern.compile("(.*)-(.*)-(.*)").matcher(reference);
+          if (referenceMatcher.matches()) {
+            value = referenceMatcher.group(3); // TODO: check whether group 1 contains the current class, otherwise mention it!
+          } else {
+            value = convertType(reference);
+          }
+        } else {
+          name = "message";
+          value = deprecation.text.replace("<p>", "").replace("</p>", "");
+        }
+        deprecated.addProperty(new AnnotationPropertyModel(name, CompilerUtils.quote(value)));
       }
       if (deprecation.version != null && !deprecation.version.matches("\\s*")) {
         deprecated.addProperty(new AnnotationPropertyModel(

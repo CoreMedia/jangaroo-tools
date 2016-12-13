@@ -253,8 +253,9 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     String value = annotationPropertyModel.getValue();
     String unquoted = CompilerUtils.unquote(value);
     if (unquoted != null) {
+      String quote = value.substring(0, 1);
       // escape "<" and "'" (single quote), or asdoc tool will fail:
-      value = CompilerUtils.quote(unquoted.replaceAll("<", "&lt;").replaceAll("'", "&quot;"));
+      value = quote + unquoted.replaceAll("<", "&lt;").replaceAll("'", "&quot;") + quote;
     }
     if (isEmpty(name)) {
       output.print(value);
