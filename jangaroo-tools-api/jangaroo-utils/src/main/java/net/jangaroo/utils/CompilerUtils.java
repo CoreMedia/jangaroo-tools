@@ -232,6 +232,21 @@ public final class CompilerUtils {
    * @return A String correctly formatted for insertion in a JSON text.
    */
   public static String quote(String string) {
+    return quote(string, true);
+  }
+
+  /**
+   * Produce a string in double quotes with backslash sequences in all the
+   * right places.
+   * If <code>escapeForHtml</code> is set, a backslash will be inserted
+   * within &lt;/, allowing JSON text to be delivered in HTML.
+   * In JSON text, a string cannot contain a
+   * control character or an unescaped quote or backslash.
+   *
+   * @param string A String
+   * @return A String correctly formatted for insertion in a JSON text.
+   */
+  public static String quote(String string, boolean escapeForHtml) {
     if (string == null || string.length() == 0) {
       return "\"\"";
     }
@@ -254,7 +269,7 @@ public final class CompilerUtils {
           sb.append(c);
           break;
         case '/':
-          if (b == '<') {
+          if (escapeForHtml && b == '<') {
             sb.append('\\');
           }
           sb.append(c);

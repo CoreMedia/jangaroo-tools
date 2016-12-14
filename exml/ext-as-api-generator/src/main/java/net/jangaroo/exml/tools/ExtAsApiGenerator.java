@@ -509,7 +509,7 @@ public class ExtAsApiGenerator {
           name = "message";
           value = deprecation.text.replace("<p>", "").replace("</p>", "");
         }
-        deprecated.addProperty(new AnnotationPropertyModel(name, CompilerUtils.quote(value)));
+        deprecated.addProperty(new AnnotationPropertyModel(name, CompilerUtils.quote(value, false)));
       }
       if (deprecation.version != null && !deprecation.version.matches("\\s*")) {
         deprecated.addProperty(new AnnotationPropertyModel(
