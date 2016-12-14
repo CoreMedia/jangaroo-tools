@@ -255,7 +255,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (unquoted != null) {
       String quote = value.substring(0, 1);
       // escape "<" and "'" (single quote), or asdoc tool will fail:
-      value = quote + unquoted.replaceAll("<", "&lt;").replaceAll("'", "&quot;") + quote;
+      value = quote + unquoted.replaceAll("<", "&lt;").replaceAll("'", "&#39;") + quote;
     }
     if (isEmpty(name)) {
       output.print(value);
