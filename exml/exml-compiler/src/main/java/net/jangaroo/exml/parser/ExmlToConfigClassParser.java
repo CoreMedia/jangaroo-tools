@@ -21,7 +21,7 @@ public class ExmlToConfigClassParser {
     return configClass;
   }
 
-  private static void parseFileWithHandler(File source, ContentHandler handler) {
+  public static void parseFileWithHandler(File source, ContentHandler handler) {
     InputStream inputStream = null;
     try {
       inputStream = new FileInputStream(source);

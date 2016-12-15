@@ -1,13 +1,11 @@
 package net.jangaroo.exml.model;
 
 import net.jangaroo.exml.api.ExmlcException;
-import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.generator.ExmlComponentClassGenerator;
 import net.jangaroo.exml.generator.ExmlConfigClassGenerator;
 import net.jangaroo.exml.parser.ExmlToConfigClassParser;
 import net.jangaroo.exml.parser.ExmlToModelParser;
 import net.jangaroo.exml.utils.ExmlUtils;
-import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -63,7 +61,7 @@ public class ExmlSourceFile {
       throw new ExmlcException("could not read EXML file", e);
     }
   }
-  
+
   public File generateConfigClass() {
     if (generatedConfigClassFile == null) {
       ConfigClass configClass = getConfigClass();
@@ -83,16 +81,12 @@ public class ExmlSourceFile {
 
   public File generateTargetClass() {
     if (generatedTargetClassFile == null) {
-      // only generate component class if it is not already present as source:
-      File classFile = new File(ExmlUtils.createComponentClassName(CompilerUtils.removeExtension(sourceFile.getName())) + Jooc.AS_SUFFIX);
-      if (!classFile.exists()) {
+      generatedTargetClassFile = computeGeneratedComponentClassFile();
+      // only generate component class if it is not already present as source and out of date:
+      if (mustGenerate(generatedTargetClassFile)) {
         try {
-          ExmlConfiguration config = configClassRegistry.getConfig();
-          generatedTargetClassFile = config.computeGeneratedComponentClassFile(sourceFile);
-          if (mustGenerate(generatedTargetClassFile)) {
-            ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(sourceFile);
-            return new ExmlComponentClassGenerator(config).generateClass(exmlModel, generatedTargetClassFile);
-          }
+          ExmlModel exmlModel = new ExmlToModelParser(configClassRegistry).parse(sourceFile);
+          return new ExmlComponentClassGenerator(configClassRegistry.getConfig()).generateClass(exmlModel, generatedTargetClassFile);
         } catch (Exception e) {
           throw new ExmlcException("unable to generate component class: " + e.getMessage(), sourceFile, e);
         }
@@ -100,7 +94,19 @@ public class ExmlSourceFile {
     }
     return generatedTargetClassFile;
   }
-  
+
+  public File computeGeneratedComponentClassFile() {
+    try {
+      return configClassRegistry.getConfig().computeGeneratedComponentClassFile(sourceFile);
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  public boolean hasSourceTargetClass() {
+    return computeGeneratedComponentClassFile() == null;
+  }
+
   private boolean mustGenerate(File generatedFile) {
     return sourceFile != null && generatedFile != null &&
             (!generatedFile.exists() || generatedFile.lastModified() < sourceFile.lastModified());

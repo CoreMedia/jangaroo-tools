@@ -124,7 +124,11 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
     }
     return result;
   }
-  
+
+  public File[] convertAllExmlToMxml() {
+    return new ExmlToMxml(configClassRegistry).convert();
+  }
+
   public static int run(String[] argv) {
     ExmlcCommandLineParser parser = new ExmlcCommandLineParser();
     ExmlConfiguration exmlConfiguration;
@@ -137,9 +141,13 @@ public final class Exmlc implements net.jangaroo.exml.api.Exmlc {
 
     if (exmlConfiguration != null) {
       Exmlc exmlc = new Exmlc(exmlConfiguration);
-      exmlc.generateAllConfigClasses();
-      exmlc.generateAllComponentClasses();
-      exmlc.generateXsd();
+      if (exmlConfiguration.isConvertToMxml()) {
+        exmlc.convertAllExmlToMxml();
+      } else {
+        exmlc.generateAllConfigClasses();
+        exmlc.generateAllComponentClasses();
+        exmlc.generateXsd();
+      }
     }
     return 0;
   }

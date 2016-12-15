@@ -1,6 +1,5 @@
 package net.jangaroo.exml.json;
 
-import net.jangaroo.exml.utils.ExmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.util.Arrays;
@@ -30,6 +29,10 @@ public class JsonObject implements Json {
     }
   }
 
+  public static Code code(final String code) {
+    return new CodeImpl(code);
+  }
+
   public String getWrapperClass() {
     return wrapperClass;
   }
@@ -51,7 +54,7 @@ public class JsonObject implements Json {
   /**
    * Make a pretty-printed JSON text of this JSONObject.
    * <p/>
-   * Warning: This method assumes that the data structure is acyclical.
+   * Warning: This method assumes that the data structure is acyclic.
    *
    * @param indentFactor The number of spaces to add to each level of
    *                     indentation.
@@ -91,8 +94,8 @@ public class JsonObject implements Json {
       return ((JsonObject)value).toString(indentFactor, indent);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
-    } else if (ExmlUtils.isCodeExpression(value.toString())) {
-      return ExmlUtils.getCodeExpression(value.toString()).replaceAll("\n", LINE_SEPARATOR);
+    } else if (value instanceof Code) {
+      return ((Code)value).getCode().replaceAll("\n", LINE_SEPARATOR);
     }
     return CompilerUtils.quote(value.toString()).replaceAll("\n", LINE_SEPARATOR);
 
@@ -150,6 +153,9 @@ public class JsonObject implements Json {
   }
 
   private void newlineAndIndent(StringBuilder sb, int indent) {
+    if (indent < 0) {
+      return;
+    }
     sb.append(LINE_SEPARATOR);
     for (int i = 0; i < indent; i++) {
       sb.append(' ');
@@ -157,7 +163,11 @@ public class JsonObject implements Json {
   }
 
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
-    sb.append(key);
+    if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>))
+      sb.append("\"\"");
+    } else {
+      sb.append(key);
+    }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
   }
@@ -170,11 +180,50 @@ public class JsonObject implements Json {
     this.properties.put(property, value);
   }
 
+  public void add(JsonObject jsonObject) {
+    for (Map.Entry<String, Object> property : jsonObject.properties.entrySet()) {
+      set(property.getKey(), property.getValue());
+    }
+  }
+
   public Object remove(String property) {
     return this.properties.remove(property);
   }
 
   public void settingConfigClass(String fullName) {
     this.configClass = fullName;
+  }
+
+  private static class CodeImpl implements Code {
+    private final String code;
+
+    CodeImpl(String code) {
+      this.code = code;
+    }
+
+    @Override
+    public String getCode() {
+      return code;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      CodeImpl that = (CodeImpl) o;
+
+      return code.equals(that.code);
+
+    }
+
+    @Override
+    public int hashCode() {
+      return code.hashCode();
+    }
   }
 }

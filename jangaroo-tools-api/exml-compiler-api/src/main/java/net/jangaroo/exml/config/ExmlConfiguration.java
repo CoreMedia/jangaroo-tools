@@ -15,7 +15,10 @@ public class ExmlConfiguration extends FileLocations {
   // the directory into which resource (xsds) files are generated
   private File resourceOutputDirectory;
   private ValidationMode validationMode = ValidationMode.OFF;
+  private boolean convertToMxml;
+  private boolean keepExmlFiles;
   private CompileLog log;
+  private File extAsJar;
 
   public String getConfigClassPackage() {
     return configClassPackage;
@@ -42,6 +45,33 @@ public class ExmlConfiguration extends FileLocations {
   @Option(name="-vm", aliases = "--validation-mode", usage = "Severity of EXML validation errors: error, warn, off (no validation)")
   public void setValidationMode(ValidationMode validationMode) {
     this.validationMode = validationMode;
+  }
+
+  public boolean isConvertToMxml() {
+    return convertToMxml;
+  }
+
+  @Option(name="--convert-to-mxml", usage = "Run exmlc to convert EXML files into MXML.")
+  public void setConvertToMxml(boolean convertToMxml) {
+    this.convertToMxml = convertToMxml;
+  }
+
+  public boolean isKeepExmlFiles() {
+    return keepExmlFiles;
+  }
+
+  @Option(name="--keep-exml", usage = "Keep EXML files after conversion into MXML.")
+  public void setKeepExmlFiles(boolean keepExmlFiles) {
+    this.keepExmlFiles = keepExmlFiles;
+  }
+
+  public File getExtAsJar() {
+    return extAsJar;
+  }
+
+  @Option(name="--ext-as-jar", usage = "The JAR containing the target ExtAS API for converting EXML into MXML.")
+  public void setExtAsJar(File extAsJar) {
+    this.extAsJar = extAsJar;
   }
 
   /**
@@ -77,8 +107,8 @@ public class ExmlConfiguration extends FileLocations {
     File classFile = CompilerUtils.fileFromQName(packageName, className, sourceDir, Jooc.AS_SUFFIX);
     // component class is only generated if it is not already present as source:
     return classFile.exists()
-      ? null
-      : CompilerUtils.fileFromQName(packageName, className, getOutputDirectory(), Jooc.AS_SUFFIX);
+            ? null
+            : CompilerUtils.fileFromQName(packageName, className, getOutputDirectory(), Jooc.AS_SUFFIX);
   }
 
   @Override
