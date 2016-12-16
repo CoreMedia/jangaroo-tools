@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:class xmlns:exml="http://www.jangaroo.net/exml/0.8">
+
+  <exml:description>
+    This is a TestComponent which defines a config property with a default value.
+    @see ext.Panel
+  </exml:description>
+
+  <exml:import class="com.coremedia.cms.editor.sdk.editorContext"/>
+
+  <exml:cfg name="propertyOne" type="Boolean">
+    <exml:description>Some Boolean property @see Boolean</exml:description>
+  </exml:cfg>
+
+  <exml:var name="sitesService" value="{editorContext.getSitesService()}"
+            type="com.coremedia.cms.editor.sdk.sites.SitesService"/>
+
+</exml:class>

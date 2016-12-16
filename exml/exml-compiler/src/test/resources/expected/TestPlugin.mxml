@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- This is a test plugin (not a component!). -->
+<Plugin      xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:local="testPackage.*"
+             xmlns:exml="http://www.jangaroo.net/exml/0.8"
+             xmlns="exml:ext.config">
+  <fx:Script><![CDATA[
+    import testNamespace.config.testPlugin;
+
+    private var config:testPlugin;
+
+    public native function TestPlugin(config:testPlugin = null);
+  ]]></fx:Script>
+
+</Plugin>

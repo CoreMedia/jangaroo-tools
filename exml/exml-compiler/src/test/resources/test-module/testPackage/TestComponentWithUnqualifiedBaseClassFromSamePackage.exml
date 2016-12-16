@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:component xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                baseClass="TestImpl">
+
+  <exml:description>
+    This is a TestComponent with a base class.
+  </exml:description>
+
+  <panel title="Hello World">
+    <items>
+      <button text="foo"/>
+    </items>
+  </panel>
+
+</exml:component>

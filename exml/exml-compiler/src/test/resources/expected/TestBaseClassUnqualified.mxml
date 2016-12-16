@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns1:BaseClass  xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="exmlparser.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                xmlns:ns1="someOtherPackage.base.*">
+  <fx:Script><![CDATA[
+    import someOtherPackage.base.BaseClass;
+    import testNamespace.config.testBaseClassUnqualified;
+
+    public static const xtype:String = "testNamespace.config.testBaseClassUnqualified";
+
+    private var config:testBaseClassUnqualified;
+
+    public native function TestBaseClassUnqualified(config:testBaseClassUnqualified = null);
+  ]]></fx:Script>
+
+</ns1:BaseClass>

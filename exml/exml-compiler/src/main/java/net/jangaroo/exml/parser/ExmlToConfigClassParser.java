@@ -4,6 +4,7 @@ import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.model.ConfigClass;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import java.io.File;
@@ -27,6 +28,9 @@ public class ExmlToConfigClassParser {
       inputStream = new FileInputStream(source);
       XMLReader xr = XMLReaderFactory.createXMLReader();
       xr.setContentHandler(handler);
+      if (handler instanceof LexicalHandler) {
+        xr.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
+      }
       xr.parse(new org.xml.sax.InputSource(inputStream));
     } catch (ExmlcException e) {
       // Simply pass our own exceptions.

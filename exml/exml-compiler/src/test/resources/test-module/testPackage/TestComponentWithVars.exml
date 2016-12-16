@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:component xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+
+  <exml:description>
+    This is a TestComponent which defines a config property with a default value.
+    @see ext.Panel
+  </exml:description>
+
+  <exml:import class="com.coremedia.cms.editor.sdk.editorContext"/>
+
+  <exml:var name="varWithExpressionValue" type="Array" value="{[1, 2, 3]}">
+    <exml:description>Some var with an expression value.</exml:description>
+  </exml:var>
+
+  <exml:var name="varWithXmlValue" type="button">
+    <exml:description>Some var with a value specified as an EXML element.</exml:description>
+    <exml:value>
+      <button text="click me!"
+              allowDepress="true"/>
+    </exml:value>
+  </exml:var>
+
+  <exml:var name="varWithXmlArrayValue" type="Array">
+    <exml:description>Some var with an array value specified as EXML elements.</exml:description>
+    <exml:value>
+      <button text="click me 1!"/>
+      <button text="click me 2!"/>
+    </exml:value>
+  </exml:var>
+
+  <exml:var name="sitesService" value="{editorContext.getSitesService()}"
+            type="com.coremedia.cms.editor.sdk.sites.SitesService"/>
+
+  <panel title="{config.defaultTitle}"/>
+
+</exml:component>

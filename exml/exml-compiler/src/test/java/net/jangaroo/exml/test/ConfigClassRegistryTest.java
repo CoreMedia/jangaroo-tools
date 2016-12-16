@@ -44,7 +44,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromExmlWithPregeneratedActionScript() throws Exception {
-    setUp("testNamespace.config");
+    setUp("testNamespace.config", "/expected", "/ext-as");
 
     File destDir = new File(outputFolder.getRoot(), "testNamespace/config");
     destDir.mkdirs();
@@ -55,7 +55,7 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(5, configClass.getCfgs().size());
+    Assert.assertEquals(14, configClass.getCfgs().size());
 
     // 2nd try should return the same object
     Assert.assertEquals(configClass, getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent"));
@@ -63,24 +63,24 @@ public class ConfigClassRegistryTest extends AbstractExmlTest {
 
   @Test
   public void testGenerateFromLocalActionScript() throws Exception {
-    setUp("somewhere.else.config", "/test-module", "/ext-as");
+    setUp("somewhere.else.config", "/expected", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(5, configClass.getCfgs().size());
+    Assert.assertEquals(14, configClass.getCfgs().size());
   }
 
   @Test
   public void testGenerateFromClassPathActionScript() throws Exception {
-    setUp("somewhere.else.config", "/test-module", "/ext-as");
+    setUp("somewhere.else.config", "/expected", "/ext-as");
 
     ConfigClass configClass = getConfigClassRegistry().getConfigClassByName("testNamespace.config.testComponent");
     Assert.assertNotNull(configClass);
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
-    Assert.assertEquals(5, configClass.getCfgs().size());
+    Assert.assertEquals(14, configClass.getCfgs().size());
   }
 
   @Test

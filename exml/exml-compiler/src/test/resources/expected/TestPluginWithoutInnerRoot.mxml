@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- 
+    This is a TestComponent which defines a config property with a default value.
+    @see ext.Panel
+   -->
+<ns1:Plugin  xmlns:fx="http://ns.adobe.com/mxml/2009"
+             xmlns:local="testPackage.*"
+             xmlns:exml="http://www.jangaroo.net/exml/0.8"
+             xmlns:ns1="exml:ext.config">
+  <fx:Script><![CDATA[
+    import com.coremedia.cms.editor.sdk.editorContext;
+    import com.coremedia.cms.editor.sdk.sites.SitesService;
+    import testNamespace.config.testPluginWithoutInnerRoot;
+
+    private var config:testPluginWithoutInnerRoot;
+    private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
+
+    // called by generated constructor code
+    private function __initialize__(config:testPluginWithoutInnerRoot):void {
+      sitesService = editorContext.getSitesService();
+    }
+
+    public native function TestPluginWithoutInnerRoot(config:testPluginWithoutInnerRoot = null);
+  ]]></fx:Script>
+  <fx:Declarations>
+    <!--- Some Boolean property @see Boolean -->
+    <fx:Boolean id="propertyOne"/>
+  </fx:Declarations>
+
+</ns1:Plugin>

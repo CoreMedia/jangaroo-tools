@@ -85,8 +85,6 @@
           window.alert('gotcha!');
         }}</handler>
       </button>
-      <exml:object><![CDATA[{xtype: "editortreepanel"}]]></exml:object>
-      <exml:object/>
     </items>
 
 

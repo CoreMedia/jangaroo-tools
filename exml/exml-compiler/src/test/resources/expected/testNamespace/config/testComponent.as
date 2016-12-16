@@ -1,6 +1,12 @@
 package testNamespace.config {
 
+import ext.Container;
+import ext.Panel;
+import ext.XTemplate;
 import ext.config.panel;
+import otherPackage.SomeClass;
+import testNamespace.config.testComponent2;
+import testPackage.TestImpl2;
 
 // Do not edit. This is an auto-generated class.
 
@@ -73,5 +79,77 @@ public class testComponent extends ext.config.panel {
    * @private
    */
   public native function set propertyFive(value:Array):void;
+  /**
+   * Some Panel
+   */
+  public native function get propertySix():Panel;
+  /**
+   * @private
+   */
+  public native function set propertySix(value:Panel):void;
+  /**
+   * Some other Panel
+   */
+  public native function get propertySeven():ext.Panel;
+  /**
+   * @private
+   */
+  public native function set propertySeven(value:ext.Panel):void;
+  /**
+   * Some type without default constructor
+   */
+  public native function get propertyEight():testPackage.TestImpl2;
+  /**
+   * @private
+   */
+  public native function set propertyEight(value:testPackage.TestImpl2):void;
+  /**
+   * Some object with double dash in comment --
+   */
+  public native function get propertyNine():Object;
+  /**
+   * @private
+   */
+  public native function set propertyNine(value:Object):void;
+  /**
+   * 
+   */
+  public native function get propertyTen():Function;
+  /**
+   * @private
+   */
+  public native function set propertyTen(value:Function):void;
+  /**
+   * 
+   */
+  public native function get propertyEleven():testNamespace.config.testComponent2;
+  /**
+   * @private
+   */
+  public native function set propertyEleven(value:testNamespace.config.testComponent2):void;
+  /**
+   * 
+   */
+  public native function get propertyTwelve():otherPackage.SomeClass;
+  /**
+   * @private
+   */
+  public native function set propertyTwelve(value:otherPackage.SomeClass):void;
+  /**
+   * 
+   */
+  public native function get property13():Container;
+  /**
+   * @private
+   */
+  public native function set property13(value:Container):void;
+  /**
+   * 
+   */
+  public native function get property14():XTemplate;
+  /**
+   * @private
+   */
+  public native function set property14(value:XTemplate):void;
 }
 }

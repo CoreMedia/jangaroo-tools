@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="exmlparser.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config">
+  <fx:Script><![CDATA[
+    import ext.Container;
+    import testNamespace.config.testConstants;
+    import ext.Component;
+
+    public static const xtype:String = "testNamespace.config.testConstants";
+
+    /**
+     * This is some constant
+     */
+    public static const A_CONSTANT:String = "One two three";
+
+    public static const B_CONSTANT:uint = 456;
+
+    public static const C_CONSTANT:Object = new Object();
+
+    public static const D_CONSTANT:ext.config.button = new button();
+
+    public static const E_CONSTANT:ext.Component = new Container();
+
+    private var config:testConstants;
+
+    public native function TestConstants(config:testConstants = null);
+  ]]></fx:Script>
+
+</Panel>

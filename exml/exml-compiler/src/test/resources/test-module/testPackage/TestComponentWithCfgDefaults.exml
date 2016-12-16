@@ -22,7 +22,7 @@
     </exml:default>
   </exml:cfg>
 
-  <exml:cfg name="propertyWithDefaultElementUsingConfig" type="button">
+  <exml:cfg name="propertyWithDefaultElementUsingConfig" type="ext.config.component">
     <exml:description>Some button config property with a default specified as an EXML element,
       using the config parameter.
     </exml:description>
@@ -40,6 +40,23 @@
       <button text="button2"/>
     </exml:default>
   </exml:cfg>
+
+  <exml:cfg name="propertyWithFullyQualifiedInterface" type="testPackage.TestInterface">
+    <exml:description>Some config property with fully qualified interface type</exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertyWithInterface" type="TestInterface">
+    <exml:description>Some config property with interface type</exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertyWithInterfaceAndDefault" type="testPackage.TestInterface" default="{ new TestImpl() }">
+    <exml:description>
+      Some config property with interface type
+      and default value
+    </exml:description>
+  </exml:cfg>
+
+  <exml:cfg name="propertyFromOtherPackage" type="otherPackage.SomeOtherClass" default="{ new SomeOtherClass('lala') }"/>
 
   <panel title="{config.defaultTitle}"/>
 
