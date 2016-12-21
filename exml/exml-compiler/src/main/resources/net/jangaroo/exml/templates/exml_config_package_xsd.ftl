@@ -18,7 +18,7 @@
               <#if cfg.description??>
               <xs:annotation>
                 <xs:documentation>
-                  ${cfg.description}
+                  ${cfg.description?trim}
                 </xs:documentation>
               </xs:annotation>
               </#if>
@@ -39,7 +39,7 @@
           <#if cfg.description??>
           <xs:annotation>
             <xs:documentation>
-              ${cfg.description}
+              ${cfg.description?trim}
             </xs:documentation>
           </xs:annotation>
           </#if>
@@ -57,7 +57,7 @@
     <#if exmlElement.description??>
     <xs:annotation>
       <xs:documentation>
-        ${exmlElement.description}
+        ${exmlElement.description?trim}
       </xs:documentation>
     </xs:annotation>
     </#if>

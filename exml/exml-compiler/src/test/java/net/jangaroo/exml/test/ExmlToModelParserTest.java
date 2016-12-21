@@ -56,13 +56,13 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("SOME_CONSTANT", myConst1.getName());
     Assert.assertEquals("1234", myConst1.getValue());
     Assert.assertEquals("uint", myConst1.getType());
-    Assert.assertEquals("This is my <b>constant</b>", myConst1.getDescription());
+    Assert.assertEquals("This is my <b>constant</b>", myConst1.getDescription().trim());
 
     final Declaration myConst2 = constantDeclarations.get(1);
     Assert.assertEquals("ANOTHER_CONSTANT", myConst2.getName());
     Assert.assertEquals("\"\\n      Lorem ipsum & Co.\\n      Another line.\\n    \"", myConst2.getValue());
     Assert.assertEquals("String", myConst2.getType());
-    Assert.assertEquals("This is another <b>constant</b>", myConst2.getDescription());
+    Assert.assertEquals("This is another <b>constant</b>", myConst2.getDescription().trim());
 
     final Declaration myConst3 = constantDeclarations.get(2);
     Assert.assertEquals("CODE_CONSTANT", myConst3.getName());
@@ -70,7 +70,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("int", myConst3.getType());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "layout", "{config.myLayout}",
+            "layout", JsonObject.code("config.myLayout"),
             "title", "I am a panel",
             "someList", new JsonArray(
               new JsonObject(
@@ -88,11 +88,10 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                     new JsonObject(
                             "xtype", "button",
                             "text", "Save",
-                            "handler", "{function():void {\n" +
+                            "handler", JsonObject.code("function():void {\n" +
                             "          window.alert('gotcha!');\n" +
-                            "        }}"
-                    ),
-                    "{{xtype: \"editortreepanel\"}}"
+                            "        }")
+                    )
             ),
             "menu", new JsonArray(
                     new JsonObject(
@@ -110,7 +109,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             ),
             "tools", new JsonArray(
                     new JsonObject(
-                            "handler", "{function(x){return ''+x;}}",
+                            "handler", JsonObject.code("function(x){return ''+x;}"),
                             "id", "gear"
                     )
             ),
@@ -216,7 +215,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "items", "{config.myItems}",
+            "items", JsonObject.code("config.myItems"),
             "tools", new JsonArray("tools")
     );
     System.out.println(model.getJsonObject().toString(2));
@@ -232,7 +231,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("ext.Panel", model.getSuperClassName());
 
     JsonObject expectedJsonObject = new JsonObject(
-            "baseAction", "{net.jangaroo.ext.create(ext.config.action,{disabled: false})}"
+            "baseAction", JsonObject.code("net.jangaroo.ext.create(ext.config.action,{disabled: false})")
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getJsonObject().toString(2));
@@ -339,11 +338,11 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
 
     ExmlModel model = exmlToModelParser.parse(getFile("/testPackage/TestComponentWithCfgDefaults.exml"));
     List<ConfigAttribute> cfgs = model.getConfigClass().getDirectCfgs();
-    Assert.assertEquals(5, cfgs.size());
+    Assert.assertEquals(9, cfgs.size());
 
     JsonObject expectedJsonObject = new JsonObject(
             "propertyWithLiteralDefault", "foobar",
-            "propertyWithExpressionDefault", "{'foo' + 'bar'}",
+            "propertyWithExpressionDefault", JsonObject.code("'foo' + 'bar'"),
             "propertyWithDefaultElement",
               new JsonObject(
                       "xtype", "button",
@@ -352,7 +351,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
             "propertyWithDefaultElementUsingConfig",
               new JsonObject(
                       "xtype", "button",
-                      "text", "{config.title + '!'}"
+                      "text", JsonObject.code("config.title + '!'")
               ),
             "arrayPropertyWithDefaultElement",
               new JsonArray(
@@ -364,7 +363,12 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                               "xtype", "button",
                               "text", "button2"
                       )
-              )
+              ),
+            "propertyWithInterfaceAndDefault",
+              JsonObject.code(" new TestImpl() ")
+            ,
+            "propertyFromOtherPackage",
+            JsonObject.code(" new SomeOtherClass('lala') ")
     );
     System.out.println(model.getJsonObject().toString(2));
     Assert.assertEquals(expectedJsonObject.toString(2), model.getCfgDefaults().toString(2));
@@ -407,9 +411,9 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
                             "propertyThree", "3"
                     ).settingWrapperClass("testNamespace.config.testComponent2")
             ),
-            "items$at", "{net.jangaroo.ext.Exml.APPEND}",
+            "items$at", JsonObject.code("net.jangaroo.ext.Exml.APPEND"),
             "propertyFive", new JsonArray(new JsonObject("xtype", "agridcolumn")),
-            "propertyFive$at", "{net.jangaroo.ext.Exml.PREPEND}",
+            "propertyFive$at", JsonObject.code("net.jangaroo.ext.Exml.PREPEND"),
             "layoutConfig", new JsonObject(
                     "mode", "foo"
             )
@@ -440,7 +444,7 @@ public class ExmlToModelParserTest extends AbstractExmlTest {
     Assert.assertEquals("A_CONSTANT", aConstant.getName());
     Assert.assertEquals("\"One two three\"", aConstant.getValue());
     Assert.assertEquals("String", aConstant.getType());
-    Assert.assertEquals("This is some constant", aConstant.getDescription());
+    Assert.assertEquals("This is some constant", aConstant.getDescription().trim());
 
     Declaration bConstant = model.getConfigClass().getConstants().get(1);
     Assert.assertEquals("B_CONSTANT", bConstant.getName());

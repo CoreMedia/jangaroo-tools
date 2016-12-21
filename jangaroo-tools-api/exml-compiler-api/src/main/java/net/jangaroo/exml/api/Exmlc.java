@@ -79,6 +79,7 @@ public interface Exmlc {
   String EXML_CFG_TYPE_ATTRIBUTE = "type";
   String EXML_CFG_DEFAULT_ATTRIBUTE = "default";
   String EXML_CFG_DEFAULT_NODE_NAME = "default";
+  String EXML_MODE_ATTRIBUTE = "mode";
 
   String EXML_SUFFIX = ".exml";
   String OUTPUT_CHARSET = "UTF-8";

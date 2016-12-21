@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  *
  */
-public final class ConfigClassRegistry {
+public class ConfigClassRegistry {
   private Map<String, ConfigClass> configClassesByName = new HashMap<String, ConfigClass>();
 
   private ExmlConfiguration config;
@@ -96,6 +96,10 @@ public final class ConfigClassRegistry {
     return config;
   }
 
+  public JangarooParser getJangarooParser() {
+    return jangarooParser;
+  }
+
   /**
    * Returns the list of all config classes in the source path, defined in EXML or ActionScript.
    * @return list of registered Config classes
@@ -151,17 +155,17 @@ public final class ConfigClassRegistry {
       }
     }
   }
-  
+
   public File generateConfigClass(File exmlFile) {
     return getExmlSourceFile(exmlFile).generateConfigClass();
   }
 
-  private ExmlSourceFile getExmlSourceFile(File exmlFile) {
+  public ExmlSourceFile getExmlSourceFile(File exmlFile) {
     return getExmlSourceFilesByConfigClassName().get(computeConfigClassName(exmlFile));
   }
 
   // unfortunately, we cannot determine the name of the source EXML file, so we have to scane the whole source path:
-  private Map<String, ExmlSourceFile> getExmlSourceFilesByConfigClassName() {
+  public Map<String, ExmlSourceFile> getExmlSourceFilesByConfigClassName() {
     if (exmlFilesByConfigClassName == null) {
       exmlFilesByConfigClassName = new LinkedHashMap<String, ExmlSourceFile>();
       try {

@@ -90,6 +90,6 @@ public class ExmlValidatorTest extends AbstractExmlTest {
   }
 
   private File getFile(String path) throws URISyntaxException {
-    return new File(ExmlValidatorTest.class.getResource("/test-module" + path).toURI());
+    return new File(ExmlValidatorTest.class.getResource("/broken-module" + path).toURI());
   }
 }

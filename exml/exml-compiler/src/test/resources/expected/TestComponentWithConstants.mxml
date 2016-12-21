@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="testPackage.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                title="Hello World">
+  <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithConstants;
+
+    public static const xtype:String = "testNamespace.config.testComponentWithConstants";
+
+    public static const CLS_BASE:String = "cm-elastic-social-email-window";
+
+    public static const CLS_META_SPACER:String = "metadatapanel-first-spacer-class";
+
+    /**
+     * This is
+     * a boolean constant
+     */
+    public static const SOME_BOOL:Boolean = true;
+
+    /**
+     * This is a computed constant
+     */
+    public static const SOME_COMPUTED_STRING:String = Something.VALUE;
+
+    /**
+     * A function to be used as "applyTo" of an addItemsPlugin that wants to tweak the toolbar of this VersionHistory.
+     */
+    public static const FIND_TOOLBAR:Function = 
+  function(versionHistory:Container): Toolbar {
+    return Toolbar(versionHistory.getComponent('versionHistoryToolbar'));
+  };
+
+    private var config:testComponentWithConstants;
+
+    public native function TestComponentWithConstants(config:testComponentWithConstants = null);
+  ]]></fx:Script>
+
+</Panel>

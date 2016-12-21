@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<exml:component xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                xmlns:test="exml:testNamespace.config">
+
+  <exml:description>
+    This is a TestComponent which defines a button with an action.
+  </exml:description>
+
+  <panel title="{config.defaultTitle}">
+    <items>
+      <button>
+        <baseAction>
+          <test:testAction/>
+        </baseAction>
+      </button>
+    </items>
+  </panel>
+
+</exml:component>

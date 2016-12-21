@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="exmlparser.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                items="{config.myItems}"
+                tools="tools">
+  <fx:Script><![CDATA[
+    import testNamespace.config.testArrayAttribute;
+
+    public static const xtype:String = "testNamespace.config.testArrayAttribute";
+
+    private var config:testArrayAttribute;
+
+    public native function TestArrayAttribute(config:testArrayAttribute = null);
+  ]]></fx:Script>
+
+</Panel>

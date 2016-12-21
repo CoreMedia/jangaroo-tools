@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- This is a TestComponent with PublicApi. -->
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="testPackage.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                title="I am inside a package!">
+  <fx:Metadata>[PublicApi]</fx:Metadata>
+  <fx:Script><![CDATA[
+    import testNamespace.config.testComponentPublicApiTrue;
+
+    public static const xtype:String = "testNamespace.config.testComponentPublicApiTrue";
+
+    private var config:testComponentPublicApiTrue;
+
+    public native function TestComponentPublicApiTrue(config:testComponentPublicApiTrue = null);
+  ]]></fx:Script>
+  <fx:Declarations>
+    <!--- Some Boolean property -->
+    <fx:Boolean id="propertyOne"/>
+
+    <!--- Some Number property -->
+    <fx:Number id="propertyTwo"/>
+
+    <!--- Some String property -->
+    <fx:String id="propertyThree"/>
+
+    <!--- Some * property -->
+    <fx:Object id="propertyFour"/>
+  </fx:Declarations>
+
+    <items>
+      <Label text="bla"/>
+    </items>
+  
+</Panel>

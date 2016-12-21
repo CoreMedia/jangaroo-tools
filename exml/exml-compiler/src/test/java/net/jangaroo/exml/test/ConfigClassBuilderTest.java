@@ -22,7 +22,7 @@ import java.util.Set;
 public class ConfigClassBuilderTest {
   @Test
   public void testBuildConfigClass() throws Exception {
-    ConfigClass configClass = buildConfigClass("/testNamespace/config/testComponent.as");
+    ConfigClass configClass = buildConfigClass("/testNamespace/config/testComponent.as", "expected");
     Assert.assertEquals("testNamespace.config", configClass.getPackageName());
     Assert.assertEquals("testComponent", configClass.getName());
     Assert.assertEquals("testPackage.TestComponent", configClass.getComponentClassName());
@@ -39,29 +39,33 @@ public class ConfigClassBuilderTest {
         Assert.assertEquals("Some Number property", configAttribute.getDescription());
       }
     }
-    Assert.assertEquals(new HashSet<String>(Arrays.asList("propertyOne", "propertyTwo", "propertyThree", "propertyFour", "propertyFive")), attributeNames);
+    Assert.assertEquals(new HashSet<String>(Arrays.asList(
+            "propertyOne", "propertyTwo", "propertyThree", "propertyFour", "propertyFive", "propertySix",
+            "propertySeven", "propertyEight", "propertyNine", "propertyTen", "propertyEleven", "propertyTwelve",
+            "property13", "property14"
+    )), attributeNames);
   }
 
   @Test
   public void testBuildNonConfigClass() throws Exception {
-    ConfigClass configClass = buildConfigClass("/testNamespace/config/NonConfig.as");
+    ConfigClass configClass = buildConfigClass("/testNamespace/config/NonConfig.as", "test-module");
     Assert.assertNull(configClass);
   }
 
   @Test(expected = CompilerError.class)
   public void testBadAnnotationParameter() throws Exception {
-    buildConfigClass("/testNamespace/config/badConfig1.as");
+    buildConfigClass("/testNamespace/config/badConfig1.as", "broken-module");
   }
 
   @Test(expected = CompilerError.class)
   public void testMissingAnnotationParameter() throws Exception {
-    buildConfigClass("/testNamespace/config/badConfig2.as");
+    buildConfigClass("/testNamespace/config/badConfig2.as", "broken-module");
   }
 
-  private ConfigClass buildConfigClass(String resourceName) throws URISyntaxException {
-    File sourceFile = new File(getClass().getResource("/test-module/" + resourceName).toURI());
+  private ConfigClass buildConfigClass(String resourceName, String module) throws URISyntaxException {
+    File sourceFile = new File(getClass().getResource("/" + module + "/" + resourceName).toURI());
     InputSource inputSource = new FileInputSource(sourceFile, true);
-    CompilationUnit compilationUnit = Jooc.doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
+    CompilationUnit compilationUnit = new Jooc().doParse(inputSource, new StdOutCompileLog(), SemicolonInsertionMode.QUIRKS);
     ConfigClassBuilder configClassBuilder = new ConfigClassBuilder(compilationUnit);
     return configClassBuilder.buildConfigClass();
   }

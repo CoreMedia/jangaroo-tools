@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--- 
+    
+    This is a <code>TestComponent</code> with panel as baseclass.
+    @see ext.Panel
+    
+   -->
+<Panel          xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:local="testPackage.*"
+                xmlns:exml="http://www.jangaroo.net/exml/0.8"
+                xmlns="exml:ext.config"
+                title="I am inside a package!">
+  <fx:Script><![CDATA[
+    import testNamespace.config.testComponentWithCDataInDescription;
+
+    public static const xtype:String = "testNamespace.config.testComponentWithCDataInDescription";
+
+    private var config:testComponentWithCDataInDescription;
+
+    public native function TestComponentWithCDataInDescription(config:testComponentWithCDataInDescription = null);
+  ]]></fx:Script>
+  <fx:Declarations>
+    <!--- Some Boolean property @see Boolean -->
+    <fx:Boolean id="propertyOne"/>
+
+    <!--- Some Number property -->
+    <fx:Number id="propertyTwo"/>
+
+    <!--- Some String property -->
+    <fx:String id="propertyThree"/>
+
+    <!--- Some * property -->
+    <fx:Object id="propertyFour"/>
+
+    <!--- Some Array property -->
+    <fx:Array id="propertyFive"/>
+  </fx:Declarations>
+
+    <items>
+      <Label text="bla"/>
+    </items>
+  
+</Panel>

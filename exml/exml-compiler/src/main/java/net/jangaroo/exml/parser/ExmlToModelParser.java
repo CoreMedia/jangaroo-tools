@@ -2,6 +2,7 @@ package net.jangaroo.exml.parser;
 
 import net.jangaroo.exml.api.ExmlcException;
 import net.jangaroo.exml.compiler.Exmlc;
+import net.jangaroo.exml.json.Code;
 import net.jangaroo.exml.json.JsonArray;
 import net.jangaroo.exml.json.JsonObject;
 import net.jangaroo.exml.model.AnnotationAt;
@@ -13,7 +14,7 @@ import net.jangaroo.exml.model.Declaration;
 import net.jangaroo.exml.model.ExmlModel;
 import net.jangaroo.exml.model.PublicApiMode;
 import net.jangaroo.exml.utils.ExmlUtils;
-import net.jangaroo.exml.xml.PreserveLineNumberHandler;
+import net.jangaroo.jooc.util.PreserveLineNumberHandler;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.utils.AS3Type;
@@ -42,12 +43,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.jangaroo.exml.xml.PreserveLineNumberHandler.getLineNumber;
+import static net.jangaroo.jooc.util.PreserveLineNumberHandler.getLineNumber;
 
 public final class ExmlToModelParser {
   private static final String EXT_CONFIG_PACKAGE = "ext.config";
   private static final String CONFIG_MODE_AT_SUFFIX = "$at";
-  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
   private static final String EXT_CONTAINER_CONFIG_QNAME = "ext.config.container";
   private static final String EXT_CONTAINER_DEFAULTS_PROPERTY = "defaults";
   private static final String EXT_CONTAINER_DEFAULT_TYPE_PROPERTY = "defaultType";
@@ -156,7 +156,7 @@ public final class ExmlToModelParser {
               throw new ExmlcException("<exml:cfg> default value must be specified as either an attribute or a sub-element, not both for config '" + cfgName + "'.", getLineNumber(element));
             }
             if (cfgDefault.length() > 0) {
-              model.getCfgDefaults().set(cfgName, cfgDefault);
+              model.getCfgDefaults().set(cfgName, getAttributeValue(cfgDefault, cfgType));
               model.addImport(cfgType);
             } else if (defaultValueElement != null) {
               model.getCfgDefaults().set(cfgName, parseValue(model, "Array".equals(cfgType), getChildElements(defaultValueElement)));
@@ -178,7 +178,7 @@ public final class ExmlToModelParser {
     String superFullClassName = createFullConfigClassNameFromNode(componentNode);
     if (superFullClassName.equals(model.getConfigClass().getFullName())) {
       int lineNumber = getLineNumber(componentNode);
-      throw  new ExmlcException("Cyclic inheritance error: super class and this component are the same!. There is something wrong!", lineNumber);
+      throw new ExmlcException("Cyclic inheritance error: super class and this component are the same.", lineNumber);
     }
     ConfigClass superConfigClass = getConfigClassByName(superFullClassName, componentNode);
     String superComponentClassName = superConfigClass.getComponentClassName();
@@ -247,7 +247,9 @@ public final class ExmlToModelParser {
   }
 
   public static Object getAttributeValue(String attributeValue, String type) {
-    if (!ExmlUtils.isCodeExpression(attributeValue)) {
+    if (ExmlUtils.isCodeExpression(attributeValue)) {
+      return JsonObject.code(ExmlUtils.getCodeExpression(CompilerUtils.denormalizeAttributeValue(attributeValue)));
+    } else {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       if (AS3Type.ANY.equals(as3Type)) {
         as3Type = CompilerUtils.guessType(attributeValue);
@@ -270,9 +272,9 @@ public final class ExmlToModelParser {
     return attributeValue;
   }
 
-  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, String>(); static {
-    CONFIG_MODE_TO_AT_VALUE.put("append",  "{net.jangaroo.ext.Exml.APPEND}");
-    CONFIG_MODE_TO_AT_VALUE.put("prepend", "{net.jangaroo.ext.Exml.PREPEND}");
+  private static final Map<String, Code> CONFIG_MODE_TO_AT_VALUE = new HashMap<String, Code>(); static {
+    CONFIG_MODE_TO_AT_VALUE.put("append",  JsonObject.code("net.jangaroo.ext.Exml.APPEND"));
+    CONFIG_MODE_TO_AT_VALUE.put("prepend", JsonObject.code("net.jangaroo.ext.Exml.PREPEND"));
   }
 
   private void fillModelAttributesFromSubElements(ExmlModel model, JsonObject jsonObject, Element componentNode, ConfigClass configClass) {
@@ -289,7 +291,7 @@ public final class ExmlToModelParser {
       }
 
       boolean isConfigTypeArray = isConfigTypeArray(configClass, elementName);
-      String configMode = isConfigTypeArray ? element.getAttribute(CONFIG_MODE_ATTRIBUTE_NAME) : "";
+      String configMode = isConfigTypeArray ? element.getAttribute(Exmlc.EXML_MODE_ATTRIBUTE) : "";
       // Special case: if an EXML element representing a config property has attributes, it is treated as
       // having an untyped object value. Exception: it is an Array-typed property and the sole attribute is "mode".
       int attributeCount = element.getAttributes().getLength();
@@ -298,7 +300,7 @@ public final class ExmlToModelParser {
         parseJavaScriptObjectProperty(jsonObject, element);
       } else {
         // derive the corresponding "at" value from the specified config mode (if any):
-        String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+        Code atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
         if (atValue != null) {
           isConfigTypeArray = true;
           if (!configClass.isExmlGenerated()) {
@@ -493,7 +495,7 @@ public final class ExmlToModelParser {
   private Object parseExmlObjectNode(Node exmlObjectNode) {
     String textContent = exmlObjectNode.getTextContent();
     if (textContent != null && textContent.length() > 0) {
-      return "{" + textContent.trim() + "}";
+      return JsonObject.code(textContent.trim());
     } else {
       if (!exmlObjectNode.hasAttributes()) {
         return null;
