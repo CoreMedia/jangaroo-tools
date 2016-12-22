@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -82,8 +83,12 @@ public class ExmlToMxml {
   }
 
   public File[] convert() {
+    InputStream migrationMapStream = resourceClassLoader.getResourceAsStream("ext-as-3.4-migration-map.properties");
+    if (migrationMapStream == null) {
+      throw new ExmlcException("Could not find migration map 'ext-as-3.4-migration-map.properties' in classpath.");
+    }
     try {
-      this.migrationMap.load(resourceClassLoader.getResourceAsStream("ext-as-3.4-migration-map.properties"));
+      this.migrationMap.load(migrationMapStream);
     } catch (IOException e) {
       throw new ExmlcException("Unable to load migration map", e);
     }

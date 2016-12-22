@@ -86,6 +86,10 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       }
     }
 
+    if (extAsJar != null && !extAsJar.exists()) {
+      throw new MojoExecutionException("error: extAsJar " + extAsJar.getAbsolutePath() + " does not exist.");
+    }
+
     // Convert main EXML sources to MXML:
     ExmlConfiguration config = createExmlConfiguration(getActionScriptClassPath(),
             Collections.singletonList(getSourceDirectory()), getGeneratedSourcesDirectory());
