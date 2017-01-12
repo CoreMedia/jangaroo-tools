@@ -11,7 +11,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentPublicApiTrue";
 
-    private var config:testComponentPublicApiTrue;
 
   ]]></fx:Script>
   <fx:Declarations>

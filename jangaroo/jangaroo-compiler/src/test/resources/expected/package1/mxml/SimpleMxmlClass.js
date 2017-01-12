@@ -10,7 +10,17 @@ public class SimpleMxmlClass extends ConfigClass{
 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
-    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
+    private var blub:*;*/function static$0(){
+
+    {
+      if(1 < 0 && 0 > 1) {
+        throw "plain wrong!";
+      }
+    }}/*
+
+    [Bindable]
+    public var list:Object;override protected*/function initConfig(_config/*:Object*/)/*:void*/{
+    var config/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,_config);
     var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
     var defaults_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
     AS3.setBindable(defaults_$1,"bar" , "FOO & BAR!");
@@ -20,8 +30,8 @@ public class SimpleMxmlClass extends ConfigClass{
     AS3.setBindable(defaults_$1,"anotherFlag2" , true);
     AS3.setBindable(defaults_$1,"someFlag3" , false);
     AS3.setBindable(defaults_$1,"anotherFlag3" , true);
-    this.blub$3 = {};
-    this.blub$3["name"] = "Kuno";
+    this.blub$4 = {};
+    this.blub$4["name"] = "Kuno";
     AS3.setBindable(defaults_$1,"joe" , { name: "Joe" });
     var object_39_7_$1/*:Object*/ = {};
     object_39_7_$1["name"] = "Joe";
@@ -39,7 +49,7 @@ public class SimpleMxmlClass extends ConfigClass{
     config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1["foo"] = "bar";
     config_$1["number"] = 1 < 2  ? 1 + 1 : 3;
-    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
+    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$4"));
     var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_50_5_$1["bla"] = 99;
     other$ns_SomeOtherClass_50_5_$1["known-unknown"] = true;
@@ -50,7 +60,7 @@ public class SimpleMxmlClass extends ConfigClass{
     var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_54_5_$1["bla"] = 23;
     var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
-    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$3"));
+    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$4"));
     other$ns_SomeOtherClass_55_5_$1["bla"] = 1;
     var other$ns_SomeOtherClass_56_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_56_5_$1["bla"] = 42;
@@ -70,18 +80,8 @@ public class SimpleMxmlClass extends ConfigClass{
     configClass_67_5_$1["items"] = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_69_9_$1), AS3.getBindable(this,"no_config")];
     configClass_67_5_$1["items$at"] = net.jangaroo.ext.Exml.APPEND;
     config_$1["items"] = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new package1.ConfigClass(configClass_61_5_$1), new package1.ConfigClass(configClass_67_5_$1)];
-    config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND; net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
-
-    private var blub:*;*/function static$0(){
-
-    {
-      if(1 < 0 && 0 > 1) {
-        throw "plain wrong!";
-      }
-    }}/*
-
-    [Bindable]
-    public var list:Object;
+    config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND; net.jangaroo.ext.Exml.apply(config_$1, config);package1.ConfigClass.prototype.initConfig.call(this,config_$1);
+}/*
 [Bindable]
 public var bar:String;
 [Bindable]
@@ -126,10 +126,10 @@ public var no_config:package1.someOtherPackage.SomeOtherClass;}}
     return {
       extend: "package1.ConfigClass",
       alias: "widget.testNamespace.config.simpleMxmlClass",
-      constructor: SimpleMxmlClass$,
-      blub$3: undefined,
-      $on_config_$1_click$3: $on_config_$1_click,
-      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$3: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
+      blub$4: undefined,
+      initConfig: initConfig,
+      $on_config_$1_click$4: $on_config_$1_click,
+      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$4: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
       config: {
         list: null,
         bar: null,

@@ -12,17 +12,19 @@ class CompilationUnitUtils {
   static boolean constructorSupportsConfigOptionsParameter(String classQName, CompilationUnitResolver resolver) {
     CompilationUnit compilationUnitModel = resolver.resolveCompilationUnit(classQName);
     ClassDeclaration classModel = (ClassDeclaration) compilationUnitModel.getPrimaryDeclaration();
-    if (classModel != null) {
+    while (classModel != null) {
       FunctionDeclaration constructorModel = classModel.getConstructor();
       if (constructorModel != null) {
         Parameters constructorParams = constructorModel.getParams();
         if (constructorParams != null) {
           Parameter firstParam = constructorParams.getHead();
-          if (MxmlUtils.CONFIG.equals(firstParam.getName())) {
-            return true;
-          }
+          return MxmlUtils.CONFIG.equals(firstParam.getName());
         }
       }
+      // Even though in ActionScript, no constructor means default constructor, we have the special
+      // MXML semantics that a config-param-constructor is by default inherited.
+      // Thus, continue to look into the superclass:
+      classModel = classModel.getSuperTypeDeclaration();
     }
     return false;
   }

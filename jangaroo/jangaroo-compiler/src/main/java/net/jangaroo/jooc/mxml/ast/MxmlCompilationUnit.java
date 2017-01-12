@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml.ast;
 
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
@@ -14,14 +15,13 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
-import net.jangaroo.jooc.ast.Parameter;
-import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +49,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   static final String APPLY = "apply";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
 
-  private final IsNativeConstructor isNativeConstructor = new IsNativeConstructor(this);
+  private final IsConfigField isConfigField = new IsConfigField(this);
   private final IsInitMethod isInitMethod = new IsInitMethod();
 
   private final Collection<String> importedSymbols = new HashSet<>();
@@ -57,12 +58,12 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
 
-  private final List<Directive> constructorBodyDirectives = new LinkedList<>();
+  private final List<Directive> initConfigBodyDirectives = new LinkedList<>();
   private final List<Directive> classBodyDirectives = new LinkedList<>();
   private final String classQName;
 
   private FunctionDeclaration initMethod;
-  private Parameter constructorParam;
+  private FunctionDeclaration constructorParam;
   private Scope constructorScope;
 
   private MxmlToModelParser mxmlToModelParser;
@@ -70,7 +71,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
+    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
     this.source = source;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
@@ -131,41 +132,43 @@ public class MxmlCompilationUnit extends CompilationUnit {
       superConfigVar = createAuxVar(MxmlUtils.CONFIG);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration);
-      constructorBodyDirectives.add(variableDeclaration);
+      initConfigBodyDirectives.add(variableDeclaration);
     }
 
-    if (null == constructorParam || null == superConfigVar) {
-      createFields(superConfigVar);
+    Ide constructorParamIde = constructorParam == null ? new Ide(MxmlUtils.CONFIG) : constructorParam.getIde();
+
+    if (null == superConfigVar) {
+      createFields(null);
     } else {
       Ide defaultsConfigVar = createAuxVar(DEFAULTS);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration);
-      constructorBodyDirectives.add(variableDeclaration);
+      initConfigBodyDirectives.add(variableDeclaration);
 
       createFields(defaultsConfigVar);
       ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
       getDirectives().add(importDirective);
       Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
 
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
+      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(new Ide(constructorParamIde.getName()))));
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
-      IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
+      IdeExpr config = new IdeExpr(constructorParamIde.getSymbol().withWhitespace("\n    "));
       AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ, applyExpr);
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
+      initConfigBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
     mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
-    constructorBodyDirectives.addAll(mxmlToModelParser.getConstructorBodyDirectives());
+    initConfigBodyDirectives.addAll(mxmlToModelParser.getInitConfigBodyDirectives());
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
-    if (!(null == constructorParam || null == superConfigVar)) {
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
+    if (null != superConfigVar) {
+      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParamIde)));
       Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
+      initConfigBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
 
-      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(superConfigVar));
-    }
+      initConfigBodyDirectives.add(MxmlAstUtils.createSuperInitConfigCall(superConfigVar));
+   }
 
     postProcessClassBodyDirectives();
 
@@ -177,26 +180,18 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   void preProcessClassBodyDirectives() {
-    boolean hasNativeConstructor = false;
-    for (int i = 0; i < classBodyDirectives.size(); i++) {
-      Directive directive = classBodyDirectives.get(i);
-      if (isNativeConstructor.apply(directive)) {
-        hasNativeConstructor = true;
-        FunctionDeclaration constructor = MxmlAstUtils.createConstructor((FunctionDeclaration) directive, this.constructorBodyDirectives);
-        Parameters params = constructor.getParams();
-        if(null != params) {
-          constructorParam = params.getHead();
-        }
-        classBodyDirectives.set(i, constructor);
+    for (Iterator<Directive> iterator = classBodyDirectives.iterator(); iterator.hasNext(); ) {
+      Directive directive = iterator.next();
+      if (isConfigField.apply(directive)) {
+        constructorParam = (FunctionDeclaration) directive;
+        iterator.remove();
       } else if (isInitMethod.apply(directive)) {
         initMethod = (FunctionDeclaration) directive;
       }
     }
 
-    if(!hasNativeConstructor) {
-      // inserting constructor
-      classBodyDirectives.add(MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives));
-    }
+    // inserting constructor
+    classBodyDirectives.add(MxmlAstUtils.createInitConfigMethod(primaryDeclaration.getIde(), initConfigBodyDirectives));
 
     if(null != initMethod) {
       CommaSeparatedList<Expr> args = null;
@@ -205,7 +200,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
       DotExpr initFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
       Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
-      constructorBodyDirectives.add(directive);
+      initConfigBodyDirectives.add(directive);
     }
   }
 
@@ -219,8 +214,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
       mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
     }
-    Collection<Directive> directives = mxmlToModelParser.getConstructorBodyDirectives();
-    this.constructorBodyDirectives.addAll(directives);
+    Collection<Directive> directives = mxmlToModelParser.getInitConfigBodyDirectives();
+    this.initConfigBodyDirectives.addAll(directives);
     directives.clear();
   }
 
@@ -298,5 +293,24 @@ public class MxmlCompilationUnit extends CompilationUnit {
   @Nullable
   public String getConstructorParamName() {
     return null != constructorParam ? constructorParam.getName() : null;
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+
+    ClassDeclaration superClassDeclaration = null;
+    Extends optExtends = ((ClassDeclaration)primaryDeclaration).getOptExtends();
+    if (optExtends != null) {
+      superClassDeclaration = (ClassDeclaration) optExtends.getSuperClass().getDeclaration();
+      while (superClassDeclaration != null && !"ext.Base".equals(superClassDeclaration.getQualifiedNameStr())) {
+        superClassDeclaration = superClassDeclaration.getSuperTypeDeclaration();
+      }
+    }
+    if (superClassDeclaration == null) {
+      System.err.printf("MXML class '%s' does not inherit from ext.Base.", getQualifiedNameStr());
+    }
+
+
   }
 }

@@ -16,7 +16,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithCfgDefaults";
 
-    private var config:testComponentWithCfgDefaults;
 
 
     [Bindable]
@@ -57,7 +56,7 @@
     <!--- Some button config property with a default specified as an EXML element,
       using the config parameter.
      -->
-    <Button id="propertyWithDefaultElementUsingConfig" text="{config.title + '!'}"/>
+    <Button id="propertyWithDefaultElementUsingConfig" text="{title + '!'}"/>
 
     <!--- Some array config property with a default specified as an EXML element
       containing multiple nested elements.

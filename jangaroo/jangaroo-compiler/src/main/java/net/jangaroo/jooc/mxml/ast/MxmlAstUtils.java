@@ -1,8 +1,6 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationsAndModifiers;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
@@ -26,7 +24,9 @@ import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
+import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
@@ -45,8 +45,6 @@ import java.util.List;
 
 class MxmlAstUtils {
 
-  static final JooSymbol[] SYM_EMPTY_MODIFIERS = new JooSymbol[]{};
-
   static final JooSymbol SYM_CLASS = new JooSymbol(sym.CLASS, "class");
   static final JooSymbol SYM_COLON = new JooSymbol(sym.COLON, ":");
   static final JooSymbol SYM_COMMA = new JooSymbol(sym.COMMA, ",");
@@ -59,6 +57,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
   static final JooSymbol SYM_NULL = new JooSymbol(sym.NULL_LITERAL, "null");
   static final JooSymbol SYM_PUBLIC = new JooSymbol(sym.PUBLIC, "public");
+  static final JooSymbol SYM_PROTECTED = new JooSymbol(sym.PROTECTED, "protected");
   static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   static final JooSymbol SYM_RBRACK = new JooSymbol(sym.RBRACK, "]");
   static final JooSymbol SYM_RPAREN = new JooSymbol(sym.RPAREN, ")");
@@ -66,40 +65,29 @@ class MxmlAstUtils {
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
-  private static final List<Annotation> EMPTY_ANNOTATIONS = Collections.<Annotation>emptyList();
+  static final JooSymbol SYM_OVERRIDE = new JooSymbol("override");
 
   private MxmlAstUtils() {
     // hide constructor for utility class
   }
 
   @Nonnull
-  static FunctionDeclaration createConstructor(@Nonnull FunctionDeclaration directive, @Nonnull List<Directive> constructorBodyDirectives) {
-    BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE);
-    String whitespace = "";
-    JooSymbol firstSymbol = Iterables.getFirst(Arrays.asList(directive.getSymModifiers()), null);
-    if(null != firstSymbol) {
-      whitespace = firstSymbol.getWhitespace();
-    }
-    return new FunctionDeclaration(new AnnotationsAndModifiers(null, Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace))),
-            SYM_FUNCTION,
-            directive.getSymGetOrSet(),
-            directive.getIde(),
-            directive.getFun().getLParen(),
-            directive.getParams(),
-            directive.getFun().getRParen(),
-            null,
-            constructorBody,
-            null
-            );
+  static FunctionDeclaration createInitConfigMethod(@Nonnull Ide type, @Nonnull List<Directive> methodBodyDirectives) {
+    BlockStatement methodBody = new BlockStatement(SYM_LBRACE, methodBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
+    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(new Ide("Object")));
+    Ide untypedConfigParam = new Ide(MxmlUtils.UNTYPED_CONFIG_PARAM);
+    Parameters params = new Parameters(new Parameter(null, untypedConfigParam, typeRelation, null));
+    methodBodyDirectives.add(0, createVariableDeclaration(new Ide(MxmlUtils.CONFIG), type, new IdeExpr(untypedConfigParam)));
+    List<JooSymbol> modifiers = Arrays.asList(SYM_OVERRIDE, SYM_PROTECTED);
+    Ide methodIde = new Ide("initConfig");
+    TypeRelation optTypeRelation = new TypeRelation(SYM_COLON, new Type(new Ide("void")));
+    return createFunctionDeclaration(modifiers, methodIde, params, optTypeRelation, methodBody);
   }
 
-  @Nonnull
-  static FunctionDeclaration createConstructor(@Nonnull Ide ide, @Nonnull List<Directive> constructorBodyDirectives) {
-    BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
-    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(ide));
-    Parameters params = new Parameters(new Parameter(null, new Ide(MxmlUtils.CONFIG), typeRelation, new Initializer(SYM_EQ, new LiteralExpr(SYM_NULL))));
-    return new FunctionDeclaration(new AnnotationsAndModifiers(null, Collections.singletonList(SYM_PUBLIC)),
-            SYM_FUNCTION, null, ide, SYM_LPAREN, params, SYM_RPAREN, null, constructorBody, null);
+  private static FunctionDeclaration createFunctionDeclaration(List<JooSymbol> modifiers, Ide methodIde, Parameters params, TypeRelation optTypeRelation, BlockStatement methodBody) {
+    return new FunctionDeclaration(new AnnotationsAndModifiers(Collections.emptyList(), modifiers),
+            SYM_FUNCTION, null, methodIde, SYM_LPAREN, params, SYM_RPAREN,
+            optTypeRelation, methodBody, null);
   }
 
   @Nonnull
@@ -119,8 +107,11 @@ class MxmlAstUtils {
 
   @Nonnull
   static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type) {
+    return createVariableDeclaration(name, type, new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE));
+  }
+
+  static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type, Expr value) {
     TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
-    Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
     value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     Initializer initializer = new Initializer(SYM_EQ, value);
     return new VariableDeclaration(new AnnotationsAndModifiers(null,null), SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
@@ -132,9 +123,24 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
+  static FunctionDeclaration createConfigConstructor(@Nonnull ClassDeclaration classDeclaration) {
+    Ide configParameter = new Ide(MxmlUtils.CONFIG);
+    CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(configParameter));
+    Directive superConstructorCall = new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
+    BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, Collections.singletonList(superConstructorCall), SYM_RBRACE);
+    return createFunctionDeclaration(Collections.singletonList(SYM_PUBLIC),
+            classDeclaration.getIde(),
+            new Parameters(new Parameter(null, configParameter, new TypeRelation(SYM_COLON, new Type(classDeclaration.getIde())),
+                    new Initializer(SYM_EQ, new LiteralExpr(SYM_NULL)))),
+            null,
+            constructorBody
+    );
+  }
+
+  @Nonnull
+  static Statement createSuperInitConfigCall(Ide superConfigVar) {
     CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar));
-    return new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
+    return createSemicolonTerminatedStatement(new ApplyExpr(new IdeExpr(new QualifiedIde(new Ide(SYM_SUPER), SYM_DOT, new JooSymbol("initConfig"))), SYM_LPAREN, args, SYM_RPAREN));
   }
 
   @Nonnull

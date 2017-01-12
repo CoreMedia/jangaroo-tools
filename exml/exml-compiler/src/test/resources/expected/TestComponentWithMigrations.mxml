@@ -14,7 +14,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithMigrations";
 
-    private var config:testComponentWithMigrations;
 
 
     [Bindable]

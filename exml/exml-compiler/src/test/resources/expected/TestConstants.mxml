@@ -23,7 +23,6 @@
 
     public static const E_CONSTANT:ext.Component = new Container();
 
-    private var config:testConstants;
 
   ]]></fx:Script>
 

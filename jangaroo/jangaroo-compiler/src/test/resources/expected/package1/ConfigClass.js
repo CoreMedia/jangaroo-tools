@@ -27,12 +27,12 @@ public class ConfigClass extends Observable {
 
   [Bindable]
   public*/ function get$title()/*:String*/ {
-    return this._title$2;
+    return this._title$3;
   }/*
 
   [Bindable]
   public*/ function set$title(value/*:String*/)/*:void*/ {
-    this._title$2 = value;
+    this._title$3 = value;
   }/*
 }
 }
@@ -55,7 +55,7 @@ public class ConfigClass extends Observable {
       constructor: ConfigClass$,
       foo: "foo",
       number: 0,
-      _title$2: "- empty -",
+      _title$3: "- empty -",
       getTitle: get$title,
       setTitle: set$title,
       config: {title: undefined},

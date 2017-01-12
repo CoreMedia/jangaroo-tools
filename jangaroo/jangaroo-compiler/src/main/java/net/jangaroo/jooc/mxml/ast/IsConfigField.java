@@ -6,10 +6,10 @@ import net.jangaroo.jooc.ast.FunctionDeclaration;
 
 import javax.annotation.Nullable;
 
-class IsNativeConstructor implements Predicate<Directive> {
+class IsConfigField implements Predicate<Directive> {
   private final MxmlCompilationUnit mxmlCompilationUnit;
 
-  public IsNativeConstructor(MxmlCompilationUnit mxmlCompilationUnit) {
+  IsConfigField(MxmlCompilationUnit mxmlCompilationUnit) {
     this.mxmlCompilationUnit = mxmlCompilationUnit;
   }
 
@@ -17,7 +17,10 @@ class IsNativeConstructor implements Predicate<Directive> {
   public boolean apply(@Nullable Directive directive) {
     if (directive instanceof FunctionDeclaration) {
       FunctionDeclaration f = (FunctionDeclaration) directive;
-      return !f.isGetterOrSetter() && f.isNative() && f.getIde().getName().equals(mxmlCompilationUnit.getPrimaryDeclaration().getName());
+      if (f.isGetter() && f.isPrivate() && f.isNative() && !f.isStatic() && f.getOptTypeRelation() != null
+              && f.getOptTypeRelation().getType().getIde().getName().equals(mxmlCompilationUnit.getPrimaryDeclaration().getName())) {
+        return true;
+      }
     }
     return false;
   }

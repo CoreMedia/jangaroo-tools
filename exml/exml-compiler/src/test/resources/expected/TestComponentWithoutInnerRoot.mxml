@@ -14,7 +14,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithoutInnerRoot";
 
-    private var config:testComponentWithoutInnerRoot;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code

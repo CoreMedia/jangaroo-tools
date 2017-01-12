@@ -31,6 +31,7 @@ public class MxmlUtils {
 
   private static final Pattern MXML_COMMENT = Pattern.compile("<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
   public static final String CONFIG = "config";
+  public static final String UNTYPED_CONFIG_PARAM = "_config";
 
   public static boolean isMxmlNamespace(String uri) {
     return MXML_NAMESPACE_URI.equals(uri);

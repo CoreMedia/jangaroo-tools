@@ -1,6 +1,7 @@
 Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) {/*package package1.mxml{
 import package1.*;
 import package1.mxml.SimpleInterface;
+import net.jangaroo.ext.Exml;
 public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
 
     import package1.someOtherPackage.SomeOtherClass;
@@ -13,21 +14,26 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
       for (var v/*:Object*/ in values) {
         throw "cannot do it with " + v;
       }
-    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){package1.ConfigClass.prototype.constructor.apply(this,arguments);field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
+    }/*override protected*/function initConfig(_config/*:Object*/)/*:void*/{
+    var config/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,_config);
     var config_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
-    config_$1["foo"] = "bar";
-}/*}}
+    var defaults_$1/*:ScriptCdataMxmlClass*/ =AS3.cast(ScriptCdataMxmlClass,{});
+    config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
+    config_$1["foo"] = "bar"; net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.initConfig.call(this,config_$1);
+}/*}*/function ScriptCdataMxmlClass$() {package1.ConfigClass.prototype.constructor.apply(this,arguments);field2_.call(this);field3_.call(this);}/*}
 
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "package1.ConfigClass",
       mixins: ["package1.mxml.SimpleInterface"],
-      field1$3: null,
+      field1$4: null,
       doIt: doIt,
+      initConfig: initConfig,
       constructor: ScriptCdataMxmlClass$,
       requires: [
         "package1.ConfigClass",
         "package1.mxml.SimpleInterface"
-      ]
+      ],
+      uses: ["net.jangaroo.ext.Exml"]
     };
 });

@@ -10,7 +10,6 @@
 
     public static const xtype:String = "testNamespace.config.testBaseClassUnqualified";
 
-    private var config:testBaseClassUnqualified;
 
   ]]></fx:Script>
 

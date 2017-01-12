@@ -3,9 +3,9 @@
              xmlns="package1.*"
              implements="package1.mxml.YetAnotherInterface">
   <fx:Script><![CDATA[
-    public native function InterfaceImplementingMxmlClass(config:InterfaceImplementingMxmlClass = null);
-
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
+
+    private native function get config():InterfaceImplementingMxmlClass;
 
     [Bindable]
     public native function get someProperty():String;

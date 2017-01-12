@@ -35,7 +35,7 @@ import java.util.List;
 public class MxmlParserHelper {
 
   private static final String TPL_CLASS_BODY = "package{class ___${\n%s\n}}";
-  private static final String TPL_CONSTRUCTOR_BODY = "package{class ___${function ___$(){\n%s\n}}}";
+  private static final String TPL_METHOD_BODY = "package{class ___${function __method__$(){\n%s\n}}}";
   private static final String TPL_EXPRESSION = "package{class ___${x= %s}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
   private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
@@ -90,8 +90,8 @@ public class MxmlParserHelper {
   }
 
   @Nonnull
-  public List<Directive> parseConstructorBody(@Nonnull String text) {
-    Symbol parsed = parser.parseEmbedded(String.format(TPL_CONSTRUCTOR_BODY, text), 0, 0);
+  public List<Directive> parseMethodBody(@Nonnull String text) {
+    Symbol parsed = parser.parseEmbedded(String.format(TPL_METHOD_BODY, text), 0, 0);
     CompilationUnit unit = (CompilationUnit) parsed.value;
     List<Directive> directives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
     if(null != directives) {

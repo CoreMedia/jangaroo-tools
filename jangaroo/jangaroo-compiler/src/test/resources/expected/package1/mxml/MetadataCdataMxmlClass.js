@@ -1,5 +1,6 @@
 Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*package package1.mxml{
 import package1.*;
+import net.jangaroo.ext.Exml;
 
     /**
      * Let's have a class with two annotations.
@@ -7,8 +8,11 @@ import package1.*;
      * /
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
-public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){package1.ConfigClass.prototype.constructor.apply(this,arguments);if(arguments.length<=0)config=null;
+public class MetadataCdataMxmlClass extends ConfigClass{override protected*/function initConfig(_config/*:Object*/)/*:void*/{
+    var config/*:MetadataCdataMxmlClass*/ =AS3.cast(MetadataCdataMxmlClass,_config);
     var config_$1/*:MetadataCdataMxmlClass*/ =AS3.cast(MetadataCdataMxmlClass,{});
+    var defaults_$1/*:MetadataCdataMxmlClass*/ =AS3.cast(MetadataCdataMxmlClass,{});
+    config= net.jangaroo.ext.Exml.apply(defaults_$1,config); net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.initConfig.call(this,config_$1);
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
@@ -22,7 +26,8 @@ public class MetadataCdataMxmlClass extends ConfigClass{public*/function Metadat
           "use.this.please"
         ]
       ]},
-      constructor: MetadataCdataMxmlClass$,
-      requires: ["package1.ConfigClass"]
+      initConfig: initConfig,
+      requires: ["package1.ConfigClass"],
+      uses: ["net.jangaroo.ext.Exml"]
     };
 });

@@ -10,9 +10,7 @@
              ]}"
         xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    private var config:TestComponent;
-
-    public native function TestComponent(config:TestComponent = null);
+    private native function get config():TestComponent;
     ]]></fx:Script>
   <fx:Declarations>
     <fx:String id="property_1">withDefault</fx:String>

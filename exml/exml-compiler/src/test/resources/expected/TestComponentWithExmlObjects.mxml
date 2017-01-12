@@ -14,7 +14,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithExmlObjects";
 
-    private var config:testComponentWithExmlObjects;
 
   ]]></fx:Script>
 

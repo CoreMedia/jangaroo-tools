@@ -11,7 +11,6 @@
     import com.coremedia.cms.editor.sdk.sites.SitesService;
     import testNamespace.config.testClassWithoutInnerRoot;
 
-    private var config:testClassWithoutInnerRoot;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code

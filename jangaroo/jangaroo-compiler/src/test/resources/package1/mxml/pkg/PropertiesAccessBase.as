@@ -1,6 +1,7 @@
 package package1.mxml.pkg {
+import ext.Base;
 
-public class PropertiesAccessBase {
+public class PropertiesAccessBase extends Base {
 
   public function PropertiesAccessBase(config:PropertiesAccess = null) {
     property_1 = config.property_1 += "_HI";

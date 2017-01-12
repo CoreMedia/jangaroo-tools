@@ -4,13 +4,12 @@
                 xmlns:local="testPackage.*"
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
-                text="{config.propertyOne}">
+                text="{propertyOne}">
   <fx:Script><![CDATA[
     import testNamespace.config.testLabel;
 
     public static const xtype:String = "testNamespace.config.testLabel";
 
-    private var config:testLabel;
 
   ]]></fx:Script>
   <fx:Declarations>

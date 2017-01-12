@@ -26,7 +26,7 @@ public class XmlElement extends NodeImplBase {
 
   private XmlElement parent;
 
-  public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nonnull XmlTag closingMxmlTag) {
+  public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {
     this.openingMxmlTag = openingMxmlTag;
     this.children = children != null ? children : Collections.emptyList();
     this.closingMxmlTag = closingMxmlTag;

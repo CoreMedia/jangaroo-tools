@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fx:Object
+<ext:Base
         xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:ext="ext.*"
         xmlns:local="package1.mxml.pkg.*"
         xmlns="exml:ext.config">
   <fx:Script><![CDATA[
-    private var config:CyclicDependencies_1;
 
     public native function CyclicDependencies_1(config:CyclicDependencies_1 = null);
     ]]></fx:Script>
@@ -12,4 +12,4 @@
     <local:CyclicDependencies_2 id="one"/>
     <local:CyclicDependencies id="two"/>
   </fx:Declarations>
-</fx:Object>
+</ext:Base>

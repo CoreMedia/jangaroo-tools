@@ -1,7 +1,8 @@
 package package1.mxml.pkg {
+import ext.Base;
 
 
-public class TestComponentBase implements TestInterface {
+public class TestComponentBase extends Base implements TestInterface {
 
   public static const DEFAULT:String = "_DEFAULT_";
 

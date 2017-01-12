@@ -21,7 +21,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponent";
 
-    private var config:testComponent;
 
 
     /**

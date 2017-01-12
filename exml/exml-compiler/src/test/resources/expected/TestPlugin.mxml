@@ -7,7 +7,6 @@
   <fx:Script><![CDATA[
     import testNamespace.config.testPlugin;
 
-    private var config:testPlugin;
 
   ]]></fx:Script>
 

@@ -13,7 +13,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithMultiLineAttribute";
 
-    private var config:testComponentWithMultiLineAttribute;
 
   ]]></fx:Script>
 

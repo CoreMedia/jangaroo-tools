@@ -15,7 +15,6 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithCDataInDescription";
 
-    private var config:testComponentWithCDataInDescription;
 
   ]]></fx:Script>
   <fx:Declarations>

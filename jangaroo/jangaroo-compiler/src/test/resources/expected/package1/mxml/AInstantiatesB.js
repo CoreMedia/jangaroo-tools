@@ -6,19 +6,21 @@ public class AInstantiatesB extends Panel{
 
     private var config:AInstantiatesB;
 
-    public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
+    public native function AInstantiatesB(config:AInstantiatesB = null);override protected*/function initConfig(_config/*:Object*/)/*:void*/{
+    var config/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,_config);
     var config_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
     var defaults_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
     config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var local_BDeclaresA_12_5_$1/*: package1.mxml.BDeclaresA*/ =AS3.cast(package1.mxml.BDeclaresA,{});
     local_BDeclaresA_12_5_$1["someProperty"] = "yes";
-    config_$1["items"] = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)]; net.jangaroo.ext.Exml.apply(config_$1,config);ext.Panel.prototype.constructor.call(this,config_$1);}/*}}
+    config_$1["items"] = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)]; net.jangaroo.ext.Exml.apply(config_$1,config);ext.Panel.prototype.initConfig.call(this,config_$1);
+}/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.Panel",
-      config$3: null,
-      constructor: AInstantiatesB$,
+      config$4: null,
+      initConfig: initConfig,
       requires: ["ext.Panel"],
       uses: [
         "net.jangaroo.ext.Exml",

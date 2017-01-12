@@ -16,7 +16,6 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
@@ -36,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +60,7 @@ final class MxmlToModelParser {
   private final MxmlParserHelper mxmlParserHelper;
   private final MxmlCompilationUnit compilationUnit;
 
-  private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
+  private final Collection<Directive> initConfigBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
@@ -72,10 +70,10 @@ final class MxmlToModelParser {
   }
 
   private void renderConfigAuxVar(@Nonnull Ide ide, Ide type) {
-    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
+    initConfigBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
-  private void processAttributes(XmlElement objectNode, CompilationUnit type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
+  private void processAttributes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
@@ -190,7 +188,7 @@ final class MxmlToModelParser {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
             Expr dotExpr = new ArrayIndexExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_LBRACK, new LiteralExpr(new JooSymbol(CompilerUtils.quote(atPropertyName + CONFIG_MODE_AT_SUFFIX))), MxmlAstUtils.SYM_RBRACK);
             IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseIde(atValue));
-            constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
+            initConfigBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
           }
         }
       }
@@ -239,14 +237,14 @@ final class MxmlToModelParser {
         Object extractXType = propertiesByName.get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
         if (extractXType == null || extractXType instanceof String) {
           String extractXTypeToProperty = (String) extractXType;
-          StringBuilder constructorCode = new StringBuilder();
+          StringBuilder methodBodyCode = new StringBuilder();
           if (extractXTypeToProperty != null) {
-            constructorCode.append("    ")
+            methodBodyCode.append("    ")
                     .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
           }
-          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
-          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
-          constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+          methodBodyCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
+          methodBodyCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+          initConfigBodyDirectives.addAll(mxmlParserHelper.parseMethodBody(methodBodyCode.toString()));
         }
       }
     }
@@ -348,21 +346,21 @@ final class MxmlToModelParser {
 
     String value = createValueCodeFromElement(objectElement, defaultUseConfigObjects, className, configVariable);
 
-    StringBuilder constructorCode = new StringBuilder();
+    StringBuilder methodBodyCode = new StringBuilder();
     if (null != id) {
-      constructorCode.append("    ").append(targetVariableName);
+      methodBodyCode.append("    ").append(targetVariableName);
     } else if (configVariable == null) {
       // no config object was built: create variable for object to build now:
       targetVariableName = createAuxVar(objectElement).getName();
-      constructorCode.append("    ")
+      methodBodyCode.append("    ")
               .append("var ").append(targetVariableName).append(":").append(className);
     } else if (useConfigObjects(defaultUseConfigObjects, className)) {
       return configVariable.getName();
     } else {
       return value; // no aux var necessary
     }
-    constructorCode.append(" = ").append(value).append(";");
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    methodBodyCode.append(" = ").append(value).append(";");
+    initConfigBodyDirectives.addAll(mxmlParserHelper.parseMethodBody(methodBodyCode.toString()));
 
     if (configVariable == null && !"Array".equals(className)) {
       // no config object was built or event listeners or bindings have to be added:
@@ -502,18 +500,18 @@ final class MxmlToModelParser {
             .append('}');
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
 
-    StringBuilder constructorCode = new StringBuilder();
-    constructorCode.append("    ").append(variable).append("." + MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME + "(").append(eventTypeStr)
+    StringBuilder methodBodyCode = new StringBuilder();
+    methodBodyCode.append("    ").append(variable).append("." + MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME + "(").append(eventTypeStr)
             .append(".").append(eventNameConstant)
             .append(", ")
             .append(eventHandlerName)
             .append(");");
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    initConfigBodyDirectives.addAll(mxmlParserHelper.parseMethodBody(methodBodyCode.toString()));
   }
 
   private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
     Directive propertyAssignment = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
-    constructorBodyDirectives.add(propertyAssignment);
+    initConfigBodyDirectives.add(propertyAssignment);
   }
 
   @Nonnull
@@ -643,8 +641,8 @@ final class MxmlToModelParser {
     return Iterables.getFirst(element.getTextNodes(), new JooSymbol(""));
   }
 
-  Collection<Directive> getConstructorBodyDirectives() {
-    return constructorBodyDirectives;
+  Collection<Directive> getInitConfigBodyDirectives() {
+    return initConfigBodyDirectives;
   }
 
   Collection<Directive> getClassBodyDirectives() {

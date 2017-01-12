@@ -26,7 +26,7 @@
     public static const ANOTHER_CONSTANT:String = allElements.ANOTHER_CONSTANT;
     public static const CODE_CONSTANT:int = allElements.CODE_CONSTANT;
 
-    private var config:AllElements;
+    private native function get config():AllElements;
 
     private var myProperty:String;
     private var myVar:String;
@@ -40,15 +40,9 @@
         prop: config.myProperty
       };
     }
-
-    public native function AllElements(config:AllElements = null);
     ]]></fx:Script>
 
   <fx:Declarations>
-    <cfg:allElements id="config" myProperty="My Property!">
-      <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
-    </cfg:allElements>
-  
     <button id="myVar3"
             text="Foo"/>
   

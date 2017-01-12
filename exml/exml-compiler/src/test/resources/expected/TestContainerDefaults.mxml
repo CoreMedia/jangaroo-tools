@@ -9,7 +9,6 @@
 
     public static const xtype:String = "testNamespace.config.testContainerDefaults";
 
-    private var config:testContainerDefaults;
 
   ]]></fx:Script>
 
