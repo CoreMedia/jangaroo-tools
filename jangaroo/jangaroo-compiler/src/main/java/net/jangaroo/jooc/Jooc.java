@@ -44,6 +44,7 @@ import net.jangaroo.utils.CompilerUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,7 +179,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       for (InputSource source : compileQueue) {
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
-        if (source.getName().endsWith(PROPERTIES_SUFFIX)) {
+        String sourceName = source.getName();
+        boolean isPropertiesSource = sourceName.endsWith(PROPERTIES_SUFFIX);
+        if (isPropertiesSource) {
           outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
         }
         CompilationUnit unit = importSource(source);
@@ -191,6 +194,13 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           }
           if (getConfig().isGenerateApi()) {
             writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+            if (isPropertiesSource && isDefaultLocale(sourceName)) {
+              // copy default locale properties to joo-api so Idea can find them
+              File apiOutputDirectory = getConfig().getApiOutputDirectory();
+              String relativeSourcePath = source.getRelativePath();
+              File apiFile = new File(apiOutputDirectory, relativeSourcePath);
+              Files.copy(sourceFile.toPath(), apiFile.toPath());
+            }
           }
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
@@ -205,6 +215,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     } finally {
       tearDown();
     }
+  }
+
+  private boolean isDefaultLocale(String sourceName) {
+    return sourceName.indexOf('_') < 0;
   }
 
   private void checkValidFileName(final CompilationUnit unit) {
