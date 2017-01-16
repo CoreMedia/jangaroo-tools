@@ -518,7 +518,8 @@ final class MxmlToModelParser {
 
   @Nonnull
   private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    String propertyType = propertyModel.getOptTypeRelation().getType().getIde().getName();
+    TypeRelation typeRelation = propertyModel.getOptTypeRelation();
+    String propertyType = typeRelation == null ? null : typeRelation.getType().getIde().getName();
     boolean untyped = UNTYPED_MARKER.equals(propertyType);
     String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(value.getText(), untyped ? null : propertyType));
 
