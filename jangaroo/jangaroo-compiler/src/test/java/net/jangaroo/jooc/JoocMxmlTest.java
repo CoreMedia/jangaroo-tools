@@ -61,6 +61,16 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testNoExtBaseInheritance() throws Exception {
+    File sourceFile = getFile("/package1/mxml/NoExtBaseMxmlClass.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    String expected = "MXML class 'package1.mxml.NoExtBaseMxmlClass' does not inherit from ext.Base.";
+    assertTrue("Expected error (no inheritance from ext.Base) did not occur", testLog.hasError(expected));
+    assertErrorAt(expected, 5, 2);
+  }
+
+  @Test
   public void testMetadataMxml() throws Exception {
     assertCompilationResult("package1/mxml/MetadataMxmlClass", ".mxml");
   }
