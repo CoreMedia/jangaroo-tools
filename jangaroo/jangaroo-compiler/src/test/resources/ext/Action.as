@@ -3,7 +3,7 @@ import ext.config.action;
 
 [Native]
 [DefaultProperty("config")]
-public class Action {
+public class Action extends Base {
 
   /**
    * @private

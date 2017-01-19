@@ -84,6 +84,14 @@ class MxmlAstUtils {
     return createFunctionDeclaration(modifiers, methodIde, params, optTypeRelation, methodBody);
   }
 
+  @Nonnull
+  static FunctionDeclaration createConstructor(@Nonnull Ide type, @Nonnull List<Directive> methodBodyDirectives) {
+    BlockStatement methodBody = new BlockStatement(SYM_LBRACE, methodBodyDirectives, SYM_RBRACE.withWhitespace("\n"));
+    List<JooSymbol> modifiers = Collections.singletonList(SYM_PUBLIC);
+    TypeRelation optTypeRelation = new TypeRelation(SYM_COLON, new Type(new Ide("void")));
+    return createFunctionDeclaration(modifiers, type, null, optTypeRelation, methodBody);
+  }
+
   private static FunctionDeclaration createFunctionDeclaration(List<JooSymbol> modifiers, Ide methodIde, Parameters params, TypeRelation optTypeRelation, BlockStatement methodBody) {
     return new FunctionDeclaration(new AnnotationsAndModifiers(Collections.emptyList(), modifiers),
             SYM_FUNCTION, null, methodIde, SYM_LPAREN, params, SYM_RPAREN,

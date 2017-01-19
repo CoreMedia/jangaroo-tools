@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
@@ -18,7 +17,6 @@ import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
@@ -124,15 +122,16 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
 
-    preProcessClassBodyDirectives();
-
     Ide superConfigVar = null;
     // If the super constructor has a 'config' param, create a fresh var for that.
     if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
+      preProcessClassBodyDirectives(true);
       superConfigVar = createAuxVar(MxmlUtils.CONFIG);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration);
       initConfigBodyDirectives.add(variableDeclaration);
+    } else {
+      preProcessClassBodyDirectives(false);
     }
 
     Ide constructorParamIde = constructorParam == null ? new Ide(MxmlUtils.CONFIG) : constructorParam.getIde();
@@ -179,7 +178,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return constructorScope.createAuxVar(name);
   }
 
-  void preProcessClassBodyDirectives() {
+  void preProcessClassBodyDirectives(boolean createInitConfigMethod) {
     for (Iterator<Directive> iterator = classBodyDirectives.iterator(); iterator.hasNext(); ) {
       Directive directive = iterator.next();
       if (isConfigField.apply(directive)) {
@@ -190,8 +189,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
 
-    // inserting constructor
-    classBodyDirectives.add(MxmlAstUtils.createInitConfigMethod(primaryDeclaration.getIde(), initConfigBodyDirectives));
+    // inserting initConfig method or constructor
+    classBodyDirectives.add(createInitConfigMethod
+            ? MxmlAstUtils.createInitConfigMethod(primaryDeclaration.getIde(), initConfigBodyDirectives)
+            : MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), initConfigBodyDirectives));
 
     if(null != initMethod) {
       CommaSeparatedList<Expr> args = null;

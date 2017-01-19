@@ -1,8 +1,7 @@
 Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass) {/*package package1.mxml{
 import package1.*;
 import package1.someOtherPackage.*;
-public class DeclarationsMxmlClass extends SomeNativeClass{override protected*/function initConfig(_config/*:Object*/)/*:void*/{
-    var config/*:DeclarationsMxmlClass*/ =AS3.cast(DeclarationsMxmlClass,_config);
+public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$()/*:void*/{package1.someOtherPackage.SomeNativeClass.prototype.constructor.apply(this,arguments);
     AS3.setBindable(this,"bar" , "BAR!");
     AS3.setBindable(this,"num" , 123);
     AS3.setBindable(this,"empty" , null);
@@ -43,7 +42,7 @@ public var other:package1.someOtherPackage.SomeOtherClass;}}
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "package1.someOtherPackage.SomeNativeClass",
-      initConfig: initConfig,
+      constructor: DeclarationsMxmlClass$,
       config: {
         bar: null,
         num: 0,

@@ -39,9 +39,8 @@ public class AllElements extends Panel{
     var config/*:AllElements*/ =AS3.cast(AllElements,_config);this.__initialize__$4( config);
     var config_$1/*:AllElements*/ =AS3.cast(AllElements,{});
     var defaults_$1/*:AllElements*/ =AS3.cast(AllElements,{});
-    var myVar3_46_5_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
-    myVar3_46_5_$1["text"] = "Foo";
-    this.myVar3$4 = new ext.config.button(myVar3_46_5_$1);
+    this.myVar3$4 = new ext.config.button();
+    this.myVar3$4["text"] = "Foo";
     var object_50_7_$1/*:Object*/ = {};
     object_50_7_$1["header"] = "a";
     object_50_7_$1["sortable"] = false;
@@ -52,13 +51,13 @@ public class AllElements extends Panel{
     object_51_7_$1["menuDisabled"] = false;
     this.myVar4$4 = [object_50_7_$1, object_51_7_$1];
     config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
-    var panel_55_3_$1/*: ext.config.panel*/ =AS3.cast(ext.config.panel,{});
+    var panel_55_3_$1/*:ext.config.panel*/ = new ext.config.panel();
     panel_55_3_$1["title"] = "I am a panel";
     panel_55_3_$1["layout"] = config.myProperty$4;
-    var someMixin_58_7_$1/*: ext.config.someMixin*/ =AS3.cast(ext.config.someMixin,{});
-    var button_60_11_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
+    var someMixin_58_7_$1/*:ext.config.someMixin*/ = new ext.config.someMixin();
+    var button_60_11_$1/*:ext.config.button*/ = new ext.config.button();
     button_60_11_$1["text"] = "click me!";
-    button_60_11_$1["id"] = "myId";
+    button_60_11_$1["extId"] = "myId";
     var ext_Action_62_15_$1/*: ext.Action*/ =AS3.cast(ext.Action,{});
     button_60_11_$1["baseAction"] = new ext.Action(ext_Action_62_15_$1);
     someMixin_58_7_$1["someList"] = [button_60_11_$1];
@@ -70,7 +69,7 @@ public class AllElements extends Panel{
     object_76_7_$1["anchor"] = "test";
     object_76_7_$1["border"] = "solid";
     panel_55_3_$1["layoutConfig"] = object_76_7_$1;
-    var button_83_7_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
+    var button_83_7_$1/*:ext.config.button*/ = new ext.config.button();
     button_83_7_$1["text"] = "Save";
     button_83_7_$1["handler"] = function()/*:void*/ {
           ext.MessageBox.alert('gotcha!');
@@ -78,18 +77,18 @@ public class AllElements extends Panel{
     var object_88_7_$1/*:Object*/ = {xtype: "editortreepanel"};
     var object_89_7_$1/*:Object*/ = {};
     panel_55_3_$1["items"] = [button_83_7_$1, object_88_7_$1, object_89_7_$1];
-    var menuitem_100_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
+    var menuitem_100_7_$1/*:ext.config.menuitem*/ = new ext.config.menuitem();
     menuitem_100_7_$1["text"] = "juhu1";
-    var menuitem_101_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
+    var menuitem_101_7_$1/*:ext.config.menuitem*/ = new ext.config.menuitem();
     menuitem_101_7_$1["text"] = "juhu2";
-    var menuitem_102_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
+    var menuitem_102_7_$1/*:ext.config.menuitem*/ = new ext.config.menuitem();
     menuitem_102_7_$1["text"] = "juhu3";
     panel_55_3_$1["menu"] = [menuitem_100_7_$1, menuitem_101_7_$1, menuitem_102_7_$1];
     AS3.setBindable(this,"gear" , {});
     AS3.getBindable(this,"gear")["handler"] = function(x){return ''+x;};
     panel_55_3_$1["tools"] = [AS3.getBindable(this,"gear")];
-    var aplugin_118_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
-    var aplugin_119_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
+    var aplugin_118_7_$1/*:ext.config.aplugin*/ = new ext.config.aplugin();
+    var aplugin_119_7_$1/*:ext.config.aplugin*/ = new ext.config.aplugin();
     panel_55_3_$1["plugins"] = [aplugin_118_7_$1, aplugin_119_7_$1];
     config_$1["items"] = [panel_55_3_$1]; net.jangaroo.ext.Exml.apply(config_$1,config);ext.Panel.prototype.initConfig.call(this,config_$1);
 }/*
