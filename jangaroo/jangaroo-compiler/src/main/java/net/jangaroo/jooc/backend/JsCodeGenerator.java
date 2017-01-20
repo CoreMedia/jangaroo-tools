@@ -1674,7 +1674,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       blockStartCodeGenerators.put(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
-      blockStartCodeGenerators.put(functionDeclaration.getBody(), new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
+      blockStartCodeGenerators.put(functionDeclaration.getBody(),
+              new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration(),
+                      functionDeclaration.getParams() == null));
     }
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);
@@ -1810,7 +1812,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       // generate default constructor that calls field initializers:
       String constructorName = classDeclaration.getName() + "$";
       out.write("function " + constructorName + "() {");
-      new SuperCallCodeGenerator(classDeclaration).generate(out, true);
+      new SuperCallCodeGenerator(classDeclaration, true).generate(out, true);
       out.write("}");
       classDefinitionBuilder.members.put("constructor", new PropertyDefinition(constructorName));
     }
@@ -1873,16 +1875,23 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private class SuperCallCodeGenerator implements CodeGenerator {
     private ClassDeclaration classDeclaration;
+    private boolean handThroughParameters;
 
-    public SuperCallCodeGenerator(ClassDeclaration classDeclaration) {
+    public SuperCallCodeGenerator(ClassDeclaration classDeclaration, boolean handThroughParameters) {
       this.classDeclaration = classDeclaration;
+      this.handThroughParameters = handThroughParameters;
     }
 
     @Override
     public void generate(JsWriter out, boolean first) throws IOException {
       int inheritanceLevel = classDeclaration.getInheritanceLevel();
       if (inheritanceLevel > 1) { // suppress for classes extending Object
-        out.write(getSuperClassPrototypeAccessCode() + ".constructor.apply(this,arguments);");
+        if (handThroughParameters) {
+          out.write(getSuperClassPrototypeAccessCode() + ".constructor.apply(this,arguments)");
+        } else {
+          generateSuperConstructorCallCode(null);
+        }
+        out.writeToken(";");
       }
       generateFieldInitCode(classDeclaration, false);
     }
