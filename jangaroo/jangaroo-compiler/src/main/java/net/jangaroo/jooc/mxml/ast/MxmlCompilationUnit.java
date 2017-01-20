@@ -295,23 +295,4 @@ public class MxmlCompilationUnit extends CompilationUnit {
   public String getConstructorParamName() {
     return null != constructorParam ? constructorParam.getName() : null;
   }
-
-  @Override
-  public void analyze(AstNode parentNode) {
-    super.analyze(parentNode);
-
-    ClassDeclaration superClassDeclaration = null;
-    Extends optExtends = ((ClassDeclaration)primaryDeclaration).getOptExtends();
-    if (optExtends != null) {
-      superClassDeclaration = (ClassDeclaration) optExtends.getSuperClass().getDeclaration();
-      while (superClassDeclaration != null && !"ext.Base".equals(superClassDeclaration.getQualifiedNameStr())) {
-        superClassDeclaration = superClassDeclaration.getSuperTypeDeclaration();
-      }
-    }
-    if (superClassDeclaration == null) {
-      System.err.printf("MXML class '%s' does not inherit from ext.Base.", getQualifiedNameStr());
-    }
-
-
-  }
 }
