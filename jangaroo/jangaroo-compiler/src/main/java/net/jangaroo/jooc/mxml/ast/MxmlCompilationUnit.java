@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mxml.ast;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -309,9 +310,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
     if (superClassDeclaration == null) {
-      System.err.printf("MXML class '%s' does not inherit from ext.Base.", getQualifiedNameStr());
+      AstNode errorNode = optExtends == null ? primaryDeclaration : optExtends.getSuperClass();
+      throw Jooc.error(errorNode,
+              String.format("MXML class '%s' does not inherit from ext.Base.", getQualifiedNameStr()));
     }
-
-
   }
 }

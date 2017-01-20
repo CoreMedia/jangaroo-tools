@@ -20,6 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.io.IOException;
@@ -213,13 +214,20 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
       if (superDeclaration instanceof PropertyDeclaration) {
         superDeclaration = ((PropertyDeclaration) superDeclaration).getAccessor(isSetter());
       }
+      JooSymbol symbol = getFun().getSymbol();
       if (!(superDeclaration instanceof FunctionDeclaration)) {
-        log.error(getFun().getSymbol(), "Method does not override method from super class");
+        boolean isMxmlInitConfig = getCompilationUnit() instanceof MxmlCompilationUnit &&
+                symbol.getLine() < 0 &&
+                getIde().getIde().getText().equals("initConfig");
+        if (!isMxmlInitConfig) {
+          // otherwise our inheritance check in MxmlCompilationUnit will report an error
+          log.error(symbol, "Method does not override method from super class");
+        }
       } else {
         FunctionDeclaration superMethodDeclaration = (FunctionDeclaration) superDeclaration;
         FunctionSignature superMethodSignature = superMethodDeclaration.getMethodSignature();
         if (!methodSignature.equals(superMethodSignature)) {
-          log.error(getFun().getSymbol(), "Incompatible override, should have signature '" + superMethodDeclaration.getMethodSignatureDescription() + "'");
+          log.error(symbol, "Incompatible override, should have signature '" + superMethodDeclaration.getMethodSignatureDescription() + "'");
         }
       }
     }
