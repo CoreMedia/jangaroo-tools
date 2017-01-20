@@ -11,6 +11,7 @@
 
     public static const xtype:String = "testNamespace.config.testComponentPublicApiConfig";
 
+    private native function get config():testComponentPublicApiConfig;
 
   ]]></fx:Script>
   <fx:Declarations>

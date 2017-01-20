@@ -543,6 +543,9 @@ public class ExmlToMxml {
     }
 
     private void printVars() {
+      String configClassName = CompilerUtils.className(exmlSourceFile.getConfigClassName());
+      currentOut.printf("    private native function get config():%s;%n", configClassName);
+
       for (Declaration var : vars) {
         String type = var.getType();
         if (type == null || type.isEmpty()) {
@@ -716,8 +719,6 @@ public class ExmlToMxml {
         if (!ExmlUtils.isCodeExpression(value)) {
           // escape all opening curly braces, as MXML also recognizes them anywhere inside a string:
           value = value.replaceAll("\\{", "\\\\{");
-        } else {
-          value = value.replaceAll("([^.])config[.]", "$1");
         }
         value = escapeXml(value);
         String quotes;

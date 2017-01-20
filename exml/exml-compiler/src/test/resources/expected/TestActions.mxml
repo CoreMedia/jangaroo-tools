@@ -8,6 +8,7 @@
 
     public static const xtype:String = "testNamespace.config.testActions";
 
+    private native function get config():testActions;
 
   ]]></fx:Script>
 

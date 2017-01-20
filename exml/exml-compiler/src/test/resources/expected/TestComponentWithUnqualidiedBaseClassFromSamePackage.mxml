@@ -12,6 +12,7 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithUnqualidiedBaseClassFromSamePackage";
 
+    private native function get config():testComponentWithUnqualidiedBaseClassFromSamePackage;
 
   ]]></fx:Script>
 

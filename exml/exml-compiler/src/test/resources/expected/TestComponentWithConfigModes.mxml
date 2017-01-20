@@ -10,6 +10,7 @@
 
     public static const xtype:String = "testNamespace.config.testComponentWithConfigModes";
 
+    private native function get config():testComponentWithConfigModes;
 
   ]]></fx:Script>
 

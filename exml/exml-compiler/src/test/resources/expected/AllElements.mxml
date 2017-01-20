@@ -15,7 +15,7 @@
                 xmlns:exml="http://www.jangaroo.net/exml/0.8"
                 xmlns="exml:ext.config"
                 title="I am a panel"
-                layout="{myLayout}">
+                layout="{config.myLayout}">
   <fx:Metadata>[PublicApi]</fx:Metadata>
   <fx:Script><![CDATA[
     import ext.MessageBox;
@@ -35,6 +35,7 @@
 
     public static const CODE_CONSTANT:int = 1 + 1;
 
+    private native function get config():allElements;
     private var myVar:String;
     private var myVar2:Object;
     private var myVar3:ext.config.component;

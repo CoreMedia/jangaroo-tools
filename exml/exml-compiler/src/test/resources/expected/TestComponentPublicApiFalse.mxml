@@ -10,6 +10,7 @@
 
     public static const xtype:String = "testNamespace.config.testComponentPublicApiFalse";
 
+    private native function get config():testComponentPublicApiFalse;
 
   ]]></fx:Script>
   <fx:Declarations>

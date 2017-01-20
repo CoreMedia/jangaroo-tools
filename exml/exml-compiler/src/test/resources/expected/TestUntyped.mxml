@@ -8,6 +8,7 @@
 
     public static const xtype:String = "testNamespace.config.testUntyped";
 
+    private native function get config():testUntyped;
 
   ]]></fx:Script>
 

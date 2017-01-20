@@ -12,6 +12,7 @@
     import com.coremedia.cms.editor.sdk.sites.SitesService;
     import testNamespace.config.testPluginWithoutInnerRoot;
 
+    private native function get config():testPluginWithoutInnerRoot;
     private var sitesService:com.coremedia.cms.editor.sdk.sites.SitesService;
 
     // called by generated constructor code

@@ -32,6 +32,7 @@
     return Toolbar(versionHistory.getComponent('versionHistoryToolbar'));
   };
 
+    private native function get config():testComponentWithConstants;
 
   ]]></fx:Script>
 
