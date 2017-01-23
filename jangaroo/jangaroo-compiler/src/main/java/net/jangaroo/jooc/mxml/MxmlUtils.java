@@ -134,13 +134,16 @@ public class MxmlUtils {
     if (value == null) {
       return "null";
     }
+    String valueStr = value.toString();
     if (value instanceof Number
             || value instanceof Boolean) {
-      return value.toString();
-    } else if (MxmlUtils.isBindingExpression(value.toString())) {
-      return MxmlUtils.getBindingExpression(value.toString());
+      return valueStr;
     }
-    return CompilerUtils.quote(value.toString().replaceAll("\\\\\\{", "{"));
+    String trimmedValueStr = valueStr.trim();
+    if (MxmlUtils.isBindingExpression(trimmedValueStr)) {
+      return MxmlUtils.getBindingExpression(trimmedValueStr);
+    }
+    return CompilerUtils.quote(valueStr.replaceAll("\\\\\\{", "{"));
 
   }
 
