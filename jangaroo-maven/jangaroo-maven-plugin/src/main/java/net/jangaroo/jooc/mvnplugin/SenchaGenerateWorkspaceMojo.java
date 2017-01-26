@@ -88,19 +88,13 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
      */
     FileHelper.ensureDirectory(workingDirectory);
 
-    if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
+    String extDirectory = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir());
+    SenchaUtils.generateSenchaWorkspace(workingDirectory, extDirectory , getLog(), getSenchaLogLevel());
 
-      String extDirectory = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir());
-      SenchaUtils.generateSenchaWorkspace(workingDirectory, extDirectory , getLog(), getSenchaLogLevel());
-
-      SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
-      configureDefaults(configBuilder, "default.workspace.json");
-      configurePackagesAndApp(configBuilder);
-      writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT);
-    } else {
-      getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
-    }
-
+    SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
+    configureDefaults(configBuilder, "default.workspace.json");
+    configurePackagesAndApp(configBuilder);
+    writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT);
   }
 
 
