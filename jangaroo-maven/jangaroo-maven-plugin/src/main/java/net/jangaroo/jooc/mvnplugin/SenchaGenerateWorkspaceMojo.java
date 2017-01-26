@@ -88,19 +88,13 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
      */
     FileHelper.ensureDirectory(workingDirectory);
 
-    if (null == SenchaUtils.findClosestSenchaWorkspaceDir(workingDirectory.getParentFile())) {
+    String extDirectory = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir());
+    SenchaUtils.generateSenchaWorkspace(workingDirectory, extDirectory , getLog(), getSenchaLogLevel());
 
-      String extDirectory = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, getExtFrameworkDir());
-      SenchaUtils.generateSenchaWorkspace(workingDirectory, extDirectory , getLog(), getSenchaLogLevel());
-
-      SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
-      configureDefaults(configBuilder, "default.workspace.json");
-      configurePackagesAndApp(configBuilder);
-      writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT);
-    } else {
-      getLog().info("Skipping creation of workspace because there already is a workspace in the directory hierarchy");
-    }
-
+    SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
+    configureDefaults(configBuilder, "default.workspace.json");
+    configurePackagesAndApp(configBuilder);
+    writeFile(configBuilder, workingDirectory.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT);
   }
 
 
@@ -268,13 +262,18 @@ public class SenchaGenerateWorkspaceMojo extends AbstractSenchaMojo {
             && !containsProject(project.getDependencies(), remotesProject)) {
 
       Dependency remotesDependency;
-      if (!Objects.equals(remotesProject.getVersion(), project.getVersion())) {
-        remotesDependency = MavenDependencyHelper.createDependency(
-                remotesProject.getGroupId(), remotesProject.getArtifactId(), "pom", remotesProject.getVersion());
-      } else {
-        remotesDependency = MavenDependencyHelper.createDependency(
-                remotesProject.getGroupId(), remotesProject.getArtifactId(), "pom", "${project.version}");
+      String groupId = remotesProject.getGroupId();
+      String artifactId = remotesProject.getArtifactId();
+      String version = remotesProject.getVersion();
+
+      if (Objects.equals(groupId, project.getGroupId())) {
+        groupId = "${project.groupId}";
       }
+      if (Objects.equals(version, project.getVersion())) {
+        version = "${project.version}";
+      }
+
+      remotesDependency = MavenDependencyHelper.createDependency(groupId, artifactId, "pom", version);
 
       PomManipulator.addDependency(project, remotesDependency, getLog());
 
