@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -200,7 +201,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
                 File apiOutputDirectory = getConfig().getApiOutputDirectory();
                 String relativeSourcePath = source.getRelativePath();
                 File apiFile = new File(apiOutputDirectory, relativeSourcePath);
-                Files.copy(sourceFile.toPath(), apiFile.toPath());
+                Files.copy(sourceFile.toPath(), apiFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
               }
             }
           }
