@@ -179,29 +179,33 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       for (InputSource source : compileQueue) {
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
-        String sourceName = source.getName();
-        boolean isPropertiesSource = sourceName.endsWith(PROPERTIES_SUFFIX);
-        if (isPropertiesSource) {
-          outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
-        }
-        CompilationUnit unit = importSource(source);
-        if (unit != null) {
-          // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
-          final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
-          if (primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !primaryDeclaration.isNative()
-                  && primaryDeclaration.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
-            outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+        try {
+          String sourceName = source.getName();
+          boolean isPropertiesSource = sourceName.endsWith(PROPERTIES_SUFFIX);
+          if (isPropertiesSource) {
+            outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
           }
-          if (getConfig().isGenerateApi()) {
-            writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
-            if (isPropertiesSource && isDefaultLocale(sourceName)) {
-              // copy default locale properties to joo-api so Idea can find them
-              File apiOutputDirectory = getConfig().getApiOutputDirectory();
-              String relativeSourcePath = source.getRelativePath();
-              File apiFile = new File(apiOutputDirectory, relativeSourcePath);
-              Files.copy(sourceFile.toPath(), apiFile.toPath());
+          CompilationUnit unit = importSource(source);
+          if (unit != null) {
+            // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
+            final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
+            if (primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !primaryDeclaration.isNative()
+                    && primaryDeclaration.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
+              outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+            }
+            if (getConfig().isGenerateApi()) {
+              writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
+              if (isPropertiesSource && isDefaultLocale(sourceName)) {
+                // copy default locale properties to joo-api so Idea can find them
+                File apiOutputDirectory = getConfig().getApiOutputDirectory();
+                String relativeSourcePath = source.getRelativePath();
+                File apiFile = new File(apiOutputDirectory, relativeSourcePath);
+                Files.copy(sourceFile.toPath(), apiFile.toPath());
+              }
             }
           }
+        } catch (IOException e) {
+          getLog().error(fileToSymbol(sourceFile), e.getClass().getName() + ": " + e.getMessage());
         }
         outputFileMap.put(sourceFile, outputFile); // always map source file, even if output file is null!
       }
@@ -211,7 +215,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;
       return new CompilationResultImpl(result, outputFileMap);
     } catch (IOException e) {
-      throw new CompilerError("IO Exception occurred", e);
+      throw new CompilerError(e.getClass().getName() + ": " + e.getMessage(), e);
     } finally {
       tearDown();
     }

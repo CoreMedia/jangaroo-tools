@@ -81,7 +81,7 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public static CompilerError error(String msg, final File file) {
-    return new CompilerError(new FilePositionImpl(file), msg);
+    return new CompilerError(fileToSymbol(file), msg);
   }
 
   public static CompilerError error(FilePosition symbol, String msg) {
@@ -97,7 +97,11 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public static CompilerError error(String msg, File file, Throwable t) {
-    return new CompilerError(new FilePositionImpl(file), msg, t);
+    return new CompilerError(fileToSymbol(file), msg, t);
+  }
+
+  protected static FilePosition fileToSymbol(File file) {
+    return new FilePositionImpl(file);
   }
 
   public static CompilerError error(String msg, Throwable t) {
@@ -109,7 +113,7 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public static void warning(String msg, File file) {
-    defaultLog.get().warning(new FilePositionImpl(file), msg);
+    defaultLog.get().warning(fileToSymbol(file), msg);
   }
 
   public static void warning(String msg) {
