@@ -1438,8 +1438,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public void visitParameter(Parameter parameter) throws IOException {
     Debug.assertTrue(parameter.getModifiers() == 0, "Parameters must not have any modifiers");
     boolean isRest = parameter.isRest();
-    if (parameter.getOptSymConstOrRest() != null) {
-      out.beginCommentWriteSymbol(parameter.getOptSymConstOrRest());
+    if (parameter.isRest()) {
+      out.beginCommentWriteSymbol(parameter.getOptSymRest());
       if (isRest) {
         parameter.getIde().visit(this);
       }

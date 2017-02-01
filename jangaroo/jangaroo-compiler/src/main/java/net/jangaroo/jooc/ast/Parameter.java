@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.sym;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,13 +28,13 @@ import java.util.List;
  */
 public class Parameter extends IdeDeclaration implements Typed {
 
-  private JooSymbol optSymConstOrRest;
+  private JooSymbol optSymRest;
   private TypeRelation optTypeRelation;
   private Initializer optInitializer;
 
-  public Parameter(JooSymbol optSymConst, Ide ide, TypeRelation optTypeRelation, Initializer optInitializer) {
+  public Parameter(JooSymbol optSymRest, Ide ide, TypeRelation optTypeRelation, Initializer optInitializer) {
     super(ide);
-    this.optSymConstOrRest = optSymConst;
+    this.optSymRest = optSymRest;
     this.optTypeRelation = optTypeRelation;
     this.optInitializer = optInitializer;
   }
@@ -80,7 +79,7 @@ public class Parameter extends IdeDeclaration implements Typed {
   }
 
   public boolean isRest() {
-    return getOptSymConstOrRest() != null && getOptSymConstOrRest().sym == sym.REST;
+    return getOptSymRest() != null;
   }
 
   public boolean hasInitializer() {
@@ -96,8 +95,8 @@ public class Parameter extends IdeDeclaration implements Typed {
   }
 
 
-  public JooSymbol getOptSymConstOrRest() {
-    return optSymConstOrRest;
+  public JooSymbol getOptSymRest() {
+    return optSymRest;
   }
 
   @Override
