@@ -12,6 +12,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
 
@@ -107,15 +109,29 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
                            @Nullable String comment)
           throws MojoExecutionException {
 
-    configBuilder.destFile(new File(destinationFileDir, destinationFileName));
+    String tmpDestFileName = destinationFileName + ".tmp";
+    final File tmpDestFile = new File(destinationFileDir, tmpDestFileName);
+    final File destFile = new File(destinationFileDir, destinationFileName);
+    configBuilder.destFile(tmpDestFile);
     if (comment != null ) {
       configBuilder.destFileComment(comment);
     }
-
     try {
       configBuilder.buildFile();
     } catch (IOException io) {
-      throw new MojoExecutionException(String.format("Writing %s failed", destinationFileName), io);
+      try {
+        Files.delete(tmpDestFile.toPath());
+      } catch (IOException e) {
+        getLog().warn("Unable to delete temporary file " + tmpDestFile.getAbsolutePath(), e);
+      }
+      throw new MojoExecutionException(String.format("Writing %s failed", tmpDestFile.getName()), io);
+    }
+    try {
+      Files.move(tmpDestFile.toPath(), destFile.toPath(),
+              StandardCopyOption.REPLACE_EXISTING,
+              StandardCopyOption.ATOMIC_MOVE);
+    } catch (IOException e) {
+      throw new MojoExecutionException(String.format("Moving %s to %s failed", tmpDestFile.getName(), destFile.getAbsolutePath()), e);
     }
   }
 
