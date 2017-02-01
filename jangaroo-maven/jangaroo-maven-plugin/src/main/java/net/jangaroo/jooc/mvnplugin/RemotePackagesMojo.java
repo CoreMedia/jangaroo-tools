@@ -117,8 +117,10 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
         getLog().info(String.format("Already unpacked, skipping %s", artifact));
         return;
       }
-      getLog().info(String.format("Cleaning %s", packageTargetDir));
-      clean(packageTargetDir);
+      if (packageTargetDir.exists()) {
+        getLog().info(String.format("Cleaning %s", packageTargetDir));
+        clean(packageTargetDir);
+      }
 
       getLog().info(String.format("Extracting %s to %s", artifact, packageTargetDir));
       UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
@@ -135,12 +137,10 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
   }
 
   private void clean(File dir) throws MojoExecutionException {
-    if (dir.exists()) {
-      try {
-        cleanDirectory(dir);
-      } catch (IOException e) {
-        throw new MojoExecutionException("unable to clean directory " + dir.getAbsolutePath(), e);
-      }
+    try {
+      cleanDirectory(dir);
+    } catch (IOException e) {
+      throw new MojoExecutionException("unable to clean directory " + dir.getAbsolutePath(), e);
     }
   }
 
