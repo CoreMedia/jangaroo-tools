@@ -7,6 +7,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
@@ -26,8 +27,11 @@ import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+
+import static org.apache.commons.io.FileUtils.cleanDirectory;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "extract-remote-packages",
@@ -94,31 +98,64 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
 
   private void unpackArtifact(String targetDir, Artifact artifact) throws MojoExecutionException {
     try {
-
-      UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
-      unArchiver.setSourceFile(artifact.getFile());
-
       File packageTargetDir;
       Dependency currentArtifactDependency = MavenDependencyHelper.fromArtifact(artifact);
-      artifact.getGroupId();
-      artifact.getArtifactId();
+      String groupId = artifact.getGroupId();
+      String artifactId = artifact.getArtifactId();
+      String version = artifact.getVersion();
+
       if (isExtFrameworkDependency(currentArtifactDependency)) {
-        packageTargetDir = new File( getExtFrameworkDirectory(project) );
+        packageTargetDir = new File(getExtFrameworkDirectory(project));
       } else {
-        packageTargetDir = new File(targetDir, SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
+        packageTargetDir = new File(targetDir, SenchaUtils.getSenchaPackageName(groupId, artifactId));
       }
 
+      File mavenStampFile = mavenStampFile(packageTargetDir, groupId, artifactId, version);
+      long artifactLastModified = artifact.getFile().lastModified();
+      if (mavenStampFile.exists() && mavenStampFile.lastModified() == artifactLastModified) {
+        // already unpacked
+        getLog().info(String.format("Already unpacked, skipping %s", artifact));
+        return;
+      }
+      if (packageTargetDir.exists()) {
+        getLog().info(String.format("Cleaning %s", packageTargetDir));
+        clean(packageTargetDir);
+      }
+
+      getLog().info(String.format("Extracting %s to %s", artifact, packageTargetDir));
+      UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
+      unArchiver.setSourceFile(artifact.getFile());
       FileHelper.ensureDirectory(packageTargetDir);
       unArchiver.setDestDirectory(packageTargetDir);
-
       unArchiver.extract();
-      getLog().info(String.format("Extracted %s to %s", artifact, packageTargetDir));
-
+      touch(mavenStampFile, artifactLastModified);
     } catch (NoSuchArchiverException e) {
       throw new MojoExecutionException("Could not find zipUnArchiver.", e);
     } catch ( ArchiverException e ) {
       throw new MojoExecutionException( "Could not extract: " + artifact, e );
     }
+  }
+
+  private void clean(File dir) throws MojoExecutionException {
+    try {
+      cleanDirectory(dir);
+    } catch (IOException e) {
+      throw new MojoExecutionException("unable to clean directory " + dir.getAbsolutePath(), e);
+    }
+  }
+
+  private void touch(File file, long timestamp) throws MojoExecutionException {
+    try {
+      FileUtils.touch(file);
+      file.setLastModified(timestamp);
+    } catch (IOException e) {
+      throw new MojoExecutionException("unable to create file " + file.getAbsolutePath(), e);
+    }
+  }
+
+  private File mavenStampFile(File packageTargetDir, String groupId, String artifactId, String version) {
+    String fileName = "." + groupId + '_' + artifactId + '_' + version;
+    return new File(packageTargetDir, fileName);
   }
 
   static String getRemotePackagesDirectory(MavenProject remotePackagesProject) {
