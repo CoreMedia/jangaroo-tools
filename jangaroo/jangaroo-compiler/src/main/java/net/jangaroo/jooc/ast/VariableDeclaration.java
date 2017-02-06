@@ -123,6 +123,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     }
   }
 
+  @Override
+  public boolean isWritable() {
+    return !isConst();
+  }
+
   public boolean isDeclaringCompileTimeConstant() {
     if (declaringCompileTimeConstant == null) {
       declaringCompileTimeConstant = false; // avoid infinite recursion if a const is defined using itself

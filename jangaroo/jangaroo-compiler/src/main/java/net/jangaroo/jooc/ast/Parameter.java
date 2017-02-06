@@ -40,6 +40,11 @@ public class Parameter extends IdeDeclaration implements Typed {
   }
 
   @Override
+  public boolean isWritable() {
+    return true;
+  }
+
+  @Override
   public List<? extends AstNode> getChildren() {
     return makeChildren(super.getChildren(), optTypeRelation, optInitializer);
   }

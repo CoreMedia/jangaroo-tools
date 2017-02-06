@@ -221,6 +221,10 @@ public abstract class Declaration extends Statement {
     return (getModifiers() & MODIFIER_NATIVE) != 0;
   }
 
+  public boolean isWritable() {
+    return false;
+  }
+
   @Override
   public void scope(final Scope scope) {
     setParentDeclaration(scope.getDefiningNode());

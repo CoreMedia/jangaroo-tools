@@ -571,7 +571,7 @@ final class MxmlToModelParser {
     }
     if (propertyModel == null) {
       TypedIdeDeclaration memberModel = classModel.getMemberDeclaration(propertyName);
-      if (memberModel != null && !memberModel.isPrivate() && (!memberModel.isMethod() || ((FunctionDeclaration)memberModel).isSetter())) {
+      if (memberModel != null && !memberModel.isPrivate() && memberModel.isWritable()) {
         propertyModel = memberModel;
       }
     }

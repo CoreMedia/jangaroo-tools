@@ -85,6 +85,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     return isClassMember();
   }
 
+  @Override
+  public boolean isWritable() {
+    return isSetter();
+  }
+
   public boolean isGetterOrSetter() {
     return symGetOrSet != null;
   }

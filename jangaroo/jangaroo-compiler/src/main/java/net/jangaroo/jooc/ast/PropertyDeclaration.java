@@ -42,6 +42,11 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public boolean isWritable() {
+    return getSetter() != null;
+  }
+
+  @Override
   public boolean isClassMember() {
     return getter.isClassMember();
   }
