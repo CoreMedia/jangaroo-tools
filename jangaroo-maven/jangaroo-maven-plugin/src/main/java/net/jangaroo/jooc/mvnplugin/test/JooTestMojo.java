@@ -112,7 +112,7 @@ public class JooTestMojo extends AbstractMojo {
   /**
    * Whether to load the test application in debug mode (#joo.debug).
    */
-  @Parameter(defaultValue = "false")
+  @Parameter
   protected boolean debugTests;
 
   /**
@@ -127,9 +127,10 @@ public class JooTestMojo extends AbstractMojo {
    * an range of <code>[jooUnitJettyPortLowerBound:jooUnitJettyPortUpperBound]</code>.
    * Every port is tried until a free one is found or all ports in the range
    * are occupied (which results in the build to fail).
+   * Default value is 10200.
    */
-  @Parameter(property = "jooUnitJettyPortUpperBound", defaultValue = "10200")
-  private int jooUnitJettyPortUpperBound;
+  @Parameter(property = "jooUnitJettyPortUpperBound")
+  private int jooUnitJettyPortUpperBound = 10200;
 
   /**
    * To avoid port clashes when multiple tests are running at the same
@@ -139,18 +140,19 @@ public class JooTestMojo extends AbstractMojo {
    * are occupied (which results in the build to fail).
    * When setting the flag <code>interactiveJooUnitTests</code>, this lower bound is
    * always used.
+   * Default value is 10100.
    */
-  @Parameter(property = "jooUnitJettyPortLowerBound", defaultValue = "10100")
-  private int jooUnitJettyPortLowerBound;
+  @Parameter(property = "jooUnitJettyPortLowerBound")
+  private int jooUnitJettyPortLowerBound = 10100;
 
   /**
-   * The host name to use to reach the locally started Jetty listenes, usually the default, "localhost".
+   * The host name to use to reach the locally started Jetty, usually the default, "localhost".
    */
-  @Parameter(property = "jooUnitJettyHost", defaultValue = "localhost")
-  private String jooUnitJettyHost;
+  @Parameter(property = "jooUnitJettyHost")
+  private String jooUnitJettyHost = "localhost";
 
-  @Parameter(defaultValue = SenchaUtils.TOOLKIT_CLASSIC)
-  private String toolkit;
+  @Parameter
+  private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
 
   /**
    * Used to look up Artifacts in the remote repository.
@@ -176,28 +178,28 @@ public class JooTestMojo extends AbstractMojo {
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
    */
-  @Parameter(defaultValue = "${maven.test.skip}")
+  @Parameter(property =  "maven.test.skip")
   private boolean skip;
 
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
    */
-  @Parameter(defaultValue = "${skipTests}")
+  @Parameter(property = "skipTests")
   private boolean skipTests;
 
   /**
    * Set this to 'true' to skip running tests, but still compile them. Its use is NOT RECOMMENDED, but quite
    * convenient on occasion.
    */
-  @Parameter(defaultValue = "${skipJooUnitTests}")
+  @Parameter(property = "skipJooUnitTests")
   private boolean skipJooUnitTests;
 
   /**
    * Set this to 'true' to build and serve the tests app, output the tests app URL, then wait for the developer
    * to manually run and debug the tests in a browser.
    */
-  @Parameter(defaultValue = "${interactiveJooUnitTests}")
+  @Parameter(property = "interactiveJooUnitTests")
   private boolean interactiveJooUnitTests;
 
   /**
@@ -212,18 +214,16 @@ public class JooTestMojo extends AbstractMojo {
   private String testResultFileName;
 
   /**
-   * Specifies the time in milliseconds to wait for the test results in the browser. Default is 30000ms.
+   * Specifies the time in milliseconds to wait for the test results in the browser. Default is 30000 ms.
    */
-  @SuppressWarnings("FieldCanBeLocal")
-  @Parameter(defaultValue = "30000")
+  @Parameter(property = "jooUnitTestExecutionTimeout")
   private int jooUnitTestExecutionTimeout = 30000;
 
   /**
    * Specifies the number of retries when receiving unexpected result from phantomjs (crash?).
    * Default is 5.
    */
-  @SuppressWarnings("FieldCanBeLocal")
-  @Parameter(defaultValue = "5")
+  @Parameter(property = "jooUnitMaxRetriesOnCrashes")
   private int jooUnitMaxRetriesOnCrashes = 5;
 
   /**
@@ -231,7 +231,7 @@ public class JooTestMojo extends AbstractMojo {
    * If the system property SELENIUM_RC_HOST is set, it is used prior to the
    * maven parameter.
    */
-  @Parameter(defaultValue = "localhost")
+  @Parameter(property = "jooUnitSeleniumRCHost")
   private String jooUnitSeleniumRCHost = "localhost";
 
   /**
@@ -243,31 +243,31 @@ public class JooTestMojo extends AbstractMojo {
   /**
    * Defines the Selenium RC port. Default is 4444.
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  @Parameter(defaultValue = "4444")
+  @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(property = "jooUnitSeleniumRCPort")
   private int jooUnitSeleniumRCPort = 4444;
 
   /**
    * Selenium browser start command. Default is *firefox
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  @Parameter(defaultValue = "*firefox")
+  @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(property = "jooUnitSeleniumBrowserStartCommand")
   private String jooUnitSeleniumBrowserStartCommand = "*firefox";
 
   /**
    * Set this to true to ignore a failure during testing. Its use is NOT RECOMMENDED, but quite convenient on
    * occasion.
    */
-  @Parameter(defaultValue = "${maven.test.failure.ignore}")
+  @Parameter(property = "maven.test.failure.ignore")
   private boolean testFailureIgnore;
 
   /**
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
    * If not phantomjs executable (or an outdated one) is found, falls back to Selenium.
    */
-  @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
-  @Parameter(property = "phantomjs.bin", defaultValue = "phantomjs")
-  private String phantomBin;
+  @SuppressWarnings({"UnusedDeclaration"})
+  @Parameter(property = "phantomjs.bin")
+  private String phantomBin = "phantomjs";
 
   /**
    * The resource timeout (maximum time in ms that a resource request may take)
@@ -279,21 +279,21 @@ public class JooTestMojo extends AbstractMojo {
    * load dead-locks have been observed to recur two or more times in a row before they
    * vanish.
    */
-  @Parameter(defaultValue = "10000")
-  private int jooUnitResourceTimeout;
+  @Parameter(property = "jooUnitResourceTimeout")
+  private int jooUnitResourceTimeout = 10000;
 
   /**
-   * Set this to true to enable phantomjs debug output
+   * Set this to true to enable phantomjs debug output.
    */
-  @Parameter(defaultValue = "false")
+  @Parameter(property = "phantomjsDebug")
   private boolean phantomjsDebug;
 
 
   /**
-   * Set this to false to disable phantomjs web security
+   * Set this to false to disable phantomjs web security.
    */
-  @Parameter(defaultValue = "true")
-  private boolean phantomjsWebSecurity;
+  @Parameter(property = "phantomjsWebSecurity")
+  private boolean phantomjsWebSecurity = true;
 
 
   /**

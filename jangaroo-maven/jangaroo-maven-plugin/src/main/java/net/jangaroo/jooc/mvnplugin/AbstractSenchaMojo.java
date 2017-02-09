@@ -19,8 +19,8 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
 
-  @Parameter(defaultValue = SenchaUtils.TOOLKIT_CLASSIC)
-  private String toolkit;
+  @Parameter
+  private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
 
   @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)
   private String extFrameworkDir;

@@ -57,7 +57,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
    *
    * @since 4.0
    */
-  @Parameter(property = "skipJangarooApp", defaultValue = "false")
+  @Parameter(property = "skipJangarooApp")
   private boolean skipJangarooApp;
 
   /**

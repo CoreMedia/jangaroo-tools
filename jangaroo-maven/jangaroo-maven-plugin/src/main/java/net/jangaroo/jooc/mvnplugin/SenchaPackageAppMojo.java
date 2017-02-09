@@ -73,8 +73,8 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
    * Choose to create a 'production' build of the Sencha App instead of the standard 'development' build.
    * Note that when you do a 'mvn install -DsenchaAppBuild=production', the <em>Jangaroo app</em> build will be skipped!
    */
-  @Parameter(property = "senchaAppBuild", defaultValue = SenchaUtils.DEVELOPMENT_PROFILE)
-  private String senchaAppBuild;
+  @Parameter(property = "senchaAppBuild")
+  private String senchaAppBuild = SenchaUtils.DEVELOPMENT_PROFILE;
 
   /**
    * Skips the build process of a separate <em>Jangaroo Build App</em>.
@@ -84,7 +84,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
    *
    * @since 4.0
    */
-  @Parameter(property = "skipJangarooApp", defaultValue = "false")
+  @Parameter(property = "skipJangarooApp")
   private boolean skipJangarooApp;
 
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)

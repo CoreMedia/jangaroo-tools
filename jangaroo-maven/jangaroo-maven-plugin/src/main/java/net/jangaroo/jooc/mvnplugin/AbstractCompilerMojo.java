@@ -38,22 +38,23 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   /**
    * Indicates whether the build will fail if there are compilation errors.
+   * Defaults to "true".
    */
   @SuppressWarnings("FieldCanBeLocal")
-  @Parameter(property = "maven.compiler.failOnError", defaultValue = "true")
-  private boolean failOnError;
+  @Parameter(property = "maven.compiler.failOnError")
+  private boolean failOnError = true;
 
   /**
    * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
    */
-  @Parameter(property = "maven.compile.ea", defaultValue = "false")
+  @Parameter(property = "maven.compile.ea")
   private boolean enableAssertions;
 
   /**
    * Set "allowDuplicateLocalVariables" to "true" in order to allow multiple declarations of local variables
    * within the same scope.
    */
-  @Parameter(defaultValue = "false")
+  @Parameter(property = "maven.compiler.allowDuplicateLocalVariables")
   private boolean allowDuplicateLocalVariables;
 
   /**
@@ -62,15 +63,15 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * It can take the values "warn" to log a warning whenever such a class is used, "allow" to suppress such warnings,
    * and "error" to stop the build with an error.
    */
-  @Parameter(defaultValue = "warn")
-  private String publicApiViolations;
+  @Parameter(property = "maven.compiler.publicApiViolations")
+  private String publicApiViolations = PublicApiViolationsMode.WARN.toString().toLowerCase();
 
   /**
    * If set to "true", the compiler will add an [ExcludeClass] annotation to any
    * API stub whose source class contains neither an [PublicApi] nor an [ExcludeClass]
    * annotation.
    */
-  @Parameter(property = "maven.compiler.excludeClassByDefault", defaultValue = "false")
+  @Parameter(property = "maven.compiler.excludeClassByDefault")
   private boolean excludeClassByDefault;
 
   /**
@@ -79,34 +80,34 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * debugging.
    * Set to <code>false</code> to disable this feature to decrease build time and artifact size.
    */
-  @Parameter(property = "maven.compiler.generateSourceMaps", defaultValue = "false")
+  @Parameter(property = "maven.compiler.generateSourceMaps")
   private boolean generateSourceMaps;
 
   /**
    * If set to "true", the compiler will generate more detailed progress information.
    */
-  @Parameter(property = "maven.compiler.verbose", defaultValue = "false")
+  @Parameter(property = "maven.compiler.verbose")
   private boolean verbose;
 
   /**
    * Sets the granularity in milliseconds of the last modification
    * date for testing whether a source needs recompilation.
    */
-  @Parameter(property = "lastModGranularityMs", defaultValue = "0")
+  @Parameter(property = "lastModGranularityMs")
   private int staleMillis;
 
   /**
    * Keyword list to be appended to the -g  command-line switch. Legal values are one of the following keywords: none, lines, or source.
    * If debuglevel is not specified, by default, nothing will be appended to -g. If debug is not turned on, this attribute will be ignored.
    */
-  @Parameter(defaultValue = "source")
-  private String debuglevel;
+  @Parameter(property = "maven.compiler.debuglevel")
+  private String debuglevel = DebugMode.SOURCE.toString().toLowerCase();
 
   /**
    * Keyword list to be appended to the -autosemicolon  command-line switch. Legal values are one of the following keywords: error, warn (default), or quirks.
    */
-  @Parameter(defaultValue = "warn")
-  private String autoSemicolon;
+  @Parameter(property = "maven.compiler.autoSemicolon")
+  private String autoSemicolon = SemicolonInsertionMode.WARN.toString().toLowerCase();
 
   /**
    * Output directory for all generated ActionScript3 files to compile.
