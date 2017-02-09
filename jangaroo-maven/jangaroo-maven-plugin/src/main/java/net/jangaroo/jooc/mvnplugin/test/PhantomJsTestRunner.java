@@ -20,10 +20,10 @@ public class PhantomJsTestRunner {
 
   public static final Pattern LOG_LEVEL_PATTERN = Pattern.compile("^\\[([A-Z]+)\\]\\s*(.*)$");
 
-  private static int INITIAL_RESOURCE_TIMEOUT_MS = 500;
   private static volatile Boolean phantomjsExecutableFound;
 
   private final String testPageUrl;
+  private final int phantomjsResourceTimeout;
   private final boolean phantomjsDebug;
   private final boolean phantomjsWebSecurity;
   private String testResultFilename;
@@ -40,17 +40,19 @@ public class PhantomJsTestRunner {
    * @param testRunner          the test bootstrap script to be loaded in phantomjs
    * @param timeout             timeout in seconds
    * @param maxRetriesOnCrashes number of retries when receiving unexpected result from phantomjs (crash?)
+   * @param phantomjsResourceTimeout
    * @param phantomjsDebug
    * @param phantomjsWebSecurity
    * @param log                 the maven log
    */
-  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, int maxRetriesOnCrashes, boolean phantomjsDebug, boolean phantomjsWebSecurity, Log log) {
+  public PhantomJsTestRunner(String phantomjs, String testPageUrl, String testResultFilename, String testRunner, int timeout, int maxRetriesOnCrashes, int phantomjsResourceTimeout, boolean phantomjsDebug, boolean phantomjsWebSecurity, Log log) {
     this.phantomjs = makeOsSpecific(phantomjs);
     this.testPageUrl = testPageUrl;
     this.testResultFilename = testResultFilename;
     this.testRunner = testRunner;
     this.timeout = timeout;
     this.maxRetriesOnCrashes = maxRetriesOnCrashes;
+    this.phantomjsResourceTimeout = phantomjsResourceTimeout;
     this.log = log;
     this.phantomjsDebug = phantomjsDebug;
     this.phantomjsWebSecurity = phantomjsWebSecurity;
@@ -66,17 +68,14 @@ public class PhantomJsTestRunner {
   }
 
   public boolean execute() throws CommandLineException {
-    int resourceTimeoutMs = INITIAL_RESOURCE_TIMEOUT_MS;
     long started = System.currentTimeMillis() + 100;
 
     final StreamConsumer outConsumer = new LoggingStreamConsumer();
     final StreamConsumer errConsumer = new WarningStreamConsumer();
 
+    final Commandline cmd = createCommandLine();
+    log.info("executing phantomjs cmd: " + cmd.toString());
     for (int tryCount = 0; tryCount <= maxRetriesOnCrashes; ++tryCount) {
-      Commandline cmd = createCommandLine(resourceTimeoutMs);
-      if (tryCount == 0) {
-        log.info("executing phantomjs cmd: " + cmd.toString());
-      }
       int returnCode = CommandLineUtils.executeCommandLine(cmd, outConsumer, errConsumer, getTimeoutInSeconds(started));
       if (returnCode >= 0 && returnCode <= 4) { // valid phantomjs-joounit-page-runner return codes!
         return returnCode == 0;
@@ -85,12 +84,10 @@ public class PhantomJsTestRunner {
 
       // seems that phantomjs keeps state and needs some time to recover .... really ?
       try {
-        Thread.sleep(resourceTimeoutMs);
+        Thread.sleep(phantomjsResourceTimeout);
       } catch (InterruptedException e) { // NOSONAR
         // IGNORE
       }
-      // increase resource timeout but not beyond a second
-      resourceTimeoutMs = Math.min(resourceTimeoutMs + 100, 1000);
     }
     log.error(String.format("Got %d unexpected results from phantomjs, giving up.", maxRetriesOnCrashes + 1));
     return false;
@@ -138,7 +135,7 @@ public class PhantomJsTestRunner {
     return false;
   }
 
-  private Commandline createCommandLine(int resourceTimeout) {
+  private Commandline createCommandLine() {
     final Commandline commandline = new Commandline();
     commandline.setExecutable(phantomjs);
     final ArrayList<String> arguments = new ArrayList<>();
@@ -149,7 +146,7 @@ public class PhantomJsTestRunner {
 
     arguments.add(testPageUrl);
     arguments.add(testResultFilename);
-    arguments.add(String.valueOf(resourceTimeout));
+    arguments.add(String.valueOf(phantomjsResourceTimeout));
     commandline.addArguments(arguments.toArray(new String[arguments.size()]));
 
     return commandline;

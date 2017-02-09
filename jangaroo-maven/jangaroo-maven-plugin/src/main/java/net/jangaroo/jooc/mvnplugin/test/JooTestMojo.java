@@ -270,6 +270,19 @@ public class JooTestMojo extends AbstractMojo {
   private String phantomBin;
 
   /**
+   * The resource timeout (maximum time in ms that a resource request may take)
+   * to use for phantomjs when running JooUnit tests. Defaults to 10000 ms (10 s).
+   * This has been introduced because phantomjs sometimes dead-locks when loading resources.
+   * The limit should be sufficiently large so that it is only reached when such dead-lock
+   * is encountered. A resource timeout is handled as if phantomjs crashed, i.e.
+   * <code>jooUnitMaxRetriesOnCrashes</code> applies. This is intended, because resource
+   * load dead-locks have been observed to recur two or more times in a row before they
+   * vanish.
+   */
+  @Parameter(defaultValue = "10000")
+  private int jooUnitResourceTimeout;
+
+  /**
    * Set this to true to enable phantomjs debug output
    */
   @Parameter(defaultValue = "false")
@@ -347,7 +360,7 @@ public class JooTestMojo extends AbstractMojo {
       File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
       File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
       FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, phantomjsDebug, phantomjsWebSecurity, getLog());
+      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, jooUnitResourceTimeout, phantomjsDebug, phantomjsWebSecurity, getLog());
       if (phantomJsTestRunner.canRun()) {
         executePhantomJs(testResultOutputFile, phantomJsTestRunner);
       } else {
