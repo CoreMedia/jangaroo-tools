@@ -14,7 +14,6 @@ import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -59,10 +58,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private static final String[] EXT_FRAMEWORK_INCLUDES = new String[]{".sencha/**", "build/**", "classic/**", "cmd/**", "framework/**", "license/**", "packages/**", "*.*"};
   private static final String[] EXT_FRAMEWORK_EXCLUDES = null;
 
-
-  //TODO redundant with super.session
-  @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  private MavenSession mavenSession;
 
   /**
    * Supported locales in addition to the default locale "{@value DEFAULT_LOCALE}"
@@ -287,7 +282,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
-      mavenArchiver.createArchive(mavenSession, project, archive);
+      mavenArchiver.createArchive(session, project, archive);
 
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);

@@ -44,7 +44,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   protected MavenProject project;
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  private MavenSession session;
+  protected MavenSession session;
 
   @Component
   private ProjectBuilder projectBuilder;
