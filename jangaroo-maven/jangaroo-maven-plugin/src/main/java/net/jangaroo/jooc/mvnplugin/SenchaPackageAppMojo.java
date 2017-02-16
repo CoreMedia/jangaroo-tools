@@ -60,6 +60,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private static final String[] EXT_FRAMEWORK_EXCLUDES = null;
 
 
+  //TODO redundant with super.session
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession mavenSession;
 

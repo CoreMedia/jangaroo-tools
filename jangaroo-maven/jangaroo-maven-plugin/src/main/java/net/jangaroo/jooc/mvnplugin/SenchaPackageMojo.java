@@ -1,21 +1,22 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import net.jangaroo.jooc.PackagerImpl;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,7 +25,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +34,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGE_CONFIG_FILE
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 /**
  * Generates and packages Sencha package modules of type "test" and "code"
@@ -42,8 +43,14 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
 public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPackageConfigBuilder> {
 
-  private static final String SENCHA_PACKAGE_BUILD_PROPERTIES_FILE = "/.sencha/package/build.properties";
+  /**
+   * Plexus archiver.
+   */
+  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
+  private JarArchiver archiver;
 
+  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.ZIP_EXTENSION)
+  private ZipArchiver zipArchiver;
 
   @Inject
   private MavenProjectHelper helper;
@@ -120,72 +127,16 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     if (!Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\"");
     }
-
     getLog().info("Execute sencha packaging mojo");
-
-    // needed?
     FileHelper.ensureDirectory(new File(getSenchaPackageDirectory().getPath()));
-
     SenchaPackageConfigBuilder configBuilder = createSenchaConfigBuilder();
     configure(configBuilder);
-
-    // generate package
-    // write temporary package.json
-    createModule(configBuilder);
-
-    // copy files from src/main/sencha to local package dir "target/packages/<package.name>"
-    // write packageConfig.js
-    // write package.json
-    // write build.properties
     prepareModule(configBuilder);
-
-    // build pkg file
     if (!skipJangarooApp) {
       File pkg = packageModule();
       helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
     }
-
   }
-
-  private void createModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-
-    File senchaCfg = new File(getSenchaPackageDirectory().getPath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
-
-    if (senchaCfg.exists()) {
-      getLog().info("Sencha package already exists, skip generating one");
-      return;
-    }
-
-    // This is a workaround
-
-    // we must use the --name parameter to specify a path to the package directory as workspace.json cannot be modified
-    // because of problems with parallel builds
-
-    // because using "/" in package name is not valid we must prevent Sencha generate package to create a package.json
-    // otherwise a temporary state exists where the whole workspace fails to build because of an invalid package name.
-    // this can be achieved by creating a package.json before Sencha generate package is triggered.
-    writePackageJson(configBuilder);
-
-    Path pathToWorkingDirectory = SenchaUtils.getRelativePathFromWorkspaceToWorkingDir(getSenchaPackageDirectory());
-
-    String arguments = "generate package"
-            + " --name=\"" + getSenchaPackageName(project) + "\""
-            + " --namespace=\"\""
-            + " --type=\"code\""
-            + " " + pathToWorkingDirectory;
-    getLog().info("Generating Sencha package module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(getSenchaPackageDirectory(), arguments, getLog(), getSenchaLogLevel());
-    senchaCmdExecutor.execute();
-
-    // sencha.cfg should be recreated
-    // for normal packages skip generating css and slices
-    if (senchaCfg.exists()) {
-      FileHelper.addToConfigFile(senchaCfg, ImmutableList.of("skip.sass=1", "skip.slice=1", "skip.resources=1"));
-    } else {
-      throw new MojoExecutionException(String.format("Could not find sencha.cfg of package at '%s'", senchaCfg));
-    }
-  }
-
 
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
 
@@ -193,24 +144,21 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     // this usually includes resources etc.
     getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), getSenchaPackageDirectory().getPath()));
     FileHelper.copyFiles(getSenchaSrcDir(), getSenchaPackageDirectory());
-
-    // write packageConfig.js
     writePackageConfig();
-
-    // write package.json
     writePackageJson(configBuilder);
-
     compileJavaScriptSources(getSenchaPackageDirectory());
+    writeSenchaCfgFile();
+  }
 
-    // write target//.sencha/package/build.properties/build.properties
-    getLog().info("Write " + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
-    File buildPropertiesFile = new File(getSenchaPackageDirectory().getAbsolutePath() + SENCHA_PACKAGE_BUILD_PROPERTIES_FILE);
-    FileHelper.writeBuildProperties(buildPropertiesFile, ImmutableMap.of(
-            "pkg.file.name", "${package.name}.pkg",
-            "pkg.build.dir", "${package.dir}/build",
-            "build.temp.dir", "${package.dir}/build/temp",
-            "build.compile.js.compress", ""
-    ));
+  private void writeSenchaCfgFile() throws MojoExecutionException {
+    File senchaCfg = new File(getSenchaPackageDirectory().getPath(), SenchaUtils.SENCHA_PACKAGE_CONFIG);
+    getLog().info("Write " + SenchaUtils.SENCHA_PACKAGE_CONFIG);
+    try {
+      Files.createParentDirs(senchaCfg);
+      Files.touch(senchaCfg);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not create " + senchaCfg.getAbsolutePath(), e);
+    }
   }
 
   private void compileJavaScriptSources(File dir) throws MojoExecutionException {
@@ -226,46 +174,39 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-  @Nonnull
-  public File packageModule() throws MojoExecutionException {
-    if (!getSenchaPackageDirectory().exists()) {
-      throw new MojoExecutionException("Sencha package directory does not exist: " + getSenchaPackageDirectory().getPath());
-    }
-
-    buildSenchaPackage(getSenchaPackageDirectory());
-
-    File pkg = new File(buildDirectoryPath + SenchaUtils.getPackagesBuildPath(project), getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
-    if (!pkg.exists()) {
-      throw new MojoExecutionException("Could not find " + SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project));
-    }
-
-    return pkg;
-  }
-
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
     getLog().info("Write package.json file");
     writeFile(configBuilder, getSenchaPackageDirectory().getPath(), SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
   }
 
-  private void buildSenchaPackage(File senchaDirectory) throws MojoExecutionException {
-    getLog().info("Building Sencha package module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaDirectory, "package build", getLog(), getSenchaLogLevel());
-    senchaCmdExecutor.execute();
+  @Nonnull
+  public File packageModule() throws MojoExecutionException {
+    getLog().info("Building Sencha module package");
+    File pkg = new File(buildDirectoryPath + SenchaUtils.getPackagesBuildPath(project), getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
+    if (!getSenchaPackageDirectory().exists()) {
+      throw new MojoExecutionException("Sencha package directory does not exist: " + getSenchaPackageDirectory().getPath());
+    }
+    zipArchiver.addFileSet(fileSet(new File(buildDirectoryPath + SenchaUtils.getPackagesPath(project))));
+    zipArchiver.setDestFile(pkg);
+    try {
+      zipArchiver.createArchive();
+    } catch (Exception e) { // NOSONAR
+      throw new MojoExecutionException("Failed to create module package archive", e);
+    }
+    if (!pkg.exists()) {
+      throw new MojoExecutionException("Could not find " + SENCHA_PKG_EXTENSION + " for Sencha package " + getSenchaPackageName(project));
+    }
+    return pkg;
   }
 
   protected void configure(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
     configureDefaults(configBuilder, "default.package.json");
-
     super.configure(configBuilder);
-
     configBuilder.type(Type.THEME.equals(getType()) ? Type.THEME : Type.CODE);
-
     addRequiredClasses(configBuilder, null, getRequiredClasses());
-
     addRequiredClasses(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getRequiredClassesFromConfiguration(getProduction()));
     addRequiredClasses(configBuilder, SenchaUtils.TESTING_PROFILE, getRequiredClassesFromConfiguration(getTesting()));
     addRequiredClasses(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getRequiredClassesFromConfiguration(getDevelopment()));
-
   }
 
   @Nonnull
