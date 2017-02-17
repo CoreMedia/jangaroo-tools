@@ -139,11 +139,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-
-    // copy files from src/main/sencha to local package dir "target/packages/<package.name>"
-    // this usually includes resources etc.
-    getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), getSenchaPackageDirectory().getPath()));
-    FileHelper.copyFiles(getSenchaSrcDir(), getSenchaPackageDirectory());
     writePackageConfig();
     writePackageJson(configBuilder);
     compileJavaScriptSources(getSenchaPackageDirectory());
