@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.Map;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGE_CONFIG_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_BUNDLED_RESOURCES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_EXTENSION;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_PKG_TMP_EXTENSION;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
@@ -177,14 +179,19 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   @Nonnull
   public File packageModule() throws MojoExecutionException {
     getLog().info("Building Sencha module package");
+    File tmpPkg = new File(buildDirectoryPath, getSenchaPackageName(project) + SENCHA_PKG_TMP_EXTENSION);
     File pkg = new File(buildDirectoryPath + SenchaUtils.getPackagesBuildPath(project), getSenchaPackageName(project) + SENCHA_PKG_EXTENSION);
     if (!getSenchaPackageDirectory().exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + getSenchaPackageDirectory().getPath());
     }
     zipArchiver.addFileSet(fileSet(new File(buildDirectoryPath + SenchaUtils.getPackagesPath(project))));
-    zipArchiver.setDestFile(pkg);
+    zipArchiver.setDestFile(tmpPkg);
     try {
       zipArchiver.createArchive();
+      java.nio.file.Files.createDirectories(pkg.getParentFile().toPath());
+      java.nio.file.Files.move(tmpPkg.toPath(), pkg.toPath(),
+              StandardCopyOption.REPLACE_EXISTING,
+              StandardCopyOption.ATOMIC_MOVE);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create module package archive", e);
     }
