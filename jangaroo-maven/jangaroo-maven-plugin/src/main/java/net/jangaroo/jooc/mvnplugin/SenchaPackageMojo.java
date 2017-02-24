@@ -16,6 +16,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 
 import javax.annotation.Nonnull;
@@ -171,7 +172,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
   private void writePackageJson(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
     getLog().info("Write package.json file");
-    writeFile(configBuilder, getSenchaPackageDirectory().getPath(), SenchaUtils.SENCHA_PACKAGE_FILENAME, null);
+    SenchaUtils.writeFile(configBuilder, getSenchaPackageDirectory().getPath(), SenchaUtils.SENCHA_PACKAGE_FILENAME, null, getLog());
   }
 
   @Nonnull
@@ -181,7 +182,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     if (!getSenchaPackageDirectory().exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + getSenchaPackageDirectory().getPath());
     }
-    zipArchiver.addFileSet(fileSet(new File(buildDirectoryPath + SenchaUtils.getPackagesPath(project))));
+    final DefaultFileSet fileSet = fileSet(new File(buildDirectoryPath + SenchaUtils.getPackagesPath(project)));
+    zipArchiver.addFileSet(fileSet);
     zipArchiver.setDestFile(pkg);
     try {
       zipArchiver.createArchive();
@@ -194,8 +196,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     return pkg;
   }
 
-  protected void configure(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-    configureDefaults(configBuilder, "default.package.json");
+  private void configure(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
+    SenchaUtils.configureDefaults(configBuilder, "default.package.json");
     super.configure(configBuilder);
     configBuilder.type(Type.THEME.equals(getType()) ? Type.THEME : Type.CODE);
     addRequiredClasses(configBuilder, null, getRequiredClasses());

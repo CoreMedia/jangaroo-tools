@@ -158,11 +158,11 @@ public class RemotePackagesMojo extends AbstractSenchaMojo {
     return new File(packageTargetDir, fileName);
   }
 
-  static String getRemotePackagesDirectory(MavenProject remotePackagesProject) {
+  public static String getRemotePackagesDirectory(MavenProject remotePackagesProject) {
     return remotePackagesProject.getBuild().getDirectory() + PACKAGES_DIRECTORY;
   }
 
-  static String getExtFrameworkDirectory(MavenProject remotePackagesProject) {
+  public static String getExtFrameworkDirectory(MavenProject remotePackagesProject) {
     return remotePackagesProject.getBuild().getDirectory() + EXT_FRAMEWORK_DIRECTORY;
   }
 }

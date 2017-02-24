@@ -9,7 +9,6 @@ import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -42,9 +41,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
-
-  @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  protected MavenSession session;
 
   @Component
   private ProjectBuilder projectBuilder;

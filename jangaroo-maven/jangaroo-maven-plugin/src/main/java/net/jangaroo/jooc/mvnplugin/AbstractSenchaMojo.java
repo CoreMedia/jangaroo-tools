@@ -1,32 +1,31 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.regex.Pattern;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
 
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  protected MavenProject project;
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  protected MavenSession session;
+
   @Parameter
   private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
-
-  @Parameter(defaultValue = "${project.build.directory}/ext", readonly = true)
-  private String extFrameworkDir;
-
-  @Parameter(defaultValue = "${project.build.directory}/packages", readonly = true)
-  private String packagesDir;
 
   @Parameter(defaultValue = "${project.groupId}:${project.artifactId}")
   private String remotePackagesArtifact;
@@ -56,10 +55,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return toolkit;
   }
 
-  public String getExtFrameworkDir() {
-    return extFrameworkDir;
-  }
-
   public Pattern getExtFrameworkArtifactPattern() {
     if (extFrameworkArtifactPattern == null) {
       extFrameworkArtifactPattern = Pattern.compile(getExtFrameworkArtifactRegexp());
@@ -71,10 +66,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return extFrameworkArtifactRegexp;
   }
 
-  public String getPackagesDir() {
-    return packagesDir;
-  }
-
   public String getRemotePackagesArtifact() {
     return remotePackagesArtifact;
   }
@@ -83,56 +74,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   // ************************* SETTERS *************************************
   // ***********************************************************************
 
-  public void setExtFrameworkDir(String extFrameworkDir) {
-    this.extFrameworkDir = extFrameworkDir;
-  }
-
-  public void setPackagesDir(String packagesDir) {
-    this.packagesDir = packagesDir;
-  }
-
   public String getSenchaLogLevel() {
     return senchaLogLevel;
-  }
-
-  protected static void configureDefaults(SenchaConfigBuilder configBuilder, String defaultsFileName) throws MojoExecutionException {
-    try {
-      configBuilder.defaults(defaultsFileName);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Cannot load " + defaultsFileName, e);
-    }
-  }
-
-  protected void writeFile(@Nonnull SenchaConfigBuilder configBuilder,
-                           @Nonnull String destinationFileDir,
-                           @Nonnull String destinationFileName,
-                           @Nullable String comment)
-          throws MojoExecutionException {
-
-    String tmpDestFileName = destinationFileName + ".tmp";
-    final File tmpDestFile = new File(destinationFileDir, tmpDestFileName);
-    final File destFile = new File(destinationFileDir, destinationFileName);
-    configBuilder.destFile(tmpDestFile);
-    if (comment != null ) {
-      configBuilder.destFileComment(comment);
-    }
-    try {
-      configBuilder.buildFile();
-    } catch (IOException io) {
-      try {
-        Files.delete(tmpDestFile.toPath());
-      } catch (IOException e) {
-        getLog().warn("Unable to delete temporary file " + tmpDestFile.getAbsolutePath(), e);
-      }
-      throw new MojoExecutionException(String.format("Writing %s failed", tmpDestFile.getName()), io);
-    }
-    try {
-      Files.move(tmpDestFile.toPath(), destFile.toPath(),
-              StandardCopyOption.REPLACE_EXISTING,
-              StandardCopyOption.ATOMIC_MOVE);
-    } catch (IOException e) {
-      throw new MojoExecutionException(String.format("Moving %s to %s failed", tmpDestFile.getName(), destFile.getAbsolutePath()), e);
-    }
   }
 
   protected boolean isExtFrameworkArtifact(Artifact artifact) {
@@ -148,4 +91,32 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return getExtFrameworkArtifactPattern().matcher(key).matches();
   }
 
+  /**
+   * Returns the configured remote packages project or the current project if none is configured.
+   *
+   * @return the configured remote packages project or the current project if none is configured
+   * @throws MojoExecutionException
+   */
+  @Nonnull
+  protected MavenProject getRemotePackagesProject()
+          throws MojoExecutionException {
+    String remotePackageArtifactId = getRemotePackagesArtifact();
+    if (StringUtils.isEmpty(remotePackageArtifactId)) {
+      return session.getCurrentProject();
+    }
+    Collection<MavenProject> allReactorProjects = session.getCurrentProject().getProjectReferences().values();
+    for (MavenProject reactorProject : allReactorProjects) {
+      if (isRemoteAggregator(reactorProject)) {
+        return reactorProject;
+      }
+    }
+    throw new MojoExecutionException("Could not find local remote-packages module with coordinates "
+            + remotePackageArtifactId);
+  }
+
+  private boolean isRemoteAggregator(@Nonnull MavenProject project) {
+    Dependency dependency = MavenDependencyHelper.fromProject(project);
+    Dependency remotePackagesDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
+    return MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackagesDependency);
+  }
 }

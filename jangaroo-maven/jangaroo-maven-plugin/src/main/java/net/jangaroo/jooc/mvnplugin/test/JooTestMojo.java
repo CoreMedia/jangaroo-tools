@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin.test;
 import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
+import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
@@ -13,14 +14,12 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
@@ -84,18 +83,12 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
         defaultPhase = LifecyclePhase.TEST,
         requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
-public class JooTestMojo extends AbstractMojo {
+public class JooTestMojo extends AbstractSenchaMojo {
 
   private static final int MAXIMUM_NUMBER_OF_RETRIES = 30;
   private static final int WAITING_TIME = 1000;
 
   private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
-
-  /**
-   * The maven project.
-   */
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  protected MavenProject project;
 
   /**
    * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
@@ -108,12 +101,6 @@ public class JooTestMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   protected File testOutputDirectory;
-
-  /**
-   * Whether to load the test application in debug mode (#joo.debug).
-   */
-  @Parameter
-  protected boolean debugTests;
 
   /**
    * the project's test resources
@@ -295,29 +282,22 @@ public class JooTestMojo extends AbstractMojo {
   @Parameter(property = "phantomjsWebSecurity")
   private boolean phantomjsWebSecurity = true;
 
-
-  /**
-   * The log level to use for Sencha Cmd.
-   * The log level for Maven is kind of the base line which determines which log entries are actually shown in the output.
-   * When you Maven log level is "info", no "debug" messages for Sencha Cmd are logged.
-   * If no log level is given, the Maven log level will be used.
-   */
-  @Parameter(property = "senchaLogLevel")
-  private String senchaLogLevel;
-
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean doSkip = skip || skipTests || skipJooUnitTests;
     if (doSkip || testSuite == null) {
       getLog().info("Skipping generation of Jangaroo test app: " + (doSkip ? "tests skipped." : "no tests found."));
     } else {
+      File workspaceDir = new File(project.getBuild().getDirectory());
+      SenchaUtils.generateWorkspace(project, getRemotePackagesProject(), workspaceDir, getLog(), getSenchaLogLevel());
       getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
       createWebApp(testOutputDirectory);
 
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
-      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), senchaLogLevel).execute();
+      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
 
-      Server server = jettyRunTest(!interactiveJooUnitTests);
-      String url = getTestUrl(server);
+      File baseDir = new File(session.getRequest().getBaseDirectory());
+      Server server = jettyRunTest(!interactiveJooUnitTests, baseDir);
+      String url = getTestUrl(server, baseDir);
       getLog().info("Test-URL: " + url);
 
       try {
@@ -397,13 +377,9 @@ public class JooTestMojo extends AbstractMojo {
       getLog().info("Sencha app already exists, skip generating one");
       return;
     }
-
     getLog().info(String.format("Generating Sencha App %s for unit tests...", webappDirectory));
-
     FileHelper.ensureDirectory(webappDirectory);
-
-    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), senchaLogLevel);
-
+    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), getSenchaLogLevel());
     createAppJson();
   }
 
@@ -430,7 +406,6 @@ public class JooTestMojo extends AbstractMojo {
           configBuilder.require(getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId()));
         }
       }
-
       configBuilder.buildFile();
     } catch (IOException e) {
       throw new MojoExecutionException("Could not build test " + SenchaUtils.SENCHA_APP_FILENAME, e);
@@ -447,14 +422,13 @@ public class JooTestMojo extends AbstractMojo {
     return url;
   }
 
-  protected Server jettyRunTest(boolean tryPortRange) throws MojoExecutionException {
+  protected Server jettyRunTest(boolean tryPortRange, File baseDir) throws MojoExecutionException {
     JettyWebAppContext handler;
     try {
       handler = new JettyWebAppContext();
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
       List<org.eclipse.jetty.util.resource.Resource> baseResources = new ArrayList<>();
-      File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
-      baseResources.add(toResource(workspaceDir));
+      baseResources.add(toResource(baseDir));
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new org.eclipse.jetty.util.resource.Resource[baseResources.size()])));
       getLog().info("Using base resources " + baseResources);
       ServletHolder servletHolder = new ServletHolder("default", DefaultServlet.class);
@@ -535,17 +509,10 @@ public class JooTestMojo extends AbstractMojo {
     }
   }
 
-  protected String getTestUrl(Server server) throws MojoExecutionException {
-    File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
-    if (workspaceDir == null) {
-      throw new MojoExecutionException("No Sencha workspace.json found starting from " + project.getBasedir());
-    }
+  protected String getTestUrl(Server server, File workspaceDir) throws MojoExecutionException {
     String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
     StringBuilder builder = new StringBuilder(getJettyUrl(server))
             .append("/").append(path).append("?cache"); // "?cache" because phantomjs@2.1.1. seems to have a problem with the cached resources
-    if (debugTests) {
-      builder.append("#joo.debug");
-    }
     return builder.toString();
   }
 

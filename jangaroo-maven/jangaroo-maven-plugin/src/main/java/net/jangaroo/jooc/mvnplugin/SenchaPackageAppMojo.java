@@ -47,14 +47,13 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 @Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
-  public static final String DEFAULT_LOCALE = "en";
+  private static final String DEFAULT_LOCALE = "en";
 
   private static final String APP_JSON_FILENAME = "/app.json";
   private static final String PACKAGES_PATH_NAME = "packages";
-  public static final String JANGAROO_APP_DIRECTORY = "build/jangaroo-app";
-  public static final String EXT_TARGET_DIRECTORY = "ext";
+  private static final String JANGAROO_APP_DIRECTORY = "build/jangaroo-app";
+  private static final String EXT_TARGET_DIRECTORY = "ext";
 
-  private static final String[] PACKAGE_INCLUDES = new String[]{"*.js.map", "*.js", "src/**", "saas/**", "locale/**", "resources/**", "bundledResources/**"};
   private static final String[] EXT_FRAMEWORK_INCLUDES = new String[]{".sencha/**", "build/**", "classic/**", "cmd/**", "framework/**", "license/**", "packages/**", "*.*"};
   private static final String[] EXT_FRAMEWORK_EXCLUDES = null;
 
@@ -158,7 +157,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     FileHelper.ensureDirectory(workingDirectory);
 
     // we need to have a new workspace
-    createJangarooAppWorkspace(workingDirectory);
+    generateJangarooAppWorkspace(workingDirectory);
 
     // extract all module packages files
     extractPackagesDirs(workingDirectory);
@@ -182,7 +181,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|.*\\.html|.*\\.ico");
   }
 
-  private void createJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
+  private void generateJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
 
     // Plan A: copy necessary files to new workspace
     File workspaceDirectory = SenchaUtils.findClosestSenchaWorkspaceDir(senchaAppDirectory);
@@ -207,14 +206,11 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create workspace.json file", e);
     }
-
     // Alternative: use sencha generate workspace, then we do not need to copy ext framework in extractPackages!!!
     // SenchaUtils.generateSenchaWorkspace(workingDirectory, "ext", getLog(), getSenchaLogLevel());
   }
 
-
   private void extractPackagesDirs(File targetDir) throws MojoExecutionException {
-
     FileHelper.ensureDirectory(new File(targetDir, PACKAGES_PATH_NAME));
 
     // prevent unpacking for jar and pkg dependency
@@ -225,7 +221,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     for(Artifact artifact: artifacts) {
        try {
         String senchaPackageName = getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
-
         if (!extractedModules.contains(senchaPackageName)) {
           extractedModules.add(senchaPackageName);
           if (isExtFrameworkArtifact(artifact)) {
@@ -243,7 +238,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       } catch (Exception  e) {
         getLog().error(e.getMessage(), e);
       }
-
     }
   }
 
@@ -295,22 +289,20 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   }
 
 
-  public void prepareModule() throws MojoExecutionException {
-    // necessary?
+  private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
     getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), senchaAppDirectory.getPath()));
     FileHelper.copyFiles(getSenchaSrcDir(), senchaAppDirectory);
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
-
-    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null);
+    SenchaUtils.writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null, getLog());
   }
 
-  protected void configure(SenchaAppConfigBuilder configBuilder)
+  private void configure(SenchaAppConfigBuilder configBuilder)
           throws  MojoExecutionException {
 
-    configureDefaults(configBuilder, "default.app.json");
+    SenchaUtils.configureDefaults(configBuilder, "default.app.json");
 
     super.configure(configBuilder);
 
@@ -318,7 +310,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     configureLocales(configBuilder);
   }
 
-  public void configureLocales(SenchaAppConfigBuilder configBuilder) {
+  private void configureLocales(SenchaAppConfigBuilder configBuilder) {
     configBuilder.locale(DEFAULT_LOCALE);
     for (String locale : additionalLocales) {
       configBuilder.locale(locale);
@@ -328,16 +320,11 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     }
   }
 
-  public void packageModule() throws MojoExecutionException {
+  private void packageModule() throws MojoExecutionException {
     if (!senchaAppDirectory.exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
     buildSenchaApp(senchaAppDirectory, senchaAppBuild);
-
-    File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
-    if (null == workspaceDir) {
-      throw new MojoExecutionException("Could not find Sencha workspace directory ");
-    }
   }
 
   private String generateSenchaAppId() {

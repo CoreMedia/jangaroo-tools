@@ -8,7 +8,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 
@@ -20,11 +19,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 @Mojo(name = "generate-app", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
 
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  private MavenProject project;
-
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
-  private File workingDirectory;
+  private static final String SENCHA_TEST_APP_LOCATION_SUFFIX = SenchaUtils.SEPARATOR + "test-classes";
 
   /**
    * The full qualified name of the application class of the Sencha app, e.g.:
@@ -48,20 +43,18 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     if (StringUtils.isBlank(applicationClass)) {
       throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
-    createModule();
-  }
+    File workspaceDir = new File(project.getBuild().getDirectory());
+    SenchaUtils.generateWorkspace(project, getRemotePackagesProject(), workspaceDir, getLog(), getSenchaLogLevel());
 
-  public void createModule() throws MojoExecutionException {
-    // necessary?
-    FileHelper.ensureDirectory(workingDirectory);
-
+    File appDir = new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    FileHelper.ensureDirectory(appDir);
     // only generate app if senchaCfg does not exist
-    if (SenchaUtils.doesSenchaAppExist(workingDirectory)) {
+    if (SenchaUtils.doesSenchaAppExist(appDir)) {
       getLog().info("Sencha app already exists, skip generating one");
       return;
     }
-
     String senchaAppName = getSenchaPackageName(project);
-    SenchaUtils.generateSenchaAppFromTemplate(workingDirectory, senchaAppName, applicationClass, getToolkit(), getLog(), getSenchaLogLevel());
+    SenchaUtils.generateSenchaAppFromTemplate(appDir, senchaAppName, applicationClass, getToolkit(), getLog(), getSenchaLogLevel());
   }
+
 }
