@@ -351,11 +351,13 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     args.append("app build")
             .append(" --").append(buildEnvironment)
             .append(" --locale " + DEFAULT_LOCALE);
-    args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
-    for (String locale : additionalLocales) {
-      args.append(" then app build")
-              .append(" --").append(buildEnvironment)
-              .append(" --locale ").append(locale);
+    if (!additionalLocales.isEmpty()) {
+      args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
+      for (String locale : additionalLocales) {
+        args.append(" then app build")
+                .append(" --").append(buildEnvironment)
+                .append(" --locale ").append(locale);
+      }
     }
 
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog(), getSenchaLogLevel());
