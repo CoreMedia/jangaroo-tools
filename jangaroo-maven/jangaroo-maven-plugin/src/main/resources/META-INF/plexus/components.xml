@@ -56,7 +56,8 @@
         <phases>
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
           </generate-sources>
-          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-ws,
+            org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
@@ -78,7 +79,8 @@
         <phases>
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
           </generate-sources>
-          <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-app,
+          <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-ws,
+            net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-app,
             org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>

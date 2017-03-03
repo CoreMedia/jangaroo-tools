@@ -44,7 +44,10 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 /**
  * Generates and packages Sencha app module.
  */
-@Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "package-app",
+        defaultPhase = LifecyclePhase.PACKAGE,
+        threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
   private static final String DEFAULT_LOCALE = "en";
@@ -195,7 +198,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     Path senchaCfg = Paths.get(workspaceDirectory.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
     Path newSenchaCfg = Paths.get(newWorkspaceDirectory.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
 
-    SenchaUtils.createSenchaCfgWithExtDirectory(senchaCfg, newSenchaCfg, EXT_TARGET_DIRECTORY);
+    SenchaUtils.createSenchaCfgWithExtDirectory(senchaCfg, newSenchaCfg, new File(EXT_TARGET_DIRECTORY));
 
     // we only need to configure the packages dir used
     SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();

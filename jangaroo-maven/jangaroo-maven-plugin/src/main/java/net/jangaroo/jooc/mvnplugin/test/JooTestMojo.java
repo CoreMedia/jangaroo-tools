@@ -287,15 +287,13 @@ public class JooTestMojo extends AbstractSenchaMojo {
     if (doSkip || testSuite == null) {
       getLog().info("Skipping generation of Jangaroo test app: " + (doSkip ? "tests skipped." : "no tests found."));
     } else {
-      File workspaceDir = new File(project.getBuild().getDirectory());
-      SenchaUtils.generateWorkspace(project, getRemotePackagesProject(), workspaceDir, getLog(), getSenchaLogLevel());
       getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
       createWebApp(testOutputDirectory);
 
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
 
-      File baseDir = new File(session.getRequest().getBaseDirectory());
+      File baseDir = session.getRequest().getMultiModuleProjectDirectory();
       Server server = jettyRunTest(!interactiveJooUnitTests, baseDir);
       String url = getTestUrl(server, baseDir);
       getLog().info("Test-URL: " + url);

@@ -3,12 +3,9 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.RemotePackagesMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaWorkspaceConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
-import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +23,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,7 +68,7 @@ public class SenchaUtils {
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "workspace" + SEPARATOR + SENCHA_CFG;
   public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "package" + SEPARATOR + SENCHA_CFG;
-  public static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "app" + SEPARATOR + SENCHA_CFG;
+  private static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "app" + SEPARATOR + SENCHA_CFG;
 
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
@@ -100,6 +95,7 @@ public class SenchaUtils {
   );
 
   private static final ObjectMapper objectMapper;
+
   static {
     objectMapper = new ObjectMapper();
     objectMapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
@@ -171,10 +167,21 @@ public class SenchaUtils {
    * @param relativePath the path relative to the Sencha module
    * @return path prefixed with a placeholder and a separator to have an absolute path
    */
-  public static String generateAbsolutePathUsingPlaceholder(String packageType, String relativePath) {
+  public static String absolutizeToModuleWithPlaceholder(String packageType, String relativePath) {
+    return absolutizeWithPlaceholder(PLACEHOLDERS.get(packageType), relativePath);
+  }
+
+  /**
+   * Generates an absolute path to the module dir for the given relative path using a placeholder.
+   *
+   * @param placeholder the placeholder, e.g. "${workspace.dir}"
+   * @param relativePath the path relative to the Sencha module
+   * @return path prefixed with a placeholder and a separator to have an absolute path
+   */
+  public static String absolutizeWithPlaceholder(String placeholder, String relativePath) {
     // make sure only normal slashes are used and no backslashes (e.g. on windows systems)
     String normalizedRelativePath = FilenameUtils.separatorsToUnix(relativePath);
-    String result = PLACEHOLDERS.get(packageType);
+    String result = placeholder;
     if (StringUtils.isNotEmpty(normalizedRelativePath) && !normalizedRelativePath.startsWith(SEPARATOR)) {
       result += SEPARATOR + normalizedRelativePath;
     }
@@ -183,20 +190,6 @@ public class SenchaUtils {
 
   public static ObjectMapper getObjectMapper() {
     return objectMapper;
-  }
-
-  public static Path getRelativePathFromWorkspaceToWorkingDir(File workingDirectory) throws MojoExecutionException {
-    File closestSenchaWorkspaceDir = findClosestSenchaWorkspaceDir(workingDirectory);
-    if (null == closestSenchaWorkspaceDir) {
-      throw new MojoExecutionException("could not find Sencha workspace above workingDirectory");
-    }
-    Path workspacePath = closestSenchaWorkspaceDir.toPath().normalize();
-    Path workingDirectoryPath = workingDirectory.toPath().normalize();
-
-    if (workspacePath.getRoot() == null || !workspacePath.getRoot().equals(workingDirectoryPath.getRoot())) {
-      throw new MojoExecutionException("cannot find a relative path from workspace directory to working directory");
-    }
-    return workspacePath.relativize(workingDirectoryPath);
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,
@@ -226,25 +219,7 @@ public class SenchaUtils {
     return getPackagesPath(project) + "/" + BUILD_PATH;
   }
 
-  private static void callSenchaGenerateWorkspace(File workingDirectory, String extDirectory, Log log, String logLevel)
-          throws MojoExecutionException {
-    Path senchaCfg = Paths.get(workingDirectory.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
-    try {
-      // delete existing senchaCfg so that Sencha Cmd is forced to re-create it
-      Files.deleteIfExists(senchaCfg);
-    } catch (IOException ioe) {
-      throw new MojoExecutionException("Could not delete existing sencha.cfg file in " + senchaCfg, ioe);
-    }
-
-    log.info("Generating Sencha workspace module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, "generate workspace .", log, logLevel);
-    senchaCmdExecutor.execute();
-
-    // sencha.cfg should be recreated
-    updateSenchaCfgWithExtDirectory(senchaCfg, extDirectory);
-  }
-
-    public static void generateSenchaAppFromTemplate(File workingDirectory,
+  public static void generateSenchaAppFromTemplate(File workingDirectory,
                                                         String appName,
                                                         String applicationClass,
                                                         String toolkit,
@@ -269,13 +244,13 @@ public class SenchaUtils {
     generateSenchaAppFromTemplate(workingDirectory, appName, toolkit, templateName, properties, log, logLevel);
   }
 
-  public static void generateSenchaAppFromTemplate(File workingDirectory,
-                                                   String appName,
-                                                   String toolkit,
-                                                   String templateName,
-                                                   Map<String, String> properties,
-                                                   Log log,
-                                                   String logLevel
+  private static void generateSenchaAppFromTemplate(File workingDirectory,
+                                                    String appName,
+                                                    String toolkit,
+                                                    String templateName,
+                                                    Map<String, String> properties,
+                                                    Log log,
+                                                    String logLevel
   ) throws MojoExecutionException {
     StringBuilder arguments = new StringBuilder("generate app")
             .append(" -ext ")
@@ -300,117 +275,43 @@ public class SenchaUtils {
     senchaCmdExecutor.execute();
   }
 
-  private static void updateSenchaCfgWithExtDirectory(Path senchaCfg, String extDirectory) throws MojoExecutionException {
-   createSenchaCfgWithExtDirectory(senchaCfg, senchaCfg, extDirectory);
+  public static void createSenchaCfgWithExtDirectory(Path senchaCfgSource, Path senchaCfgTarget, File extDirectory)
+          throws MojoExecutionException {
+    createSenchaCfg(senchaCfgSource, senchaCfgTarget, Collections.singletonMap("ext.dir", extDirectory));
   }
 
-  public static void createSenchaCfgWithExtDirectory(Path senchaCfgSource, Path senchaCfgTarget, String extDirectory)
+  public static void createSenchaCfg(Path senchaCfgSource, Path senchaCfgTarget, Map<String, Object> properties)
           throws MojoExecutionException {
     if (Files.exists(senchaCfgSource)) {
-
       try {
         List<String> senchaCfgTmpContent = Files.readAllLines(senchaCfgSource, Charset.forName("UTF-8"));
-        Files.write(senchaCfgTarget, getSenchaCfgContent(senchaCfgTmpContent, extDirectory), Charset.forName("UTF-8"));
+        List<String> updatedSenchaCfgContent = updateSenchaCfgContent(senchaCfgTmpContent,
+                senchaCfgTarget.getParent(),
+                properties);
+        Files.write(senchaCfgTarget, updatedSenchaCfgContent, Charset.forName("UTF-8"));
       } catch (IOException e) {
         throw new MojoExecutionException("Modifying sencha.cfg file failed", e);
       }
-
     } else {
       throw new MojoExecutionException("Could not find sencha.cfg file in " + senchaCfgSource);
     }
   }
 
-  private static List<String> getSenchaCfgContent(@Nonnull List<String> currentContent, String extDirectory) {
+  private static List<String> updateSenchaCfgContent(@Nonnull List<String> currentContent, Path cfgDir, Map<String, Object> properties) {
     // prepend comment and delete first comment line with usually contains the date time
     if (currentContent.get(0).startsWith("#")) { // if the first
       currentContent.remove(0);
     }
-
     List<String> newSenchaCfg = new ArrayList<>(currentContent.size());
     newSenchaCfg.add("#");
     newSenchaCfg.add("# " + AUTO_CONTENT_COMMENT);
     newSenchaCfg.add("#");
     newSenchaCfg.add("");
     newSenchaCfg.addAll(currentContent);
-
-    newSenchaCfg.add("ext.dir=" + extDirectory);
+    for (Map.Entry<String, Object> property : properties.entrySet()) {
+      newSenchaCfg.add(String.format("%s=%s", property.getKey(), property.getValue()));
+    }
     return newSenchaCfg;
-  }
-
-  public static void generateWorkspace(MavenProject project, MavenProject remotePackagesProject, File workspaceDir, Log log, String logLevel) throws MojoExecutionException {
-    log.info(String.format("Generating Sencha workspace in %s", workspaceDir.getPath()));
-    FileHelper.ensureDirectory(workspaceDir);
-
-    String wsRelativeExtDir = relativize(workspaceDir, resolve(project.getBasedir(), getExtFrameworkDir(project, remotePackagesProject)));
-    String extDirectory = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, wsRelativeExtDir);
-    callSenchaGenerateWorkspace(workspaceDir, extDirectory , log, logLevel);
-
-    SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
-    configureDefaults(configBuilder, "default.workspace.json");
-    configurePackages(project, remotePackagesProject, workspaceDir, configBuilder);
-    writeFile(configBuilder, workspaceDir.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT, log);
-  }
-
-  private static String relativize(File baseDir, Path path) {
-    return baseDir.toPath().relativize(path).toString();
-  }
-
-  private static Path resolve(File basedir, String path) {
-    return basedir.toPath().resolve(path);
-  }
-
-  private static void configurePackages(MavenProject project, MavenProject remotePackagesProject, File workspaceDir, SenchaWorkspaceConfigBuilder configBuilder) throws MojoExecutionException {
-    List<String> packagePaths = new ArrayList<>();
-    // first package path indicates the path other packages are generated from, this needs to be the workspace dir
-    packagePaths.add( SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) );
-    Set<MavenProject> referencedProjects = new HashSet<>();
-    collectReferencedProjects(project, referencedProjects);
-    for (MavenProject projectInReactor : referencedProjects) {
-      String packageType = projectInReactor.getPackaging();
-      if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
-        packagePaths.add(SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE) + SenchaUtils.SEPARATOR + relativePathForProject(workspaceDir, projectInReactor));
-      }
-    }
-
-    // sort resulting paths deterministically so that it remains the same no matter what OS you are using
-    Collections.sort(packagePaths);
-    String wsRelativeRemotePackagesDir = relativize(workspaceDir, resolve(project.getBasedir(), getRemotePackagesDir(project, remotePackagesProject)));
-    String remotePackages = SenchaUtils.generateAbsolutePathUsingPlaceholder(Type.WORKSPACE, wsRelativeRemotePackagesDir);
-    packagePaths.add(remotePackages);
-
-    configBuilder.packagesDirs(packagePaths);
-    configBuilder.packagesExtract(remotePackages);
-  }
-
-  private static void collectReferencedProjects(MavenProject project, Set<MavenProject> referencedProjects) {
-    if (!referencedProjects.contains(project)) {
-      referencedProjects.add(project);
-      for (MavenProject referencedProject : project.getProjectReferences().values()) {
-        collectReferencedProjects(referencedProject, referencedProjects);
-      }
-    }
-  }
-
-  private static String getRemotePackagesDir(MavenProject project, MavenProject remotePackagesProject) throws MojoExecutionException {
-    return relativize(project, RemotePackagesMojo.getRemotePackagesDirectory(remotePackagesProject));
-  }
-
-  private static String getExtFrameworkDir(MavenProject project, MavenProject remotePackagesProject) throws MojoExecutionException {
-    return relativize(project, RemotePackagesMojo.getExtFrameworkDirectory(remotePackagesProject));
-  }
-
-  private static String relativize(MavenProject project, @Nonnull String path)
-          throws MojoExecutionException {
-    Path base = project.getBasedir().toPath().normalize();
-    Path normalizedPath = Paths.get(path).normalize();
-    return FilenameUtils.separatorsToUnix(base.relativize(normalizedPath).toString());
-  }
-
-
-  private static String relativePathForProject(File workspaceDir, MavenProject project) throws MojoExecutionException {
-    String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) ?
-            SenchaUtils.APP_TARGET_DIRECTORY : SenchaUtils.LOCAL_PACKAGES_PATH;
-    return relativePathForProject(workspaceDir, project, localPathToSrc);
   }
 
   public static void configureDefaults(SenchaConfigBuilder configBuilder, String defaultsFileName) throws MojoExecutionException {
@@ -419,19 +320,6 @@ public class SenchaUtils {
     } catch (IOException e) {
       throw new MojoExecutionException("Cannot load " + defaultsFileName, e);
     }
-  }
-
-  private static String relativePathForProject(File workspaceDir, MavenProject project, String localPathToSrc) throws MojoExecutionException {
-    Path rootPath = workspaceDir.toPath().normalize();
-
-    Path path = Paths.get(project.getBuild().getDirectory() + localPathToSrc);
-    Path relativePath = rootPath.relativize(path);
-    String relativePathString = FilenameUtils.separatorsToUnix(relativePath.toString());
-
-    if (relativePathString.isEmpty()) {
-      throw new MojoExecutionException("Cannot handle project because not relative path to root workspace could be build");
-    }
-    return relativePathString;
   }
 
   public static void writeFile(@Nonnull SenchaConfigBuilder configBuilder,

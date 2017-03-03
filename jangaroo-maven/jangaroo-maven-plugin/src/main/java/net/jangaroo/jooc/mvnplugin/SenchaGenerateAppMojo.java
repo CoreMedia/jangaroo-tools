@@ -16,10 +16,11 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 /**
  * Generates and packages Sencha app module.
  */
-@Mojo(name = "generate-app", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
+@SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
+@Mojo(name = "generate-app",
+        defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
+        threadSafe = true)
 public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
-
-  private static final String SENCHA_TEST_APP_LOCATION_SUFFIX = SenchaUtils.SEPARATOR + "test-classes";
 
   /**
    * The full qualified name of the application class of the Sencha app, e.g.:
@@ -30,10 +31,6 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
   @Parameter
   private String applicationClass;
 
-  public String getType() {
-    return Type.APP;
-  }
-
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
@@ -43,9 +40,6 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
     if (StringUtils.isBlank(applicationClass)) {
       throw new MojoExecutionException("\"applicationClass\" is missing. This configuration is mandatory for \"jangaroo-app\" packaging.");
     }
-    File workspaceDir = new File(project.getBuild().getDirectory());
-    SenchaUtils.generateWorkspace(project, getRemotePackagesProject(), workspaceDir, getLog(), getSenchaLogLevel());
-
     File appDir = new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
     FileHelper.ensureDirectory(appDir);
     // only generate app if senchaCfg does not exist

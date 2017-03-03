@@ -181,7 +181,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   protected void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
-    configBuilder.resource(SenchaUtils.generateAbsolutePathUsingPlaceholder(getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
+    configBuilder.resource(SenchaUtils.absolutizeToModuleWithPlaceholder(getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
   }
 
   private Set<String> getRequiredDependencies() throws MojoExecutionException {
