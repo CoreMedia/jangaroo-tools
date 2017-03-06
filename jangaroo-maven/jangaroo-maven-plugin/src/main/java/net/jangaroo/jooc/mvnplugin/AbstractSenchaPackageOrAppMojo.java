@@ -28,10 +28,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
@@ -105,14 +103,12 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  protected void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder)
+  private void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder)
           throws MojoExecutionException {
-
     String version = SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
     if (null == version) {
       throw new MojoExecutionException("Could not determine Sencha version from maven version");
     }
-
     configBuilder.name(getSenchaPackageName(project.getGroupId(), project.getArtifactId()));
     configBuilder.version(version);
     configBuilder.creator(StringUtils.defaultString(project.getOrganization() != null ? project.getOrganization().getName() : ""));
@@ -120,7 +116,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
 
-  protected void configureProfile(SenchaPackageOrAppConfigBuilder configBuilder,
+  private void configureProfile(SenchaPackageOrAppConfigBuilder configBuilder,
                                 String profileName,
                                 SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
     if (null == profileName) {
@@ -133,7 +129,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  protected static void configureProfile(SenchaProfileConfiguration senchaProfileConfiguration,
+  private static void configureProfile(SenchaProfileConfiguration senchaProfileConfiguration,
                                        SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     addAdditionalResources(configBuilder,
             SenchaPackageOrAppConfigBuilder.CSS,
@@ -146,16 +142,19 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
             senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalJsIncludeInBundle());
   }
 
-
-
-  protected void configureRequires(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-    for (String dependency : getRequiredDependencies()) {
-      configBuilder.require(dependency);
+  private void configureRequires(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
+    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
+    for (Dependency dependency : project.getDependencies()) {
+      String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
+      if (!isExtFrameworkDependency(dependency)
+              && SenchaUtils.isRequiredSenchaDependency(dependency, project, false)
+              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency, themeDependency)) {
+        configBuilder.require(senchaPackageNameForArtifact);
+      }
     }
   }
 
-  protected void configureModule(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-
+  private void configureModule(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     boolean useExtend = false;
     if (Type.CODE.equals(getType())) {
       configBuilder.toolkit(getToolkit());
@@ -164,7 +163,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       configBuilder.toolkit(getToolkit());
       useExtend = true;
     }
-
     String themePackageName = getThemePackageName();
     if (org.apache.commons.lang3.StringUtils.isNotBlank(themePackageName)) {
       if (useExtend) {
@@ -173,48 +171,28 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
         configBuilder.theme(themePackageName);
       }
     }
-
     if (Type.CODE.equals(getType())
             || Type.THEME.equals(getType())) {
       configureResourcesEntry(configBuilder);
     }
   }
 
-  protected void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
+  private void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
     configBuilder.resource(SenchaUtils.absolutizeToModuleWithPlaceholder(getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
   }
 
-  private Set<String> getRequiredDependencies() throws MojoExecutionException {
-    Set<String> requiredDependencies = new LinkedHashSet<>();
-    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
-    Dependency remotePackageDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
-
-    List<Dependency> projectDependencies = resolveRequiredDependencies(project, remotePackageDependency);
-    for (Dependency dependency : projectDependencies) {
-      String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
-      if (!isExtFrameworkDependency(dependency)
-              && SenchaUtils.isRequiredSenchaDependency(dependency, remotePackageDependency)
-              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency)) {
-        requiredDependencies.add(senchaPackageNameForArtifact);
-      }
-    }
-    return requiredDependencies;
-  }
-
   @Nonnull
-  private List<Dependency> resolveRequiredDependencies(@Nonnull MavenProject project, Dependency remotePackages)
+  private List<Dependency> resolveRequiredDependencies(@Nonnull MavenProject project)
           throws MojoExecutionException {
     List<Dependency> resolvedDependencies = new ArrayList<>();
     for (Dependency dependency : project.getDependencies()) {
       // only resolve POM packages that are not the remote packages artifact
-      if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())
-              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackages)) {
+      if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())) {
         MavenProject projectFromPom = createProjectFromPomDependency(dependency);
-        List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom, remotePackages);
+        List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom);
         if (!fromPomDependencies.isEmpty()) {
           resolvedDependencies.addAll(fromPomDependencies);
         }
-
       } else {
         resolvedDependencies.add(dependency);
       }

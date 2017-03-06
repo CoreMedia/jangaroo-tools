@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class SenchaUtils {
@@ -53,7 +52,6 @@ public class SenchaUtils {
    * 43 - SENCHA_BASE_BATH.length - SENCHA_PACKAGES.length - SENCHA_PACKAGE_LOCAL.length
    *    - SENCHA_CLASS_PATH.length - 4 (Separator)
    */
-  public static final String SENCHA_OVERRIDES_PATH = "overrides";
   public static final String SENCHA_LOCALE_PATH = "locale";
   public static final String SENCHA_RESOURCES_PATH = "resources";
   public static final String SENCHA_BUNDLED_RESOURCES_PATH = "bundledResources";
@@ -192,18 +190,10 @@ public class SenchaUtils {
     return objectMapper;
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,
-                                                   @Nonnull Dependency remotePackageDependency) {
-    return !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency, remotePackageDependency)
-            && Type.JAR_EXTENSION.equals(dependency.getType())
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, MavenProject project, boolean includeTestDependencies) {
+    return Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
-            && !Artifact.SCOPE_TEST.equals(dependency.getScope());
-  }
-
-  public static String generateSenchaAppId(MavenProject project) {
-    String appIdString = SenchaUtils.getSenchaPackageName(project) +
-            SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
-    return UUID.nameUUIDFromBytes(appIdString.getBytes()).toString();
+            && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
   }
 
   public static boolean doesSenchaAppExist(File directory) {

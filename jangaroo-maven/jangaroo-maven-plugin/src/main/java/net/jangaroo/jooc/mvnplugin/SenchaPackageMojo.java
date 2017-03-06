@@ -134,10 +134,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     SenchaPackageConfigBuilder configBuilder = createSenchaConfigBuilder();
     configure(configBuilder);
     prepareModule(configBuilder);
-    if (!skipJangarooApp) {
-      File pkg = packageModule();
-      helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
-    }
+    File pkg = packageModule();
+    helper.attachArtifact(project, Type.PACKAGE_EXTENSION, pkg);
   }
 
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {

@@ -1,18 +1,13 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.regex.Pattern;
 
 
@@ -26,9 +21,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   @Parameter
   private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
-
-  @Parameter(defaultValue = "${project.groupId}:${project.artifactId}")
-  private String remotePackagesArtifact;
 
   /**
    * a regexp matching the group and artifact id of a sencha framewrok artifact
@@ -66,10 +58,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return extFrameworkArtifactRegexp;
   }
 
-  public String getRemotePackagesArtifact() {
-    return remotePackagesArtifact;
-  }
-
   // ***********************************************************************
   // ************************* SETTERS *************************************
   // ***********************************************************************
@@ -91,32 +79,4 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return getExtFrameworkArtifactPattern().matcher(key).matches();
   }
 
-  /**
-   * Returns the configured remote packages project or the current project if none is configured.
-   *
-   * @return the configured remote packages project or the current project if none is configured
-   * @throws MojoExecutionException
-   */
-  @Nonnull
-  protected MavenProject getRemotePackagesProject()
-          throws MojoExecutionException {
-    String remotePackageArtifactId = getRemotePackagesArtifact();
-    if (StringUtils.isEmpty(remotePackageArtifactId)) {
-      return session.getCurrentProject();
-    }
-    Collection<MavenProject> allReactorProjects = session.getCurrentProject().getProjectReferences().values();
-    for (MavenProject reactorProject : allReactorProjects) {
-      if (isRemoteAggregator(reactorProject)) {
-        return reactorProject;
-      }
-    }
-    throw new MojoExecutionException("Could not find local remote-packages module with coordinates "
-            + remotePackageArtifactId);
-  }
-
-  private boolean isRemoteAggregator(@Nonnull MavenProject project) {
-    Dependency dependency = MavenDependencyHelper.fromProject(project);
-    Dependency remotePackagesDependency = MavenDependencyHelper.fromKey(getRemotePackagesArtifact());
-    return MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,remotePackagesDependency);
-  }
 }
