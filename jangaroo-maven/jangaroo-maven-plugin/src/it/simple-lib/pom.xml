@@ -43,7 +43,6 @@ under the License.
               <uri>library://testNamespace</uri>
             </namespace>
           </namespaces>
-          <skipPkg>true</skipPkg>
         </configuration>
       </plugin>
     </plugins>

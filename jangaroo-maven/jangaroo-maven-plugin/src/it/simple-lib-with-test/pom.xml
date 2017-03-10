@@ -43,9 +43,6 @@ under the License.
         <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
         <version>@project.version@</version>
-        <configuration>
-          <skipPkg>true</skipPkg>
-        </configuration>
       </plugin>
     </plugins>
 

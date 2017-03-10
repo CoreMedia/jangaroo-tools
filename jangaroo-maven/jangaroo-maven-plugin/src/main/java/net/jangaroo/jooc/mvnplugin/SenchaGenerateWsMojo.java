@@ -105,7 +105,9 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
     // sencha.cfg should be recreated
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put("ext.dir", absolutizeUsingWorkspace(workspaceDir, extDirectory));
+    if (extDirectory != null) {
+      properties.put("ext.dir", absolutizeUsingWorkspace(workspaceDir, extDirectory));
+    }
     // needed for sencha app watch:
     properties.put("build.web.root", absolutizeUsingWorkspace(workspaceDir, webRootDir));
     properties.put("remotePackages", absolutizeUsingWorkspace(workspaceDir, remotePackagesDir));
@@ -184,7 +186,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       }
     }
     if (extDir == null) {
-      throw new MojoExecutionException("no Ext framework dependency found");
+      getLog().warn("no Ext framework dependency found");
     }
     String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
     ArtifactRepository localRepository = session.getLocalRepository();

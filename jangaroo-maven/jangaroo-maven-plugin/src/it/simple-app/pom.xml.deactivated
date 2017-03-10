@@ -38,14 +38,6 @@ under the License.
         <artifactId>jangaroo-maven-plugin</artifactId>
         <extensions>true</extensions>
         <version>@project.version@</version>
-        <executions>
-          <execution>
-            <id>unpack-sencha-remote-packages</id>
-            <goals>
-              <goal>extract-remote-packages</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
           <applicationClass>net.jangaroo.example.HelloWorld</applicationClass>
         </configuration>
