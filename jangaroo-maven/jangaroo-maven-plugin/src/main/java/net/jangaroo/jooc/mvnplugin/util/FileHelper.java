@@ -1,22 +1,16 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -26,24 +20,6 @@ public final class FileHelper {
     // hiding constructor of utility class
   }
 
-  public static void writeBuildProperties(File propertyFile, Map<String, String> addProperties) throws MojoExecutionException {
-    Properties buildProperties = new Properties();
-
-    try (InputStream inputStream = new FileInputStream(propertyFile)) {
-      buildProperties.load(inputStream);
-    } catch (IOException ioe) {
-      throw new MojoExecutionException("Failed to read property file " + propertyFile, ioe);
-    }
-
-    buildProperties.putAll(addProperties);
-
-    try (OutputStream outputStream = new FileOutputStream(propertyFile)) {
-      buildProperties.store(outputStream, "Added dynamic properties by jangaroo-maven-plugin.");
-    } catch (IOException ioe) {
-      throw new MojoExecutionException("Failed to write to property file " + propertyFile, ioe);
-    }
-
-  }
   public static void copyFiles(File srcDir, File targetDir) throws MojoExecutionException {
     if (srcDir.exists()) {
       try {
@@ -64,17 +40,6 @@ public final class FileHelper {
     }
   }
 
-  public static void addToConfigFile(File file, List<String> properties) throws MojoExecutionException {
-    try (PrintWriter pw = new PrintWriter(new FileWriter(file.getAbsoluteFile(), true)) ) {
-      for (String property: properties) {
-        pw.println(property);
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not append properties to file " + file, e);
-    }
-  }
-
-
   public static void ensureDirectory(File dir) throws MojoExecutionException {
     if (!dir.exists() && !dir.mkdirs()) {
       throw new MojoExecutionException("could not create folder for directory " + dir);
@@ -91,7 +56,6 @@ public final class FileHelper {
     if (matchPattern != null) {
       pattern = Pattern.compile(matchPattern);
     }
-
     for (File file: files) {
       if (file.isFile() && (pattern == null || pattern.matcher(file.getName()).matches())) {
         doCopyFile(file, target);
@@ -117,11 +81,25 @@ public final class FileHelper {
     if (files == null || files.length == 0) {
       return;
     }
-
     for (File file: files) {
       if (file.isDirectory() && (excludeDirectories == null || !excludeDirectories.contains(file.getName()))) {
         copyDirectory(file, target);
       }
     }
   }
+
+  public static String relativize(@Nonnull Path base, @Nonnull String path) {
+    Path normalizedPath = Paths.get(path).normalize();
+    return FilenameUtils.separatorsToUnix(base.relativize(normalizedPath).toString());
+  }
+
+  public static String relativize(@Nonnull Path base, @Nonnull File path) {
+    Path normalizedPath = path.toPath().normalize();
+    return FilenameUtils.separatorsToUnix(base.relativize(normalizedPath).toString());
+  }
+
+  public static String relativize(@Nonnull File base, @Nonnull File path) {
+    return relativize(base.toPath(), path);
+  }
+
 }

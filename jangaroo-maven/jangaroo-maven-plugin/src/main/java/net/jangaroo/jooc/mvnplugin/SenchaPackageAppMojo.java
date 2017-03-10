@@ -13,7 +13,6 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -21,18 +20,14 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.archiver.manager.ArchiverManager;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,20 +39,18 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 /**
  * Generates and packages Sencha app module.
  */
-@Mojo(name = "package-app", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "package-app",
+        defaultPhase = LifecyclePhase.PACKAGE,
+        threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
-  public static final String DEFAULT_LOCALE = "en";
+  private static final String DEFAULT_LOCALE = "en";
 
   private static final String APP_JSON_FILENAME = "/app.json";
   private static final String PACKAGES_PATH_NAME = "packages";
-  public static final String JANGAROO_APP_DIRECTORY = "build/jangaroo-app";
-  public static final String EXT_TARGET_DIRECTORY = "ext";
-
-  private static final String[] PACKAGE_INCLUDES = new String[]{"*.js.map", "*.js", "src/**", "saas/**", "locale/**", "resources/**", "bundledResources/**"};
-  private static final String[] EXT_FRAMEWORK_INCLUDES = new String[]{".sencha/**", "build/**", "classic/**", "cmd/**", "framework/**", "license/**", "packages/**", "*.*"};
-  private static final String[] EXT_FRAMEWORK_EXCLUDES = null;
-
+  private static final String JANGAROO_APP_DIRECTORY = "build/jangaroo-app";
+  private static final String EXT_TARGET_DIRECTORY = "ext";
 
   /**
    * Supported locales in addition to the default locale "{@value DEFAULT_LOCALE}"
@@ -96,21 +89,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private String applicationClass;
 
   /**
-   * Used to look up Artifacts in the remote repository.
-   */
-  @Inject
-  protected RepositorySystem repositorySystem;
-
-  /**
-   * Used to look up Artifacts in the remote repository.
-   */
-  @Inject
-  private ArtifactResolver artifactResolver;
-
-  @Inject
-  private ArchiverManager archiverManager;
-
-  /**
    * Plexus archiver.
    */
   @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
@@ -131,7 +109,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
     }
-
     if (StringUtils.isEmpty(senchaAppBuild)) {
       senchaAppBuild = SenchaUtils.DEVELOPMENT_PROFILE;
     }
@@ -149,29 +126,22 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       // refresh app
       new SenchaCmdExecutor(workingDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
     }
-
     createJar();
   }
 
   private File generateJangarooApp() throws MojoExecutionException {
     File workingDirectory = new File(senchaAppDirectory, JANGAROO_APP_DIRECTORY);
     FileHelper.ensureDirectory(workingDirectory);
-
     // we need to have a new workspace
-    createJangarooAppWorkspace(workingDirectory);
-
+    generateJangarooAppWorkspace(workingDirectory);
     // extract all module packages files
     extractPackagesDirs(workingDirectory);
-
     // we need to copy some files, so Sencha knows it is an app dir
     copyFilesFromDevelopmentBuild(workingDirectory);
-
     // we need to fix the output dir, not needed if we copy directory
     fixAppJson(workingDirectory);
-
     // let Sencha create the app files with correct relative paths
     SenchaUtils.refreshApp(workingDirectory, getLog(), getSenchaLogLevel());
-
     return workingDirectory;
   }
 
@@ -182,7 +152,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     FileHelper.copyFilesToDirectory(senchaAppDirectory, workingDirectory, "app.*|build.*|.*\\.html|.*\\.ico");
   }
 
-  private void createJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
+  private void generateJangarooAppWorkspace(@Nonnull File newWorkspaceDirectory) throws MojoExecutionException {
 
     // Plan A: copy necessary files to new workspace
     File workspaceDirectory = SenchaUtils.findClosestSenchaWorkspaceDir(senchaAppDirectory);
@@ -196,7 +166,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     Path senchaCfg = Paths.get(workspaceDirectory.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
     Path newSenchaCfg = Paths.get(newWorkspaceDirectory.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
 
-    SenchaUtils.createSenchaCfgWithExtDirectory(senchaCfg, newSenchaCfg, EXT_TARGET_DIRECTORY);
+    SenchaUtils.createSenchaCfgWithExtDirectory(senchaCfg, newSenchaCfg, new File(EXT_TARGET_DIRECTORY));
 
     // we only need to configure the packages dir used
     SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
@@ -207,87 +177,48 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create workspace.json file", e);
     }
-
     // Alternative: use sencha generate workspace, then we do not need to copy ext framework in extractPackages!!!
     // SenchaUtils.generateSenchaWorkspace(workingDirectory, "ext", getLog(), getSenchaLogLevel());
   }
 
-
   private void extractPackagesDirs(File targetDir) throws MojoExecutionException {
-
-    FileHelper.ensureDirectory(new File(targetDir, PACKAGES_PATH_NAME));
-
-    // prevent unpacking for jar and pkg dependency
-    Set<String> extractedModules = new HashSet<>();
-
     // get all dependencies including transitive ones
     Set<Artifact> artifacts = project.getArtifacts();
     for(Artifact artifact: artifacts) {
        try {
         String senchaPackageName = getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
-
-        if (!extractedModules.contains(senchaPackageName)) {
-          extractedModules.add(senchaPackageName);
-          if (isExtFrameworkArtifact(artifact)) {
-            // handle ext framework differently
-            File extTargetDir = new File(targetDir, EXT_TARGET_DIRECTORY);
-            getLog().info("Extract Ext framework to " + extTargetDir);
-            extractPackageForProduction(artifact, extTargetDir, EXT_FRAMEWORK_INCLUDES, EXT_FRAMEWORK_EXCLUDES);
-          } else {
-            // extract pkg to packages dir
-            File packaggeTargetDir = new File(targetDir, PACKAGES_PATH_NAME + "/" + senchaPackageName);
-            extractPackageForProduction(artifact, packaggeTargetDir, null, null);
-          }
-        }
+         File pkgTargetDir = new File(targetDir,
+                 isExtFrameworkArtifact(artifact) ? EXT_TARGET_DIRECTORY : (PACKAGES_PATH_NAME + "/" + senchaPackageName));
+         extractPackageForProduction(artifact, pkgTargetDir);
         // MojoExecutionException| ArchiverException
       } catch (Exception  e) {
         getLog().error(e.getMessage(), e);
       }
-
     }
   }
 
-  private void extractPackageForProduction(Artifact artifact, File targetDir, String[] includes, String[] excludes) throws MojoExecutionException {
-
-    // jar dependency, get pkg artifact and extract it somewhere under packages/groupId__artifactId
-    Artifact pkgArtifact = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
-            repositorySystem, artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), "runtime", Type.PACKAGE_EXTENSION);
-    if (pkgArtifact == null) {
-      getLog().info("Could not find artifact for " + artifact);
-      return;
-    }
-
-    File pkgArtifactFile = pkgArtifact.getFile();
-    FileHelper.ensureDirectory(targetDir);
-
-    getLog().info("Extract pkg file: " + pkgArtifactFile.getName());
-    MavenPluginHelper.extractFileTemplate(targetDir, pkgArtifactFile, includes, excludes, archiverManager);
+  private void extractPackageForProduction(Artifact artifact, File targetDir) throws MojoExecutionException {
+    getLog().info(String.format("Extracting package %s to %s", artifact, targetDir));
+    SenchaUtils.extractPkg(artifact.getFile(), targetDir);
   }
 
   private void createJar() throws MojoExecutionException {
-
     File appProductionBuildDir = new File(senchaAppDirectory, JANGAROO_APP_DIRECTORY);
-
     File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
-
     if (!skipJangarooApp && SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       // add the Jangaroo compiler resources to the resulting JAR
       archiver.addFileSet(fileSet( appProductionBuildDir ).prefixed( "META-INF/resources/" ));
     }
-
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);
     try {
-
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
       mavenArchiver.createArchive(session, project, archive);
-
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
-
     Artifact mainArtifact = project.getArtifact();
     mainArtifact.setFile(jarFile);
     // workaround for MNG-1682: force maven to install artifact using the "jar" handler
@@ -295,30 +226,25 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   }
 
 
-  public void prepareModule() throws MojoExecutionException {
-    // necessary?
+  private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
     getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), senchaAppDirectory.getPath()));
     FileHelper.copyFiles(getSenchaSrcDir(), senchaAppDirectory);
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
-
-    writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null);
+    SenchaUtils.writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null, getLog());
   }
 
-  protected void configure(SenchaAppConfigBuilder configBuilder)
+  private void configure(SenchaAppConfigBuilder configBuilder)
           throws  MojoExecutionException {
-
-    configureDefaults(configBuilder, "default.app.json");
-
+    SenchaUtils.configureDefaults(configBuilder, "default.app.json");
     super.configure(configBuilder);
-
     configBuilder.id(generateSenchaAppId());
     configureLocales(configBuilder);
   }
 
-  public void configureLocales(SenchaAppConfigBuilder configBuilder) {
+  private void configureLocales(SenchaAppConfigBuilder configBuilder) {
     configBuilder.locale(DEFAULT_LOCALE);
     for (String locale : additionalLocales) {
       configBuilder.locale(locale);
@@ -328,16 +254,11 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     }
   }
 
-  public void packageModule() throws MojoExecutionException {
+  private void packageModule() throws MojoExecutionException {
     if (!senchaAppDirectory.exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
     buildSenchaApp(senchaAppDirectory, senchaAppBuild);
-
-    File workspaceDir = SenchaUtils.findClosestSenchaWorkspaceDir(project.getBasedir());
-    if (null == workspaceDir) {
-      throw new MojoExecutionException("Could not find Sencha workspace directory ");
-    }
   }
 
   private String generateSenchaAppId() {
@@ -359,7 +280,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
                 .append(" --locale ").append(locale);
       }
     }
-
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
@@ -379,7 +299,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     try {
       File jangarooAppJsonFile = new File(workingDirectory, SenchaUtils.SENCHA_APP_FILENAME);
       Map<String, Object> appJson = readJson(jangarooAppJsonFile);
-
       @SuppressWarnings("unchecked")
       Map<String, String> outputMap = (Map<String, String>) appJson.get("output");
       outputMap.put("base", "${app.dir}");
