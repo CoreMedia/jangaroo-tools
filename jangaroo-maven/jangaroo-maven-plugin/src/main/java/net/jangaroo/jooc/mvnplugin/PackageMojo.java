@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -17,6 +18,8 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
 
+import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
+
 /**
  * Creates the jangaroo archive and attaches them to the project.<br>
  * The jangaroo archive is created by zipping the <code>outputDirectory</code>
@@ -27,6 +30,8 @@ import java.io.File;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class PackageMojo extends AbstractMojo {
+
+  public static final String ARCHIVE_PKG_PATH = "META-INF/pkg/";
 
   /**
    * The maven project.
@@ -108,17 +113,16 @@ public class PackageMojo extends AbstractMojo {
         }
       }
       if (outputDirectory.exists()) {
-        mavenArchiver.getArchiver().addDirectory(outputDirectory);
+        archiver.addDirectory(outputDirectory);
       }
-
       archiver.addFile(project.getFile(), "META-INF/maven/" + project.getGroupId() + "/" + project.getArtifactId()
               + "/pom.xml");
-
+      archiver.addFileSet(
+              fileSet(new File(targetDir + SenchaUtils.getPackagesPath(project))).prefixed(ARCHIVE_PKG_PATH));
       mavenArchiver.createArchive(mavenSession, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
-
     Artifact mainArtifact = project.getArtifact();
     mainArtifact.setFile(jarFile);
     // workaround for MNG-1682: force maven to install artifact using the "jar" handler

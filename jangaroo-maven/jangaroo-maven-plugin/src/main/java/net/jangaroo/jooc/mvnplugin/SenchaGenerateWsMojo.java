@@ -16,13 +16,10 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.UnArchiver;
-import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -54,18 +51,26 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
   private static final String REMOTE_PACKAGES_DIR = ".remote-packages";
 
+  /**
+   * Non-null if we have joounit tests in this module
+   */
+  @Parameter
+  private String testSuite = null;
+
+
+  private final Object lock = new Object();
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     String packaging = project.getPackaging();
     if (!Type.JANGAROO_PKG_PACKAGING.equals(packaging) && !Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\" or \"jangaroo-app\"");
     }
-    File workspaceDir = new File(project.getBuild().getDirectory());
-    generateWorkspace(workspaceDir);
+    if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) || testSuite != null) {
+      File workspaceDir = new File(project.getBuild().getDirectory());
+      generateWorkspace(workspaceDir);
+    }
   }
-
-  @Inject
-  private ArchiverManager archiverManager;
 
   @Inject
   protected RepositorySystem repositorySystem;
@@ -135,17 +140,17 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       String packageType = projectInReactor.getPackaging();
       if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
         packagePaths.add(absolutizeUsingWorkspace(workspaceDir, relativePathForProject(workspaceDir, projectInReactor)));
-        reactorProjectPackagesIds.add(reactorProjectId(project));
+        reactorProjectPackagesIds.add(reactorProjectId(projectInReactor));
       }
     }
   }
 
   private String reactorProjectId(MavenProject project) {
-    return reactorProjectId(project.getGroupId(), project.getArtifactId());
+    return reactorProjectId(project.getGroupId(), project.getArtifactId(), project.getVersion());
   }
 
-  private String reactorProjectId(String groupId, String artifactId) {
-    return groupId + ':' + artifactId;
+  private String reactorProjectId(String groupId, String artifactId, String version) {
+    return groupId + ':' + artifactId + ':' + version;
   }
 
   private void collectReferencedProjects(MavenProject project, Set<MavenProject> referencedProjects) {
@@ -163,15 +168,15 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     for (Artifact artifact : dependencyArtifacts) {
       Dependency dependency = MavenDependencyHelper.fromArtifact(artifact);
       boolean isExtFramework = isExtFrameworkArtifact(artifact);
-      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, project, true)) {
-        File pkgDir = unpackPkg(artifact, remotePackagesDir);
-        if (isExtFramework) {
-          extDir = pkgDir;
+      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, true)) {
+        String reactorProjectId = reactorProjectId(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+        boolean isReactorProject = reactorProjectPackagesIds.contains(reactorProjectId);
+        if (isReactorProject) {
+          getLog().info(String.format("%s contained in reactor, excluding from remote packages list", reactorProjectId));
         } else {
-          String reactorProjectId = reactorProjectId(artifact.getGroupId(), artifact.getArtifactId());
-          boolean isReactorProject = reactorProjectPackagesIds.contains(reactorProjectId);
-          if (isReactorProject) {
-            getLog().info(String.format("%s contained in reactor, excluding from remote packages list", reactorProjectId));
+          File pkgDir = unpackPkg(artifact, remotePackagesDir);
+          if (isExtFramework) {
+            extDir = pkgDir;
           } else {
             packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, pkgDir));
           }
@@ -214,19 +219,19 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
   /**
    * Unpack the artifact and add the extraction path to the list of packagePaths, return the extraction path.
+   * If a pkg file is present as a sibling file of the jar file, it is preferred, otherwise the jar file is used.
    */
   private File unpackPkg(Artifact artifact, File remotePackagesDir) throws MojoExecutionException {
     File jarFile = artifact.getFile();
     String fileName = jarFile.getName();
-    File pkgFile = new File(jarFile.getParentFile(), FilenameUtils.getBaseName(fileName) + SenchaUtils.SENCHA_PKG_EXTENSION);
     String targetDirName = String.format("%s__%s__%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
     File targetDir = new File(remotePackagesDir, targetDirName);
-    unpackPkg(pkgFile.exists() ? pkgFile : jarFile, artifact, targetDir);
+    unpackPkg(jarFile.exists() ? jarFile : jarFile, artifact, targetDir);
     return targetDir;
   }
 
   private void unpackPkg(File pkgFile, Artifact artifact, File targetDir) throws MojoExecutionException {
-    try {
+    synchronized (lock) {
       String groupId = artifact.getGroupId();
       String artifactId = artifact.getArtifactId();
       String version = artifact.getVersion();
@@ -234,7 +239,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       long artifactLastModified = pkgFile.lastModified();
       if (mavenStampFile.exists() && mavenStampFile.lastModified() == artifactLastModified) {
         // already unpacked
-        getLog().info(String.format("Already unpacked, skipping %s", artifact));
+        getLog().info(String.format("Already unpacked %s to %s, skipping", artifact, targetDir.getName()));
         return;
       }
       if (targetDir.exists()) {
@@ -242,16 +247,8 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
         clean(targetDir);
       }
       getLog().info(String.format("Extracting %s to %s", artifact, targetDir));
-      UnArchiver unArchiver = archiverManager.getUnArchiver(Type.ZIP_EXTENSION);
-      unArchiver.setSourceFile(pkgFile);
-      FileHelper.ensureDirectory(targetDir);
-      unArchiver.setDestDirectory(targetDir);
-      unArchiver.extract();
+      SenchaUtils.extractPkg(pkgFile, targetDir);
       touch(mavenStampFile, artifactLastModified);
-    } catch (NoSuchArchiverException e) {
-      throw new MojoExecutionException("Could not find zipUnArchiver.", e);
-    } catch ( ArchiverException e ) {
-      throw new MojoExecutionException( "Could not extract: " + artifact, e );
     }
   }
 
@@ -274,7 +271,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   }
 
   private File mavenStampFile(File packageTargetDir, String groupId, String artifactId, String version) {
-    String fileName = "." + groupId + '_' + artifactId + '_' + version;
+    String fileName = "." + groupId + '_' + artifactId + '_' + version + "-timestamp";
     return new File(packageTargetDir, fileName);
   }
 
@@ -299,6 +296,4 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     }
     return new File(relativePathString);
   }
-
-
 }

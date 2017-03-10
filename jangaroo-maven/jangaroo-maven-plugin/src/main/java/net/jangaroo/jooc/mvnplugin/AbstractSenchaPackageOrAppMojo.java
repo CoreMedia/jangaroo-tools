@@ -28,8 +28,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 
@@ -76,18 +78,14 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   public abstract String getJsonConfigFileName();
 
-  protected void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-
+  void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     configureMetadata(configBuilder);
     configureRequires(configBuilder);
-
     configureModule(configBuilder);
-
     configureProfile(configBuilder, null, this);
     configureProfile(configBuilder, SenchaUtils.PRODUCTION_PROFILE, getProduction());
     configureProfile(configBuilder, SenchaUtils.TESTING_PROFILE, getTesting());
     configureProfile(configBuilder, SenchaUtils.DEVELOPMENT_PROFILE, getDevelopment());
-
     configureCustomProperties(configBuilder);
   }
 
@@ -133,24 +131,18 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
                                        SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     addAdditionalResources(configBuilder,
             SenchaPackageOrAppConfigBuilder.CSS,
-            senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalCssNonBundle(),
-            senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalCssIncludeInBundle());
+            senchaProfileConfiguration == null ? Collections.emptyList() : senchaProfileConfiguration.getAdditionalCssNonBundle(),
+            senchaProfileConfiguration == null ? Collections.emptyList() : senchaProfileConfiguration.getAdditionalCssIncludeInBundle());
 
     addAdditionalResources(configBuilder,
             SenchaPackageOrAppConfigBuilder.JS,
-            senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalJsNonBundle(),
-            senchaProfileConfiguration == null ? Collections.<String>emptyList() : senchaProfileConfiguration.getAdditionalJsIncludeInBundle());
+            senchaProfileConfiguration == null ? Collections.emptyList() : senchaProfileConfiguration.getAdditionalJsNonBundle(),
+            senchaProfileConfiguration == null ? Collections.emptyList() : senchaProfileConfiguration.getAdditionalJsIncludeInBundle());
   }
 
   private void configureRequires(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
-    for (Dependency dependency : project.getDependencies()) {
-      String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
-      if (!isExtFrameworkDependency(dependency)
-              && SenchaUtils.isRequiredSenchaDependency(dependency, project, false)
-              && !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency, themeDependency)) {
-        configBuilder.require(senchaPackageNameForArtifact);
-      }
+    for (String dependency : getRequiredDependencies()) {
+      configBuilder.require(dependency);
     }
   }
 
@@ -179,6 +171,21 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   private void configureResourcesEntry(SenchaPackageOrAppConfigBuilder configBuilder) {
     configBuilder.resource(SenchaUtils.absolutizeToModuleWithPlaceholder(getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
+  }
+
+  private Set<String> getRequiredDependencies() throws MojoExecutionException {
+    Set<String> requiredDependencies = new LinkedHashSet<>();
+    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
+    List<Dependency> projectDependencies = resolveRequiredDependencies(project);
+    for (Dependency dependency : projectDependencies) {
+      String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
+      if (!isExtFrameworkDependency(dependency) &&
+              !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency) &&
+              SenchaUtils.isRequiredSenchaDependency(dependency, false)) {
+        requiredDependencies.add(senchaPackageNameForArtifact);
+      }
+    }
+    return requiredDependencies;
   }
 
   @Nonnull
@@ -219,10 +226,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  protected static void addAdditionalResources(SenchaPackageOrAppConfigBuilder configBuilder,
-                                               String resourceType,
-                                               List<String> resourcesNonBundle,
-                                               List<String> resourcesIncludeInBundle) {
+  private static void addAdditionalResources(SenchaPackageOrAppConfigBuilder configBuilder,
+                                             String resourceType,
+                                             List<String> resourcesNonBundle,
+                                             List<String> resourcesIncludeInBundle) {
     for (String resource : resourcesNonBundle) {
       configBuilder.cssOrJs(resourceType, resource, false, false);
     }
@@ -253,15 +260,15 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   protected abstract  T createSenchaConfigBuilder();
 
-  public File getSenchaSrcDir() {
+  File getSenchaSrcDir() {
     return senchaSrcDir;
   }
 
-  public SenchaProfileConfiguration getProduction() {
+  SenchaProfileConfiguration getProduction() {
     return production;
   }
 
-  public SenchaProfileConfiguration getDevelopment() {
+  SenchaProfileConfiguration getDevelopment() {
     return development;
   }
 
@@ -272,7 +279,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   @Nonnull
   @Override
   public List<String> getRequiredClasses() {
-    return requiredClasses == null ? Collections.<String>emptyList() : requiredClasses;
+    return requiredClasses == null ? Collections.emptyList() : requiredClasses;
   }
 
   public String getTheme() {
@@ -282,24 +289,24 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   @Nonnull
   @Override
   public List<String> getAdditionalCssNonBundle() {
-    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.<String>emptyList();
+    return additionalCssNonBundle != null ? ImmutableList.copyOf(additionalCssNonBundle) : Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public List<String> getAdditionalJsNonBundle() {
-    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.<String>emptyList();
+    return additionalJsNonBundle != null ? ImmutableList.copyOf(additionalJsNonBundle) : Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public List<String> getAdditionalCssIncludeInBundle() {
-    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.<String>emptyList();
+    return additionalCssIncludeInBundle != null ? ImmutableList.copyOf(additionalCssIncludeInBundle) : Collections.emptyList();
   }
 
   @Nonnull
   @Override
   public List<String> getAdditionalJsIncludeInBundle() {
-    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.<String>emptyList();
+    return additionalJsIncludeInBundle != null ? ImmutableList.copyOf(additionalJsIncludeInBundle) : Collections.emptyList();
   }
 }

@@ -3,11 +3,14 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import net.jangaroo.jooc.mvnplugin.PackageMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -18,26 +21,29 @@ import org.apache.maven.project.MavenProject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class SenchaUtils {
 
   public static final String SEPARATOR = "/";
 
   public static final String LOCAL_PACKAGES_PATH = "/packages/";
-
-  private static final String BUILD_PATH = "build/";
 
   public static final String APP_TARGET_DIRECTORY = "/app";
 
@@ -71,8 +77,6 @@ public class SenchaUtils {
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
   public static final String SENCHA_APP_FILENAME = "app.json";
-  public static final String SENCHA_PKG_EXTENSION = ".pkg";
-  public static final String SENCHA_PKG_TMP_EXTENSION = ".pkg.tmp";
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
 
@@ -143,12 +147,7 @@ public class SenchaUtils {
       return null; //NOSONAR
     }
     while (null != result) {
-      String[] list = result.list(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          return SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name);
-        }
-      });
+      String[] list = result.list((dir1, name) -> SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name));
       if (null != list
               && list.length > 0) {
         break;
@@ -190,7 +189,7 @@ public class SenchaUtils {
     return objectMapper;
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, MavenProject project, boolean includeTestDependencies) {
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
     return Type.JAR_EXTENSION.equals(dependency.getType())
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
@@ -203,10 +202,6 @@ public class SenchaUtils {
 
   public static String getPackagesPath(MavenProject project) {
     return LOCAL_PACKAGES_PATH + getSenchaPackageName(project);
-  }
-
-  public static String getPackagesBuildPath(MavenProject project) {
-    return getPackagesPath(project) + "/" + BUILD_PATH;
   }
 
   public static void generateSenchaAppFromTemplate(File workingDirectory,
@@ -276,7 +271,6 @@ public class SenchaUtils {
       try {
         List<String> senchaCfgTmpContent = Files.readAllLines(senchaCfgSource, Charset.forName("UTF-8"));
         List<String> updatedSenchaCfgContent = updateSenchaCfgContent(senchaCfgTmpContent,
-                senchaCfgTarget.getParent(),
                 properties);
         Files.write(senchaCfgTarget, updatedSenchaCfgContent, Charset.forName("UTF-8"));
       } catch (IOException e) {
@@ -287,7 +281,7 @@ public class SenchaUtils {
     }
   }
 
-  private static List<String> updateSenchaCfgContent(@Nonnull List<String> currentContent, Path cfgDir, Map<String, Object> properties) {
+  private static List<String> updateSenchaCfgContent(@Nonnull List<String> currentContent, Map<String, Object> properties) {
     // prepend comment and delete first comment line with usually contains the date time
     if (currentContent.get(0).startsWith("#")) { // if the first
       currentContent.remove(0);
@@ -345,5 +339,32 @@ public class SenchaUtils {
     }
   }
 
-
+  /**
+   * Unfortunately, we need to implement our own extractor because
+   * the maven unarchiver is unable to strip a given path prefix from the entry paths
+   */
+  public static void extractPkg(File archive, File targetDir) throws MojoExecutionException {
+    try (ZipFile zipFile = new ZipFile(archive)) {
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry entry = entries.nextElement();
+        String targetName = entry.getName();
+        if (targetName.startsWith(PackageMojo.ARCHIVE_PKG_PATH)) {
+          targetName = targetName.substring(PackageMojo.ARCHIVE_PKG_PATH.length());
+          File target = new File(targetDir, targetName);
+          if (entry.isDirectory()) {
+            FileHelper.ensureDirectory(target);
+          } else {
+            FileHelper.ensureDirectory(target.getParentFile());
+            try (InputStream in = zipFile.getInputStream(entry);
+                 OutputStream out = new FileOutputStream(target)) {
+              IOUtils.copy(in, out);
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException("IO Error while extracting archive", e);
+    }
+  }
 }
