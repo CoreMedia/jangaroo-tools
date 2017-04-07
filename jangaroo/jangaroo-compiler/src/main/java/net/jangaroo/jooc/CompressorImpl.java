@@ -8,6 +8,7 @@ import com.google.javascript.jscomp.Result;
 import com.google.javascript.jscomp.SourceFile;
 import com.google.javascript.jscomp.SourceMap;
 import com.google.javascript.jscomp.WarningLevel;
+
 import net.jangaroo.jooc.api.Compressor;
 
 import java.io.File;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 public class CompressorImpl implements Compressor {
 
-  private static final String OUTPUT_CHARSET = "UTF-8";
+  private static final Charset OUTPUT_CHARSET = Charset.forName("UTF-8");
   private static final String SOURCE_MAP_EXTENSION = ".map";
 
   /**
@@ -76,13 +77,12 @@ public class CompressorImpl implements Compressor {
     }
 
     Compiler compiler = new Compiler();
-    Result result = compiler.compile(Collections.<SourceFile>emptyList(), sourceFiles, options);
+    Result result = compiler.compile(Collections.emptyList(), sourceFiles, options);
     if (compiler.hasErrors()) {
       throw new IllegalArgumentException(compiler.getErrors()[0].description);
     }
 
-    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),
-            Charset.forName(OUTPUT_CHARSET)))) {
+    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), OUTPUT_CHARSET))) {
       writer.append(compiler.toSource());
       writer.printf("\n//# sourceMappingURL=%s\n", sourceMap.getName());
     }

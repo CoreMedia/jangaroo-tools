@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.util;
 
-import com.google.debugging.sourcemap.FilePosition;
 
 /**
  * A Google source maps FilePosition with a meaningful toString() method.

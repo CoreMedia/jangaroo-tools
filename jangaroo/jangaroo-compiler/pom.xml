@@ -213,6 +213,7 @@
         <configuration>
           <usedDependencies>
             <usedDependency>net.jangaroo:exml-compiler-api</usedDependency>
+            <usedDependency> com.google.code.findbugs:jsr305</usedDependency>
           </usedDependencies>
         </configuration>
       </plugin>

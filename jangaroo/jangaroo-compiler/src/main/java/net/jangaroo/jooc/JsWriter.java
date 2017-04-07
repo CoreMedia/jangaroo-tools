@@ -15,10 +15,10 @@
 
 package net.jangaroo.jooc;
 
-import com.google.debugging.sourcemap.FilePosition;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.util.FilePosition;
 import net.jangaroo.jooc.util.PositionTrackingWriter;
 import net.jangaroo.jooc.util.PrettyPrintFilePosition;
 

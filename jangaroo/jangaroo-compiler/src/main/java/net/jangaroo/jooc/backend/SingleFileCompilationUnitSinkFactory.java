@@ -7,11 +7,11 @@ import net.jangaroo.jooc.CompilationUnitRegistry;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
+import net.jangaroo.jooc.util.FilePosition;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -39,7 +39,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     this.compilationUnitRegistry = compilationUnitRegistry;
   }
 
-  protected File getOutputFile(File sourceFile, String qName) {
+  private File getOutputFile(File sourceFile, String qName) {
     if (getOutputDir() == null) {
       File outputDirectory = sourceFile.getAbsoluteFile().getParentFile();
       return new File(outputDirectory, CompilerUtils.qNameFromFile(outputDirectory, sourceFile) + suffix);
@@ -53,46 +53,44 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
     final File outFile = getOutputFile(sourceFile, primaryDeclaration.getQualifiedNameStr());
     createOutputDirs(outFile);
 
-    return new CompilationUnitSink() {
-      public File writeOutput(CompilationUnit compilationUnit) {
-        if (verbose) {
-          System.out.println("writing file: '" + outFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
-        }
+    return compilationUnit -> {
+      if (verbose) {
+        System.out.println("writing file: '" + outFile.getAbsolutePath() + "'"); // NOSONAR this is a cmd line tool
+      }
 
+      try {
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8");
         try {
-          OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8");
-          try {
-            if (generateApi) {
-              ApiModelGenerator apiModelGenerator = new ApiModelGenerator(isExcludeClassByDefault(getOptions()));
-              apiModelGenerator.generateModel(compilationUnit).visit(new ActionScriptCodeGeneratingModelVisitor(writer));
-            } else {
-              JsWriter out = new JsWriter(writer);
-              String codeSuffix = "";
-              try {
-                out.setOptions(getOptions());
-                compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
-                compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
-                if (options.isGenerateSourceMaps()) {
-                  codeSuffix = generateSourceMap(out, outFile);
-                }
-              } finally {
-                out.close(codeSuffix);
-              }
+          if (generateApi) {
+            ApiModelGenerator apiModelGenerator = new ApiModelGenerator(isExcludeClassByDefault(getOptions()));
+            apiModelGenerator.generateModel(compilationUnit).visit(new ActionScriptCodeGeneratingModelVisitor(writer));
+          } else {
+            JsWriter out = new JsWriter(writer);
+            String codeSuffix = "";
+            try {
+              out.setOptions(getOptions());
+              compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
+              compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
               if (options.isGenerateSourceMaps()) {
-                FileUtils.getFileUtils().copyFile(sourceFile, new File(outFile.getParentFile(), sourceFile.getName()));
+                codeSuffix = generateSourceMap(out, outFile);
               }
+            } finally {
+              out.close(codeSuffix);
             }
-          } catch (IOException e) {
-            //noinspection ResultOfMethodCallIgnored
-            outFile.delete(); // NOSONAR
-            throw JangarooParser.error("error writing file: '" + outFile.getAbsolutePath() + "'", outFile, e);
+            if (options.isGenerateSourceMaps()) {
+              FileUtils.getFileUtils().copyFile(sourceFile, new File(outFile.getParentFile(), sourceFile.getName()));
+            }
           }
         } catch (IOException e) {
-          throw JangarooParser.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", outFile, e);
+          //noinspection ResultOfMethodCallIgnored
+          outFile.delete(); // NOSONAR
+          throw JangarooParser.error("error writing file: '" + outFile.getAbsolutePath() + "'", outFile, e);
         }
-
-        return outFile;
+      } catch (IOException e) {
+        throw JangarooParser.error("cannot open output file for writing: '" + outFile.getAbsolutePath() + "'", outFile, e);
       }
+
+      return outFile;
     };
   }
 
@@ -107,20 +105,22 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
 //                    entry.getSymbol().getFileName() + ":" + entry.getSourceFilePosition() +
 //                    " ->\n   " + outFile.getAbsolutePath() + ":" + entry.getOutputFileStartPosition());
       sourceMapGenerator.addMapping(
-        sourceFilename,
-        entry.getSymbol().getText(),
-        entry.getSourceFilePosition(),
-        entry.getOutputFileStartPosition(), entry.getOutputFileEndPosition());
+              sourceFilename,
+              entry.getSymbol().getText(),
+              googleFilePosition(entry.getSourceFilePosition()),
+              googleFilePosition(entry.getOutputFileStartPosition()),
+              googleFilePosition(entry.getOutputFileEndPosition()));
     }
     String sourceMapFilename = outFile.getAbsolutePath() + ".map";
 //                System.out.println("*** Creating source map file " + sourceMapFilename);
-    FileWriter sourceMapWriter = new FileWriter(sourceMapFilename);
-    try {
+    try (FileWriter sourceMapWriter = new FileWriter(sourceMapFilename)) {
       sourceMapGenerator.appendTo(sourceMapWriter, outFile.getName());
-    } finally {
-      sourceMapWriter.close();
     }
     return "//# sourceMappingURL=" + outFile.getName() + ".map";
+  }
+
+  private com.google.debugging.sourcemap.FilePosition googleFilePosition(FilePosition position) {
+    return new com.google.debugging.sourcemap.FilePosition(position.getLine(), position.getColumn());
   }
 
   private static boolean isExcludeClassByDefault(JoocOptions options) {
