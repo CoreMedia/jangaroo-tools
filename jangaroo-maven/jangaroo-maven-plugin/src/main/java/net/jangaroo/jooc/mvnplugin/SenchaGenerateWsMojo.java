@@ -216,7 +216,19 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
   private File remotePackagesDir() {
     File base = session.getRequest().getMultiModuleProjectDirectory();
-    return new File(base, REMOTE_PACKAGES_DIR);
+    for (;;) {
+      File remotePackagesDir = new File(base, REMOTE_PACKAGES_DIR);
+      File baseParent = base.getParentFile();
+      if (remotePackagesDir.exists() || baseParent == null) {
+        return remotePackagesDir;
+      }
+      File pom = new File(baseParent, "pom.xml");
+      if (!pom.exists()) {
+        // don't go out of maven projects
+        return remotePackagesDir;
+      }
+      base = baseParent;
+    }
   }
 
   /**
