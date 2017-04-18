@@ -34,6 +34,18 @@
     </component>
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>jangaroo-swc</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>swc</type>
+        <extension>swc</extension>
+        <language>extjs</language>
+        <addedToClasspath>false</addedToClasspath>
+        <packaging>jangaroo-swc</packaging>
+      </configuration>
+    </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
       <role-hint>jangaroo-app</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
       <configuration>
@@ -54,8 +66,24 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
-          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
-          </generate-sources>
+          <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
+          <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
+          <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jangaroo-swc</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties</generate-sources>
           <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-ws,
             org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:compile</compile>

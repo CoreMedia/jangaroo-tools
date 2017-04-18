@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "JangarooResourcesExtension")
 public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipant {
 
-  private static final String DEFAULT_SOURCE_DIRECTORY = "src" + File.separator + "main" + File.separator +"java";
+  private static final String DEFAULT_SOURCE_DIRECTORY = "src" + File.separator + "main" + File.separator + "java";
   private static final String DEFAULT_TEST_SOURCE_DIRECTORY = "src" + File.separator + "test" + File.separator + "java";
   private static final String DEFAULT_JOO_SOURCE_DIR = "src/main/joo";
   private static final String DEFAULT_JOO_TEST_SOURCE_DIR = "src/test/joo";
@@ -52,8 +52,8 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
 
 
         String sourceDirectory = project.getBuild().getSourceDirectory();
-        // overwrite the sourceDirectory from the build configuration only if it is different
-        // from the default. if it is explicitly in the project's POM then it obviously
+        // overwrite the sourceDirectory from the build configuration only if it is the default.
+        // if it is explicitly in the project's POM then it obviously
         // happened on purpose
         if (isDefaultSourceDirectory(sourceDirectory)) {
           project.getBuild().setSourceDirectory(DEFAULT_JOO_SOURCE_DIR);

@@ -63,8 +63,10 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     String packaging = project.getPackaging();
-    if (!Type.JANGAROO_PKG_PACKAGING.equals(packaging) && !Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
-      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\" or \"jangaroo-app\"");
+    if (!Type.JANGAROO_PKG_PACKAGING.equals(packaging) &&
+            !Type.JANGAROO_SWC_PACKAGING.equals(packaging) &&
+            !Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
+      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\", \"jangaroo-swc\" or \"jangaroo-app\"");
     }
     if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) || testSuite != null) {
       File workspaceDir = new File(project.getBuild().getDirectory());
@@ -140,7 +142,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     collectReferencedProjects(project, referencedProjects);
     for (MavenProject projectInReactor : referencedProjects) {
       String packageType = projectInReactor.getPackaging();
-      if (Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
+      if (Type.JANGAROO_SWC_PACKAGING.equals(packageType) || Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
         packagePaths.add(absolutizeUsingWorkspace(workspaceDir, relativePathForProject(workspaceDir, projectInReactor)));
         reactorProjectPackagesIds.add(reactorProjectId(projectInReactor));
       }
@@ -193,12 +195,12 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
 
     Artifact artifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
-            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "jar");
+            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "pkg");
     File appTemplate = unpackPkg(artifactFromHelper, remotePackagesDir);
     packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, appTemplate));
 
     Artifact testArtifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
-            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "jar");
+            repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "pkg");
     File testAppTemplate = unpackPkg(testArtifactFromHelper, remotePackagesDir);
     packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, testAppTemplate));
 

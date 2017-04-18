@@ -67,10 +67,10 @@ try
         return false;
     }
 
-    File jarFile = new File( target, "simple-project-1.0-SNAPSHOT.jar" );
-    if ( !jarFile.isFile() )
+    File swcFile = new File( target, "simple-project-1.0-SNAPSHOT.swc" );
+    if ( !swcFile.isFile() )
     {
-        print( "JAR file is missing" );
+        print( "SWC file is missing" );
         return false;
     }
 

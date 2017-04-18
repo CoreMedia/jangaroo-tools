@@ -31,14 +31,6 @@ try
         return false;
     }
 
-    File artifact = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
-    if ( !artifact.exists() )
-    {
-        print( "artifact file is missing or a directory." );
-        return false;
-    }
-
-
     File jsDir = new File ( target, "packages//test__simple-lib-with-test/src" );
     if ( !jsDir.exists() || !jsDir.isDirectory() )
     {
@@ -81,10 +73,10 @@ try
         return false;
     }
 
-    File jarFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.jar" );
-    if ( !jarFile.isFile() )
+    File swcFile = new File( target, "simple-lib-with-test-1.0-SNAPSHOT.swc" );
+    if ( !swcFile.isFile() )
     {
-        print( "JAR file is missing" );
+        print( "SWC file is missing" );
         return false;
     }
 

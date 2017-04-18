@@ -143,7 +143,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * Output directory into which compiled property file classes are generated.
    * By default, for packaging type <code>jangaroo-app</code>, the directory
    * <code>${project.build.directory}/app/locale</code>
-   * is used, for packaging type <code>jangaroo-pkg</code>, it is
+   * is used, for packaging type <code>jangaroo-swc</code>, it is
    * <code>${project.build.directory}/packages/${package.name}/locale</code>.
    */
   private File getLocalizedOutputDirectory() {
@@ -345,8 +345,6 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       outputFileSuffix = Jooc.OUTPUT_FILE_SUFFIX;
     }
     List<File> compileSourceRoots = getCompileSourceRoots();
-
-
     List<File> staleFiles = new ArrayList<>();
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.AS_SUFFIX, outputFileSuffix, staleMillis));
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));

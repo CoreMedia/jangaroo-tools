@@ -122,8 +122,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging())) {
-      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\"");
+    if (!Type.JANGAROO_PKG_PACKAGING.equals(project.getPackaging()) && !Type.JANGAROO_SWC_PACKAGING.equals(project.getPackaging())) {
+      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\" or \"jangaroo-swc\"");
     }
     getLog().info("Execute sencha packaging mojo");
     FileHelper.ensureDirectory(new File(getSenchaPackageDirectory().getPath()));

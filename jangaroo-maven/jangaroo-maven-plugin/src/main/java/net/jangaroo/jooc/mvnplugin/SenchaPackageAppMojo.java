@@ -185,14 +185,18 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     // get all dependencies including transitive ones
     Set<Artifact> artifacts = project.getArtifacts();
     for(Artifact artifact: artifacts) {
-       try {
-        String senchaPackageName = getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
-         File pkgTargetDir = new File(targetDir,
-                 isExtFrameworkArtifact(artifact) ? EXT_TARGET_DIRECTORY : (PACKAGES_PATH_NAME + "/" + senchaPackageName));
-         extractPackageForProduction(artifact, pkgTargetDir);
-        // MojoExecutionException| ArchiverException
-      } catch (Exception  e) {
-        getLog().error(e.getMessage(), e);
+      switch (artifact.getType()) {
+        case Type.SWC_EXTENSION:
+        case Type.PKG_EXTENSION:
+          try {
+            String senchaPackageName = getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
+            File pkgTargetDir = new File(targetDir,
+                    isExtFrameworkArtifact(artifact) ? EXT_TARGET_DIRECTORY : (PACKAGES_PATH_NAME + "/" + senchaPackageName));
+            extractPackageForProduction(artifact, pkgTargetDir);
+            // MojoExecutionException| ArchiverException
+          } catch (Exception e) {
+            getLog().error(e.getMessage(), e);
+          }
       }
     }
   }

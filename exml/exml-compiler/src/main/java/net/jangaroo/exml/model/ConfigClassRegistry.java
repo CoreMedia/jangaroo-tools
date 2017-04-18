@@ -71,7 +71,7 @@ public class ConfigClassRegistry {
     List<File> fullClassPath = new ArrayList<File>(config.getClassPath());
     fullClassPath.add(config.getOutputDirectory());
     InputSource classPathInputSource = PathInputSource.fromFiles(fullClassPath,
-      new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
+      new String[]{"", JangarooParser.JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
     jangarooParser.setUp(sourcePathInputSource, classPathInputSource);
     jangarooParser.setCompilableSuffixes(Collections.singletonList(Jooc.AS_SUFFIX));
     exmlConfigPackageXsdGenerator = new ExmlConfigPackageXsdGenerator();

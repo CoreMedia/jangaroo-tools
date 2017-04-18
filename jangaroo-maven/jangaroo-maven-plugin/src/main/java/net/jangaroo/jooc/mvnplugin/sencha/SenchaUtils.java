@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.sencha;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import net.jangaroo.jooc.mvnplugin.PackageMojo;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -38,6 +37,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import static net.jangaroo.jooc.mvnplugin.Type.META_INF_PATH;
 
 public class SenchaUtils {
 
@@ -97,6 +98,7 @@ public class SenchaUtils {
   );
 
   private static final ObjectMapper objectMapper;
+  private static final String DOT_SWC_EXTENSION = '.' + Type.SWC_EXTENSION;
 
   static {
     objectMapper = new ObjectMapper();
@@ -190,9 +192,13 @@ public class SenchaUtils {
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
-    return Type.JAR_EXTENSION.equals(dependency.getType())
+    return isSenchaDependency(dependency)
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
             && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
+  }
+
+  public static boolean isSenchaDependency(@Nonnull Dependency dependency) {
+    return Type.SWC_EXTENSION.equals(dependency.getType()) || Type.PKG_EXTENSION.equals(dependency.getType());
   }
 
   public static boolean doesSenchaAppExist(File directory) {
@@ -345,12 +351,17 @@ public class SenchaUtils {
    */
   public static void extractPkg(File archive, File targetDir) throws MojoExecutionException {
     try (ZipFile zipFile = new ZipFile(archive)) {
+      boolean isSwc = archive.getName().endsWith(DOT_SWC_EXTENSION);
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry entry = entries.nextElement();
         String targetName = entry.getName();
-        if (targetName.startsWith(PackageMojo.ARCHIVE_PKG_PATH)) {
-          targetName = targetName.substring(PackageMojo.ARCHIVE_PKG_PATH.length());
+        boolean isSwcPkgFile = isSwc && targetName.startsWith(Type.SWC_PKG_PATH);
+        // extract only package contents
+        if (isSwcPkgFile || (!isSwc && !targetName.startsWith(META_INF_PATH))) {
+          if (isSwcPkgFile) {
+            targetName = targetName.substring(Type.SWC_PKG_PATH.length());
+          }
           File target = new File(targetDir, targetName);
           if (entry.isDirectory()) {
             FileHelper.ensureDirectory(target);

@@ -83,7 +83,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected File getOutputDirectory() {
-    return Type.JANGAROO_PKG_PACKAGING.equals(getProject().getPackaging()) ? getPackageOutputDirectory() : appOutputDirectory;
+    return Type.JANGAROO_APP_PACKAGING.equals(getProject().getPackaging()) ? appOutputDirectory : getPackageOutputDirectory();
   }
 
   public File getReportOutputDirectory() {

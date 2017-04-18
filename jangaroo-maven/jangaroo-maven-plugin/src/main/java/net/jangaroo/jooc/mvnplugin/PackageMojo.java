@@ -15,6 +15,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
 
 import java.io.File;
 
@@ -30,8 +31,6 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 @SuppressWarnings({"ResultOfMethodCallIgnored", "UnusedDeclaration", "UnusedPrivateField"})
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class PackageMojo extends AbstractMojo {
-
-  public static final String ARCHIVE_PKG_PATH = "META-INF/pkg/";
 
   /**
    * The maven project.
@@ -53,7 +52,7 @@ public class PackageMojo extends AbstractMojo {
   private File targetDir;
 
   /**
-   * The name of the JAR file (without extension) generated as this module's artifact. Defaults to ${project.build.finalName}
+   * The name of the SWC or PKG file (without extension) generated as this module's artifact. Defaults to ${project.build.finalName}
    */
   @Parameter(defaultValue = "${project.build.finalName}")
   private String finalName;
@@ -99,10 +98,12 @@ public class PackageMojo extends AbstractMojo {
   public void execute()
       throws MojoExecutionException {
     getLog().info("Create the jangaroo archive and attach it to the project");
-    File jarFile = new File(targetDir, finalName + ".jar");
+    boolean packageSwc = project.getPackaging().equals(Type.JANGAROO_SWC_PACKAGING);
+    String extension = packageSwc ? Type.SWC_EXTENSION : Type.PKG_EXTENSION;
+    File zipFile = new File(targetDir, finalName + '.' + extension);
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
-    mavenArchiver.setOutputFile(jarFile);
+    mavenArchiver.setOutputFile(zipFile);
     try {
       if (archive.getManifestFile() == null) {
         if (useDefaultManifestFile && defaultManifestFile.exists()) {
@@ -117,15 +118,18 @@ public class PackageMojo extends AbstractMojo {
       }
       archiver.addFile(project.getFile(), "META-INF/maven/" + project.getGroupId() + "/" + project.getArtifactId()
               + "/pom.xml");
-      archiver.addFileSet(
-              fileSet(new File(targetDir + SenchaUtils.getPackagesPath(project))).prefixed(ARCHIVE_PKG_PATH));
+      DefaultFileSet fileSet = fileSet(new File(targetDir + SenchaUtils.getPackagesPath(project)));
+      if (packageSwc) {
+        fileSet = fileSet.prefixed(Type.SWC_PKG_PATH);
+      }
+      archiver.addFileSet(fileSet);
       mavenArchiver.createArchive(mavenSession, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
     }
     Artifact mainArtifact = project.getArtifact();
-    mainArtifact.setFile(jarFile);
+    mainArtifact.setFile(zipFile);
     // workaround for MNG-1682: force maven to install artifact using the "jar" handler
-    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
+    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(extension));
   }
 }

@@ -28,13 +28,18 @@ public final class Type {
   public static final String APP = "app";
   public static final String WORKSPACE = "workspace";
 
-  public static final String PACKAGE_EXTENSION = "pkg";
+  public static final String PKG_EXTENSION = "pkg";
+  public static final String SWC_EXTENSION = "swc";
   public static final String ZIP_EXTENSION = "zip";
   public static final String JAR_EXTENSION = "jar";
   public static final String POM_PACKAGING = "pom";
 
   public static final String JANGAROO_PKG_PACKAGING = "jangaroo-pkg";
+  public static final String JANGAROO_SWC_PACKAGING = "jangaroo-swc";
   public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
+
+  public static final String META_INF_PATH = "META-INF/";
+  public static final String SWC_PKG_PATH = META_INF_PATH + "pkg/";
 
   private Type() {
     // hide utility class constructor
@@ -42,7 +47,7 @@ public final class Type {
 
   public static boolean containsJangarooSources(MavenProject project) {
     String packagingType = project.getPackaging();
-    return Type.JANGAROO_PKG_PACKAGING.equals(packagingType) || Type.JANGAROO_APP_PACKAGING.equals(packagingType);
+    return Type.JANGAROO_SWC_PACKAGING.equals(packagingType) || Type.JANGAROO_APP_PACKAGING.equals(packagingType);
   }
 
 }

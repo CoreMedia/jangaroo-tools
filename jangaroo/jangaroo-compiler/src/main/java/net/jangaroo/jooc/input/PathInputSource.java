@@ -16,7 +16,7 @@ public class PathInputSource extends DirectoryInputSource {
     for (File file : files) {
       if (file.isDirectory()) {
         entries.add(new FileInputSource(file, file, inSourcePath));
-      } else if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
+      } else if (file.getName().endsWith(".swc") || file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs, inSourcePath));
       }
       if (!(name.length() == 0)) {

@@ -192,6 +192,7 @@
       <groupId>net.jangaroo</groupId>
       <artifactId>sencha-app-template</artifactId>
       <version>${project.version}</version>
+      <type>pkg</type>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

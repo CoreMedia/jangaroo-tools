@@ -91,12 +91,12 @@ public class MavenPluginHelper {
     StringBuilder sb = new StringBuilder();
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
-      if (Type.JAR_EXTENSION.equals(artifact.getType())) {
+      if (Type.SWC_EXTENSION.equals(artifact.getType())) {
         sb.append(artifact.getArtifactId())
                 .append('-')
                 .append(artifact.getVersion())
                 .append('.')
-                .append(Type.JAR_EXTENSION)
+                .append(Type.SWC_EXTENSION)
                 .append(' ');
       }
     }
@@ -155,7 +155,7 @@ public class MavenPluginHelper {
       }
       if (!dependency.isOptional()
               && (Artifact.SCOPE_COMPILE.equals(dependency.getScope()) || includeTestScope && Artifact.SCOPE_TEST.equals(dependency.getScope()))
-              && Type.JAR_EXTENSION.equals(dependency.getType())) {
+              && Type.SWC_EXTENSION.equals(dependency.getType())) {
         if (log.isDebugEnabled()) {
           log.debug("adding to classpath: compile dependency [" + dependency.toString() + "]");
         }

@@ -4,7 +4,6 @@ import com.thoughtworks.selenium.DefaultSelenium;
 import com.thoughtworks.selenium.Selenium;
 import com.thoughtworks.selenium.SeleniumException;
 import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
-import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
@@ -52,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isSenchaDependency;
 
 /**
  * Executes JooUnit tests.
@@ -382,10 +382,10 @@ public class JooTestMojo extends AbstractSenchaMojo {
   }
 
   private static boolean isTestDependency(Dependency dependency) {
-    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && Type.JAR_EXTENSION.equals(dependency.getType());
+    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && isSenchaDependency(dependency);
   }
 
-  public void createAppJson() throws MojoExecutionException {
+  private void createAppJson() throws MojoExecutionException {
     File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), SenchaUtils.SENCHA_APP_FILENAME);
     getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
 

@@ -164,7 +164,7 @@ public class ExtAsApi {
     InputSource classPathInputSource;
     try {
       sourcePathInputSource = PathInputSource.fromFiles(Collections.singletonList(sourceRoot), new String[]{""}, true);
-      classPathInputSource = PathInputSource.fromFiles(classPath, new String[]{"", JangarooParser.JOO_API_IN_JAR_DIRECTORY_PREFIX}, false);
+      classPathInputSource = PathInputSource.fromFiles(classPath, new String[]{"", JangarooParser.JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }

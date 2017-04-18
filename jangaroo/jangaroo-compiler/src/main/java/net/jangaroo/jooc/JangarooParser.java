@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 public class JangarooParser implements CompilationUnitResolver, CompilationUnitRegistry {
-  public static final String JOO_API_IN_JAR_DIRECTORY_PREFIX = "META-INF/joo-api/";
+  public static final String JOO_API_IN_SWC_DIRECTORY_PREFIX = "META-INF/joo-api/";
   static final String UTF_8 = "UTF-8";
 
   protected CompileLog log;
