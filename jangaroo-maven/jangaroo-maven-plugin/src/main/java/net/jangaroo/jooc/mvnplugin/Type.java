@@ -34,8 +34,8 @@ public final class Type {
   public static final String JAR_EXTENSION = "jar";
   public static final String POM_PACKAGING = "pom";
 
-  public static final String JANGAROO_PKG_PACKAGING = "jangaroo-pkg";
-  public static final String JANGAROO_SWC_PACKAGING = "jangaroo-swc";
+  public static final String JANGAROO_PKG_PACKAGING = "pkg";
+  public static final String JANGAROO_SWC_PACKAGING = "swc";
   public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
 
   public static final String META_INF_PATH = "META-INF/";

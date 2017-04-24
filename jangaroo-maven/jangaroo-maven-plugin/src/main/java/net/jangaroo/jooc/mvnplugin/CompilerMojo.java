@@ -31,7 +31,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   /**
    * Sencha package output directory into whose 'src' sub-directory compiled classes are generated.
-   * This property is used for <code>jangaroo-pkg</code> packaging type as {@link #getOutputDirectory}.
+   * This property is used for <code>pkg</code> packaging type as {@link #getOutputDirectory}.
    */
   private File packageOutputDirectory;
 

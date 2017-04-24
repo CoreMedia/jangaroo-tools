@@ -66,7 +66,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     if (!Type.JANGAROO_PKG_PACKAGING.equals(packaging) &&
             !Type.JANGAROO_SWC_PACKAGING.equals(packaging) &&
             !Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
-      throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-pkg\", \"jangaroo-swc\" or \"jangaroo-app\"");
+      throw new MojoExecutionException("This goal only supports projects with packaging type \"pkg\", \"swc\" or \"jangaroo-app\"");
     }
     if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) || testSuite != null) {
       File workspaceDir = new File(project.getBuild().getDirectory());

@@ -22,26 +22,26 @@
     -->
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
-      <role-hint>jangaroo-pkg</role-hint>
+      <role-hint>pkg</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
       <configuration>
         <type>pkg</type>
         <extension>pkg</extension>
         <language>extjs</language>
         <addedToClasspath>false</addedToClasspath>
-        <packaging>jangaroo-pkg</packaging>
+        <packaging>pkg</packaging>
       </configuration>
     </component>
     <component>
       <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
-      <role-hint>jangaroo-swc</role-hint>
+      <role-hint>swc</role-hint>
       <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
       <configuration>
         <type>swc</type>
         <extension>swc</extension>
         <language>extjs</language>
         <addedToClasspath>false</addedToClasspath>
-        <packaging>jangaroo-swc</packaging>
+        <packaging>swc</packaging>
       </configuration>
     </component>
     <component>
@@ -62,7 +62,7 @@
     -->
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
-      <role-hint>jangaroo-pkg</role-hint>
+      <role-hint>pkg</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
@@ -79,7 +79,7 @@
 
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
-      <role-hint>jangaroo-swc</role-hint>
+      <role-hint>swc</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>

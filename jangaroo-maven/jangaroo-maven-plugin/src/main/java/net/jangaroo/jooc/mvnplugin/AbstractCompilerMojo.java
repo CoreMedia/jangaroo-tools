@@ -143,7 +143,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * Output directory into which compiled property file classes are generated.
    * By default, for packaging type <code>jangaroo-app</code>, the directory
    * <code>${project.build.directory}/app/locale</code>
-   * is used, for packaging type <code>jangaroo-swc</code>, it is
+   * is used, for packaging type <code>swc</code>, it is
    * <code>${project.build.directory}/packages/${package.name}/locale</code>.
    */
   private File getLocalizedOutputDirectory() {

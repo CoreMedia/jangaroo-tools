@@ -50,7 +50,7 @@ public class MavenPluginHelper {
 
   /**
    * Creates a default manifest file for any Jangaroo-packaged Maven project
-   * @param project the Maven project with packaging type "jangaroo-app" or "jangaroo-pkg"
+   * @param project the Maven project with packaging type "jangaroo-app" or "pkg"
    * @return the default manifest file
    * @throws ManifestException
    * @throws IOException
