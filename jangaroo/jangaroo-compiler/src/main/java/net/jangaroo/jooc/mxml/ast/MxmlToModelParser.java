@@ -75,7 +75,7 @@ final class MxmlToModelParser {
     constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
-  private void processAttributes(XmlElement objectNode, CompilationUnit type, @Nonnull Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
+  private void processAttributes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
