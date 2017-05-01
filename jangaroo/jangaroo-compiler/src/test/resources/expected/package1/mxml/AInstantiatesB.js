@@ -4,8 +4,6 @@ import package1.mxml.*;
 import net.jangaroo.ext.Exml;
 public class AInstantiatesB extends Panel{
 
-    private var config:AInstantiatesB;
-
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
     var config_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
     var defaults_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
@@ -17,7 +15,6 @@ public class AInstantiatesB extends Panel{
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.Panel",
-      config$3: null,
       constructor: AInstantiatesB$,
       requires: ["ext.Panel"],
       uses: [

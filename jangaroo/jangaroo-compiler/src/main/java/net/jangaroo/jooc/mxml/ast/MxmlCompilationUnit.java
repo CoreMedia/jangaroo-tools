@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -196,6 +197,19 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(!hasNativeConstructor) {
       // inserting constructor
       classBodyDirectives.add(MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives));
+    } else if (null != constructorParam) {
+      // remove "virtual" field declaration of constructor parameter:
+      Iterator<Directive> iterator = classBodyDirectives.iterator();
+      while (iterator.hasNext()) {
+        Directive directive = iterator.next();
+        if (directive instanceof IdeDeclaration) {
+          IdeDeclaration declaration = (IdeDeclaration) directive;
+          if (declaration.isPrivate() && constructorParam.getName().equals(declaration.getName())) {
+            iterator.remove();
+            break;
+          }
+        }
+      }
     }
 
     if(null != initMethod) {

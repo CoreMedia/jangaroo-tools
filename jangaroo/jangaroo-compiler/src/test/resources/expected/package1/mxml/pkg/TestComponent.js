@@ -3,8 +3,6 @@ import package1.mxml.pkg.*;
 import net.jangaroo.ext.Exml;
 public class TestComponent extends TestComponentBase{
 
-    private var config:TestComponent;
-
     public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
     var config_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
     var defaults_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
@@ -24,7 +22,6 @@ public var property_2:int;}}
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "package1.mxml.pkg.TestComponentBase",
-      config$2: null,
       constructor: TestComponent$,
       config: {
         property_1: null,

@@ -24,8 +24,6 @@ public class AllElements extends Panel{
     public static const ANOTHER_CONSTANT:String =*/function ANOTHER_CONSTANT$static_(){AllElements.ANOTHER_CONSTANT=( exmlparser.config.allElements.ANOTHER_CONSTANT);}/*;
     public static const CODE_CONSTANT:int =*/function CODE_CONSTANT$static_(){AllElements.CODE_CONSTANT=( exmlparser.config.allElements.CODE_CONSTANT);}/*;
 
-    private var config:AllElements;
-
     private var myProperty:String;
     private var myVar:String;
     private var myVar2:Object;
@@ -109,7 +107,6 @@ public class AllElements extends Panel{
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.Panel",
-      config$3: null,
       myProperty$3: null,
       myVar$3: null,
       myVar2$3: null,
