@@ -123,6 +123,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList(
           Jooc.EMBED_ANNOTATION_NAME,
           Jooc.BINDABLE_ANNOTATION_NAME,
+          Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
           Jooc.EXT_CONFIG_ANNOTATION_NAME,
           Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
           Jooc.MIXIN_ANNOTATION_NAME

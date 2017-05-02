@@ -44,6 +44,8 @@ import net.jangaroo.utils.AS3Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.jangaroo.jooc.Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME;
+
 public abstract class AbstractScope implements Scope {
 
   private Scope parent;
@@ -248,8 +250,6 @@ public abstract class AbstractScope implements Scope {
     }
     return null;
   }
-
-  private static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
 
   private static TypeDeclaration findArrayElementType(IdeDeclaration declaration) {
     // find [ArrayElementType("...")] annotation:

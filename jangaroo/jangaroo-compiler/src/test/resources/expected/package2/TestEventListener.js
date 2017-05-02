@@ -35,22 +35,6 @@ public class TestEventListener {
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      metadata: {
-        panels$1: [
-          "ArrayElementType",
-          [
-            "",
-            "ext.Panel"
-          ]
-        ],
-        getPanels: [
-          "ArrayElementType",
-          [
-            "",
-            "ext.Panel"
-          ]
-        ]
-      },
       getPanels$1: getPanels,
       constructor: TestEventListener$,
       getThis: getThis,
