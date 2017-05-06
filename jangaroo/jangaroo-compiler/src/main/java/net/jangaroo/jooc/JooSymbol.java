@@ -36,7 +36,7 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
   }
 
   public JooSymbol(int sym, String text) {
-    this(sym, "", -1, -1, "", text);
+    this(sym, "", -1, -1, "", text, text);
   }
 
   public JooSymbol(int sym, String fileName, int line, int column, String whitespace, String text) {
@@ -76,6 +76,10 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
 
   public String getWhitespace() {
     return whitespace;
+  }
+
+  public String getSourceCode() {
+    return whitespace + text;
   }
 
   public Object getJooValue() {

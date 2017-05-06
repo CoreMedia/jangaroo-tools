@@ -115,11 +115,6 @@ public abstract class ScannerBase implements sym {
     this.multiStateText.append(multiStateText);
   }
 
-  protected Symbol xmlUnescaped(int sym, String string) {
-    String text = unescapeXml(string);
-    return new JooSymbol(sym, fileName, multiStateSymbolStartLine, multiStateSymbolStartColumn, popWhitespace(), text, text);
-  }
-
   protected String unescapeXml(String string) {
     return StringEscapeUtils.unescapeXml(string);
   }

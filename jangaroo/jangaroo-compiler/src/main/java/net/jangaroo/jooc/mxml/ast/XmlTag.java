@@ -46,7 +46,7 @@ public class XmlTag extends NodeImplBase {
       for (XmlAttribute attribute : attributes) {
         String localName = attribute.getLocalName();
         String namespace = attribute.getPrefix();
-        String text = attribute.getValue().getText();
+        String text = (String) attribute.getValue().getJooValue();
         if (XMLNS.equals(namespace)) {
           xmlNamespaces.put(localName, text);
         } else if (null == namespace && XMLNS.equals(localName)) {
@@ -90,18 +90,19 @@ public class XmlTag extends NodeImplBase {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append(lt.getText());
-    String prefix = getPrefix();
-    if(null != prefix) {
-      builder.append(prefix).append(':');
+    builder.append(lt.getSourceCode());
+    if(tagName instanceof NamespacedIde) {
+      NamespacedIde namespacedIde = (NamespacedIde) tagName;
+      builder.append(namespacedIde.getNamespace().getSymbol().getSourceCode());
+      builder.append(namespacedIde.getSymNamespaceSep().getSourceCode());
     }
-    builder.append(getLocalName());
+    builder.append(tagName.getIde().getSourceCode());
     if (attributes != null) {
       for (XmlAttribute attribute : attributes) {
-        builder.append(" ").append(attribute);
+        builder.append(attribute);
       }
     }
-    builder.append(gt.getText());
+    builder.append(gt.getSourceCode());
     return builder.toString();
   }
 

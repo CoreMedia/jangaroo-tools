@@ -55,6 +55,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final Collection<String> importedSymbols = new HashSet<>();
 
   private final InputSource source;
+  private final XmlHeader optXmlHeader;
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
 
@@ -69,10 +70,11 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private MxmlToModelParser mxmlToModelParser;
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
 
-  public MxmlCompilationUnit(@Nonnull InputSource source, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
+  public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
     super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
     this.source = source;
+    this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
     classQName = CompilerUtils.qNameFromRelativePath(source.getRelativePath());
@@ -253,6 +255,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return true;
   }
 
+  XmlTag getOptXmlHeader() {
+    return optXmlHeader;
+  }
+
   XmlElement getRootNode() {
     return rootNode;
   }
@@ -279,7 +285,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   void addImport(@Nonnull JooSymbol symbol) {
-    String jooValue = symbol.getText();
+    String jooValue = (String) symbol.getJooValue();
     if(!importedSymbols.contains(jooValue)) {
       ImportDirective directive = mxmlParserHelper.parseImport(symbol);
       if (null != directive && isNotYetImported(directive.getIde())) {

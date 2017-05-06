@@ -64,6 +64,7 @@ final class MxmlToModelParser {
 
   private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
+  String additionalDeclarations = "";
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
@@ -80,6 +81,9 @@ final class MxmlToModelParser {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
     for (XmlAttribute attribute : objectNode.getAttributes()) {
+      if (RootElementProcessor.alreadyProcessed(attribute)) {
+        continue;
+      }
       String propertyName = attribute.getLocalName();
       boolean noPrefix = attribute.getPrefix() == null;
       hasIdAttribute |= noPrefix && MxmlUtils.MXML_ID_ATTRIBUTE.equals(propertyName);
@@ -296,9 +300,10 @@ final class MxmlToModelParser {
     String targetVariableName = null;   // name of the variable holding the object to build
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
     String id = null;
+    String additionalDeclaration = null;
     if (null != idAttribute) {
       JooSymbol idSymbol = idAttribute.getValue();
-      id = idSymbol.getText();
+      id = (String) idSymbol.getJooValue();
       if (id.equals(compilationUnit.getConstructorParamName())) {
         return null;
       }
@@ -320,7 +325,8 @@ final class MxmlToModelParser {
                 .append('[').append(Jooc.BINDABLE_ANNOTATION_NAME).append(']')
                 .append(i < 0 ? "\n" : asDoc.substring(i))
                 .append("public var ").append(id).append(':').append(className).append(';');
-        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
+        additionalDeclaration = classBodyCode.toString();
+        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives());
       }
       targetVariableName = CompilerUtils.qName(qualifier, id);
     }
@@ -329,6 +335,7 @@ final class MxmlToModelParser {
             && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
             && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty()) {
       // prevent assigning a default value for such an empty declaration:
+      additionalDeclarations += additionalDeclaration;
       return null;
     }
 
@@ -379,7 +386,7 @@ final class MxmlToModelParser {
   private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
     String value;
     JooSymbol textContentSymbol = getTextContent(objectElement);
-    String textContent = textContentSymbol.getText().trim();
+    String textContent = ((String) textContentSymbol.getJooValue()).trim();
     if (MxmlUtils.isBindingExpression(textContent)) {
       return MxmlUtils.getBindingExpression(textContent);
     } else if ("String".equals(className)) {
@@ -498,7 +505,7 @@ final class MxmlToModelParser {
     classBodyCode
             .append("private function ").append(eventHandlerName)
             .append(" (").append("event").append(':').append(eventTypeStr).append(") :void {\n")
-            .append("\n    ").append(value.getText())
+            .append("\n    ").append(value.getJooValue())
             .append('}');
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
 
@@ -521,12 +528,12 @@ final class MxmlToModelParser {
     TypeRelation typeRelation = propertyModel.getOptTypeRelation();
     String propertyType = typeRelation == null ? null : typeRelation.getType().getIde().getName();
     boolean untyped = UNTYPED_MARKER.equals(propertyType);
-    String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(value.getText(), untyped ? null : propertyType));
+    String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue((String) value.getJooValue(), untyped ? null : propertyType));
 
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
     boolean untypedAccess = true; // untyped || !propertyName.equals(propertyModel.getName());
 
-    Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, null));
+    Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, attributeValueAsString));
     return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
   }
 

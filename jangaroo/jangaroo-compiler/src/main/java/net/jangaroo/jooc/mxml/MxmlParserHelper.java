@@ -24,6 +24,7 @@ import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.mxml.ast.XmlAttribute;
 import net.jangaroo.jooc.mxml.ast.XmlElement;
+import net.jangaroo.jooc.mxml.ast.XmlHeader;
 import net.jangaroo.jooc.mxml.ast.XmlTag;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -62,8 +63,8 @@ public class MxmlParserHelper {
     return new XmlElement(openingMxmlTag, children, closingMxmlTag);
   }
 
-  public CompilationUnit createCompilationUnit(XmlElement root) throws Exception {
-    return new MxmlCompilationUnit(getInputSource(), root, this);
+  public CompilationUnit createCompilationUnit(XmlHeader optXmlHeader, XmlElement root) throws Exception {
+    return new MxmlCompilationUnit(getInputSource(), optXmlHeader, root, this);
   }
 
   InputSource getInputSource() {
@@ -82,7 +83,7 @@ public class MxmlParserHelper {
 
   @Nonnull
   public ClassBody parseClassBody(@Nonnull JooSymbol symbol) {
-    String text = symbol.getText();
+    String text = (String) symbol.getJooValue();
     String template = TPL_CLASS_BODY;
     int[] position = position(symbol, template);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
@@ -105,7 +106,7 @@ public class MxmlParserHelper {
 
   @Nullable
   public Implements parseImplements(@Nonnull JooSymbol symbol) {
-    String text = symbol.getText();
+    String text = (String) symbol.getJooValue();
     String template = TPL_IMPLEMENTS;
     int[] position = position(symbol, template);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
@@ -128,7 +129,7 @@ public class MxmlParserHelper {
 
   @Nullable
   public ImportDirective parseImport(@Nonnull JooSymbol symbol) {
-    String text = symbol.getText();
+    String text = (String) symbol.getJooValue();
     String template = TPL_IMPORT;
     int[] position = position(symbol, template);
     try {
@@ -142,7 +143,7 @@ public class MxmlParserHelper {
 
   @Nullable
   public List<Annotation> parseMetadata(@Nonnull JooSymbol symbol) {
-    String text = symbol.getText();
+    String text = (String) symbol.getJooValue();
     String template = TPL_METADATA;
     int[] position = position(symbol, template);
     try {

@@ -100,7 +100,7 @@ public class XmlElement extends NodeImplBase {
     if (null != children) {
       for (Object child : children) {
         if (child instanceof JooSymbol) {
-          child = ((JooSymbol)child).getText();
+          child = ((JooSymbol)child).getSourceCode();
         }
         builder.append(child);
       }
@@ -144,6 +144,6 @@ public class XmlElement extends NodeImplBase {
    */
   String getAttributeNS(String namespaceUri, String localName) {
     XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
-    return null != attribute ? attribute.getValue().getText() : "";
+    return null != attribute ? (String) attribute.getValue().getJooValue() : "";
   }
 }

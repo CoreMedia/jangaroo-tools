@@ -350,8 +350,8 @@ XmlComment = "<!--" ~"-->"
   {XMLIdentifier}                    { return symbol(IDE, yytext()); }
   {WhiteSpace}                    { pushWhitespace(yytext()); }
   {XmlComment}                    { pushWhitespace(yytext()); }
-  \"                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
-  \'                              { setMultiStateText(""); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
+  \"                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_DQ); clearString(); }
+  \'                              { setMultiStateText(yytext()); yybegin(XML_ATTRIBUTE_VALUE_SQ); clearString(); }
   "<"                             { return symbol(LT); }
   "</"                            { return symbol(LT_SLASH); }
   "/>" / "<![CDATA["              { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(SLASH_GT); }
@@ -365,50 +365,28 @@ XmlComment = "<!--" ~"-->"
 }
 
 <XML_ATTRIBUTE_VALUE_DQ> {
-  \"                              { yybegin(MXML);
-                                    return multiStateSymbol(STRING_LITERAL, null); }
-  [^\r\n\"\\]+                    { pushMultiStateText(unescapeXml(yytext())); }
-  "\\b"                           { pushMultiStateText(yytext()); }
-  "\\t"                           { pushMultiStateText(yytext()); }
-  "\\n"                           { pushMultiStateText(yytext()); }
-  "\\f"                           { pushMultiStateText(yytext()); }
-  "\\r"                           { pushMultiStateText(yytext()); }
-  "\\\""                          { pushMultiStateText(yytext()); }
-  "\\\'"                          { pushMultiStateText(yytext()); }
-  "\\\\"                          { pushMultiStateText(yytext()); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
-  \\.                             { pushMultiStateText(yytext()); }
-  {WhiteSpace}                    { pushMultiStateText(yytext()); pushWhitespace(yytext()); }
+  \"                              { pushMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^\"]+                          { pushMultiStateText(yytext()); pushString(unescapeXml(yytext())); }
 }
 
 <XML_ATTRIBUTE_VALUE_SQ> {
-  \'                              { yybegin(MXML);
-                                    return multiStateSymbol(STRING_LITERAL, null); }
-  [^\r\n'\\]+                     { pushMultiStateText(unescapeXml(yytext())); }
-  "\\b"                           { pushMultiStateText(yytext()); }
-  "\\t"                           { pushMultiStateText(yytext()); }
-  "\\n"                           { pushMultiStateText(yytext()); }
-  "\\f"                           { pushMultiStateText(yytext()); }
-  "\\r"                           { pushMultiStateText(yytext()); }
-  "\\\""                          { pushMultiStateText(yytext()); }
-  "\\\'"                          { pushMultiStateText(yytext()); }
-  "\\\\"                          { pushMultiStateText(yytext()); }
-\\(u{HexDigit}{4}|x{HexDigit}{2}) { pushMultiStateText(yytext()); }
-  \\.                             { pushMultiStateText(yytext()); }
-  {WhiteSpace}                    { pushMultiStateText(yytext()); pushWhitespace(yytext()); }
+  \'                              { pushMultiStateText(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, getString()); }
+  [^']+                           { pushMultiStateText(yytext()); pushString(unescapeXml(yytext())); }
 }
 
 <XML_TEXT_CONTENT> {
-  "<![CDATA["                     { setMultiStateText(""); yybegin(CDATA_SECTION); clearString(); }
-  .|{LineTerminator} / "<"        { pushString(yytext()); yybegin(MXML);
-                                    return xmlUnescaped(STRING_LITERAL, getString()); }
-  .|{LineTerminator}              { pushString(yytext()); }
+  "<![CDATA["                     { pushMultiStateText(yytext()); yybegin(CDATA_SECTION); }
+  .|{LineTerminator} / "<"        { pushMultiStateText(yytext()); pushString(yytext()); yybegin(MXML);
+                                    return multiStateSymbol(STRING_LITERAL, unescapeXml(getString())); }
+  .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
 }
 
 <CDATA_SECTION> {
-  "]]>" / "<"                     { yybegin(MXML);
+  "]]>" / "<"                     { pushMultiStateText(yytext()); yybegin(MXML);
                                     return multiStateSymbol(STRING_LITERAL, getString()); }
-  "]]>"                           { yybegin(XML_TEXT_CONTENT); }
+  "]]>"                           { pushMultiStateText(yytext()); yybegin(XML_TEXT_CONTENT); }
   .|{LineTerminator}              { pushMultiStateText(yytext()); pushString(yytext()); }
 }
 

@@ -75,11 +75,13 @@ public class XmlAttribute extends NodeImplBase {
 
   @Override
   public String toString() {
-    String name = ide.getName();
+    StringBuilder builder = new StringBuilder();
     if (ide instanceof NamespacedIde) {
-      name = ((NamespacedIde)ide).getNamespace().getName() + ((NamespacedIde)ide).getSymNamespaceSep().getText() + name;
+      builder.append(((NamespacedIde)ide).getNamespace().getSymbol().getSourceCode())
+              .append(((NamespacedIde)ide).getSymNamespaceSep().getSourceCode());
     }
-    return name + eq.getText() + value.getText();
+    builder.append(ide.getIde().getSourceCode()).append(eq.getSourceCode()).append(value.getSourceCode());
+    return builder.toString();
   }
 
   boolean isNamespaceDefinition() {

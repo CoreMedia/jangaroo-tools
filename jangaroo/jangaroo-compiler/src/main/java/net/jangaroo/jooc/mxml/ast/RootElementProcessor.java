@@ -69,13 +69,15 @@ class RootElementProcessor {
       XmlAttribute xmlAttribute = it.next();
 
       if (xmlAttribute.isNamespaceDefinition()) {
-        it.remove();
         imports.add(xmlAttribute.getValue());
-      } else if (IMPLEMENTS.equals(xmlAttribute.getLocalName()) && StringUtils.isBlank(xmlAttribute.getPrefix())) {
-        it.remove();
+      } else if (isImplements(xmlAttribute)) {
         impl = xmlAttribute.getValue();
       }
     }
+  }
+
+  private static boolean isImplements(XmlAttribute xmlAttribute) {
+    return IMPLEMENTS.equals(xmlAttribute.getLocalName()) && StringUtils.isBlank(xmlAttribute.getPrefix());
   }
 
   private void addAll(List<JooSymbol> textNodes, List<JooSymbol> target) {
@@ -106,5 +108,9 @@ class RootElementProcessor {
   @Nullable
   JooSymbol getImpl() {
     return impl;
+  }
+
+  static boolean alreadyProcessed(XmlAttribute attribute) {
+    return attribute.isNamespaceDefinition() || isImplements(attribute);
   }
 }
