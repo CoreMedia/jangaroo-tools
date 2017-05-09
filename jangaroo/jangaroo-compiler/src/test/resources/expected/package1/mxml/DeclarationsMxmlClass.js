@@ -20,24 +20,30 @@ public class DeclarationsMxmlClass extends SomeNativeClass{public*/function Decl
     other_25_5_$1["blubb_accessor"] = 'blub accessor expression';
     AS3.setBindable(this,"other" , new package1.someOtherPackage.SomeOtherClass(other_25_5_$1));
 }/*
-[Bindable]
-public var bar:String;
-/**
+
+    [Bindable]
+    public var bar:String;
+
+    /**
      Some number.
-    * /
+     * /
     [Bindable]
     public var num:int;
-/**
+
+    /**
      Empty declaration.
-    * /
+     * /
     [Bindable]
     public var empty:int;
-[Bindable]
-public var blub:Object;
-[Bindable]
-public var list:Array;
-[Bindable]
-public var other:package1.someOtherPackage.SomeOtherClass;}}
+
+    [Bindable]
+    public var blub:Object;
+
+    [Bindable]
+    public var list:Array;
+
+    [Bindable]
+    public var other:package1.someOtherPackage.SomeOtherClass;}}
 
 ============================================== Jangaroo part ==============================================*/
     return {

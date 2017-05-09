@@ -5,7 +5,7 @@ import ext.*;
 import net.jangaroo.ext.Exml;
 /**
  This is my <b>TestComponent</b>
-* /
+ * /
 public class AllElements extends Panel{
 
     /* add an extra import statement to the class * /
@@ -52,7 +52,7 @@ public class AllElements extends Panel{
     object_57_7_$1["sortable"] = true;
     object_57_7_$1["menuDisabled"] = false;
     this.myVar4$3 = [object_56_7_$1, object_57_7_$1];
-    config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
+    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var panel_61_3_$1/*: ext.config.panel*/ =AS3.cast(ext.config.panel,{});
     panel_61_3_$1["title"] = "I am a panel";
     panel_61_3_$1["layout"] = config.myProperty$3;
@@ -92,15 +92,19 @@ public class AllElements extends Panel{
     var aplugin_124_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
     var aplugin_125_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
     panel_61_3_$1["plugins"] = [aplugin_124_7_$1, aplugin_125_7_$1];
-    config_$1["items"] = [panel_61_3_$1]; net.jangaroo.ext.Exml.apply(config_$1,config);ext.Panel.prototype.constructor.call(this,config_$1);}/*
-/*
+    config_$1["items"] = [panel_61_3_$1];
+    net.jangaroo.ext.Exml.apply(config_$1,config);
+    ext.Panel.prototype.constructor.call(this,config_$1);
+  }/*
+
+      /*
       anonymous object in array:
 
       tools:[
         {id:"gear",
         handler:function(){} }
       ]
-      * /
+       * /
       [Bindable]
       public var gear:Object;}}
 

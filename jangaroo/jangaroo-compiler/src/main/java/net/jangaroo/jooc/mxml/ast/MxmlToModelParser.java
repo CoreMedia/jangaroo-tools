@@ -193,7 +193,7 @@ final class MxmlToModelParser {
           if (atValue != null) {
             String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
             Expr dotExpr = new ArrayIndexExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_LBRACK, new LiteralExpr(new JooSymbol(CompilerUtils.quote(atPropertyName + CONFIG_MODE_AT_SUFFIX))), MxmlAstUtils.SYM_RBRACK);
-            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseIde(atValue));
+            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseIde(" " + atValue));
             constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
           }
         }

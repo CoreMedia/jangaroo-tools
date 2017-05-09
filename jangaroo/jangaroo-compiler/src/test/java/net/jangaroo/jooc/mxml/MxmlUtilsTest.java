@@ -44,11 +44,11 @@ public class MxmlUtilsTest {
                     " escaped: \\$2\n" +
                     "\n" +
                     " */",
-            MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n -->\n" +
+            MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n-->\n" +
                     "<!--- unescaped: $1 --><!-- single star --><!---\n" +
                     "\n" +
                     " escaped: \\$2\n" +
                     "\n" +
-                    " -->"));
+                    "-->"));
   }
 }

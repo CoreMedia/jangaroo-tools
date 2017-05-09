@@ -20,6 +20,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.mxml.ast.XmlAttribute;
@@ -40,6 +41,7 @@ public class MxmlParserHelper {
   private static final String TPL_EXPRESSION = "package{class ___${x= %s}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
   private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
+  private static final String TPL_IDE = "package{var ___$:%s;}";
   private static final String TPL_METADATA = "package{\n%s\nclass ___$ {}}";
   private static final String TPL_EXTENDS = "package{class ___$ extends %s {}}";
   private static final String TPL_PACKAGE = "package %s {class ___$ {}}";
@@ -164,7 +166,10 @@ public class MxmlParserHelper {
   }
 
   public Ide parseIde(@Nonnull String text) {
-    return parseImport(text).getIde();
+    String template = TPL_IDE;
+    Symbol parsed = parser.parseEmbedded(String.format(template, text), 0, 0);
+    CompilationUnit unit = (CompilationUnit) parsed.value;
+    return ((TypedIdeDeclaration)unit.getPrimaryDeclaration()).getOptTypeRelation().getType().getIde();
   }
 
     @Nonnull
@@ -202,7 +207,11 @@ public class MxmlParserHelper {
         }
       }
     }
-    throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node " + xmlElement);
+    String nodeName = xmlElement.getName();
+    if (xmlElement.getPrefix() != null) {
+      nodeName = xmlElement.getPrefix() + ":" + nodeName;
+    }
+    throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node <" + nodeName + "/>");
   }
 
   static String parsePackageFromNamespace(String uri) {

@@ -355,10 +355,10 @@ XmlComment = "<!--" ~"-->"
   "<"                             { return symbol(LT); }
   "</"                            { return symbol(LT_SLASH); }
   "/>" / "<![CDATA["              { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(SLASH_GT); }
-  "/>" / "<"                      { return symbol(SLASH_GT); }
+  "/>" / {WhiteSpace}* "<"        { return symbol(SLASH_GT); }
   "/>"                            { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(SLASH_GT); }
   ">" / "<![CDATA["               { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
-  ">" / "<"                       { return symbol(GT); }
+  ">" / {WhiteSpace}* "<"         { return symbol(GT); }
   ">"                             { setMultiStateText(""); yybegin(XML_TEXT_CONTENT); clearString(); return symbol(GT); }
   ":"                             { return symbol(COLON); }
   "="                             { return symbol(EQ); }

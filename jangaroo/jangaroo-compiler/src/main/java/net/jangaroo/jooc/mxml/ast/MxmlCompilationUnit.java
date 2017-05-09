@@ -148,12 +148,12 @@ public class MxmlCompilationUnit extends CompilationUnit {
       createFields(defaultsConfigVar);
       ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
       getDirectives().add(importDirective);
-      Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
+      Ide exml = mxmlParserHelper.parseIde(" " + NET_JANGAROO_EXT_EXML);
 
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
-      AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ, applyExpr);
+      AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyExpr);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
@@ -163,7 +163,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     if (!(null == constructorParam || null == superConfigVar)) {
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
-      Ide exml = mxmlParserHelper.parseIde(NET_JANGAROO_EXT_EXML);
+      Ide exml = mxmlParserHelper.parseIde(MxmlAstUtils.INDENT_4 + NET_JANGAROO_EXT_EXML);
       ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
 

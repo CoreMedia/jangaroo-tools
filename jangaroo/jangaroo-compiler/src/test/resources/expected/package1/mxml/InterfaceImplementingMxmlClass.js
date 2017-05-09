@@ -7,7 +7,10 @@ public class InterfaceImplementingMxmlClass extends ConfigClass implements packa
     public*/function InterfaceImplementingMxmlClass$(config/*:InterfaceImplementingMxmlClass = null*/){if(arguments.length<=0)config=null;
     var config_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
     var defaults_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
-    config= net.jangaroo.ext.Exml.apply(defaults_$1,config); net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
+    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
+    net.jangaroo.ext.Exml.apply(config_$1,config);
+    package1.ConfigClass.prototype.constructor.call(this,config_$1);
+  }/*
 
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
 

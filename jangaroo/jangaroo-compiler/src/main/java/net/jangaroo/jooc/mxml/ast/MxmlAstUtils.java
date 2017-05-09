@@ -45,6 +45,7 @@ import java.util.List;
 
 class MxmlAstUtils {
 
+  public static final String INDENT_4 = "\n    ";
   static final JooSymbol[] SYM_EMPTY_MODIFIERS = new JooSymbol[]{};
 
   static final JooSymbol SYM_CLASS = new JooSymbol(sym.CLASS, "class");
@@ -74,7 +75,7 @@ class MxmlAstUtils {
 
   @Nonnull
   static FunctionDeclaration createConstructor(@Nonnull FunctionDeclaration directive, @Nonnull List<Directive> constructorBodyDirectives) {
-    BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE);
+    BlockStatement constructorBody = new BlockStatement(SYM_LBRACE, constructorBodyDirectives, SYM_RBRACE.withWhitespace("\n  "));
     String whitespace = "";
     JooSymbol firstSymbol = Iterables.getFirst(Arrays.asList(directive.getSymModifiers()), null);
     if(null != firstSymbol) {
@@ -123,7 +124,7 @@ class MxmlAstUtils {
     Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
     value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
     Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(new AnnotationsAndModifiers(null,null), SYM_VAR.withWhitespace("\n    "), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    return new VariableDeclaration(new AnnotationsAndModifiers(null,null), SYM_VAR.withWhitespace(INDENT_4), name, typeRelation, initializer, null, SYM_SEMICOLON);
   }
 
   @Nonnull
@@ -134,13 +135,13 @@ class MxmlAstUtils {
   @Nonnull
   static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
     CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar));
-    return new SuperConstructorCallStatement(SYM_SUPER, SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
+    return new SuperConstructorCallStatement(SYM_SUPER.withWhitespace(INDENT_4), SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
   }
 
   @Nonnull
   static Directive createPropertyAssignment(@Nonnull Ide variable, @Nonnull Expr rightHandSide, @Nonnull String propertyName, boolean untypedAccess) {
     Expr leftHandSide;
-    Ide varWithWhitespace = new Ide(variable.getIde().withWhitespace("\n    "));
+    Ide varWithWhitespace = new Ide(variable.getIde().withWhitespace(INDENT_4));
     if (untypedAccess) {
       leftHandSide = new ArrayIndexExpr(new IdeExpr(varWithWhitespace), SYM_LBRACK, new LiteralExpr(new JooSymbol('"' + propertyName + '"')), SYM_RBRACK);
     } else {

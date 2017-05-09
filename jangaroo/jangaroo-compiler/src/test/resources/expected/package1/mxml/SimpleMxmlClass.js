@@ -4,7 +4,7 @@ import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;
 /**
   My config class subclass, authored in MXML.
-* /
+ * /
 
 public class SimpleMxmlClass extends ConfigClass{
 
@@ -36,7 +36,7 @@ public class SimpleMxmlClass extends ConfigClass{
     other_45_5_$1["blubb_config"] = 'blub config expression';
     other_45_5_$1["blubb_accessor"] = 'blub accessor expression';
     AS3.setBindable(defaults_$1,"other" , new package1.someOtherPackage.SomeOtherClass(other_45_5_$1));
-    config= net.jangaroo.ext.Exml.apply(defaults_$1,config);
+    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1["foo"] = "bar";
     config_$1["number"] = 1 < 2  ? 1 + 1 : 3;
     AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
@@ -70,7 +70,10 @@ public class SimpleMxmlClass extends ConfigClass{
     configClass_67_5_$1["items"] = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_69_9_$1), AS3.getBindable(this,"no_config")];
     configClass_67_5_$1["items$at"] = net.jangaroo.ext.Exml.APPEND;
     config_$1["items"] = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new package1.ConfigClass(configClass_61_5_$1), new package1.ConfigClass(configClass_67_5_$1)];
-    config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND; net.jangaroo.ext.Exml.apply(config_$1,config);package1.ConfigClass.prototype.constructor.call(this,config_$1);}/*
+    config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND;
+    net.jangaroo.ext.Exml.apply(config_$1,config);
+    package1.ConfigClass.prototype.constructor.call(this,config_$1);
+  }/*
 
     private var blub:*;*/function static$0(){
 
@@ -82,45 +85,60 @@ public class SimpleMxmlClass extends ConfigClass{
 
     [Bindable]
     public var list:Object;
-[Bindable]
-public var bar:String;
-[Bindable]
-public var computed:String;
-/**
+
+    [Bindable]
+    public var bar:String;
+
+    [Bindable]
+    public var computed:String;
+
+    /**
      Some number.
-    * /
+     * /
     [Bindable]
     public var num:int;
-[Bindable]
-public var empty:int;
-[Bindable]
-public var someFlag1:Boolean;
-[Bindable]
-public var anotherFlag1:Boolean;
-[Bindable]
-public var someFlag2:Boolean;
-[Bindable]
-public var anotherFlag2:Boolean;
-[Bindable]
-public var someFlag3:Boolean;
-[Bindable]
-public var anotherFlag3:Boolean;
-[Bindable]
-public var emptyObject:Object;
-[Bindable]
-public var joe:Object;
-[Bindable]
-public var otherByExpression:Object;
-[Bindable]
-public var other:package1.someOtherPackage.SomeOtherClass;
+
+    [Bindable]
+    public var empty:int;
+
+    [Bindable]
+    public var someFlag1:Boolean;
+
+    [Bindable]
+    public var anotherFlag1:Boolean;
+
+    [Bindable]
+    public var someFlag2:Boolean;
+
+    [Bindable]
+    public var anotherFlag2:Boolean;
+
+    [Bindable]
+    public var someFlag3:Boolean;
+
+    [Bindable]
+    public var anotherFlag3:Boolean;
+
+    [Bindable]
+    public var emptyObject:Object;
+
+    [Bindable]
+    public var joe:Object;
+
+    [Bindable]
+    public var otherByExpression:Object;
+
+    [Bindable]
+    public var other:package1.someOtherPackage.SomeOtherClass;
 private*/ function $on_config_$1_click (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
     var result/*:String*/ = 'gotcha!';}/*
 private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
     var test=0;}/*
-[Bindable]
-public var no_config:package1.someOtherPackage.SomeOtherClass;}}
+
+        [Bindable]
+        public var no_config:package1.someOtherPackage.SomeOtherClass;}}
 
 ============================================== Jangaroo part ==============================================*/
     return {

@@ -161,7 +161,12 @@ public class MxmlUtils {
     while(matcher.find()) {
       String prefix = "-".equals(matcher.group(1)) ? "/**" : "/*";
       String content = Matcher.quoteReplacement(matcher.group(2));
-      matcher.appendReplacement(sb, prefix + content + "*/");
+      String lastReplacement = prefix + content;
+      if (content.contains("\n")) {
+        lastReplacement += " ";
+      }
+      lastReplacement += "*/";
+      matcher.appendReplacement(sb, lastReplacement);
     }
     return matcher.appendTail(sb).toString();
   }
