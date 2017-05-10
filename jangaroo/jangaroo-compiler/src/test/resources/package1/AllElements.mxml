@@ -2,12 +2,14 @@
 <!---
  This is my <b>TestComponent</b>
 -->
-<ext:Panel
+<panel
            xmlns:fx="http://ns.adobe.com/mxml/2009"
 
            xmlns="ext.config.*"
            xmlns:cfg="exmlparser.config.*"
-           xmlns:ext="ext.*">
+           xmlns:ext="ext.*"
+           title="I am a panel"
+           layout="{config.myProperty}">
 
   <fx:Script><![CDATA[
     /* add an extra import statement to the class */
@@ -57,8 +59,7 @@
       <fx:Object header="b" sortable="true" menuDisabled="false"/>
     </fx:Array>
   </fx:Declarations>
-  <!-- superclass of the the component with attributes-->
-  <panel title="I am a panel" layout="{config.myProperty}">
+
     <!-- define some attributes through a typed mixin: -->
     <mixins>
       <someMixin>
@@ -125,5 +126,4 @@
       <aplugin/>
     </plugins>
 
-  </panel>
-</ext:Panel>
+</panel>
