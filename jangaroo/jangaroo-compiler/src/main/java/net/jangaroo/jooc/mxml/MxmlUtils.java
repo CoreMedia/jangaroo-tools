@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +21,7 @@ public class MxmlUtils {
   public static final String MXML_DECLARATIONS = "Declarations";
   public static final String MXML_SCRIPT = "Script";
   public static final String MXML_METADATA = "Metadata";
+  public static final Collection<String> BUILT_IN_ELEMENT_NAMES = Arrays.asList(MXML_DECLARATIONS, MXML_SCRIPT, MXML_METADATA);
   public static final String MXML_ID_ATTRIBUTE = "id";
   public static final String MXML_DEFAULT_PROPERTY_ANNOTATION = "DefaultProperty";
   public static final String EXML_MIXINS_PROPERTY_NAME = "__mixins__";

@@ -73,10 +73,10 @@
       </someMixin>
     </mixins>
 
-    <!-- attribute with sub-attributes
-    default:{layout:"border"},
+    <!--
+      empty attribute
     -->
-    <defaults layout="border"/>
+    <defaults/>
 
     <!-- attribute-->
     <layoutConfig>

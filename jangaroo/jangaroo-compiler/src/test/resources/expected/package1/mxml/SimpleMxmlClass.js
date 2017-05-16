@@ -39,7 +39,7 @@ public class SimpleMxmlClass extends ConfigClass{
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1["foo"] = "bar";
     config_$1["number"] = 1 < 2  ? 1 + 1 : 3;
-    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
+    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_click_14_20$3"));
     var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_50_5_$1["bla"] = 99;
     other$ns_SomeOtherClass_50_5_$1["known-unknown"] = true;
@@ -50,7 +50,7 @@ public class SimpleMxmlClass extends ConfigClass{
     var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_54_5_$1["bla"] = 23;
     var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
-    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$3"));
+    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_clickClack_55_41$3"));
     other$ns_SomeOtherClass_55_5_$1["bla"] = 1;
     var other$ns_SomeOtherClass_56_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_56_5_$1["bla"] = 42;
@@ -130,10 +130,10 @@ public class SimpleMxmlClass extends ConfigClass{
 
     [Bindable]
     public var other:package1.someOtherPackage.SomeOtherClass;
-private*/ function $on_config_$1_click (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+private*/ function $on_click_14_20 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
     var result/*:String*/ = 'gotcha!';}/*
-private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
 
     var test=0;}/*
 
@@ -146,8 +146,8 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
       alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
       blub$3: undefined,
-      $on_config_$1_click$3: $on_config_$1_click,
-      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$3: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
+      $on_click_14_20$3: $on_click_14_20,
+      $on_clickClack_55_41$3: $on_clickClack_55_41,
       config: {
         list: null,
         bar: null,

@@ -6,14 +6,13 @@ import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
-import net.jangaroo.jooc.ast.NodeImplBase;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class XmlAttribute extends NodeImplBase {
+public class XmlAttribute extends XmlNode {
 
   private final Ide ide;
   private final JooSymbol eq;

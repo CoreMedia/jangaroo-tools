@@ -7,13 +7,16 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-public class JsonObject implements Json {
+public class JsonObject extends JsonBase {
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
   public static final String NET_JANGAROO_EXT_CREATE = "net.jangaroo.ext.create";
+  public static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
   private Map<String, Object> properties = new LinkedHashMap<String, Object>();
   private String wrapperClass;
   private String configClass;
+  private InstantiationMode instantiationMode = InstantiationMode.EXT_CONFIG;
 
   public JsonObject(Object ... namesAndValues) {
     if (namesAndValues.length % 2 != 0) {
@@ -54,6 +57,10 @@ public class JsonObject implements Json {
   public JsonObject settingWrapperClass(String wrapperClass) {
     this.wrapperClass = wrapperClass;
     return this;
+  }
+
+  public void setInstantiationMode(InstantiationMode instantiationMode) {
+    this.instantiationMode = getId() != null && instantiationMode == InstantiationMode.EXT_CONFIG ? InstantiationMode.EXT_CREATE : instantiationMode;
   }
 
   public boolean isEmpty() {
@@ -104,10 +111,8 @@ public class JsonObject implements Json {
     if (value instanceof Number
         || value instanceof Boolean) {
       return value.toString();
-    } else if (value instanceof JsonObject) {
-      return ((JsonObject)value).toString(indentFactor, indent);
-    } else if (value instanceof JsonArray) {
-      return ((JsonArray) value).toString(indentFactor, indent);
+    } else if (value instanceof JsonBase) {
+      return ((JsonBase)value).toString(indentFactor, indent);
     } else if (value instanceof Code) {
       return ((Code)value).getCode().replaceAll("\n", LINE_SEPARATOR);
     }
@@ -116,31 +121,36 @@ public class JsonObject implements Json {
   }
 
 
-  /**
-   * Make a prettyprinted JSON text of this JSONObject.
-   * <p>
-   * Warning: This method assumes that the data structure is acyclical.
-   *
-   * @param indentFactor The number of spaces to add to each level of
-   *                     indentation.
-   * @param indent       The indentation of the top level.
-   * @return a printable, displayable, transmittable
-   *         representation of the object, beginning
-   *         with <code>{</code>&nbsp;<small>(left brace)</small> and ending
-   *         with <code>}</code>&nbsp;<small>(right brace)</small>.
-   */
-  public String toString(int indentFactor, int indent) {
+  public String valueToString(int indentFactor, int indent) {
     Set<String> keySet = this.properties.keySet();
 
     StringBuilder sb = new StringBuilder();
+    int n = keySet.size();
     if (wrapperClass != null) {
-      sb.append("new ").append(wrapperClass).append('(');
+      switch (instantiationMode) {
+        case EXT_CONFIG:
+          // type cast:
+          sb.append(wrapperClass).append("("); break;
+        case EXT_CREATE:
+          // use Ext.create(class, ...):
+          sb.append("Ext.create(").append(wrapperClass).append(", "); break;
+        case MXML:
+          // call no-arg constructor
+          String callNew = String.format("new %s()", wrapperClass);
+          if (n == 0) {
+            // no attribute: we are done.
+            return callNew;
+          } else {
+            // if any attributes are present, use Ext.apply():
+            sb.append("Ext.apply(").append(callNew).append(", ");
+            break;
+          }
+      }
     } else if(configClass != null) {
       sb.append(NET_JANGAROO_EXT_CREATE).append('(').append(configClass).append(',');
     }
     sb.append("{");
     int newindent = indent + indentFactor;
-    int n = keySet.size();
     Iterator<String> keys = keySet.iterator();
     if (n == 1) {
       writeKeyValue(keys.next(), indentFactor, indent, sb);
@@ -177,10 +187,10 @@ public class JsonObject implements Json {
   }
 
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
-    if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>)) 
-      sb.append("\"\"");
-    } else {
+    if (IDENTIFIER_PATTERN.matcher(key).matches()) {
       sb.append(key);
+    } else {
+      sb.append(CompilerUtils.quote(key));
     }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
@@ -192,6 +202,12 @@ public class JsonObject implements Json {
 
   public void set(String property, Object value) {
     this.properties.put(property, value);
+  }
+
+  @Override
+  public void setId(String id) {
+    super.setId(id);
+    setInstantiationMode(instantiationMode);
   }
 
   public void add(JsonObject jsonObject) {
@@ -221,6 +237,11 @@ public class JsonObject implements Json {
     }
 
     @Override
+    public String toString() {
+      return code;
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) {
         return true;
@@ -239,5 +260,11 @@ public class JsonObject implements Json {
     public int hashCode() {
       return code.hashCode();
     }
+  }
+
+  public enum InstantiationMode {
+    MXML,
+    EXT_CONFIG,
+    EXT_CREATE
   }
 }

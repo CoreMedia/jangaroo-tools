@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class JsonArray implements Json {
+public class JsonArray extends JsonBase {
   private List<Object> items = new ArrayList<Object>();
+  private String id;
 
   public JsonArray(Object ... items) {
     this.items = new ArrayList<Object>(Arrays.asList(items));
@@ -23,23 +24,14 @@ public class JsonArray implements Json {
     return sb.toString();
   }
 
-  /**
-   * Make a pretty-printed JSON text of this JSONArray.
-   * Warning: This method assumes that the data structure is acyclical.
-   *
-   * @param indentFactor The number of spaces to add to each level of
-   *                     indentation.
-   * @param indent       The indention of the top level.
-   * @return a printable, displayable, transmittable
-   *         representation of the array.
-   */
-  public String toString(int indentFactor, int indent){
+  protected String valueToString(int indentFactor, int indent){
     int len = items.size();
     if (len == 0) {
       return "[]";
     }
     int i;
-    StringBuilder sb = new StringBuilder("[");
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
     if (len == 1) {
       sb.append(JsonObject.valueToString(this.items.get(0), indentFactor, indent));
     } else {

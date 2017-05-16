@@ -64,7 +64,7 @@ public class AllElements extends panel{
     someMixin_65_7_$1["someList"] = [button_67_11_$1];
     someMixin_65_7_$1["someList$at"] = net.jangaroo.ext.Exml.APPEND;
     config_$1["mixins"] = [someMixin_65_7_$1];
-    config_$1["defaults"] = "";
+    config_$1["defaults"] = null;
     var object_83_7_$1/*:Object*/ = {};
     object_83_7_$1["bla"] = "blub";
     object_83_7_$1["anchor"] = "test";

@@ -6,7 +6,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
-import net.jangaroo.jooc.ast.NodeImplBase;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class XmlElement extends NodeImplBase {
+public class XmlElement extends XmlNode {
 
   private final List<XmlElement> elements = new LinkedList<>();
 
@@ -48,6 +48,7 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getLocalName();
   }
 
+  @Override
   public String getPrefix() {
     return openingMxmlTag.getPrefix();
   }
@@ -127,6 +128,11 @@ public class XmlElement extends NodeImplBase {
   public String getNamespaceURI() {
     return getNamespaceUri(getPrefix());
   }
+
+  public boolean isBuiltInElement() {
+    return MxmlUtils.isMxmlNamespace(getNamespaceURI()) && MxmlUtils.BUILT_IN_ELEMENT_NAMES.contains(getLocalName());
+  }
+
 
   String getNamespaceUri(@Nullable String prefix) {
     String localResult = openingMxmlTag.getNamespaceUri(prefix);

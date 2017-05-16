@@ -24,6 +24,7 @@ import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.json.Json;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
@@ -137,15 +138,17 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(variableDeclaration);
     }
 
+    MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
+
     if (null == constructorParam || null == superConfigVar) {
-      createFields(superConfigVar);
+      createFields(superConfigVar, mxmlModel);
     } else {
       Ide defaultsConfigVar = createAuxVar(DEFAULTS);
       Ide primaryDeclaration = getPrimaryDeclaration().getIde();
       VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration);
       constructorBodyDirectives.add(variableDeclaration);
 
-      createFields(defaultsConfigVar);
+      createFields(defaultsConfigVar, mxmlModel);
       ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
       getDirectives().add(importDirective);
       Ide exml = mxmlParserHelper.parseIde(" " + NET_JANGAROO_EXT_EXML);
@@ -157,7 +160,27 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
-    mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
+    try {
+      System.out.println("===JSON for " + classQName + "===");
+      Json model = mxmlToModelParser.objectModelToJsonObject(mxmlModel);
+      String pretty = model.toString(2, 2);
+      System.out.println(pretty);
+      System.out.println("JSON for " + classQName + ".Declarations ///");
+      for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
+        Json declarationsModel = mxmlToModelParser.modelToJson(declaration, false, false);
+        String pretty2 = declarationsModel.toString(2, 2);
+        System.out.println(pretty2);
+      }
+      System.out.println(classQName + ".References ///");
+      for (MxmlToModelParser.MxmlModel reference : mxmlModel.getReferences()) {
+        System.out.println(reference.getId() + ": " + reference.getType().getQualifiedNameStr());
+      }
+      System.out.println("///" + classQName + "///");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    mxmlToModelParser.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlToModelParser.getConstructorBodyDirectives());
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
@@ -231,8 +254,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  void createFields(@Nullable Ide targetIde) {
-    for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
+  void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
+    for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
       mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
     }
     Collection<Directive> directives = mxmlToModelParser.getConstructorBodyDirectives();

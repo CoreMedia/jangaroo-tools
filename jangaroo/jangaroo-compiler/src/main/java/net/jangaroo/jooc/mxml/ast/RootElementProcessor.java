@@ -42,7 +42,7 @@ class RootElementProcessor {
     while (it.hasNext()) {
       XmlElement element = it.next();
       if (MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) {
-        it.remove();
+        //it.remove();
         String name = element.getName();
 
         if (MxmlUtils.MXML_DECLARATIONS.equals(name)) {

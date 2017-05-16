@@ -214,7 +214,7 @@ public class MxmlParserHelper {
     throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node <" + nodeName + "/>");
   }
 
-  static String parsePackageFromNamespace(String uri) {
+  public static String parsePackageFromNamespace(String uri) {
     return uri.endsWith(".*") ? uri.substring(0, uri.length() -2)
             : uri.equals("*") || MxmlUtils.isMxmlNamespace(uri) ? "" : null;
   }

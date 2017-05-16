@@ -1,18 +1,17 @@
 <?xml version="1.0"?>
-<ext:Panel
+<panel
         xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns="ext.config.*"
         xmlns:ext="ext.*"
         xmlns:foo="foo"
->
+        title="I am a panel">
 
-  <!-- superclass of the the component with attributes-->
-  <panel title="I am a panel">
+
+
 
     <!-- attribute-->
     <items>
       <foo:UnknownClass/>
     </items>
 
-  </panel>
-</ext:Panel>
+</panel>
