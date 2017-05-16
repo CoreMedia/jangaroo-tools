@@ -299,7 +299,7 @@ final class MxmlToModelParser {
     for (MxmlMemberModel member : objectModel.getMembers()) {
       if (member instanceof MxmlPropertyModel) {
         MxmlPropertyModel propertyModel = (MxmlPropertyModel) member;
-        String configOptionName = getConfigOptionName(propertyModel.getPropertyDeclaration());
+        String configOptionName = propertyModel.getConfigOptionName();
         MxmlModel propertyValueModel = propertyModel.getValue();
         if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(configOptionName)) {
           if ((propertyValueModel instanceof MxmlArrayModel)) {
@@ -317,9 +317,9 @@ final class MxmlToModelParser {
           }
           continue;
         }
-        String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
         Json configOptionValue = modelToJson(propertyValueModel);
         model.set(configOptionName, configOptionValue);
+        String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
         if (extractXTypePropertyName != null && !extractXTypePropertyName.isEmpty()) {
           model.set(extractXTypePropertyName, JsonObject.code(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype"));
         }
@@ -799,12 +799,12 @@ final class MxmlToModelParser {
   }
 
   private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    Directive propertyAssignment = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
+    Directive propertyAssignment = createPropertyAssignment(variable, propertyModel, value, generatingConfig);
     constructorBodyDirectives.add(propertyAssignment);
   }
 
   @Nonnull
-  private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
+  private Directive createPropertyAssignment(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
     String attributeValueAsString = getAttributeValueAsString(propertyModel, value);
 
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
