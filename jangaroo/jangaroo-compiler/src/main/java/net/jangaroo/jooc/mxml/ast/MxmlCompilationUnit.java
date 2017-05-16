@@ -167,7 +167,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       System.out.println(pretty);
       System.out.println("JSON for " + classQName + ".Declarations ///");
       for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-        Json declarationsModel = mxmlToModelParser.modelToJson(declaration, false, false);
+        Json declarationsModel = mxmlToModelParser.modelToJson(declaration);
         String pretty2 = declarationsModel.toString(2, 2);
         System.out.println(pretty2);
       }
@@ -256,7 +256,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
     for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-      mxmlToModelParser.createValueCodeFromElement(targetIde, declaration, null);
+      mxmlToModelParser.createValueCodeFromElement(targetIde, declaration);
     }
     Collection<Directive> directives = mxmlToModelParser.getConstructorBodyDirectives();
     this.constructorBodyDirectives.addAll(directives);
