@@ -116,14 +116,11 @@ final class MxmlToModelParser {
   private void fillObjectModel(MxmlObjectModel objectModel, XmlElement objectNode, CompilationUnit type) {
     List<MxmlMemberModel> members = new ArrayList<>();
     for (XmlAttribute attribute : objectNode.getAttributes()) {
-      Object propertyModelOrEventAnnotation = findPropertyModelOrEventAnnotation(objectNode, type, attribute);
-      MxmlMemberModel memberModel = createMemberModel(attribute, propertyModelOrEventAnnotation);
-      if (memberModel != null) {
-        members.add(memberModel);
-      }
+      members.addAll(createMemberModelsFromAttribute(objectNode, type, attribute));
     }
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel((ClassDeclaration) type.getPrimaryDeclaration());
-    List<XmlElement> defaultValues = new ArrayList<>();
+    List<XmlElement> defaultValues = defaultPropertyModel != null ? new ArrayList<>() : null;
+    boolean hasDefaultPropertyModel = defaultValues != null;
     for (XmlElement element : objectNode.getElements()) {
       if (element.isBuiltInElement()) {
         if (MxmlUtils.MXML_DECLARATIONS.equals(element.getLocalName())) {
@@ -134,28 +131,18 @@ final class MxmlToModelParser {
           }
         }
       } else {
-        Object propertyModelOrEventAnnotation = findPropertyModelOrEventAnnotation(objectNode, type, defaultPropertyModel != null, element);
-        MxmlMemberModel memberModel = createMemberModel(element, propertyModelOrEventAnnotation);
-        if (memberModel != null) {
-          if (memberModel instanceof MxmlPropertyModel && MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(memberModel.getConfigOptionName())) {
-            members.addAll(collectMixinsProperties((MxmlPropertyModel) memberModel));
+        List<MxmlMemberModel> memberModels = createMemberModelsFromElement(objectNode, type, hasDefaultPropertyModel, element);
+        if (memberModels.isEmpty()) {
+          if (hasDefaultPropertyModel) {
+            defaultValues.add(element);
           } else {
-            members.add(memberModel);
-            if (memberModel instanceof MxmlPropertyModel) {
-              MxmlPropertyModel atMember = getArrayAtPropertyModel(element, (MxmlPropertyModel) memberModel);
-              if (atMember != null) {
-                members.add(atMember);
-              }
-            }
+            jangarooParser.getLog().error(objectNode.getSymbol(), "Element not allowed here.");
           }
-        } else if (defaultPropertyModel != null) {
-          defaultValues.add(element);
-        } else {
-          jangarooParser.getLog().error(objectNode.getSymbol(), "Element not allowed here.");
         }
+        members.addAll(memberModels);
       }
     }
-    if (defaultPropertyModel != null && !defaultValues.isEmpty()) {
+    if (hasDefaultPropertyModel && !defaultValues.isEmpty()) {
       members.add(new MxmlPropertyModel(defaultPropertyModel, createPropertyValue(objectNode, defaultPropertyModel.getName(), defaultValues)));
     }
     objectModel.members = members;
@@ -212,17 +199,22 @@ final class MxmlToModelParser {
     return new MxmlValueModel(sourceNode, textContent);
   }
 
-  private MxmlMemberModel createMemberModel(XmlNode sourceNode, Object propertyModelOrEventAnnotation) {
-    MxmlMemberModel memberModel;
-    if (propertyModelOrEventAnnotation instanceof TypedIdeDeclaration) {
-      memberModel = createPropertyModel(sourceNode, (TypedIdeDeclaration) propertyModelOrEventAnnotation);
-    } else if (propertyModelOrEventAnnotation instanceof Annotation) {
-      memberModel = createEventHandlerModel(sourceNode, (Annotation) propertyModelOrEventAnnotation);
+  private List<MxmlMemberModel> createPropertyModels(XmlNode sourceNode, TypedIdeDeclaration propertyDeclaration) {
+    List<MxmlMemberModel> properties = new ArrayList<>();
+    MxmlPropertyModel propertyModel = createPropertyModel(sourceNode, propertyDeclaration);
+    propertyModel.sourceNode = sourceNode;
+    if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(propertyModel.getConfigOptionName())) {
+      properties.addAll(collectMixinsProperties(propertyModel));
     } else {
-      return null;
+      properties.add(propertyModel);
+      if (sourceNode instanceof XmlElement) {
+        MxmlPropertyModel atMember = getArrayAtPropertyModel((XmlElement) sourceNode, propertyModel);
+        if (atMember != null) {
+          properties.add(atMember);
+        }
+      }
     }
-    memberModel.sourceNode = sourceNode;
-    return memberModel;
+    return properties;
   }
 
   private MxmlPropertyModel createPropertyModel(@Nonnull XmlNode sourceNode, @Nonnull TypedIdeDeclaration propertyDeclaration) {
@@ -257,7 +249,9 @@ final class MxmlToModelParser {
   private MxmlEventHandlerModel createEventHandlerModel(XmlNode sourceNode, Annotation eventType) {
     JooSymbol handlerCode = (sourceNode instanceof XmlElement ? getTextContent((XmlElement) sourceNode)
             : ((XmlAttribute) sourceNode).getValue());
-    return new MxmlEventHandlerModel(eventType, handlerCode);
+    MxmlEventHandlerModel eventHandlerModel = new MxmlEventHandlerModel(eventType, handlerCode);
+    eventHandlerModel.sourceNode = sourceNode;
+    return eventHandlerModel;
   }
 
   private String getId(XmlElement node) {
@@ -374,37 +368,36 @@ final class MxmlToModelParser {
     constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
-  private Object findPropertyModelOrEventAnnotation(XmlElement objectNode, CompilationUnit type, XmlAttribute attribute) {
-    if (RootElementProcessor.alreadyProcessed(attribute)) {
-      return null;
-    }
-    String attributeNamespaceUri = objectNode.getNamespaceUri(attribute.getPrefix());
-    boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
-    if (isIdAttributePredicate().test(attribute)) {
-      return null;
-    }
-    String propertyName = attribute.getLocalName();
-    if (attribute.getPrefix() == null || isUntypedAccess) {
-      ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
-      TypedIdeDeclaration propertyModel = null;
-      if (!isUntypedAccess && classModel != null) {
-        propertyModel = findPropertyModel(classModel, propertyName);
-        if (propertyModel == null) {
-          Annotation eventModel = findEvent(classModel, propertyName);
-          if (eventModel != null) {
-            return eventModel;
+  private List<MxmlMemberModel> createMemberModelsFromAttribute(XmlElement objectNode, CompilationUnit type, XmlAttribute attribute) {
+    if (!RootElementProcessor.alreadyProcessed(attribute)) {
+      String attributeNamespaceUri = objectNode.getNamespaceUri(attribute.getPrefix());
+      boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
+      if (!isIdAttributePredicate().test(attribute)) {
+        String propertyName = attribute.getLocalName();
+        if (attribute.getPrefix() == null || isUntypedAccess) {
+          ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
+          TypedIdeDeclaration propertyModel = null;
+          if (!isUntypedAccess && classModel != null) {
+            propertyModel = findPropertyModel(classModel, propertyName);
+            if (propertyModel == null) {
+              Annotation eventModel = findEvent(classModel, propertyName);
+              if (eventModel != null) {
+                return Collections.singletonList(createEventHandlerModel(attribute, eventModel));
+              }
+            }
           }
+          if (propertyModel == null) {
+            propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
+          }
+          return createPropertyModels(attribute, propertyModel);
         }
       }
-      if (propertyModel == null) {
-        propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
-      }
-      return propertyModel;
     }
-    return null;
+    return Collections.emptyList();
   }
 
-  private Object findPropertyModelOrEventAnnotation(XmlElement objectNode, CompilationUnit type, boolean hasDefaultPropertyModel, XmlElement element) {
+  @Nonnull
+  private List<MxmlMemberModel> createMemberModelsFromElement(XmlElement objectNode, CompilationUnit type, boolean hasDefaultPropertyModel, XmlElement element) {
     TypedIdeDeclaration propertyModel = null;
     String propertyName = element.getLocalName();
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
@@ -414,7 +407,7 @@ final class MxmlToModelParser {
         if (propertyModel == null) {
           Annotation eventModel = findEvent(classModel, propertyName);
           if (eventModel != null) {
-            return eventModel;
+            return Collections.singletonList(createEventHandlerModel(element, eventModel));
           }
         }
       }
@@ -422,8 +415,11 @@ final class MxmlToModelParser {
         propertyModel = createDynamicPropertyModel(element, type, propertyName, false);
       }
     }
+    if (propertyModel != null) {
+      return createPropertyModels(element, propertyModel);
+    }
     // if propertyDeclaration is still null, item will be used as value for default property!
-    return propertyModel;
+    return Collections.emptyList();
   }
 
   private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull MxmlPropertyModel propertyModel) {
