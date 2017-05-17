@@ -124,7 +124,7 @@ final class MxmlToModelParser {
       }
     }
     if (hasDefaultPropertyModel && !defaultValues.isEmpty()) {
-      members.add(new MxmlPropertyModel(defaultPropertyModel, createPropertyValue(objectNode, defaultPropertyModel.getName(), defaultValues)));
+      members.add(new MxmlPropertyModel(null, defaultPropertyModel, createPropertyValue(objectNode, defaultPropertyModel.getName(), defaultValues)));
     }
     objectModel.members = members;
   }
@@ -142,7 +142,7 @@ final class MxmlToModelParser {
         }
       }
     } else {
-      jangarooParser.getLog().error(memberModel.sourceNode.getSymbol(),
+      jangarooParser.getLog().error(memberModel.getSourceNode().getSymbol(),
               "MXML mixins property must contain a list of sub-elements.");
     }
     return members;
@@ -159,7 +159,7 @@ final class MxmlToModelParser {
       } else {
         String extractedXTypeCode = MxmlUtils.createBindingExpression(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype");
         MxmlValueModel extratedXTypeValue = new MxmlValueModel(propertyValueModel.getSourceElement(), new JooSymbol(extractedXTypeCode));
-        return Collections.singletonList(new MxmlPropertyModel(extractXTypePropertyModel, extratedXTypeValue));
+        return Collections.singletonList(new MxmlPropertyModel(propertyModel.getSourceNode(), extractXTypePropertyModel, extratedXTypeValue));
       }
     }
     return Collections.emptyList();
@@ -178,7 +178,7 @@ final class MxmlToModelParser {
         MxmlValueModel atValueModel = configModeAttribute != null
                 ? createValueModel(configModeAttribute, configModeAttribute.getValue().replacingSymAndTextAndJooValue(sym.STRING_LITERAL, atValueCode, atValueCode))
                 : createValueModel(element, new JooSymbol(atValueCode));
-        return Collections.singletonList(new MxmlPropertyModel(propertyModel.getPropertyDeclaration(), atValueModel) {
+        return Collections.singletonList(new MxmlPropertyModel(propertyModel.getSourceNode(), propertyModel.getPropertyDeclaration(), atValueModel) {
           @Override
           String getConfigOptionName() {
             return super.getConfigOptionName() + CONFIG_MODE_AT_SUFFIX;
@@ -200,7 +200,6 @@ final class MxmlToModelParser {
   private List<MxmlMemberModel> createPropertyModels(XmlNode sourceNode, TypedIdeDeclaration propertyDeclaration) {
     List<MxmlMemberModel> properties = new ArrayList<>();
     MxmlPropertyModel propertyModel = createPropertyModel(sourceNode, propertyDeclaration);
-    propertyModel.sourceNode = sourceNode;
     if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(propertyModel.getConfigOptionName())) {
       properties.addAll(collectMixinsProperties(propertyModel));
     } else {
@@ -224,7 +223,7 @@ final class MxmlToModelParser {
     } else {
       value = createValueModel(sourceNode, ((XmlAttribute) sourceNode).getValue());
     }
-    return new MxmlPropertyModel(propertyDeclaration, value);
+    return new MxmlPropertyModel(sourceNode, propertyDeclaration, value);
   }
 
   private MxmlModel createPropertyValue(XmlNode sourceNode, String propertyType, List<XmlElement> elements) {
@@ -245,9 +244,7 @@ final class MxmlToModelParser {
   private MxmlEventHandlerModel createEventHandlerModel(XmlNode sourceNode, Annotation eventType) {
     JooSymbol handlerCode = (sourceNode instanceof XmlElement ? getTextContent((XmlElement) sourceNode)
             : ((XmlAttribute) sourceNode).getValue());
-    MxmlEventHandlerModel eventHandlerModel = new MxmlEventHandlerModel(eventType, handlerCode);
-    eventHandlerModel.sourceNode = sourceNode;
-    return eventHandlerModel;
+    return new MxmlEventHandlerModel(sourceNode, eventType, handlerCode);
   }
 
   private String getId(XmlElement node) {
@@ -540,15 +537,15 @@ final class MxmlToModelParser {
       return sourceElement;
     }
 
-    public String getId() {
+    String getId() {
       return id;
     }
 
-    public CompilationUnit getType() {
+    CompilationUnit getType() {
       return type;
     }
 
-    public void setUseConfigObjects(Boolean useConfigObjects) {
+    void setUseConfigObjects(Boolean useConfigObjects) {
       this.useConfigObjects = useConfigObjects;
     }
 
@@ -571,7 +568,7 @@ final class MxmlToModelParser {
   class MxmlObjectModel extends MxmlModel {
     List<MxmlMemberModel> members;
 
-    public List<MxmlMemberModel> getMembers() {
+    List<MxmlMemberModel> getMembers() {
       return members;
     }
 
@@ -597,20 +594,20 @@ final class MxmlToModelParser {
       this.elements = elements;
     }
 
-    public List<MxmlModel> getElements() {
+    List<MxmlModel> getElements() {
       return elements;
     }
 
     @Override
-    public void setUseConfigObjects(Boolean useConfigObjects) {
+    void setUseConfigObjects(Boolean useConfigObjects) {
       super.setUseConfigObjects(useConfigObjects);
       elements.forEach(element -> element.setUseConfigObjects(useConfigObjects));
     }
   }
 
   class MxmlValueModel extends MxmlModel {
-    XmlNode sourceNode;
-    JooSymbol value;
+    private final XmlNode sourceNode;
+    private final JooSymbol value;
 
     MxmlValueModel(@Nonnull XmlNode sourceNode, @Nonnull JooSymbol value) {
       this.sourceNode = sourceNode;
@@ -618,18 +615,26 @@ final class MxmlToModelParser {
     }
 
     @Nonnull
-    public XmlNode getSourceNode() {
+    XmlNode getSourceNode() {
       return sourceNode;
     }
 
     @Nonnull
-    public JooSymbol getValue() {
+    JooSymbol getValue() {
       return value;
     }
   }
 
   abstract class MxmlMemberModel {
-    XmlNode sourceNode;
+    private final XmlNode sourceNode;
+
+    MxmlMemberModel(XmlNode sourceNode) {
+      this.sourceNode = sourceNode;
+    }
+
+    XmlNode getSourceNode() {
+      return sourceNode;
+    }
   }
 
   class MxmlPropertyModel extends MxmlMemberModel {
@@ -637,7 +642,8 @@ final class MxmlToModelParser {
     private final MxmlModel value;
     private final String extractXTypePropertyName;
 
-    MxmlPropertyModel(TypedIdeDeclaration propertyDeclaration, @Nonnull MxmlModel value) {
+    MxmlPropertyModel(XmlNode sourceNode, TypedIdeDeclaration propertyDeclaration, @Nonnull MxmlModel value) {
+      super(sourceNode);
       this.propertyDeclaration = propertyDeclaration;
       this.value = value;
       Boolean useConfigObjects = useConfigObjects(propertyDeclaration);
@@ -658,7 +664,7 @@ final class MxmlToModelParser {
       return MxmlToModelParser.getConfigOptionName(getPropertyDeclaration());
     }
 
-    public MxmlModel getValue() {
+    MxmlModel getValue() {
       return value;
     }
 
@@ -672,7 +678,8 @@ final class MxmlToModelParser {
     private String eventName;
     private String eventTypeStr;
 
-    MxmlEventHandlerModel(Annotation eventType, JooSymbol handlerCode) {
+    MxmlEventHandlerModel(XmlNode sourceNode, Annotation eventType, JooSymbol handlerCode) {
+      super(sourceNode);
       this.handlerCode = handlerCode;
       eventName = MxmlToModelParser.getEventName(eventType);
       eventTypeStr = MxmlToModelParser.getEventTypeStr(eventType);
