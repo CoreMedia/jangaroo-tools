@@ -55,15 +55,13 @@ public class AllElements extends panel{
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1["title"] = "I am a panel";
     config_$1["layout"] = config.myProperty$4;
-    var someMixin_65_7_$1/*: ext.config.someMixin*/ =AS3.cast(ext.config.someMixin,{});
     var button_67_11_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
     button_67_11_$1["text"] = "click me!";
     button_67_11_$1["id"] = "myId";
     var ext_Action_69_15_$1/*: ext.Action*/ =AS3.cast(ext.Action,{});
     button_67_11_$1["baseAction"] = new ext.Action(ext_Action_69_15_$1);
-    someMixin_65_7_$1["someList"] = [button_67_11_$1];
-    someMixin_65_7_$1["someList$at"] = net.jangaroo.ext.Exml.APPEND;
-    config_$1["mixins"] = [someMixin_65_7_$1];
+    config_$1["someList"] = [button_67_11_$1];
+    config_$1["someList$at"] = net.jangaroo.ext.Exml.APPEND;
     config_$1["defaults"] = null;
     var object_83_7_$1/*:Object*/ = {};
     object_83_7_$1["bla"] = "blub";
@@ -136,7 +134,6 @@ public class AllElements extends panel{
         "ext.config.aplugin",
         "ext.config.button",
         "ext.config.menuitem",
-        "ext.config.someMixin",
         "net.jangaroo.ext.Exml"
       ]
     };

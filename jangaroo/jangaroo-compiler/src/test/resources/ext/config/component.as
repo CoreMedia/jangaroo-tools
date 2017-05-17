@@ -39,6 +39,7 @@ public class component {
 
   public native function get mixins():Array;
 
+  [ExtConfig("__mixins__")]
   public native function set mixins(value:Array):void;
 
   public native function get plugins():Array;

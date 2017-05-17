@@ -137,11 +137,15 @@ final class MxmlToModelParser {
         Object propertyModelOrEventAnnotation = findPropertyModelOrEventAnnotation(objectNode, type, defaultPropertyModel != null, element);
         MxmlMemberModel memberModel = createMemberModel(element, propertyModelOrEventAnnotation);
         if (memberModel != null) {
-          members.add(memberModel);
-          if (memberModel instanceof MxmlPropertyModel) {
-            MxmlPropertyModel atMember = getArrayAtPropertyModel(element, (MxmlPropertyModel) memberModel);
-            if (atMember != null) {
-              members.add(atMember);
+          if (memberModel instanceof MxmlPropertyModel && MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(memberModel.getConfigOptionName())) {
+            members.addAll(collectMixinsProperties((MxmlPropertyModel) memberModel));
+          } else {
+            members.add(memberModel);
+            if (memberModel instanceof MxmlPropertyModel) {
+              MxmlPropertyModel atMember = getArrayAtPropertyModel(element, (MxmlPropertyModel) memberModel);
+              if (atMember != null) {
+                members.add(atMember);
+              }
             }
           }
         } else if (defaultPropertyModel != null) {
@@ -155,6 +159,25 @@ final class MxmlToModelParser {
       members.add(new MxmlPropertyModel(defaultPropertyModel, createPropertyValue(objectNode, defaultPropertyModel.getName(), defaultValues)));
     }
     objectModel.members = members;
+  }
+
+  private List<MxmlMemberModel> collectMixinsProperties(MxmlPropertyModel memberModel) {
+    List<MxmlMemberModel> members = new ArrayList<>();
+    MxmlModel propertyValueModel = memberModel.getValue();
+    if (propertyValueModel instanceof MxmlArrayModel) {
+      for (MxmlModel mixin : ((MxmlArrayModel) propertyValueModel).getElements()) {
+        if (mixin instanceof MxmlObjectModel) {
+          members.addAll(((MxmlObjectModel) mixin).getMembers());
+        } else {
+          jangarooParser.getLog().error(mixin.sourceElement.getSymbol(),
+                  "MXML mixins property must only contain sub-elements.");
+        }
+      }
+    } else {
+      jangarooParser.getLog().error(memberModel.sourceNode.getSymbol(),
+              "MXML mixins property must contain a list of sub-elements.");
+    }
+    return members;
   }
 
   private MxmlPropertyModel getArrayAtPropertyModel(XmlElement element, MxmlPropertyModel propertyModel) {
@@ -327,22 +350,6 @@ final class MxmlToModelParser {
         MxmlPropertyModel propertyModel = (MxmlPropertyModel) member;
         String configOptionName = propertyModel.getConfigOptionName();
         MxmlModel propertyValueModel = propertyModel.getValue();
-        if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(configOptionName)) {
-          if ((propertyValueModel instanceof MxmlArrayModel)) {
-            for (MxmlModel mixin : ((MxmlArrayModel) propertyValueModel).getElements()) {
-              if (mixin instanceof MxmlObjectModel) {
-                objectModelToJsonObject(model, (MxmlObjectModel) mixin);
-              } else {
-                jangarooParser.getLog().error(mixin.sourceElement.getSymbol(),
-                        "MXML mixins property must only contain sub-elements.");
-              }
-            }
-          } else {
-            jangarooParser.getLog().error(propertyModel.sourceNode.getSymbol(),
-                    "MXML mixins property must contain a list of sub-elements.");
-          }
-          continue;
-        }
         Json configOptionValue = modelToJson(propertyValueModel);
         model.set(configOptionName, configOptionValue);
         String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
@@ -351,14 +358,13 @@ final class MxmlToModelParser {
         }
       } else if (member instanceof MxmlEventHandlerModel) {
         MxmlEventHandlerModel eventHandlerModel = (MxmlEventHandlerModel) member;
-        Annotation eventModel = eventHandlerModel.getEventType();
         JsonObject listeners = (JsonObject) model.get("listeners");
         if (listeners == null) {
           listeners = new JsonObject();
           model.set("listeners", listeners);
         }
-        String eventHandlerMethodName = createEventHandlerMethod(eventHandlerModel.getHandlerCode(), eventModel);
-        listeners.set(getEventName(eventModel), JsonObject.code(eventHandlerMethodName));
+        String eventHandlerMethodName = createEventHandlerMethod(eventHandlerModel);
+        listeners.set(eventHandlerModel.getConfigOptionName(), JsonObject.code(eventHandlerMethodName));
       }
     }
     return model;
@@ -457,22 +463,14 @@ final class MxmlToModelParser {
     for (MxmlMemberModel member : objectModel.getMembers()) {
       if (member instanceof MxmlEventHandlerModel) {
         MxmlEventHandlerModel eventHandlerModel = (MxmlEventHandlerModel) member;
-        JooSymbol value = eventHandlerModel.getHandlerCode();
-        createAttachEventHandlerCode(variable, value, eventHandlerModel.getEventType());
+        createAttachEventHandlerCode(variable, eventHandlerModel);
       } else if (member instanceof MxmlPropertyModel) {
         MxmlPropertyModel propertyModel = (MxmlPropertyModel) member;
-        if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(propertyModel.getConfigOptionName())) {
-          List<MxmlModel> exmlMixins = ((MxmlArrayModel) propertyModel.getValue()).getElements();
-          for (MxmlModel exmlMixin : exmlMixins) {
-            processAttributesAndChildNodes((MxmlObjectModel) exmlMixin, configVariable, targetVariable, generatingConfig);
-          }
+        MxmlModel propertyValue = propertyModel.getValue();
+        if (propertyValue instanceof MxmlValueModel) {
+          createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, ((MxmlValueModel) propertyValue).getValue(), propertyModel);
         } else {
-          MxmlModel propertyValue = propertyModel.getValue();
-          if (propertyValue instanceof MxmlValueModel) {
-            createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, ((MxmlValueModel) propertyValue).getValue(), propertyModel);
-          } else {
-            createChildElementsPropertyAssignmentCode(propertyValue, variable, propertyModel, generatingConfig);
-          }
+          createChildElementsPropertyAssignmentCode(propertyValue, variable, propertyModel, generatingConfig);
         }
       }
     }
@@ -753,14 +751,16 @@ final class MxmlToModelParser {
     return compilationUnit.createAuxVar(preferredName);
   }
 
-  private String getEventHandlerName(@Nonnull JooSymbol value, @Nonnull Annotation event) {
-    String eventName = getEventName(event);
+  private String getEventHandlerName(@Nonnull MxmlEventHandlerModel event) {
+    JooSymbol value = event.getHandlerCode();
+    String eventName = event.getConfigOptionName();
     return "$on_" + eventName.replace('-', '_') + "_" + value.getLine() + "_" + value.getColumn();
   }
 
-  private String createEventHandlerMethod(@Nonnull JooSymbol value, @Nonnull Annotation event) {
-    String eventHandlerName = getEventHandlerName(value, event);
-    String eventTypeStr = getEventTypeStr(event);
+  private String createEventHandlerMethod(@Nonnull MxmlEventHandlerModel eventHandlerModel) {
+    JooSymbol value = eventHandlerModel.getHandlerCode();
+    String eventHandlerName = getEventHandlerName(eventHandlerModel);
+    String eventTypeStr = eventHandlerModel.getEventTypeStr();
     compilationUnit.addImport(eventTypeStr);
     StringBuilder classBodyCode = new StringBuilder();
     classBodyCode
@@ -772,12 +772,12 @@ final class MxmlToModelParser {
     return eventHandlerName;
   }
 
-  private void createAttachEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull Annotation event) {
-    String eventName = getEventName(event);
-    String eventTypeStr = getEventTypeStr(event);
+  private void createAttachEventHandlerCode(@Nonnull Ide ide, @Nonnull MxmlEventHandlerModel event) {
+    String eventName = event.getConfigOptionName();
+    String eventTypeStr = event.getEventTypeStr();
     String variable = ide.getName();
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
-    String eventHandlerName = getEventHandlerName(value, event);
+    String eventHandlerName = getEventHandlerName(event);
     StringBuilder constructorCode = new StringBuilder();
     constructorCode.append("    ").append(variable).append("." + MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME + "(").append(eventTypeStr)
             .append(".").append(eventNameConstant)
@@ -796,7 +796,7 @@ final class MxmlToModelParser {
     return eventName;
   }
 
-  private String getEventTypeStr(@Nonnull Annotation event) {
+  private static String getEventTypeStr(@Nonnull Annotation event) {
     Object eventType = event.getPropertiesByName().get("type");
     String eventTypeStr;
     if (eventType instanceof String) {
@@ -1064,8 +1064,9 @@ final class MxmlToModelParser {
     }
   }
 
-  private class MxmlMemberModel {
+  private abstract class MxmlMemberModel {
     XmlNode sourceNode;
+    abstract String getConfigOptionName();
   }
 
   private class MxmlPropertyModel extends MxmlMemberModel {
@@ -1110,17 +1111,30 @@ final class MxmlToModelParser {
   private class MxmlEventHandlerModel extends MxmlMemberModel {
     Annotation eventType;
     JooSymbol handlerCode;
+    private String eventName;
+    private String eventTypeStr;
 
     MxmlEventHandlerModel(Annotation eventType, JooSymbol handlerCode) {
       this.eventType = eventType;
       this.handlerCode = handlerCode;
+      eventName = getEventName(eventType);
+      eventTypeStr = MxmlToModelParser.getEventTypeStr(eventType);
     }
 
-    public Annotation getEventType() {
+    @Override
+    String getConfigOptionName() {
+      return eventName;
+    }
+
+    Annotation getEventType() {
       return eventType;
     }
 
-    public JooSymbol getHandlerCode() {
+    String getEventTypeStr() {
+      return eventTypeStr;
+    }
+
+    JooSymbol getHandlerCode() {
       return handlerCode;
     }
   }
