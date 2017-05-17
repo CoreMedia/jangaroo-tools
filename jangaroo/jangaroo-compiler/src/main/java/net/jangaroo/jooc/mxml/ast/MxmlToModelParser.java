@@ -129,7 +129,7 @@ final class MxmlToModelParser {
     objectModel.members = members;
   }
 
-  private List<MxmlMemberModel> collectMixinsProperties(MxmlPropertyModel memberModel) {
+  private List<MxmlMemberModel> createMixinsPropertyModels(MxmlPropertyModel memberModel) {
     List<MxmlMemberModel> members = new ArrayList<>();
     MxmlModel propertyValueModel = memberModel.getValue();
     if (propertyValueModel instanceof MxmlArrayModel) {
@@ -148,7 +148,7 @@ final class MxmlToModelParser {
     return members;
   }
 
-  private List<MxmlPropertyModel> getExtractedXTypePropertyModel(MxmlPropertyModel propertyModel) {
+  private List<MxmlPropertyModel> createExtractedXTypePropertyModel(MxmlPropertyModel propertyModel) {
     String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
     if (extractXTypePropertyName != null && !extractXTypePropertyName.isEmpty()) {
       MxmlModel propertyValueModel = propertyModel.getValue();
@@ -166,7 +166,7 @@ final class MxmlToModelParser {
   }
 
   @Nonnull
-  private List<MxmlPropertyModel> getArrayAtPropertyModels(XmlElement element, MxmlPropertyModel propertyModel) {
+  private List<MxmlPropertyModel> createArrayAtPropertyModel(XmlElement element, MxmlPropertyModel propertyModel) {
     if ("Array".equals(getPropertyType(propertyModel.getPropertyDeclaration()))) {
       XmlAttribute configModeAttribute = element.getAttributeNodeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
       String configMode = configModeAttribute != null
@@ -201,13 +201,13 @@ final class MxmlToModelParser {
     List<MxmlMemberModel> properties = new ArrayList<>();
     MxmlPropertyModel propertyModel = createPropertyModel(sourceNode, propertyDeclaration);
     if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(propertyModel.getConfigOptionName())) {
-      properties.addAll(collectMixinsProperties(propertyModel));
+      properties.addAll(createMixinsPropertyModels(propertyModel));
     } else {
-      properties.add(propertyModel);
       if (sourceNode instanceof XmlElement) {
-        properties.addAll(getArrayAtPropertyModels((XmlElement) sourceNode, propertyModel));
-        properties.addAll(getExtractedXTypePropertyModel(propertyModel));
+        properties.addAll(createArrayAtPropertyModel((XmlElement) sourceNode, propertyModel));
+        properties.addAll(createExtractedXTypePropertyModel(propertyModel));
       }
+      properties.add(propertyModel);
     }
     return properties;
   }
