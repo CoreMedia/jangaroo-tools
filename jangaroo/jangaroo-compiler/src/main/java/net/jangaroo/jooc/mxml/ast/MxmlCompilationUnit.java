@@ -164,12 +164,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     try {
       System.out.println("===JSON for " + classQName + "===");
-      Json model = mxmlModelToActionScriptTransformer.objectModelToJsonObject(mxmlModel);
+      MxmlModelToJsonTransformer mxmlModelToJsonTransformer = new MxmlModelToJsonTransformer(parser);
+      Json model = mxmlModelToJsonTransformer.objectModelToJsonObject(mxmlModel);
       String pretty = model.toString(2, 2);
       System.out.println(pretty);
       System.out.println("JSON for " + classQName + ".Declarations ///");
       for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-        Json declarationsModel = mxmlModelToActionScriptTransformer.modelToJson(declaration);
+        Json declarationsModel = mxmlModelToJsonTransformer.modelToJson(declaration);
         String pretty2 = declarationsModel.toString(2, 2);
         System.out.println(pretty2);
       }
