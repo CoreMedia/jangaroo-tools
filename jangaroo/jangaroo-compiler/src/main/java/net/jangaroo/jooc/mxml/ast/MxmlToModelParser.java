@@ -358,7 +358,7 @@ final class MxmlToModelParser {
           model.set("listeners", listeners);
         }
         String eventHandlerMethodName = createEventHandlerMethod(eventHandlerModel);
-        listeners.set(eventHandlerModel.getConfigOptionName(), JsonObject.code(eventHandlerMethodName));
+        listeners.set(eventHandlerModel.getEventName(), JsonObject.code(eventHandlerMethodName));
       }
     }
     return model;
@@ -749,7 +749,7 @@ final class MxmlToModelParser {
 
   private String getEventHandlerName(@Nonnull MxmlEventHandlerModel event) {
     JooSymbol value = event.getHandlerCode();
-    String eventName = event.getConfigOptionName();
+    String eventName = event.getEventName();
     return "$on_" + eventName.replace('-', '_') + "_" + value.getLine() + "_" + value.getColumn();
   }
 
@@ -769,7 +769,7 @@ final class MxmlToModelParser {
   }
 
   private void createAttachEventHandlerCode(@Nonnull Ide ide, @Nonnull MxmlEventHandlerModel event) {
-    String eventName = event.getConfigOptionName();
+    String eventName = event.getEventName();
     String eventTypeStr = event.getEventTypeStr();
     String variable = ide.getName();
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
@@ -783,26 +783,6 @@ final class MxmlToModelParser {
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
-  private static String getEventName(@Nonnull Annotation event) {
-    Object eventNameModel = event.getPropertiesByName().get("name");
-    String eventName = (String) (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null));
-    if (eventName.startsWith("on")) {
-      eventName = eventName.substring(2);
-    }
-    return eventName;
-  }
-
-  private static String getEventTypeStr(@Nonnull Annotation event) {
-    Object eventType = event.getPropertiesByName().get("type");
-    String eventTypeStr;
-    if (eventType instanceof String) {
-      eventTypeStr = (String) eventType;
-    } else {
-      eventTypeStr = "Object";
-    }
-    return eventTypeStr;
-  }
-
   private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull MxmlPropertyModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
     Directive propertyAssignment = createPropertyAssignment(variable, propertyModel, value, generatingConfig);
     constructorBodyDirectives.add(propertyAssignment);
@@ -813,10 +793,8 @@ final class MxmlToModelParser {
     String attributeValueAsString = getAttributeValueAsString(propertyModel.getPropertyDeclaration(), value);
 
     String propertyName = generatingConfig ? propertyModel.getConfigOptionName() : propertyModel.getPropertyDeclaration().getName();
-    boolean untypedAccess = true; // untyped || !propertyName.equals(propertyDeclaration.getName());
-
     Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, attributeValueAsString));
-    return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
+    return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, true);
   }
 
   private static String getAttributeValueAsString(@Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value) {
@@ -991,12 +969,12 @@ final class MxmlToModelParser {
       return useConfigObjects;
     }
 
-    public boolean isUsePlainObjects() {
+    boolean isUsePlainObjects() {
       return usePlainObjects;
     }
 
-    public void setUsePlainObjects(boolean usePlainObjects) {
-      this.usePlainObjects = usePlainObjects;
+    void doUsePlainObjects() {
+      usePlainObjects = true;
     }
   }
 
@@ -1013,11 +991,11 @@ final class MxmlToModelParser {
     List<MxmlModel> declarations = Collections.emptyList();
     List<MxmlModel> references = Collections.emptyList();
 
-    public List<MxmlModel> getDeclarations() {
+    List<MxmlModel> getDeclarations() {
       return declarations;
     }
 
-    public List<MxmlModel> getReferences() {
+    List<MxmlModel> getReferences() {
       return references;
     }
   }
@@ -1062,7 +1040,6 @@ final class MxmlToModelParser {
 
   private abstract class MxmlMemberModel {
     XmlNode sourceNode;
-    abstract String getConfigOptionName();
   }
 
   private class MxmlPropertyModel extends MxmlMemberModel {
@@ -1079,7 +1056,7 @@ final class MxmlToModelParser {
       }
       extractXTypePropertyName = MxmlToModelParser.getExtractXTypePropertyName(propertyDeclaration);
       if (extractXTypePropertyName != null) {
-        value.setUsePlainObjects(true);
+        value.doUsePlainObjects();
       }
     }
 
@@ -1095,35 +1072,24 @@ final class MxmlToModelParser {
       return value;
     }
 
-    Boolean isForcingConfigObjects() {
-      return useConfigObjects(propertyDeclaration);
-    }
-
     String getExtractXTypePropertyName() {
       return extractXTypePropertyName;
     }
   }
 
   private class MxmlEventHandlerModel extends MxmlMemberModel {
-    Annotation eventType;
     JooSymbol handlerCode;
     private String eventName;
     private String eventTypeStr;
 
     MxmlEventHandlerModel(Annotation eventType, JooSymbol handlerCode) {
-      this.eventType = eventType;
       this.handlerCode = handlerCode;
-      eventName = getEventName(eventType);
+      eventName = MxmlToModelParser.getEventName(eventType);
       eventTypeStr = MxmlToModelParser.getEventTypeStr(eventType);
     }
 
-    @Override
-    String getConfigOptionName() {
+    String getEventName() {
       return eventName;
-    }
-
-    Annotation getEventType() {
-      return eventType;
     }
 
     String getEventTypeStr() {
@@ -1134,4 +1100,26 @@ final class MxmlToModelParser {
       return handlerCode;
     }
   }
+
+  private static String getEventName(@Nonnull Annotation event) {
+    Object eventNameModel = event.getPropertiesByName().get("name");
+    String eventName = (String) (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null));
+    if (eventName.startsWith("on")) {
+      eventName = eventName.substring(2);
+    }
+    return eventName;
+  }
+
+  private static String getEventTypeStr(@Nonnull Annotation event) {
+    Object eventType = event.getPropertiesByName().get("type");
+    String eventTypeStr;
+    if (eventType instanceof String) {
+      eventTypeStr = (String) eventType;
+    } else {
+      eventTypeStr = "Object";
+    }
+    return eventTypeStr;
+  }
+
+
 }
