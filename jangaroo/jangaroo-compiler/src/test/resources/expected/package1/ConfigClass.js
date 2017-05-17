@@ -23,6 +23,10 @@ public class ConfigClass extends Observable {
   [ExtConfig(extractXType="defaultType")]
   public native function set defaults(value:*):void;
 
+  public native function get defaultType():String;
+
+  public native function set defaultType(value:String):void;
+
   private var _title:String = "- empty -";
 
   [Bindable]

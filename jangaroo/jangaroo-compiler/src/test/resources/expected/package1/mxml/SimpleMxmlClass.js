@@ -43,10 +43,11 @@ public class SimpleMxmlClass extends ConfigClass{
     var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_50_5_$1["bla"] = 99;
     other$ns_SomeOtherClass_50_5_$1["known-unknown"] = true;
-    config_$1["defaultType"] = other$ns_SomeOtherClass_50_5_$1['xtype'];
+
     delete other$ns_SomeOtherClass_50_5_$1['xtype'];
     delete other$ns_SomeOtherClass_50_5_$1['xclass'];
     config_$1["defaults"] = other$ns_SomeOtherClass_50_5_$1;
+    config_$1["defaultType"] = package1.someOtherPackage.SomeOtherClass['prototype'].xtype;
     var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     other$ns_SomeOtherClass_54_5_$1["bla"] = 23;
     var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});

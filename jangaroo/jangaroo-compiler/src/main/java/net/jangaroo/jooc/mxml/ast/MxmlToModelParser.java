@@ -167,28 +167,45 @@ final class MxmlToModelParser {
     return members;
   }
 
-  private MxmlPropertyModel getArrayAtPropertyModel(XmlElement element, MxmlPropertyModel propertyModel) {
-    if (!"Array".equals(getPropertyType(propertyModel.getPropertyDeclaration()))) {
-      return null;
+  private List<MxmlPropertyModel> getExtractedXTypePropertyModel(MxmlPropertyModel propertyModel) {
+    String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
+    if (extractXTypePropertyName != null && !extractXTypePropertyName.isEmpty()) {
+      MxmlModel propertyValueModel = propertyModel.getValue();
+      ClassDeclaration classDeclaration = propertyModel.getPropertyDeclaration().getClassDeclaration();
+      TypedIdeDeclaration extractXTypePropertyModel = classDeclaration.getMemberDeclaration(extractXTypePropertyName);
+      if (extractXTypePropertyModel == null) {
+        jangarooParser.getLog().error(String.format("Annotation [ExtConfig(extractXType=\"%s\")] in class %s refers to a non-existing property.", extractXTypePropertyName, classDeclaration.getQualifiedNameStr()));
+      } else {
+        String extractedXTypeCode = MxmlUtils.createBindingExpression(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype");
+        MxmlValueModel extratedXTypeValue = new MxmlValueModel(propertyValueModel.getSourceElement(), new JooSymbol(extractedXTypeCode));
+        return Collections.singletonList(new MxmlPropertyModel(extractXTypePropertyModel, extratedXTypeValue));
+      }
     }
-    XmlAttribute configModeAttribute = element.getAttributeNodeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
-    String configMode = configModeAttribute != null
-            ? (String) configModeAttribute.getValue().getJooValue()
-            : getConfigMode(propertyModel.getPropertyDeclaration());
-    String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
-    if (atValue != null) {
-      String atValueCode = MxmlUtils.createBindingExpression(atValue);
-      MxmlValueModel atValueModel = configModeAttribute != null
-              ? createValueModel(configModeAttribute, configModeAttribute.getValue().replacingSymAndTextAndJooValue(sym.STRING_LITERAL, atValueCode, atValueCode))
-              : createValueModel(element, new JooSymbol(atValueCode));
-      return new MxmlPropertyModel(propertyModel.getPropertyDeclaration(), atValueModel) {
-        @Override
-        String getConfigOptionName() {
-          return super.getConfigOptionName() + CONFIG_MODE_AT_SUFFIX;
-        }
-      };
+    return Collections.emptyList();
+  }
+
+  @Nonnull
+  private List<MxmlPropertyModel> getArrayAtPropertyModels(XmlElement element, MxmlPropertyModel propertyModel) {
+    if ("Array".equals(getPropertyType(propertyModel.getPropertyDeclaration()))) {
+      XmlAttribute configModeAttribute = element.getAttributeNodeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
+      String configMode = configModeAttribute != null
+              ? (String) configModeAttribute.getValue().getJooValue()
+              : getConfigMode(propertyModel.getPropertyDeclaration());
+      String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
+      if (atValue != null) {
+        String atValueCode = MxmlUtils.createBindingExpression(atValue);
+        MxmlValueModel atValueModel = configModeAttribute != null
+                ? createValueModel(configModeAttribute, configModeAttribute.getValue().replacingSymAndTextAndJooValue(sym.STRING_LITERAL, atValueCode, atValueCode))
+                : createValueModel(element, new JooSymbol(atValueCode));
+        return Collections.singletonList(new MxmlPropertyModel(propertyModel.getPropertyDeclaration(), atValueModel) {
+          @Override
+          String getConfigOptionName() {
+            return super.getConfigOptionName() + CONFIG_MODE_AT_SUFFIX;
+          }
+        });
+      }
     }
-    return null;
+    return Collections.emptyList();
   }
 
   private MxmlArrayModel createArrayModel(List<XmlElement> elements) {
@@ -208,10 +225,8 @@ final class MxmlToModelParser {
     } else {
       properties.add(propertyModel);
       if (sourceNode instanceof XmlElement) {
-        MxmlPropertyModel atMember = getArrayAtPropertyModel((XmlElement) sourceNode, propertyModel);
-        if (atMember != null) {
-          properties.add(atMember);
-        }
+        properties.addAll(getArrayAtPropertyModels((XmlElement) sourceNode, propertyModel));
+        properties.addAll(getExtractedXTypePropertyModel(propertyModel));
       }
     }
     return properties;
@@ -346,10 +361,6 @@ final class MxmlToModelParser {
         MxmlModel propertyValueModel = propertyModel.getValue();
         Json configOptionValue = modelToJson(propertyValueModel);
         model.set(configOptionName, configOptionValue);
-        String extractXTypePropertyName = propertyModel.getExtractXTypePropertyName();
-        if (extractXTypePropertyName != null && !extractXTypePropertyName.isEmpty()) {
-          model.set(extractXTypePropertyName, JsonObject.code(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype"));
-        }
       } else if (member instanceof MxmlEventHandlerModel) {
         MxmlEventHandlerModel eventHandlerModel = (MxmlEventHandlerModel) member;
         JsonObject listeners = (JsonObject) model.get("listeners");
@@ -499,16 +510,10 @@ final class MxmlToModelParser {
             ? createArrayCodeFromChildElements(((MxmlArrayModel)childElements).getElements())
             : createValueCodeFromElement(null, childElements);
 
-    String extractXTypeToProperty = propertyModel.getExtractXTypePropertyName();
-    if (extractXTypeToProperty != null) {
-      StringBuilder constructorCode = new StringBuilder();
-      if (!extractXTypeToProperty.isEmpty()) {
-        constructorCode.append("    ")
-                .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
-      }
-      constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
-      constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
-      constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    if (childElements.isUsePlainObjects()) {
+      String constructorCode = String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype")
+              + String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass");
+      constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode));
     }
     createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
   }
