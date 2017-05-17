@@ -59,6 +59,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final XmlHeader optXmlHeader;
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
+  private MxmlModelToActionScriptTransformer mxmlModelToActionScriptTransformer;
 
   private final List<Directive> constructorBodyDirectives = new LinkedList<>();
   private final List<Directive> classBodyDirectives = new LinkedList<>();
@@ -87,7 +88,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     JangarooParser parser = scope.getCompiler();
     constructorScope = new DeclarationScope(this, null, parser);
-    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this);
+    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);
 
     rootElementProcessor.process(rootNode);
 
@@ -139,6 +140,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
+    mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(parser, mxmlParserHelper, this);
 
     if (null == constructorParam || null == superConfigVar) {
       createFields(superConfigVar, mxmlModel);
@@ -162,12 +164,12 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     try {
       System.out.println("===JSON for " + classQName + "===");
-      Json model = mxmlToModelParser.objectModelToJsonObject(mxmlModel);
+      Json model = mxmlModelToActionScriptTransformer.objectModelToJsonObject(mxmlModel);
       String pretty = model.toString(2, 2);
       System.out.println(pretty);
       System.out.println("JSON for " + classQName + ".Declarations ///");
       for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-        Json declarationsModel = mxmlToModelParser.modelToJson(declaration);
+        Json declarationsModel = mxmlModelToActionScriptTransformer.modelToJson(declaration);
         String pretty2 = declarationsModel.toString(2, 2);
         System.out.println(pretty2);
       }
@@ -180,9 +182,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
       e.printStackTrace();
     }
 
-    mxmlToModelParser.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
-    constructorBodyDirectives.addAll(mxmlToModelParser.getConstructorBodyDirectives());
-    classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
+    mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
+    constructorBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getConstructorBodyDirectives());
+    classBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getClassBodyDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
       CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
@@ -256,9 +258,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
     for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-      mxmlToModelParser.createValueCodeFromElement(targetIde, declaration);
+      mxmlModelToActionScriptTransformer.createValueCodeFromElement(targetIde, declaration);
     }
-    Collection<Directive> directives = mxmlToModelParser.getConstructorBodyDirectives();
+    Collection<Directive> directives = mxmlModelToActionScriptTransformer.getConstructorBodyDirectives();
     this.constructorBodyDirectives.addAll(directives);
     directives.clear();
   }
