@@ -149,7 +149,14 @@ public class XmlElement extends XmlNode {
    * @see Element#getAttributeNS(String, String)
    */
   String getAttributeNS(String namespaceUri, String localName) {
-    XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
+    XmlAttribute attribute = getAttributeNodeNS(namespaceUri, localName);
     return null != attribute ? (String) attribute.getValue().getJooValue() : "";
+  }
+
+  /**
+   * @see Element#getAttributeNodeNS(String, String)
+   */
+  XmlAttribute getAttributeNodeNS(String namespaceUri, String localName) {
+    return openingMxmlTag.getAttribute(namespaceUri, localName);
   }
 }
