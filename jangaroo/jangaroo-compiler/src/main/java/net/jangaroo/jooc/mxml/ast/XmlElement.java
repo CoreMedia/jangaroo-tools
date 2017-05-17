@@ -58,6 +58,10 @@ public class XmlElement extends XmlNode {
     return openingMxmlTag.getSymbol();
   }
 
+  public JooSymbol getClosingSymbol() {
+    return closingMxmlTag != null ? closingMxmlTag.getSymbol() : openingMxmlTag.getClosingSymbol();
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     //noinspection unchecked

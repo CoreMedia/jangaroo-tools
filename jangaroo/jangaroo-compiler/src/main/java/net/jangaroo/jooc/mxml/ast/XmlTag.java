@@ -62,6 +62,10 @@ public class XmlTag extends NodeImplBase {
     return lt;
   }
 
+  public JooSymbol getClosingSymbol() {
+    return gt;
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     return Collections.emptyList();

@@ -29,6 +29,10 @@ public class XmlAttribute extends XmlNode {
     return ide.getSymbol();
   }
 
+  public JooSymbol getEq() {
+    return eq;
+  }
+
   public JooSymbol getValue() {
     return value;
   }

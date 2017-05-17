@@ -31,8 +31,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class MxmlToModelParser {
 
@@ -565,6 +567,12 @@ final class MxmlToModelParser {
     }
   }
 
+  private static <T, S> Stream<S> filterByType(List<T> list, Class<S> type) {
+    return list.stream()
+            .map(member -> type.isInstance(member) ? type.cast(member) : null)
+            .filter(Objects::nonNull);
+  }
+
   class MxmlObjectModel extends MxmlModel {
     List<MxmlMemberModel> members;
 
@@ -572,6 +580,13 @@ final class MxmlToModelParser {
       return members;
     }
 
+    Stream<MxmlPropertyModel> getProperties() {
+      return filterByType(members, MxmlPropertyModel.class);
+    }
+
+    Stream<MxmlEventHandlerModel> getEventHandlers() {
+      return filterByType(members, MxmlEventHandlerModel.class);
+    }
   }
 
   class MxmlRootModel extends MxmlObjectModel {

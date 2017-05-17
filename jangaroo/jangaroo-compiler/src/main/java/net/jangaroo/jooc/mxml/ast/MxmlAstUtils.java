@@ -58,6 +58,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
   static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
+  static final JooSymbol SYM_NEW = new JooSymbol(sym.NEW, "new");
   static final JooSymbol SYM_NULL = new JooSymbol(sym.NULL_LITERAL, "null");
   static final JooSymbol SYM_PUBLIC = new JooSymbol(sym.PUBLIC, "public");
   static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
