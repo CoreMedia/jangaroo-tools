@@ -159,28 +159,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
-//    try {
-//      System.out.println("===JSON for " + classQName + "===");
-//      MxmlModelToJsonTransformer mxmlModelToJsonTransformer = new MxmlModelToJsonTransformer(parser);
-//      Json model = mxmlModelToJsonTransformer.objectModelToJsonObject(mxmlModel);
-//      String pretty = model.toString(2, 2);
-//      System.out.println(pretty);
-//      System.out.println("JSON for " + classQName + ".Declarations ///");
-//      for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-//        Json declarationsModel = mxmlModelToJsonTransformer.modelToJson(declaration);
-//        String pretty2 = declarationsModel.toString(2, 2);
-//        System.out.println(pretty2);
-//      }
-//      System.out.println(classQName + ".References ///");
-//      for (MxmlToModelParser.MxmlModel reference : mxmlModel.getReferences()) {
-//        System.out.println(reference.getId() + ": " + reference.getType().getQualifiedNameStr());
-//      }
-//      System.out.println("///" + classQName + "///");
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
     Expr objectLiteral = new MxmlModelToAstTransformer(mxmlParserHelper).objectModelToObject(mxmlModel);
-    constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new ParenthesizedExpr<>(MxmlAstUtils.SYM_LPAREN, objectLiteral, MxmlAstUtils.SYM_RPAREN)));
+//    constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new ParenthesizedExpr<>(MxmlAstUtils.SYM_LPAREN, objectLiteral, MxmlAstUtils.SYM_RPAREN)));
 
     mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getConstructorBodyDirectives());

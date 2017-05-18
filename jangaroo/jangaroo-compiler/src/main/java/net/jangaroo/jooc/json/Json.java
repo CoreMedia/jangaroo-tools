@@ -11,10 +11,6 @@ public interface Json {
 
   void set(String property, Object value);
 
-  String getId();
-
-  void setId(String id);
-
   /**
    * Make a pretty-printed JSON text of this JSONObject.
    * <p>
