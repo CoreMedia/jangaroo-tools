@@ -1,11 +1,9 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import com.google.common.collect.Lists;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Expr;
@@ -90,16 +88,6 @@ final class MxmlModelToAstTransformer {
     return valueSymbol;
   }
 
-  private <T extends AstNode> CommaSeparatedList<T> createCommaSeparatedList(List<T> elements) {
-    CommaSeparatedList<T> commaSeparatedList = null;
-    for (T element : Lists.reverse(elements)) {
-      commaSeparatedList = commaSeparatedList == null
-              ? new CommaSeparatedList<>(element)
-              : new CommaSeparatedList<>(element, MxmlAstUtils.SYM_COMMA, commaSeparatedList);
-    }
-    return commaSeparatedList;
-  }
-
   private static JooSymbol replace(@Nullable JooSymbol original, JooSymbol replacementSymAndText) {
     return original == null ? replacementSymAndText
             : replace(original, replacementSymAndText.sym, replacementSymAndText.getText());
@@ -110,7 +98,7 @@ final class MxmlModelToAstTransformer {
   }
 
   private ArrayLiteral arrayModelToArrayLiteral(MxmlToModelParser.MxmlArrayModel objectNode) {
-    CommaSeparatedList<Expr> elementList = createCommaSeparatedList(objectNode.getElements().stream()
+    CommaSeparatedList<Expr> elementList = MxmlAstUtils.createCommaSeparatedList(objectNode.getElements().stream()
             .map(this::modelToAst).collect(toList()));
     XmlElement sourceElement = objectNode.getSourceElement();
     JooSymbol lBracket = replace(sourceElement.getSymbol(), MxmlAstUtils.SYM_LBRACK);
@@ -139,8 +127,7 @@ final class MxmlModelToAstTransformer {
     if ("Object".equals(typeName)) {
       return objectLiteral;
     }
-      ApplyExpr applyExpr = new ApplyExpr(new IdeExpr(mxmlParserHelper.parseIde(typeName)),
-              MxmlAstUtils.SYM_LPAREN, new CommaSeparatedList<>(objectLiteral), MxmlAstUtils.SYM_RPAREN);
+    ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(new IdeExpr(mxmlParserHelper.parseIde(typeName)), objectLiteral);
     if (objectModel.isUseConfigObjects()) {
       return applyExpr;
     } else {
@@ -155,7 +142,7 @@ final class MxmlModelToAstTransformer {
       lBrace = replace(sourceElement.getSymbol(), lBrace);
       rBrace = replace(sourceElement.getClosingSymbol(), rBrace);
     }
-    return new ObjectLiteral(lBrace, createCommaSeparatedList(propertyFields), null, rBrace);
+    return new ObjectLiteral(lBrace, MxmlAstUtils.createCommaSeparatedList(propertyFields), null, rBrace);
   }
 
   private ObjectField eventHandlerModelToObjectField(MxmlToModelParser.MxmlEventHandlerModel eventHandlerModel) {

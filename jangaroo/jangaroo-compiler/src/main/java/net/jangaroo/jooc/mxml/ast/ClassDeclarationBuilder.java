@@ -51,7 +51,7 @@ class ClassDeclarationBuilder {
     handleScripts(rootElementProcessor.getScripts());
 
     // assemble class declaration
-    return MxmlAstUtils.createClassDeclaration(classQName, rootNodeSymbol, ext, impl, this.classBodyDirectives, unit.getInputSource());
+    return MxmlAstUtils.createClassDeclaration(classQName, rootNodeSymbol, ext, impl, this.classBodyDirectives);
   }
 
   private void handleScripts(@Nonnull List<JooSymbol> scripts) {

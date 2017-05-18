@@ -12,7 +12,6 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
@@ -45,9 +44,10 @@ import java.util.Map;
  */
 public class MxmlCompilationUnit extends CompilationUnit {
 
-  static final String DEFAULTS = "defaults";
-  static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
-  static final String APPLY = "apply";
+  private static final String DEFAULTS = "defaults";
+  private static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
+  private static final JooSymbol EXML_SYMBOL = new JooSymbol("Exml");
+  private static final String APPLY = "apply";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
 
   private final IsNativeConstructor isNativeConstructor = new IsNativeConstructor(this);
@@ -69,12 +69,11 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private Parameter constructorParam;
   private Scope constructorScope;
 
-  private MxmlToModelParser mxmlToModelParser;
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
+    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
     this.source = source;
     this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
@@ -88,7 +87,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     JangarooParser parser = scope.getCompiler();
     constructorScope = new DeclarationScope(this, null, parser);
-    mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);
+    MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);
 
     rootElementProcessor.process(rootNode);
 
@@ -153,10 +152,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
       createFields(defaultsConfigVar, mxmlModel);
       ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
       getDirectives().add(importDirective);
-      Ide exml = mxmlParserHelper.parseIde(" " + NET_JANGAROO_EXT_EXML);
 
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(defaultsConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
-      ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
+      ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(" "), APPLY), new IdeExpr(defaultsConfigVar), new IdeExpr(constructorParam.getIde()));
       IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
       AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyExpr);
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
@@ -183,16 +180,14 @@ public class MxmlCompilationUnit extends CompilationUnit {
 //      e.printStackTrace();
 //    }
     Expr objectLiteral = new MxmlModelToAstTransformer(mxmlParserHelper).objectModelToObject(mxmlModel);
-    constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new ParenthesizedExpr<Expr>(MxmlAstUtils.SYM_LPAREN, objectLiteral, MxmlAstUtils.SYM_RPAREN)));
+    constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new ParenthesizedExpr<>(MxmlAstUtils.SYM_LPAREN, objectLiteral, MxmlAstUtils.SYM_RPAREN)));
 
     mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getConstructorBodyDirectives());
     classBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getClassBodyDirectives());
 
     if (!(null == constructorParam || null == superConfigVar)) {
-      CommaSeparatedList<Expr> exprCommaSeparatedList = new CommaSeparatedList<>(new IdeExpr(superConfigVar), MxmlAstUtils.SYM_COMMA, new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde())));
-      Ide exml = mxmlParserHelper.parseIde(MxmlAstUtils.INDENT_4 + NET_JANGAROO_EXT_EXML);
-      ApplyExpr applyExpr = new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, exprCommaSeparatedList, MxmlAstUtils.SYM_RPAREN);
+      ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(MxmlAstUtils.INDENT_4), APPLY), new IdeExpr(superConfigVar), new IdeExpr(constructorParam.getIde()));
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
 
       constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(superConfigVar));
@@ -207,7 +202,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return constructorScope.createAuxVar(name);
   }
 
-  void preProcessClassBodyDirectives() {
+  private void preProcessClassBodyDirectives() {
     boolean hasNativeConstructor = false;
     for (int i = 0; i < classBodyDirectives.size(); i++) {
       Directive directive = classBodyDirectives.get(i);
@@ -243,23 +238,20 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     if(null != initMethod) {
-      CommaSeparatedList<Expr> args = null;
-      if(null != constructorParam) {
-        args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
-      }
-      DotExpr initFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
-      Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
-      constructorBodyDirectives.add(directive);
+      List<Expr> args = constructorParam != null
+              ? Collections.singletonList(new IdeExpr(constructorParam.getIde())) : Collections.emptyList();
+      ApplyExpr methodInvocation = MxmlAstUtils.createMethodInvocation(initMethod, MxmlAstUtils.SYM_THIS, args);
+      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(methodInvocation));
     }
   }
 
-  void postProcessClassBodyDirectives() {
+  private void postProcessClassBodyDirectives() {
     for(Directive directive : classBodyDirectives) {
       directive.setClassMember(true);
     }
   }
 
-  void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
+  private void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
     for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
       mxmlModelToActionScriptTransformer.createValueCodeFromElement(targetIde, declaration);
     }
@@ -283,6 +275,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return true;
   }
 
+  @SuppressWarnings("unused")
   XmlTag getOptXmlHeader() {
     return optXmlHeader;
   }
@@ -312,7 +305,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return qualifier != null && !importedSymbols.contains(qualifier.getQualifiedNameStr() + ".*") && importedSymbols.add(classIde.getQualifiedNameStr());
   }
 
-  void addImport(@Nonnull JooSymbol symbol) {
+  private void addImport(@Nonnull JooSymbol symbol) {
     String jooValue = (String) symbol.getJooValue();
     if(!importedSymbols.contains(jooValue)) {
       ImportDirective directive = mxmlParserHelper.parseImport(symbol);
@@ -344,7 +337,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   @Nullable
-  public String getConstructorParamName() {
+  String getConstructorParamName() {
     return null != constructorParam ? constructorParam.getName() : null;
   }
 }
