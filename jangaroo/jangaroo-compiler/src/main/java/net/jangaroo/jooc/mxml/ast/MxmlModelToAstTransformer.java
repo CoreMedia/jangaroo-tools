@@ -4,11 +4,13 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
+import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
@@ -16,10 +18,12 @@ import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -27,6 +31,8 @@ import static net.jangaroo.jooc.mxml.ast.MxmlModelToActionScriptTransformer.getE
 
 
 final class MxmlModelToAstTransformer {
+
+  private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
   private final MxmlParserHelper mxmlParserHelper;
 
@@ -162,7 +168,10 @@ final class MxmlModelToAstTransformer {
     MxmlToModelParser.MxmlModel propertyValueModel = propertyModel.getValue();
     Expr configOptionValue = modelToAst(propertyValueModel);
     XmlNode sourceNode = propertyModel.getSourceNode();
-    Ide configOptionNameIde = createIde(sourceNode != null ? sourceNode.getSymbol() : null, configOptionName);
+    JooSymbol sourceSymbol = sourceNode != null ? sourceNode.getSymbol() : null;
+    AstNode configOptionNameIde = IDENTIFIER_PATTERN.matcher(configOptionName).matches()
+            ? createIde(sourceSymbol, configOptionName)
+            : new LiteralExpr(replace(sourceSymbol, sym.STRING_LITERAL, CompilerUtils.quote(configOptionName)));
     JooSymbol symColon = replace(sourceNode instanceof XmlAttribute ? ((XmlAttribute) sourceNode).getEq() : null,
             MxmlAstUtils.SYM_COLON);
     return new ObjectField(configOptionNameIde, symColon, configOptionValue);
