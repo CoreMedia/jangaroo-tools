@@ -36,6 +36,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.jangaroo.jooc.mxml.ast.MxmlToModelParser.InstantiationMode.*;
+
 final class MxmlToModelParser {
 
   private static final String EXT_CONFIG_CREATE_FLAG = "create";
@@ -528,12 +530,30 @@ final class MxmlToModelParser {
     return optTypeRelation == null ? null : optTypeRelation.getType().getIde().getQualifiedNameStr();
   }
 
+  enum InstantiationMode {
+    MXML,
+    PLAIN,
+    EXT_CONFIG,
+    EXT_CREATE;
+
+    static InstantiationMode from(boolean useConfigObjects) {
+      return useConfigObjects ? EXT_CONFIG : EXT_CREATE;
+    }
+
+    public boolean isExt() {
+      return this != MXML;
+    }
+
+    public boolean isConfig() {
+      return this == EXT_CONFIG || this == PLAIN;
+    }
+  }
+
   class MxmlModel {
-    XmlElement sourceElement;
-    String id;
-    CompilationUnit type;
-    Boolean useConfigObjects;
-    boolean usePlainObjects;
+    private XmlElement sourceElement;
+    private String id;
+    private CompilationUnit type;
+    private InstantiationMode instantiationMode;
 
     XmlElement getSourceElement() {
       return sourceElement;
@@ -548,22 +568,22 @@ final class MxmlToModelParser {
     }
 
     void setUseConfigObjects(Boolean useConfigObjects) {
-      this.useConfigObjects = useConfigObjects;
-    }
-
-    Boolean isUseConfigObjects() {
-      if (useConfigObjects == null) {
-        useConfigObjects = useConfigObjects(type);
+      if (useConfigObjects != null && instantiationMode == null) {
+        instantiationMode = InstantiationMode.from(useConfigObjects);
       }
-      return useConfigObjects;
     }
 
-    boolean isUsePlainObjects() {
-      return usePlainObjects;
+    @Nonnull
+    InstantiationMode getInstantiationMode() {
+      if (instantiationMode == null) {
+        instantiationMode = type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type) ? MXML
+                : InstantiationMode.from(useConfigObjects(type));
+      }
+      return instantiationMode;
     }
 
-    void doUsePlainObjects() {
-      usePlainObjects = true;
+    private void doUsePlainObjects() {
+      instantiationMode = PLAIN;
     }
   }
 

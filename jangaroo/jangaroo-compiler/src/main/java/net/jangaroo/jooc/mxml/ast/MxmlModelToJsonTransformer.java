@@ -8,6 +8,7 @@ import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.json.JsonValue;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.mxml.ast.MxmlToModelParser.InstantiationMode;
 import net.jangaroo.utils.AS3Type;
 
 import javax.annotation.Nonnull;
@@ -35,14 +36,13 @@ final class MxmlModelToJsonTransformer {
       if (defaultValue != null) {
         json = new JsonValue(defaultValue);
       } else {
-        if (!"Object".equals(typeName) && !mxmlModel.isUsePlainObjects()) {
+        InstantiationMode instantiationMode = mxmlModel.getInstantiationMode();
+        if (!"Object".equals(typeName) && instantiationMode != InstantiationMode.PLAIN) {
           objectModel.settingWrapperClass(typeName);
           objectModel.setInstantiationMode(
-                  (mxmlModel.isUseConfigObjects() != null ? mxmlModel.isUseConfigObjects() : false)
-                          ? JsonObject.InstantiationMode.EXT_CONFIG
-                          : CompilationUnitUtils.constructorSupportsConfigOptionsParameter(typeName, jangarooParser)
-                          ? JsonObject.InstantiationMode.EXT_CREATE
-                          : JsonObject.InstantiationMode.MXML
+                  instantiationMode == InstantiationMode.EXT_CONFIG ? JsonObject.InstantiationMode.EXT_CONFIG
+                : instantiationMode == InstantiationMode.EXT_CREATE ? JsonObject.InstantiationMode.EXT_CREATE
+                                                                    : JsonObject.InstantiationMode.MXML
           );
         }
         json = objectModel;

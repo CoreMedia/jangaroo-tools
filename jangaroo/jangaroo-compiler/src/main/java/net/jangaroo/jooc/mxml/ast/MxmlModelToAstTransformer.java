@@ -121,23 +121,22 @@ final class MxmlModelToAstTransformer {
             .map(memberModel -> propertyModelToObjectField(memberModel, eventHandlerFields))
             .filter(Objects::nonNull);
     ObjectLiteral objectLiteral = createObjectLiteral(objectModel.getSourceElement(), propertyFieldStream.collect(toList()));
-    if (objectModel.isUsePlainObjects()) {
-      return objectLiteral;
+    switch (objectModel.getInstantiationMode()) {
+      case PLAIN:
+        return objectLiteral;
+      case EXT_CONFIG:
+        // wrap in type cast:
+        return createApplyTypeToObjectLiteralExpr(objectModel, objectLiteral);
+      case MXML:
+        return objectLiteral; // TODO
+      case EXT_CREATE:
+        return new NewExpr(MxmlAstUtils.SYM_NEW, createApplyTypeToObjectLiteralExpr(objectModel, objectLiteral));
     }
-    CompilationUnit type = objectModel.getType();
-    if (type == null) {
-      return objectLiteral;
-    }
-    String typeName = type.getQualifiedNameStr();
-    if ("Object".equals(typeName)) {
-      return objectLiteral;
-    }
-    ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(new IdeExpr(mxmlParserHelper.parseIde(typeName)), objectLiteral);
-    if (objectModel.isUseConfigObjects()) {
-      return applyExpr;
-    } else {
-      return new NewExpr(MxmlAstUtils.SYM_NEW, applyExpr);
-    }
+    throw new IllegalStateException("Cannot happen: No case for " + objectModel.getInstantiationMode());
+  }
+
+  private ApplyExpr createApplyTypeToObjectLiteralExpr(MxmlToModelParser.MxmlObjectModel objectModel, ObjectLiteral objectLiteral) {
+    return MxmlAstUtils.createApplyExpr(new IdeExpr(mxmlParserHelper.parseIde(objectModel.getType().getQualifiedNameStr())), objectLiteral);
   }
 
   private ObjectLiteral createObjectLiteral(@Nullable XmlElement sourceElement, List<ObjectField> propertyFields) {

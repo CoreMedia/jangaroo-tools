@@ -139,7 +139,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
-    mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(parser, mxmlParserHelper, this);
+    mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(mxmlParserHelper, this);
 
     if (null == constructorParam || null == superConfigVar) {
       createFields(superConfigVar, mxmlModel);

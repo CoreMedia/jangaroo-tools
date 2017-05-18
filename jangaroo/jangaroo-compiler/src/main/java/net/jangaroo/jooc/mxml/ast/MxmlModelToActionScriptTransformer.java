@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -22,6 +21,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static net.jangaroo.jooc.mxml.ast.MxmlToModelParser.InstantiationMode.PLAIN;
 import static net.jangaroo.jooc.mxml.ast.MxmlToModelParser.getTextContent;
 
 
@@ -29,7 +29,6 @@ final class MxmlModelToActionScriptTransformer {
 
   private static final String DELETE_OBJECT_PROPERTY_CODE = "\n    delete %s['%s'];";
 
-  private final JangarooParser jangarooParser;
   private final MxmlParserHelper mxmlParserHelper;
   private final MxmlCompilationUnit compilationUnit;
 
@@ -37,8 +36,7 @@ final class MxmlModelToActionScriptTransformer {
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
   String additionalDeclarations = "";
 
-  MxmlModelToActionScriptTransformer(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
-    this.jangarooParser = jangarooParser;
+  MxmlModelToActionScriptTransformer(MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.mxmlParserHelper = mxmlParserHelper;
     this.compilationUnit = mxmlCompilationUnit;
   }
@@ -86,7 +84,7 @@ final class MxmlModelToActionScriptTransformer {
             ? createArrayCodeFromChildElements(((MxmlToModelParser.MxmlArrayModel)childElements).getElements())
             : createValueCodeFromElement(null, childElements);
 
-    if (childElements.isUsePlainObjects()) {
+    if (childElements.getInstantiationMode() == PLAIN) {
       String constructorCode = String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype")
               + String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass");
       constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode));
@@ -116,7 +114,7 @@ final class MxmlModelToActionScriptTransformer {
 
   @Nullable
   String createValueCodeFromElement(@Nullable Ide configVar, MxmlToModelParser.MxmlModel objectModel) {
-    XmlElement objectElement = objectModel.sourceElement;
+    XmlElement objectElement = objectModel.getSourceElement();
     CompilationUnit type = objectModel.getType();
     final String className = type.getQualifiedNameStr();
     Ide typeIde = compilationUnit.addImport(className);
@@ -164,8 +162,7 @@ final class MxmlModelToActionScriptTransformer {
 
     Ide configVariable = null; // name of the variable holding the config object to use in the constructor
 
-    if (Boolean.TRUE.equals(objectModel.isUseConfigObjects()) ||
-            CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
+    if (objectModel.getInstantiationMode().isExt()) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       configVariable = createAuxVar(objectElement, id);
       renderConfigAuxVar(configVariable, typeIde != null ? typeIde : new Ide(className));
@@ -190,7 +187,7 @@ final class MxmlModelToActionScriptTransformer {
       targetVariableName = createAuxVar(objectElement).getName();
       constructorCode.append("    ")
               .append("var ").append(targetVariableName).append(":").append(className);
-    } else if (objectModel.isUseConfigObjects()) {
+    } else if (objectModel.getInstantiationMode().isConfig()) {
       return configVariable.getName();
     } else {
       return value; // no aux var necessary
