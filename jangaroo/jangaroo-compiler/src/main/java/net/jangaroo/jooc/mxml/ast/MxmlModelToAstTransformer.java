@@ -22,7 +22,9 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -113,14 +115,11 @@ final class MxmlModelToAstTransformer {
   }
 
   Expr objectModelToObject(MxmlToModelParser.MxmlObjectModel objectModel) {
-    Stream<ObjectField> propertyFieldStream = objectModel.getProperties().map(this::propertyModelToObjectField);
-    Stream<MxmlToModelParser.MxmlEventHandlerModel> eventHandlers = objectModel.getEventHandlers();
-    List<ObjectField> eventHandlerFields = eventHandlers.map(this::eventHandlerModelToObjectField).collect(toList());
-    if (!eventHandlerFields.isEmpty()) {
-      ObjectLiteral listenersValue = createObjectLiteral(null, eventHandlerFields);
-      ObjectField listeners = new ObjectField(new Ide("listeners"), MxmlAstUtils.SYM_COLON, listenersValue);
-      propertyFieldStream = Stream.concat(propertyFieldStream, Stream.of(listeners));
-    }
+    List<ObjectField> eventHandlerFields = objectModel.getEventHandlers()
+            .map(this::eventHandlerModelToObjectField).collect(toList());
+    Stream<ObjectField> propertyFieldStream = objectModel.getMembers().stream()
+            .map(memberModel -> propertyModelToObjectField(memberModel, eventHandlerFields))
+            .filter(Objects::nonNull);
     ObjectLiteral objectLiteral = createObjectLiteral(objectModel.getSourceElement(), propertyFieldStream.collect(toList()));
     if (objectModel.isUsePlainObjects()) {
       return objectLiteral;
@@ -163,18 +162,29 @@ final class MxmlModelToAstTransformer {
     return new Ide(replace(symbol, sym.IDE, ideName));
   }
 
-  private ObjectField propertyModelToObjectField(MxmlToModelParser.MxmlPropertyModel propertyModel) {
-    String configOptionName = propertyModel.getConfigOptionName();
-    MxmlToModelParser.MxmlModel propertyValueModel = propertyModel.getValue();
-    Expr configOptionValue = modelToAst(propertyValueModel);
-    XmlNode sourceNode = propertyModel.getSourceNode();
-    JooSymbol sourceSymbol = sourceNode != null ? sourceNode.getSymbol() : null;
-    AstNode configOptionNameIde = IDENTIFIER_PATTERN.matcher(configOptionName).matches()
-            ? createIde(sourceSymbol, configOptionName)
-            : new LiteralExpr(replace(sourceSymbol, sym.STRING_LITERAL, CompilerUtils.quote(configOptionName)));
-    JooSymbol symColon = replace(sourceNode instanceof XmlAttribute ? ((XmlAttribute) sourceNode).getEq() : null,
-            MxmlAstUtils.SYM_COLON);
-    return new ObjectField(configOptionNameIde, symColon, configOptionValue);
+  private ObjectField propertyModelToObjectField(MxmlToModelParser.MxmlMemberModel memberModel, List<ObjectField> eventHandlerFields) {
+    if (memberModel instanceof MxmlToModelParser.MxmlEventHandlerModel) {
+      if (eventHandlerFields.isEmpty()) {
+        return null;
+      }
+      // When encountering the first event handler, insert all (this is the best we can do to keep source code order):
+      ObjectLiteral listenersValue = createObjectLiteral(null, Collections.unmodifiableList(eventHandlerFields));
+      eventHandlerFields.clear();
+      return new ObjectField(new Ide("listeners"), MxmlAstUtils.SYM_COLON, listenersValue);
+    } else {
+      MxmlToModelParser.MxmlPropertyModel propertyModel = (MxmlToModelParser.MxmlPropertyModel) memberModel;
+      String configOptionName = propertyModel.getConfigOptionName();
+      MxmlToModelParser.MxmlModel propertyValueModel = propertyModel.getValue();
+      Expr configOptionValue = modelToAst(propertyValueModel);
+      XmlNode sourceNode = propertyModel.getSourceNode();
+      JooSymbol sourceSymbol = sourceNode != null ? sourceNode.getSymbol() : null;
+      AstNode configOptionNameIde = IDENTIFIER_PATTERN.matcher(configOptionName).matches()
+              ? createIde(sourceSymbol, configOptionName)
+              : new LiteralExpr(replace(sourceSymbol, sym.STRING_LITERAL, CompilerUtils.quote(configOptionName)));
+      JooSymbol symColon = replace(sourceNode instanceof XmlAttribute ? ((XmlAttribute) sourceNode).getEq() : null,
+              MxmlAstUtils.SYM_COLON);
+      return new ObjectField(configOptionNameIde, symColon, configOptionValue);
+    }
   }
 
 }
