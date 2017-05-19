@@ -579,7 +579,11 @@ final class MxmlToModelParser {
     InstantiationMode getInstantiationMode() {
       if (instantiationMode == null) {
         instantiationMode = type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type) ? MXML
-                : InstantiationMode.from(useConfigObjects(type));
+                : id == null ? InstantiationMode.from(useConfigObjects(type)) : EXT_CREATE;
+      } else {
+        if (id != null && instantiationMode == EXT_CONFIG) {
+          instantiationMode = EXT_CREATE;
+        }
       }
       return instantiationMode;
     }
