@@ -78,6 +78,10 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
     return whitespace;
   }
 
+  public void setWhitespace(String whitespace) {
+    this.whitespace = whitespace;
+  }
+
   public String getSourceCode() {
     return whitespace + text;
   }

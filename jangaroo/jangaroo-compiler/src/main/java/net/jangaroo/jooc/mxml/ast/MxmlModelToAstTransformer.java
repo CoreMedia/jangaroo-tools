@@ -46,7 +46,8 @@ final class MxmlModelToAstTransformer {
     Expr expr = modelToAstNoId(mxmlModel);
     String id = mxmlModel.getId();
     if (id != null) {
-      expr = new AssignmentOpExpr(new IdeExpr(new Ide(id)), MxmlAstUtils.SYM_EQ, expr);
+      JooSymbol jooSymbol = moveWhitespace(new JooSymbol(sym.IDE, id), expr.getSymbol());
+      expr = new AssignmentOpExpr(new IdeExpr(new Ide(jooSymbol)), MxmlAstUtils.SYM_EQ, expr);
     }
     return expr;
   }
@@ -108,9 +109,8 @@ final class MxmlModelToAstTransformer {
   private ArrayLiteral arrayModelToArrayLiteral(MxmlToModelParser.MxmlArrayModel objectNode) {
     CommaSeparatedList<Expr> elementList = MxmlAstUtils.createCommaSeparatedList(objectNode.getElements().stream()
             .map(this::modelToAst).collect(toList()));
-    XmlElement sourceElement = objectNode.getSourceElement();
-    JooSymbol lBracket = replace(sourceElement.getSymbol(), MxmlAstUtils.SYM_LBRACK);
-    JooSymbol rBracket = replace(sourceElement.getClosingSymbol(), MxmlAstUtils.SYM_RBRACK);
+    JooSymbol lBracket = MxmlAstUtils.SYM_LBRACK;
+    JooSymbol rBracket = replace(objectNode.getSourceElement().getClosingSymbol(), MxmlAstUtils.SYM_RBRACK);
     return new ArrayLiteral(lBracket, elementList, rBracket);
   }
 
@@ -134,13 +134,20 @@ final class MxmlModelToAstTransformer {
       case MXML:
         return objectLiteral; // TODO
       case EXT_CREATE:
-        return new NewExpr(MxmlAstUtils.SYM_NEW, createApplyTypeToObjectLiteralExpr(objectModel, objectLiteral));
+        return createNewOfObjectListeralExpr(objectModel, objectLiteral);
     }
     throw new IllegalStateException("Cannot happen: No case for " + objectModel.getInstantiationMode());
   }
 
+  private Expr createNewOfObjectListeralExpr(MxmlToModelParser.MxmlObjectModel objectModel, ObjectLiteral objectLiteral) {
+    JooSymbol symNew = moveWhitespace(MxmlAstUtils.SYM_NEW, objectLiteral.getSymbol());
+    return new NewExpr(symNew, createApplyTypeToObjectLiteralExpr(objectModel, objectLiteral));
+  }
+
   private ApplyExpr createApplyTypeToObjectLiteralExpr(MxmlToModelParser.MxmlObjectModel objectModel, ObjectLiteral objectLiteral) {
-    return MxmlAstUtils.createApplyExpr(new IdeExpr(mxmlParserHelper.parseIde(objectModel.getType().getQualifiedNameStr())), objectLiteral);
+    Ide typeIde = mxmlParserHelper.parseIde(objectLiteral.getSymbol().getWhitespace() + objectModel.getType().getQualifiedNameStr());
+    objectLiteral.getSymbol().setWhitespace("");
+    return MxmlAstUtils.createApplyExpr(new IdeExpr(typeIde), objectLiteral);
   }
 
   private ObjectLiteral createObjectLiteral(@Nullable XmlElement sourceElement, List<ObjectField> propertyFields) {
@@ -208,6 +215,12 @@ final class MxmlModelToAstTransformer {
                     .map(this::declarationToObjectField)
                     .filter(Objects::nonNull)
                     .collect(toList()));
+  }
+
+  private static JooSymbol moveWhitespace(JooSymbol targetSymbol, JooSymbol sourceSymbol) {
+    String whitespace = sourceSymbol.getWhitespace();
+    sourceSymbol.setWhitespace("");
+    return targetSymbol.withWhitespace(whitespace);
   }
 
 }
