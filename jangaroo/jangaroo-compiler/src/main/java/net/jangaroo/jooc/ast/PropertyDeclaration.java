@@ -14,7 +14,7 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
   private FunctionDeclaration setter;
 
   PropertyDeclaration(FunctionDeclaration getter, FunctionDeclaration setter) {
-    super(computeAnnotationsAndModifiers(getter, setter), getter.getIde(), getter.getOptTypeRelation());
+    super(computeAnnotationsAndModifiers(getter, setter), getter.getIde(), setter.getParams().getHead().getOptTypeRelation());
     this.getter = getter;
     this.setter = setter;
   }

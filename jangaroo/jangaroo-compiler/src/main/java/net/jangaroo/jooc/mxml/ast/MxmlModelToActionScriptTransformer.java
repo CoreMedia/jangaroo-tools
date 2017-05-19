@@ -42,7 +42,7 @@ final class MxmlModelToActionScriptTransformer {
   }
 
   private void renderConfigAuxVar(@Nonnull Ide ide, Ide type) {
-    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
+    //constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
   }
 
   private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull MxmlToModelParser.MxmlPropertyModel propertyModel) {
@@ -87,7 +87,7 @@ final class MxmlModelToActionScriptTransformer {
     if (childElements.getInstantiationMode() == PLAIN) {
       String constructorCode = String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype")
               + String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass");
-      constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode));
+      //constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode));
     }
     createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
   }
@@ -193,7 +193,7 @@ final class MxmlModelToActionScriptTransformer {
       return value; // no aux var necessary
     }
     constructorCode.append(" = ").append(value).append(";");
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    //constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
 
     if (configVariable == null && !"Array".equals(className)) {
       // no config object was built or event listeners or bindings have to be added:
@@ -309,7 +309,7 @@ final class MxmlModelToActionScriptTransformer {
 
   private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull MxmlToModelParser.MxmlPropertyModel propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
     Directive propertyAssignment = createPropertyAssignment(variable, propertyModel, value, generatingConfig);
-    constructorBodyDirectives.add(propertyAssignment);
+    //constructorBodyDirectives.add(propertyAssignment);
   }
 
   @Nonnull

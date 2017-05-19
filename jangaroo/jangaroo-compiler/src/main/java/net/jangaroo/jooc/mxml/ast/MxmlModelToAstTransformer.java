@@ -43,28 +43,31 @@ final class MxmlModelToAstTransformer {
   }
 
   private Expr modelToAst(@Nonnull MxmlToModelParser.MxmlModel mxmlModel) {
-    Expr expr;
-    CompilationUnit type = mxmlModel.getType();
-    String typeName = type == null ? "*" : type.getQualifiedNameStr();
-    if (mxmlModel instanceof MxmlToModelParser.MxmlArrayModel) {
-      expr = arrayModelToArrayLiteral((MxmlToModelParser.MxmlArrayModel) mxmlModel);
-    } else if (mxmlModel instanceof MxmlToModelParser.MxmlObjectModel) {
-      Expr objectModel = objectModelToObject((MxmlToModelParser.MxmlObjectModel) mxmlModel);
-      String defaultValue = getDefaultValue(typeName);
-      if (defaultValue != null) {
-        expr = mxmlParserHelper.parseExpression(new JooSymbol(defaultValue));
-      } else {
-        expr = objectModel;
-      }
-    } else if (mxmlModel instanceof MxmlToModelParser.MxmlValueModel){
-      MxmlToModelParser.MxmlValueModel valueModel = (MxmlToModelParser.MxmlValueModel) mxmlModel;
-      expr = mxmlParserHelper.parseExpression(getValue(valueModel));
-    } else {
-      throw new IllegalStateException("Unknown MxmlModel subclass " + mxmlModel.getClass());
-    }
+    Expr expr = modelToAstNoId(mxmlModel);
     String id = mxmlModel.getId();
     if (id != null) {
       expr = new AssignmentOpExpr(new IdeExpr(new Ide(id)), MxmlAstUtils.SYM_EQ, expr);
+    }
+    return expr;
+  }
+
+  private Expr modelToAstNoId(@Nonnull MxmlToModelParser.MxmlModel mxmlModel) {
+    Expr expr;
+    CompilationUnit type = mxmlModel.getType();
+    if (mxmlModel instanceof MxmlToModelParser.MxmlArrayModel) {
+      expr = arrayModelToArrayLiteral((MxmlToModelParser.MxmlArrayModel) mxmlModel);
+    } else if (mxmlModel instanceof MxmlToModelParser.MxmlObjectModel) {
+      String defaultValue = getDefaultValue(type == null ? null : type.getQualifiedNameStr());
+      if (defaultValue != null) {
+        expr = mxmlParserHelper.parseExpression(new JooSymbol(defaultValue));
+      } else {
+        expr = objectModelToObject((MxmlToModelParser.MxmlObjectModel) mxmlModel);
+      }
+    } else if (mxmlModel instanceof MxmlToModelParser.MxmlValueModel){
+      MxmlToModelParser.MxmlValueModel valueModel = (MxmlToModelParser.MxmlValueModel) mxmlModel;
+      expr = mxmlParserHelper.parseExpression(getValue(valueModel, type));
+    } else {
+      throw new IllegalStateException("Unknown MxmlModel subclass " + mxmlModel.getClass());
     }
     return expr;
   }
@@ -86,13 +89,10 @@ final class MxmlModelToAstTransformer {
     return null;
   }
 
-  private JooSymbol getValue(MxmlToModelParser.MxmlValueModel valueModel) {
+  private JooSymbol getValue(MxmlToModelParser.MxmlValueModel valueModel, CompilationUnit type) {
     JooSymbol valueSymbol = valueModel.getValue();
-    Object value = valueSymbol.getJooValue();
-    if (value instanceof String && MxmlUtils.isBindingExpression((String) value)) {
-      String code = MxmlUtils.getBindingExpression((String) value);
-      valueSymbol = valueSymbol.replacingSymAndTextAndJooValue(valueSymbol.sym, code, code);
-    }
+    String code = MxmlUtils.valueToString(MxmlUtils.getAttributeValue((String) valueSymbol.getJooValue(), type == null ? null : type.getQualifiedNameStr()));
+    valueSymbol = valueSymbol.replacingSymAndTextAndJooValue(valueSymbol.sym, code, code);
     return valueSymbol;
   }
 
@@ -102,7 +102,7 @@ final class MxmlModelToAstTransformer {
   }
   private static JooSymbol replace(@Nullable JooSymbol original, int replacementSym, String replacementText) {
     return original == null ? new JooSymbol(replacementSym, replacementText)
-            : new JooSymbol(replacementSym, original.getFileName(), original.getLine(), original.getColumn(), original.getWhitespace().replaceAll("<!--", "/*").replaceAll("-->", "*/"), replacementText, replacementText);
+            : new JooSymbol(replacementSym, original.getFileName(), original.getLine(), original.getColumn(), MxmlUtils.toASDoc(original.getWhitespace()), replacementText, replacementText);
   }
 
   private ArrayLiteral arrayModelToArrayLiteral(MxmlToModelParser.MxmlArrayModel objectNode) {
@@ -114,7 +114,11 @@ final class MxmlModelToAstTransformer {
     return new ArrayLiteral(lBracket, elementList, rBracket);
   }
 
-  Expr objectModelToObject(MxmlToModelParser.MxmlObjectModel objectModel) {
+  ObjectLiteral rootModelToObjectLiteral(MxmlToModelParser.MxmlRootModel objectModel) {
+    return (ObjectLiteral) objectModelToObject(objectModel);
+  }
+
+  private Expr objectModelToObject(MxmlToModelParser.MxmlObjectModel objectModel) {
     List<ObjectField> eventHandlerFields = objectModel.getEventHandlers()
             .map(this::eventHandlerModelToObjectField).collect(toList());
     Stream<ObjectField> propertyFieldStream = objectModel.getMembers().stream()
@@ -184,6 +188,26 @@ final class MxmlModelToAstTransformer {
               MxmlAstUtils.SYM_COLON);
       return new ObjectField(configOptionNameIde, symColon, configOptionValue);
     }
+  }
+
+  private ObjectField declarationToObjectField(MxmlToModelParser.MxmlModel mxmlModel) {
+    if (mxmlModel.getId() == null ||
+            mxmlModel instanceof MxmlToModelParser.MxmlObjectModel &&
+                    ((MxmlToModelParser.MxmlObjectModel) mxmlModel).getMembers().isEmpty() ||
+            mxmlModel instanceof MxmlToModelParser.MxmlArrayModel &&
+                    ((MxmlToModelParser.MxmlArrayModel) mxmlModel).getElements().isEmpty()) {
+      return null;
+    }
+    Ide fieldName = new Ide(new JooSymbol(mxmlModel.getId()).withWhitespace(MxmlUtils.toASDoc(mxmlModel.getSourceElement().getSymbol().getWhitespace())));
+    return new ObjectField(fieldName, MxmlAstUtils.SYM_COLON, modelToAstNoId(mxmlModel));
+  }
+
+  ObjectLiteral getDefaults(MxmlToModelParser.MxmlRootModel mxmlRootModel) {
+    return createObjectLiteral(mxmlRootModel.getDeclarations().getSourceElement(),
+            mxmlRootModel.getDeclarations().getElements().stream()
+                    .map(this::declarationToObjectField)
+                    .filter(Objects::nonNull)
+                    .collect(toList()));
   }
 
 }

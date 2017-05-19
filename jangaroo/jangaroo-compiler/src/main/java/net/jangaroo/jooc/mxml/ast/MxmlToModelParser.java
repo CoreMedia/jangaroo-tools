@@ -68,7 +68,7 @@ final class MxmlToModelParser {
     mxmlRootModel = new MxmlRootModel();
     mxmlModelsWithId = new ArrayList<>();
     fillObjectModel(mxmlRootModel, objectNode, getCompilationUnitModel(objectNode));
-    mxmlModelsWithId.removeAll(mxmlRootModel.getDeclarations());
+    mxmlModelsWithId.removeAll(mxmlRootModel.getDeclarations().getElements());
     mxmlRootModel.references = Collections.unmodifiableList(mxmlModelsWithId);
     return mxmlRootModel;
   }
@@ -110,7 +110,7 @@ final class MxmlToModelParser {
       if (element.isBuiltInElement()) {
         if (MxmlUtils.MXML_DECLARATIONS.equals(element.getLocalName())) {
           if (objectModel == mxmlRootModel) {
-            mxmlRootModel.declarations = element.getElements().stream().map(this::createModel).collect(Collectors.toList());
+            mxmlRootModel.declarations = createArrayModel(element.getElements());
           } else {
             jangarooParser.getLog().error(element.getSymbol(), "Declarations are only allowed directly inside the MXML root element.");
           }
@@ -161,9 +161,11 @@ final class MxmlToModelParser {
       if (extractXTypePropertyModel == null) {
         jangarooParser.getLog().error(String.format("Annotation [ExtConfig(extractXType=\"%s\")] in class %s refers to a non-existing property.", extractXTypePropertyName, classDeclaration.getQualifiedNameStr()));
       } else {
-        String extractedXTypeCode = MxmlUtils.createBindingExpression(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype");
-        MxmlValueModel extratedXTypeValue = new MxmlValueModel(propertyValueModel.getSourceElement(), new JooSymbol(extractedXTypeCode));
-        return Collections.singletonList(new MxmlPropertyModel(propertyModel.getSourceNode(), extractXTypePropertyModel, extratedXTypeValue));
+        if (propertyValueModel.getType() != null) {
+          String extractedXTypeCode = MxmlUtils.createBindingExpression(propertyValueModel.getType().getQualifiedNameStr() + "['prototype'].xtype");
+          MxmlValueModel extratedXTypeValue = new MxmlValueModel(propertyValueModel.getSourceElement(), new JooSymbol(extractedXTypeCode));
+          return Collections.singletonList(new MxmlPropertyModel(propertyModel.getSourceNode(), extractXTypePropertyModel, extratedXTypeValue));
+        }
       }
     }
     return Collections.emptyList();
@@ -232,7 +234,7 @@ final class MxmlToModelParser {
 
   private MxmlModel createPropertyValue(XmlNode sourceNode, String propertyType, List<XmlElement> elements) {
     MxmlModel value;
-    if ("Array".equals(propertyType)) {
+    if ("Array".equals(propertyType) || elements.size() > 1 && (propertyType == null || "*".equals(propertyType) || "Object".equals(propertyType))) {
       value = createArrayModel(elements);
       value.sourceElement = (XmlElement) sourceNode;
     } else {
@@ -610,10 +612,10 @@ final class MxmlToModelParser {
   }
 
   class MxmlRootModel extends MxmlObjectModel {
-    List<MxmlModel> declarations = Collections.emptyList();
+    MxmlArrayModel declarations = new MxmlArrayModel(Collections.emptyList());
     List<MxmlModel> references = Collections.emptyList();
 
-    List<MxmlModel> getDeclarations() {
+    MxmlArrayModel getDeclarations() {
       return declarations;
     }
 

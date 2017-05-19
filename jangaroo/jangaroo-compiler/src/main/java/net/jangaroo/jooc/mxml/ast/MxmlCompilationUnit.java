@@ -19,13 +19,12 @@ import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
-import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
-import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
@@ -44,7 +43,6 @@ import java.util.Map;
  */
 public class MxmlCompilationUnit extends CompilationUnit {
 
-  private static final String DEFAULTS = "defaults";
   private static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
   private static final JooSymbol EXML_SYMBOL = new JooSymbol("Exml");
   private static final String APPLY = "apply";
@@ -129,53 +127,52 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     preProcessClassBodyDirectives();
 
-    Ide superConfigVar = null;
-    // If the super constructor has a 'config' param, create a fresh var for that.
-    if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
-      superConfigVar = createAuxVar(MxmlUtils.CONFIG);
-      Ide primaryDeclaration = getPrimaryDeclaration().getIde();
-      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(superConfigVar, primaryDeclaration);
-      constructorBodyDirectives.add(variableDeclaration);
-    }
-
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
     mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(mxmlParserHelper, this);
+    MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(mxmlParserHelper);
 
-    if (null == constructorParam || null == superConfigVar) {
-      createFields(superConfigVar, mxmlModel);
+    ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
+    createFields(mxmlModel);
+    // If the super constructor also has a 'config' param, use the force.
+    if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
+      applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
+      applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(CompilerUtils.className(classQName))), objectLiteral));
+      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(constructorParam.getIde()));
     } else {
-      Ide defaultsConfigVar = createAuxVar(DEFAULTS);
-      Ide primaryDeclaration = getPrimaryDeclaration().getIde();
-      VariableDeclaration variableDeclaration = MxmlAstUtils.createVariableDeclaration(defaultsConfigVar, primaryDeclaration);
-      constructorBodyDirectives.add(variableDeclaration);
-
-      createFields(defaultsConfigVar, mxmlModel);
-      ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
-      getDirectives().add(importDirective);
-
-      ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(" "), APPLY), new IdeExpr(defaultsConfigVar), new IdeExpr(constructorParam.getIde()));
-      IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
-      AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyExpr);
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
+      applyOntoThis(mxmlModelToAstTransformer.getDefaults(mxmlModel));
+      applyOntoThis(objectLiteral);
     }
 
-    Expr objectLiteral = new MxmlModelToAstTransformer(mxmlParserHelper).objectModelToObject(mxmlModel);
-//    constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new ParenthesizedExpr<>(MxmlAstUtils.SYM_LPAREN, objectLiteral, MxmlAstUtils.SYM_RPAREN)));
-
-    mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
-    constructorBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getConstructorBodyDirectives());
+      mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, new Ide("superConfig"), new Ide(Ide.THIS), true);
     classBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getClassBodyDirectives());
-
-    if (!(null == constructorParam || null == superConfigVar)) {
-      ApplyExpr applyExpr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(MxmlAstUtils.INDENT_4), APPLY), new IdeExpr(superConfigVar), new IdeExpr(constructorParam.getIde()));
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr));
-
-      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(superConfigVar));
-    }
 
     postProcessClassBodyDirectives();
 
     super.scope(scope);
+  }
+
+  private void applyConfigOnto(Expr objectLiteral) {
+    IdeExpr configExpr = new IdeExpr(constructorParam.getIde());
+    exmlApply(configExpr, objectLiteral, configExpr);
+  }
+
+  private void applyOntoThis(ObjectLiteral objectLiteral) {
+    exmlApply(null, new IdeExpr(MxmlAstUtils.SYM_THIS), objectLiteral);
+  }
+
+  private void exmlApply(Expr assignTo, Expr targetObject, Expr sourceObject) {
+    if (!isEmptyObjectLiteral(sourceObject) && !isEmptyObjectLiteral(targetObject)) {
+      addImport(NET_JANGAROO_EXT_EXML);
+      Expr expr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(" "), APPLY), targetObject, sourceObject);
+      if (assignTo != null) {
+        expr = new AssignmentOpExpr(assignTo, MxmlAstUtils.SYM_EQ.withWhitespace(" "), expr);
+      }
+      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(expr));
+    }
+  }
+
+  private static boolean isEmptyObjectLiteral(Expr sourceObject) {
+    return sourceObject instanceof ObjectLiteral && ((ObjectLiteral)sourceObject).getFields() == null;
   }
 
   Ide createAuxVar(String name) {
@@ -231,9 +228,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  private void createFields(@Nullable Ide targetIde, MxmlToModelParser.MxmlRootModel mxmlModel) {
-    for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations()) {
-      mxmlModelToActionScriptTransformer.createValueCodeFromElement(targetIde, declaration);
+  private void createFields(MxmlToModelParser.MxmlRootModel mxmlModel) {
+    for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations().getElements()) {
+      mxmlModelToActionScriptTransformer.createValueCodeFromElement(null, declaration);
     }
     Collection<Directive> directives = mxmlModelToActionScriptTransformer.getConstructorBodyDirectives();
     this.constructorBodyDirectives.addAll(directives);

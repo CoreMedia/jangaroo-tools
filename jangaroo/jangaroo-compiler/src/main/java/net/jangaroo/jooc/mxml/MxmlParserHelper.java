@@ -132,6 +132,9 @@ public class MxmlParserHelper {
   @Nullable
   public ImportDirective parseImport(@Nonnull JooSymbol symbol) {
     String text = (String) symbol.getJooValue();
+    if (text.contains(":")) {
+      return null;
+    }
     String template = TPL_IMPORT;
     int[] position = position(symbol, template);
     try {
