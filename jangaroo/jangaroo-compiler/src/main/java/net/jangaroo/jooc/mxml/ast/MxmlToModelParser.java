@@ -84,6 +84,9 @@ final class MxmlToModelParser {
       model = createObjectModel(objectNode, type);
     }
     model.id = getId(objectNode);
+    if (model.id != null) {
+      Ide.verifyIdentifier(model.getId(), model.id);
+    }
     model.sourceElement = objectNode;
     model.type = type;
     if (model.id != null) {
@@ -128,7 +131,7 @@ final class MxmlToModelParser {
       }
     }
     if (hasDefaultPropertyModel && !defaultValues.isEmpty()) {
-      members.add(new MxmlPropertyModel(null, defaultPropertyModel, createPropertyValue(objectNode, defaultPropertyModel.getName(), defaultValues)));
+      members.add(new MxmlPropertyModel(null, defaultPropertyModel, createPropertyValue(objectNode, getPropertyType(defaultPropertyModel), defaultValues)));
     }
     objectModel.members = members;
   }
@@ -173,7 +176,7 @@ final class MxmlToModelParser {
 
   @Nonnull
   private List<MxmlPropertyModel> createArrayAtPropertyModel(XmlElement element, MxmlPropertyModel propertyModel) {
-    if ("Array".equals(getPropertyType(propertyModel.getPropertyDeclaration()))) {
+    if (propertyModel.isArray()) {
       XmlAttribute configModeAttribute = element.getAttributeNodeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
       String configMode = configModeAttribute != null
               ? (String) configModeAttribute.getValue().getJooValue()
@@ -253,10 +256,10 @@ final class MxmlToModelParser {
     return new MxmlEventHandlerModel(sourceNode, eventType, handlerCode);
   }
 
-  private String getId(XmlElement node) {
+  private JooSymbol getId(XmlElement node) {
     return node.getAttributes().stream()
             .filter(isIdAttributePredicate())
-            .map(attribute -> (String) attribute.getValue().getJooValue())
+            .map(XmlAttribute::getValue)
             .findFirst()
             .orElse(null);
   }
@@ -266,7 +269,14 @@ final class MxmlToModelParser {
   }
 
   private boolean isCodeContainer(XmlElement node) {
-    return node.getElements().isEmpty() && !getTextContent(node).getText().trim().isEmpty() && node.getAttributes().stream().noneMatch(isIdAttributePredicate().negate());
+    String textContent = ((String) getTextContent(node).getJooValue()).trim();
+    boolean hasTextContent = !textContent.isEmpty();
+    if (node.getElements().isEmpty() && node.getAttributes().stream().noneMatch(isIdAttributePredicate().negate())) {
+      return hasTextContent;
+    } else if (hasTextContent) {
+      throw Jooc.error(node.getTextNodes().get(0), String.format("Unexpected text inside MXML element: '%s'.", textContent));
+    }
+    return false;
   }
 
   private List<MxmlMemberModel> createMemberModelsFromAttribute(XmlElement objectNode, CompilationUnit type, XmlAttribute attribute) {
@@ -517,7 +527,7 @@ final class MxmlToModelParser {
   }
 
   @Nonnull
-  static JooSymbol getTextContent(XmlElement element) {
+  private static JooSymbol getTextContent(XmlElement element) {
     return element.getTextNodes().stream().findFirst().orElse(new JooSymbol(""));
   }
 
@@ -553,8 +563,8 @@ final class MxmlToModelParser {
 
   class MxmlModel {
     private XmlElement sourceElement;
-    private String id;
-    private CompilationUnit type;
+    private JooSymbol id;
+    CompilationUnit type;
     private InstantiationMode instantiationMode;
 
     XmlElement getSourceElement() {
@@ -562,7 +572,7 @@ final class MxmlToModelParser {
     }
 
     String getId() {
-      return id;
+      return id == null ? null : (String) id.getJooValue();
     }
 
     CompilationUnit getType() {
@@ -695,6 +705,9 @@ final class MxmlToModelParser {
       if (extractXTypePropertyName != null) {
         value.doUsePlainObjects();
       }
+      if (value.getType() == null && isArray()) {
+        value.type = jangarooParser.resolveCompilationUnit("Array");
+      }
     }
 
     TypedIdeDeclaration getPropertyDeclaration() {
@@ -711,6 +724,10 @@ final class MxmlToModelParser {
 
     String getExtractXTypePropertyName() {
       return extractXTypePropertyName;
+    }
+
+    public boolean isArray() {
+      return "Array".equals(getPropertyType(getPropertyDeclaration()));
     }
   }
 

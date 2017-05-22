@@ -132,7 +132,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
     createFields(mxmlModelToAstTransformer, mxmlModel);
     // If the super constructor also has a 'config' param, use the force.
-    if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
+    if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
       applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(CompilerUtils.className(classQName))), objectLiteral));
       constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(constructorParam.getIde()));

@@ -46,7 +46,7 @@
                           blubbConfig="{'blub config expression'}"
                           blubbAccessor="{'blub accessor expression'}"/>
   </fx:Declarations>
-  <defaults>}
+  <defaults>
     <other-ns:SomeOtherClass bla="99"
                           u:known-unknown="true"/>
   </defaults>

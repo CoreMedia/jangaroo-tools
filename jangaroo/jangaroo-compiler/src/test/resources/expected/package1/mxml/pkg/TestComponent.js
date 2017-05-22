@@ -3,19 +3,15 @@ import package1.mxml.pkg.*;
 import net.jangaroo.ext.Exml;
 public class TestComponent extends TestComponentBase{
 
-    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
-    var defaults_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
-    AS3.setBindable(defaults_$1,"property_1" , "withDefault");
-    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
-    config_$1["emptyText"] = '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>';
-    config_$1["letters"] = [
+    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply({
+    property_1: "withDefault"},config);config = net.jangaroo.ext.Exml.apply(AS3.cast(TestComponent,{
+        emptyText: '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>',
+        letters: [
               'a',
               'b',
               'c'
-             ];
-    net.jangaroo.ext.Exml.apply(config_$1,config);
-    package1.mxml.pkg.TestComponentBase.prototype.constructor.call(this,config_$1);
+             ]}),config);
+    package1.mxml.pkg.TestComponentBase.prototype.constructor.call(this,config);
   }/*
 
     [Bindable]

@@ -4,12 +4,8 @@ import package1.mxml.YetAnotherInterface;
 import net.jangaroo.ext.Exml;
 public class InterfaceImplementingMxmlClass extends ConfigClass implements package1.mxml.YetAnotherInterface{
 
-    public*/function InterfaceImplementingMxmlClass$(config/*:InterfaceImplementingMxmlClass = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
-    var defaults_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
-    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
-    net.jangaroo.ext.Exml.apply(config_$1,config);
-    package1.ConfigClass.prototype.constructor.call(this,config_$1);
+    public*/function InterfaceImplementingMxmlClass$(config/*:InterfaceImplementingMxmlClass = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply(AS3.cast(InterfaceImplementingMxmlClass,{}),config);
+    package1.ConfigClass.prototype.constructor.call(this,config);
   }/*
 
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
