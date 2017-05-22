@@ -129,7 +129,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
     mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(mxmlParserHelper, this);
-    MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(mxmlParserHelper);
+    MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(this, mxmlParserHelper);
 
     ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
     createFields(mxmlModel);

@@ -64,8 +64,8 @@ final class MxmlModelToActionScriptTransformer {
     Ide variable = generatingConfig ? configVariable : targetVariable;
     for (MxmlToModelParser.MxmlMemberModel member : objectModel.getMembers()) {
       if (member instanceof MxmlToModelParser.MxmlEventHandlerModel) {
-        MxmlToModelParser.MxmlEventHandlerModel eventHandlerModel = (MxmlToModelParser.MxmlEventHandlerModel) member;
-        createAttachEventHandlerCode(variable, eventHandlerModel);
+//        MxmlToModelParser.MxmlEventHandlerModel eventHandlerModel = (MxmlToModelParser.MxmlEventHandlerModel) member;
+//        createAttachEventHandlerCode(variable, eventHandlerModel);
       } else if (member instanceof MxmlToModelParser.MxmlPropertyModel) {
         MxmlToModelParser.MxmlPropertyModel propertyModel = (MxmlToModelParser.MxmlPropertyModel) member;
         MxmlToModelParser.MxmlModel propertyValue = propertyModel.getValue();
@@ -273,7 +273,7 @@ final class MxmlModelToActionScriptTransformer {
 
   static String getEventHandlerName(@Nonnull MxmlToModelParser.MxmlEventHandlerModel event) {
     JooSymbol value = event.getHandlerCode();
-    String eventName = event.getEventName();
+    String eventName = event.getExtEventName();
     return "$on_" + eventName.replace('-', '_') + "_" + value.getLine() + "_" + value.getColumn();
   }
 
@@ -293,7 +293,7 @@ final class MxmlModelToActionScriptTransformer {
   }
 
   private void createAttachEventHandlerCode(@Nonnull Ide ide, @Nonnull MxmlToModelParser.MxmlEventHandlerModel event) {
-    String eventName = event.getEventName();
+    String eventName = event.getExtEventName();
     String eventTypeStr = event.getEventTypeStr();
     String variable = ide.getName();
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();

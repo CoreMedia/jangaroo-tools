@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static net.jangaroo.jooc.mxml.ast.MxmlModelToActionScriptTransformer.getEventHandlerName;
 
 
 final class MxmlModelToAstTransformer {
@@ -37,8 +36,10 @@ final class MxmlModelToAstTransformer {
   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
   private final MxmlParserHelper mxmlParserHelper;
+  private MxmlCompilationUnit mxmlCompilationUnit;
 
-  MxmlModelToAstTransformer(MxmlParserHelper mxmlParserHelper) {
+  MxmlModelToAstTransformer(MxmlCompilationUnit mxmlCompilationUnit, MxmlParserHelper mxmlParserHelper) {
+    this.mxmlCompilationUnit = mxmlCompilationUnit;
     this.mxmlParserHelper = mxmlParserHelper;
   }
 
@@ -161,11 +162,17 @@ final class MxmlModelToAstTransformer {
   }
 
   private ObjectField eventHandlerModelToObjectField(MxmlToModelParser.MxmlEventHandlerModel eventHandlerModel) {
-    String eventHandlerMethodName = getEventHandlerName(eventHandlerModel);
     XmlNode sourceNode = eventHandlerModel.getSourceNode();
-    Ide eventNameIde = createIde(sourceNode.getSymbol(), eventHandlerModel.getEventName());
+    Ide eventNameIde = createIde(sourceNode.getSymbol(), eventHandlerModel.getExtEventName());
     JooSymbol symColon = replace(sourceNode instanceof XmlAttribute ? ((XmlAttribute)sourceNode).getEq() : null, MxmlAstUtils.SYM_COLON);
-    return new ObjectField(eventNameIde, symColon, new IdeExpr(new Ide(eventHandlerMethodName)));
+    String eventTypeStr = eventHandlerModel.getEventTypeStr();
+    JooSymbol handlerCode = eventHandlerModel.getHandlerCode();
+    mxmlCompilationUnit.addImport(eventTypeStr);
+    String eventHandlerExpr = String.format("{scope:this,fn:function():* {var event:%s=new %s(\"%s\",arguments);%s%s}}",
+            eventTypeStr, eventTypeStr, eventHandlerModel.getFlexEventName(),
+            handlerCode.getWhitespace(), handlerCode.getJooValue());
+    return new ObjectField(eventNameIde, symColon, mxmlParserHelper.parseExpression(new JooSymbol(eventHandlerExpr)));
+    //TODO: construct JooSymbol from handler code symbol so that error line numbers are correct!
   }
 
   private Ide createIde(JooSymbol symbol, String ideName) {

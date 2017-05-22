@@ -726,8 +726,15 @@ final class MxmlToModelParser {
       eventTypeStr = MxmlToModelParser.getEventTypeStr(eventType);
     }
 
-    String getEventName() {
+    String getFlexEventName() {
       return eventName;
+    }
+ 
+    String getExtEventName() {
+      if (eventName.startsWith("on")) {
+        return eventName.substring(2).toLowerCase();
+      }
+      return eventName.toLowerCase();
     }
 
     String getEventTypeStr() {
@@ -741,11 +748,7 @@ final class MxmlToModelParser {
 
   private static String getEventName(@Nonnull Annotation event) {
     Object eventNameModel = event.getPropertiesByName().get("name");
-    String eventName = (String) (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null));
-    if (eventName.startsWith("on")) {
-      eventName = eventName.substring(2);
-    }
-    return eventName;
+    return (String) (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null));
   }
 
   private static String getEventTypeStr(@Nonnull Annotation event) {
