@@ -57,7 +57,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final XmlHeader optXmlHeader;
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
-  private MxmlModelToActionScriptTransformer mxmlModelToActionScriptTransformer;
 
   private final List<Directive> constructorBodyDirectives = new LinkedList<>();
   private final List<Directive> classBodyDirectives = new LinkedList<>();
@@ -128,11 +127,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
     preProcessClassBodyDirectives();
 
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
-    mxmlModelToActionScriptTransformer = new MxmlModelToActionScriptTransformer(mxmlParserHelper, this);
     MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(this, mxmlParserHelper);
 
     ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
-    createFields(mxmlModel);
+    createFields(mxmlModelToAstTransformer, mxmlModel);
     // If the super constructor also has a 'config' param, use the force.
     if(CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
@@ -142,9 +140,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
       applyOntoThis(mxmlModelToAstTransformer.getDefaults(mxmlModel));
       applyOntoThis(objectLiteral);
     }
-
-      mxmlModelToActionScriptTransformer.processAttributesAndChildNodes(mxmlModel, new Ide("superConfig"), new Ide(Ide.THIS), true);
-    classBodyDirectives.addAll(mxmlModelToActionScriptTransformer.getClassBodyDirectives());
 
     postProcessClassBodyDirectives();
 
@@ -228,13 +223,16 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  private void createFields(MxmlToModelParser.MxmlRootModel mxmlModel) {
+  private void createFields(MxmlModelToAstTransformer mxmlModelToAstTransformer, MxmlToModelParser.MxmlRootModel mxmlModel) {
     for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations().getElements()) {
-      mxmlModelToActionScriptTransformer.createValueCodeFromElement(null, declaration);
+      VariableDeclaration variableDeclaration = getVariables().get(declaration.getId());
+      if (variableDeclaration == null) {
+        classBodyDirectives.add(mxmlModelToAstTransformer.createVariableDeclaration(declaration));
+      }
     }
-    Collection<Directive> directives = mxmlModelToActionScriptTransformer.getConstructorBodyDirectives();
-    this.constructorBodyDirectives.addAll(directives);
-    directives.clear();
+    for (MxmlToModelParser.MxmlModel model : mxmlModel.getReferences()) {
+      classBodyDirectives.add(mxmlModelToAstTransformer.createVariableDeclaration(model));
+    }
   }
 
   List<Directive> getClassBodyDirectives() {

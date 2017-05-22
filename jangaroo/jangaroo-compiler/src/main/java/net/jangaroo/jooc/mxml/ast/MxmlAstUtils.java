@@ -120,10 +120,7 @@ class MxmlAstUtils {
   @Nonnull
   static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type) {
     TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
-    Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
-    value = createApplyExpr(new IdeExpr(type), value);
-    Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(new AnnotationsAndModifiers(null, null), SYM_VAR.withWhitespace(INDENT_4), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    return new VariableDeclaration(new AnnotationsAndModifiers(null, null), SYM_VAR.withWhitespace(INDENT_4), name, typeRelation, null, null, SYM_SEMICOLON);
   }
 
   @Nonnull
