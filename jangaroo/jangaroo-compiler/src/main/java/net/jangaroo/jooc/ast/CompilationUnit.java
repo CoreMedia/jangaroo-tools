@@ -37,7 +37,7 @@ import java.util.Set;
  * @author Frank Wienberg
  */
 public class CompilationUnit extends NodeImplBase {
-  protected PackageDeclaration packageDeclaration;
+  private PackageDeclaration packageDeclaration;
   private JooSymbol lBrace;
   private List<Directive> directives;
   protected IdeDeclaration primaryDeclaration;

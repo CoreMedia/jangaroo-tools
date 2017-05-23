@@ -20,11 +20,13 @@ import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.ObjectLiteral;
+import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
+import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
@@ -70,18 +72,24 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
+    super(createPackageDeclaration(source), MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
     this.source = source;
     this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
-    classQName = CompilerUtils.qNameFromRelativePath(source.getRelativePath());
+    classQName = getQName(source);
+  }
+
+  private static String getQName(@Nonnull InputSource source) {
+    return CompilerUtils.qNameFromRelativePath(source.getRelativePath());
+  }
+
+  private static PackageDeclaration createPackageDeclaration(InputSource source) {
+    return new PackageDeclaration(new JooSymbol(sym.PACKAGE, "package"), new Ide(CompilerUtils.packageName(getQName(source))));
   }
 
   @Override
   public void scope(Scope scope) {
-    packageDeclaration = mxmlParserHelper.parsePackageDeclaration(classQName);
-
     JangarooParser parser = scope.getCompiler();
     constructorScope = new DeclarationScope(this, null, parser);
     MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);

@@ -14,11 +14,9 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
-import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
-import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.input.InputSource;
@@ -31,20 +29,17 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 public class MxmlParserHelper {
 
   private static final String TPL_CLASS_BODY = "package{class ___${\n%s\n}}";
-  private static final String TPL_CONSTRUCTOR_BODY = "package{class ___${function ___$(){\n%s\n}}}";
   private static final String TPL_EXPRESSION = "package{class ___${x= %s}}";
   private static final String TPL_IMPLEMENTS = "package{class ___$ implements %s\n{}}";
   private static final String TPL_IMPORT = "package{\nimport %s;\nclass ___$ {}}";
   private static final String TPL_IDE = "package{var ___$:%s;}";
   private static final String TPL_METADATA = "package{\n%s\nclass ___$ {}}";
   private static final String TPL_EXTENDS = "package{class ___$ extends %s {}}";
-  private static final String TPL_PACKAGE = "package %s {class ___$ {}}";
 
   private final JooParser parser;
   private InputSource inputSource;
@@ -77,33 +72,12 @@ public class MxmlParserHelper {
   }
 
   @Nonnull
-  public PackageDeclaration parsePackageDeclaration(String classQName) {
-    String text = CompilerUtils.packageName(classQName);
-    CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(TPL_PACKAGE, text), 0, 0).value;
-    return unit.getPackageDeclaration();
-  }
-
-  @Nonnull
   public ClassBody parseClassBody(@Nonnull JooSymbol symbol) {
     String text = (String) symbol.getJooValue();
     String template = TPL_CLASS_BODY;
     int[] position = position(symbol, template);
     CompilationUnit unit = (CompilationUnit) parser.parseEmbedded(String.format(template, text), position[0], position[1]).value;
     return ((ClassDeclaration)unit.getPrimaryDeclaration()).getBody();
-  }
-
-  @Nonnull
-  public List<Directive> parseConstructorBody(@Nonnull String text) {
-    Symbol parsed = parser.parseEmbedded(String.format(TPL_CONSTRUCTOR_BODY, text), 0, 0);
-    CompilationUnit unit = (CompilationUnit) parsed.value;
-    List<Directive> directives = ((ClassDeclaration) unit.getPrimaryDeclaration()).getBody().getDirectives();
-    if(null != directives) {
-      Directive first = Iterables.getFirst(directives, null);
-      if(first instanceof FunctionDeclaration) {
-        return ((FunctionDeclaration)first).getBody().getDirectives();
-      }
-    }
-    return Collections.emptyList();
   }
 
   @Nullable
