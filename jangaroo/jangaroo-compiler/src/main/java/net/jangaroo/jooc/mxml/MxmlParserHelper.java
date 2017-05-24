@@ -25,7 +25,6 @@ import net.jangaroo.jooc.mxml.ast.XmlAttribute;
 import net.jangaroo.jooc.mxml.ast.XmlElement;
 import net.jangaroo.jooc.mxml.ast.XmlHeader;
 import net.jangaroo.jooc.mxml.ast.XmlTag;
-import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,9 +89,9 @@ public class MxmlParserHelper {
   }
 
   @Nonnull
-  public Extends parseExtends(@Nonnull JangarooParser parser, @Nonnull XmlElement rootNode, @Nonnull String classQName) {
+  public Extends parseExtends(@Nonnull XmlElement rootNode, @Nonnull String classQName) {
     JooSymbol rootNodeSymbol = rootNode.getSymbol();
-    String superClassName = getClassNameForElement(parser, rootNode);
+    String superClassName = rootNode.getClassQName();
     if (superClassName.equals(classQName)) {
       throw JangarooParser.error(rootNodeSymbol, "Cyclic inheritance error: Super class and this component are the same.");
     }
@@ -161,34 +160,6 @@ public class MxmlParserHelper {
       }
     }
     throw new IllegalStateException("cannot find %s in template string '" + template + "'");
-  }
-
-  @Nonnull
-  public String getClassNameForElement(JangarooParser parser, XmlElement xmlElement){
-    String name = xmlElement.getLocalName();
-    String uri = xmlElement.getNamespaceURI();
-    if (uri != null) {
-      String packageName = parsePackageFromNamespace(uri);
-      if (packageName != null) {
-        String qName = CompilerUtils.qName(packageName, name);
-        if (qName.equals(CompilerUtils.qNameFromRelativePath(getInputSource().getRelativePath()))) {
-          return qName;
-        }
-        if (parser.isClass(qName)) {
-          return qName;
-        }
-      } else {
-        String className = parser.getMxmlComponentRegistry().getClassName(uri, name);
-        if(null != className) {
-          return className;
-        }
-      }
-    }
-    String nodeName = xmlElement.getName();
-    if (xmlElement.getPrefix() != null) {
-      nodeName = xmlElement.getPrefix() + ":" + nodeName;
-    }
-    throw JangarooParser.error(xmlElement, "Could not resolve class from MXML node <" + nodeName + "/>");
   }
 
   public static String parsePackageFromNamespace(String uri) {

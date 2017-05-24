@@ -1,14 +1,12 @@
 package net.jangaroo.jooc.mxml.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
@@ -229,20 +227,6 @@ final class MxmlModelToAstTransformer {
                     .map(this::declarationToObjectField)
                     .filter(Objects::nonNull)
                     .collect(toList()));
-  }
-
-  Directive createVariableDeclaration(MxmlToModelParser.MxmlModel declaration) {
-    XmlElement objectElement = declaration.getSourceElement();
-    String className = declaration.getType().getQualifiedNameStr();
-    mxmlCompilationUnit.addImport(className);
-    String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
-    int i = asDoc.lastIndexOf('\n');
-    String additionalDeclaration = String.format("%s[%s]%spublic var %s:%s;",
-            asDoc,
-            Jooc.BINDABLE_ANNOTATION_NAME,
-            i < 0 ? "\n" : asDoc.substring(i),
-            declaration.getId(), className);
-    return mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives().get(0);
   }
 
   private static JooSymbol moveWhitespace(JooSymbol targetSymbol, JooSymbol sourceSymbol) {

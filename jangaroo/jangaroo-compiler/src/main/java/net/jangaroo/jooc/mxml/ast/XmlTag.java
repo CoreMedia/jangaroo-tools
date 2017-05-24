@@ -9,6 +9,7 @@ import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NodeImplBase;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.w3c.dom.Node;
 
 import javax.annotation.Nullable;
@@ -33,6 +34,7 @@ public class XmlTag extends NodeImplBase {
   private final JooSymbol gt;
 
   private XmlElement xmlElement;
+  private JooSymbol id;
 
   public XmlTag(JooSymbol lt, Ide tagName, List<XmlAttribute> attributes, JooSymbol gt) {
     this.lt = lt;
@@ -42,15 +44,19 @@ public class XmlTag extends NodeImplBase {
 
     // extract namespace definitions
     String defaultNamespace = null;
-    if(null != attributes) {
+    if (attributes != null) {
       for (XmlAttribute attribute : attributes) {
         String localName = attribute.getLocalName();
         String namespace = attribute.getPrefix();
         String text = (String) attribute.getValue().getJooValue();
         if (XMLNS.equals(namespace)) {
           xmlNamespaces.put(localName, text);
-        } else if (null == namespace && XMLNS.equals(localName)) {
-          defaultNamespace = text;
+        } else if (namespace == null) {
+          if (XMLNS.equals(localName)) {
+            defaultNamespace = text;
+          } else if (MxmlUtils.MXML_ID_ATTRIBUTE.equals(localName)) {
+            id = attribute.getValue();
+          }
         }
       }
     }
@@ -157,5 +163,9 @@ public class XmlTag extends NodeImplBase {
 
   void setElement(XmlElement xmlElement) {
     this.xmlElement = xmlElement;
+  }
+
+  public JooSymbol getIdSymbol() {
+    return id;
   }
 }

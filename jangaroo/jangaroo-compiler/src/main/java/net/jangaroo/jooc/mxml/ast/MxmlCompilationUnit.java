@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mxml.ast;
 
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -26,6 +27,7 @@ import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -91,7 +93,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     ClassDeclaration classDeclaration = (ClassDeclaration) getPrimaryDeclaration();
 
     // extends
-    classDeclaration.setExtends(mxmlParserHelper.parseExtends(parser, rootNode, getQualifiedNameStr()));
+    classDeclaration.setExtends(mxmlParserHelper.parseExtends(rootNode, getQualifiedNameStr()));
 
     // implements
     JooSymbol implSymbol = rootElementProcessor.getImpl();
@@ -116,9 +118,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   @Override
   public void scope(Scope scope) {
     JangarooParser parser = scope.getCompiler();
-    MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);
-
-    rootElementProcessor.process(rootNode);
+    rootElementProcessor.process(parser.getMxmlComponentRegistry(), rootNode);
 
     // handle imports
     for (JooSymbol jooSymbol : rootElementProcessor.getImports()) {
@@ -159,11 +159,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     preProcessClassBodyDirectives();
 
+    createFields();
+
+    MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser);
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
     MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(this, mxmlParserHelper);
 
     ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
-    createFields(mxmlModelToAstTransformer, mxmlModel);
     // If the super constructor also has a 'config' param, use the force.
     if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
@@ -253,16 +255,22 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  private void createFields(MxmlModelToAstTransformer mxmlModelToAstTransformer, MxmlToModelParser.MxmlRootModel mxmlModel) {
+  private void createFields() {
     List<Directive> classBodyDirectives = getClassBodyDirectives();
-    for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations().getElements()) {
-      VariableDeclaration variableDeclaration = getVariables().get(declaration.getId());
+    for (XmlElement objectElement : rootElementProcessor.getDeclarations()) {
+      VariableDeclaration variableDeclaration = getVariables().get(objectElement.getId());
       if (variableDeclaration == null) {
-        classBodyDirectives.add(mxmlModelToAstTransformer.createVariableDeclaration(declaration));
+        String classQName = objectElement.getClassQName();
+        addImport(classQName);
+        String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
+        int i = asDoc.lastIndexOf('\n');
+        String additionalDeclaration = String.format("%s[%s]%spublic var %s:%s;",
+                asDoc,
+                Jooc.BINDABLE_ANNOTATION_NAME,
+                i < 0 ? "\n" : asDoc.substring(i),
+                objectElement.getId(), classQName);
+        classBodyDirectives.add(mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives().get(0));
       }
-    }
-    for (MxmlToModelParser.MxmlModel model : mxmlModel.getReferences()) {
-      classBodyDirectives.add(mxmlModelToAstTransformer.createVariableDeclaration(model));
     }
   }
 

@@ -19,7 +19,6 @@ import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
@@ -55,13 +54,11 @@ final class MxmlToModelParser {
   }
 
   private final JangarooParser jangarooParser;
-  private final MxmlParserHelper mxmlParserHelper;
   private MxmlRootModel mxmlRootModel;
   private List<MxmlModel> mxmlModelsWithId;
 
-  MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper) {
+  MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
-    this.mxmlParserHelper = mxmlParserHelper;
   }
 
   MxmlRootModel parse(XmlElement objectNode) {
@@ -443,7 +440,7 @@ final class MxmlToModelParser {
   @Nonnull
   private CompilationUnit getCompilationUnitModel(XmlElement element) {
     try {
-      String fullClassName = mxmlParserHelper.getClassNameForElement(jangarooParser, element);
+      String fullClassName = element.resolveClass(jangarooParser.getMxmlComponentRegistry());
       return jangarooParser.resolveCompilationUnit(fullClassName);
     } catch (CompilerError e) {
       // ugly to catch-and-rethrow, I know, but we need to add position information here...
@@ -631,10 +628,6 @@ final class MxmlToModelParser {
 
     MxmlArrayModel getDeclarations() {
       return declarations;
-    }
-
-    List<MxmlModel> getReferences() {
-      return references;
     }
   }
 
