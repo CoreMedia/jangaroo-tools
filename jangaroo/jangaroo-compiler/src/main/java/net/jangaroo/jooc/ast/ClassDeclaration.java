@@ -70,6 +70,14 @@ public class ClassDeclaration extends TypeDeclaration {
     this.body = body;
   }
 
+  public void setExtends(Extends anExtends) {
+    optExtends = anExtends;
+  }
+
+  public void setImplements(Implements anImplements) {
+    optImplements = anImplements;
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     return makeChildren(super.getChildren(), optExtends, optImplements, body);

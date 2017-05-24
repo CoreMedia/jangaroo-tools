@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -8,6 +7,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -55,29 +55,23 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private final Collection<String> importedSymbols = new HashSet<>();
 
-  private final InputSource source;
   private final XmlHeader optXmlHeader;
   private final XmlElement rootNode;
   private final MxmlParserHelper mxmlParserHelper;
 
   private final List<Directive> constructorBodyDirectives = new LinkedList<>();
-  private final List<Directive> classBodyDirectives = new LinkedList<>();
-  private final String classQName;
 
   private FunctionDeclaration initMethod;
   private Parameter constructorParam;
-  private Scope constructorScope;
 
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(createPackageDeclaration(source), MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
-    this.source = source;
+    super(createPackageDeclaration(source), MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), createClassDeclaration(source, rootNode), MxmlAstUtils.SYM_RBRACE, Collections.emptyList());
     this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
     this.mxmlParserHelper = mxmlParserHelper;
-    classQName = getQName(source);
   }
 
   private static String getQName(@Nonnull InputSource source) {
@@ -88,10 +82,40 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return new PackageDeclaration(new JooSymbol(sym.PACKAGE, "package"), new Ide(CompilerUtils.packageName(getQName(source))));
   }
 
+  private static IdeDeclaration createClassDeclaration(InputSource source, XmlElement rootNode) {
+    JooSymbol rootNodeSymbol = rootNode.getSymbol();
+    return MxmlAstUtils.createClassDeclaration(getQName(source), rootNodeSymbol);
+  }
+
+  private ClassDeclaration populateClassDeclaration(JangarooParser parser) {
+    ClassDeclaration classDeclaration = (ClassDeclaration) getPrimaryDeclaration();
+
+    // extends
+    classDeclaration.setExtends(mxmlParserHelper.parseExtends(parser, rootNode, getQualifiedNameStr()));
+
+    // implements
+    JooSymbol implSymbol = rootElementProcessor.getImpl();
+    if (implSymbol != null) {
+      classDeclaration.setImplements(mxmlParserHelper.parseImplements(implSymbol));
+    }
+
+    List<Directive> classBodyDirectives = getClassBodyDirectives();
+    for (JooSymbol jooSymbol : rootElementProcessor.getScripts()) {
+      ClassBody classBody = mxmlParserHelper.parseClassBody(jooSymbol);
+      List<Directive> parsedClassBodyDirectives = classBody.getDirectives();
+      if (null != parsedClassBodyDirectives) {
+        classBodyDirectives.addAll(parsedClassBodyDirectives);
+      } else {
+        parser.getLog().warning(jooSymbol, "element is empty");
+      }
+    }
+
+    return classDeclaration;
+  }
+
   @Override
   public void scope(Scope scope) {
     JangarooParser parser = scope.getCompiler();
-    constructorScope = new DeclarationScope(this, null, parser);
     MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper);
 
     rootElementProcessor.process(rootNode);
@@ -102,7 +126,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     // init class declaration
-    ClassDeclaration classDeclaration = new ClassDeclarationBuilder(parser, mxmlParserHelper, this).build();
+    ClassDeclaration classDeclaration = populateClassDeclaration(parser);
     primaryDeclaration = classDeclaration;
     Ide superClassIde = classDeclaration.getOptExtends().getSuperClass();
     addImport(superClassIde);
@@ -124,6 +148,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
 
+    List<Directive> classBodyDirectives = classDeclaration.getBody().getDirectives();
     // find member variables
     for (Directive directive : classBodyDirectives) {
       if (directive instanceof VariableDeclaration) {
@@ -142,7 +167,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     // If the super constructor also has a 'config' param, use the force.
     if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
-      applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(CompilerUtils.className(classQName))), objectLiteral));
+      applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(getPrimaryDeclaration().getName())), objectLiteral));
       constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(constructorParam.getIde()));
     } else {
       applyOntoThis(mxmlModelToAstTransformer.getDefaults(mxmlModel));
@@ -178,11 +203,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return sourceObject instanceof ObjectLiteral && ((ObjectLiteral)sourceObject).getFields() == null;
   }
 
-  Ide createAuxVar(String name) {
-    return constructorScope.createAuxVar(name);
-  }
-
   private void preProcessClassBodyDirectives() {
+    List<Directive> classBodyDirectives = getClassBodyDirectives();
     boolean hasNativeConstructor = false;
     for (int i = 0; i < classBodyDirectives.size(); i++) {
       Directive directive = classBodyDirectives.get(i);
@@ -226,12 +248,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   private void postProcessClassBodyDirectives() {
-    for(Directive directive : classBodyDirectives) {
+    for(Directive directive : getClassBodyDirectives()) {
       directive.setClassMember(true);
     }
   }
 
   private void createFields(MxmlModelToAstTransformer mxmlModelToAstTransformer, MxmlToModelParser.MxmlRootModel mxmlModel) {
+    List<Directive> classBodyDirectives = getClassBodyDirectives();
     for (MxmlToModelParser.MxmlModel declaration : mxmlModel.getDeclarations().getElements()) {
       VariableDeclaration variableDeclaration = getVariables().get(declaration.getId());
       if (variableDeclaration == null) {
@@ -243,19 +266,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  List<Directive> getClassBodyDirectives() {
-    return classBodyDirectives;
-  }
-
-  @Override
-  public String getQualifiedNameStr() {
-    return classQName;
-  }
-
-  @Override
-  public boolean isClass() {
-    // MXML files do not have a primary declaration before scoping, but are known to denote classes.
-    return true;
+  private List<Directive> getClassBodyDirectives() {
+    return ((ClassDeclaration) getPrimaryDeclaration()).getBody().getDirectives();
   }
 
   @SuppressWarnings("unused")
@@ -265,15 +277,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   XmlElement getRootNode() {
     return rootNode;
-  }
-
-  RootElementProcessor getRootElementProcessor() {
-    return rootElementProcessor;
-  }
-
-  @Override
-  public InputSource getInputSource() {
-    return source;
   }
 
   private void addImport(Ide classIde) {
@@ -317,10 +320,5 @@ public class MxmlCompilationUnit extends CompilationUnit {
   @Nonnull
   public Map<String, VariableDeclaration> getVariables() {
     return classVariablesByName;
-  }
-
-  @Nullable
-  String getConstructorParamName() {
-    return null != constructorParam ? constructorParam.getName() : null;
   }
 }

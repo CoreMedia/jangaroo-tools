@@ -15,15 +15,12 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
-import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
-import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
@@ -36,7 +33,7 @@ import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -108,13 +105,13 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static ClassDeclaration createClassDeclaration(@Nonnull String classQName, @Nonnull JooSymbol rootNodeSymbol, @Nonnull Extends ext, @Nullable Implements impl, @Nonnull List<Directive> classBodyDirectives) {
-    ClassBody classBody = new ClassBody(SYM_LBRACE, classBodyDirectives, SYM_RBRACE);
+  static ClassDeclaration createClassDeclaration(@Nonnull String classQName, @Nonnull JooSymbol rootNodeSymbol) {
+    ClassBody classBody = new ClassBody(SYM_LBRACE, new ArrayList<>(), SYM_RBRACE);
     String whitespace = MxmlUtils.toASDoc(rootNodeSymbol.getWhitespace());
 
     return new ClassDeclaration(new AnnotationsAndModifiers(new LinkedList<>(), Collections.singletonList(SYM_PUBLIC.withWhitespace(whitespace))),
             SYM_CLASS, new Ide(CompilerUtils.className(classQName)),
-            ext, impl, classBody);
+            null, null, classBody);
   }
 
   @Nonnull
