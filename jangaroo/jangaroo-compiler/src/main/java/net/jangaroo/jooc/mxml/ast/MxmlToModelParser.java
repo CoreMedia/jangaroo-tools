@@ -55,7 +55,6 @@ final class MxmlToModelParser {
 
   private final JangarooParser jangarooParser;
   private MxmlRootModel mxmlRootModel;
-  private List<MxmlModel> mxmlModelsWithId;
 
   MxmlToModelParser(JangarooParser jangarooParser) {
     this.jangarooParser = jangarooParser;
@@ -63,10 +62,7 @@ final class MxmlToModelParser {
 
   MxmlRootModel parse(XmlElement objectNode) {
     mxmlRootModel = new MxmlRootModel();
-    mxmlModelsWithId = new ArrayList<>();
     fillObjectModel(mxmlRootModel, objectNode, getCompilationUnitModel(objectNode));
-    mxmlModelsWithId.removeAll(mxmlRootModel.getDeclarations().getElements());
-    mxmlRootModel.references = Collections.unmodifiableList(mxmlModelsWithId);
     return mxmlRootModel;
   }
 
@@ -86,9 +82,6 @@ final class MxmlToModelParser {
     }
     model.sourceElement = objectNode;
     model.type = type;
-    if (model.id != null) {
-      mxmlModelsWithId.add(model);
-    }
     return model;
   }
 
@@ -624,7 +617,6 @@ final class MxmlToModelParser {
 
   class MxmlRootModel extends MxmlObjectModel {
     MxmlArrayModel declarations = new MxmlArrayModel(Collections.emptyList());
-    List<MxmlModel> references = Collections.emptyList();
 
     MxmlArrayModel getDeclarations() {
       return declarations;
