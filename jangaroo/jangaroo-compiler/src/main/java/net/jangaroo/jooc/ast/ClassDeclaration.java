@@ -60,7 +60,7 @@ public class ClassDeclaration extends TypeDeclaration {
   private List<ClassDeclaration> assignableClasses;
 
   private Implements optImplements;
-  private Scope scope;
+  private Scope bodyInstanceScope;
 
   public ClassDeclaration(AnnotationsAndModifiers am, JooSymbol cls, Ide ide, Extends ext, Implements impl, ClassBody body) {
     super(am, ide);
@@ -131,6 +131,21 @@ public class ClassDeclaration extends TypeDeclaration {
     constructor = methodDeclaration;
   }
 
+  /**
+   * Only called by MxmlCompilationUnit after scoping phase.
+   * @param newConstructor the generated constructor to replace the preliminary "native" constructor with
+   */
+  public void replaceConstructor(FunctionDeclaration newConstructor) {
+    newConstructor.setClassMember(true);
+    if (constructor != null) {
+      body.getDirectives().set(body.getDirectives().indexOf(constructor), newConstructor);
+      constructor = null; // avoid "Only one constructor allow..." error!
+    } else {
+      body.getDirectives().add(newConstructor);
+    }
+    newConstructor.scope(bodyInstanceScope);
+  }
+
   public JooSymbol getSymClass() {
     return symClass;
   }
@@ -161,7 +176,6 @@ public class ClassDeclaration extends TypeDeclaration {
 
   @Override
   public void scope(final Scope scope) {
-    this.scope = scope;
     // this declares this class's ide:
     super.scope(scope);
 
@@ -186,6 +200,7 @@ public class ClassDeclaration extends TypeDeclaration {
         withNewDeclarationScope(ClassDeclaration.this, staticScope, new Scoped() {
           @Override
           public void run(final Scope instanceScope) {
+            bodyInstanceScope = instanceScope;
             VariableDeclaration thisDeclaration
                     = new VariableDeclaration(new JooSymbol("var"), new Ide(Ide.THIS), new TypeRelation(null, getThisType()));
             thisDeclaration.scope(instanceScope);

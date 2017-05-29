@@ -2,27 +2,7 @@ Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass
 import package1.*;
 import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;
-public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){package1.someOtherPackage.SomeNativeClass.prototype.constructor.call(this);if(arguments.length<=0)config=null; net.jangaroo.ext.Exml.apply(this,{
-    bar: "BAR!",
-    /**
-     Some number.
-     */
-    num: 123,
-    blub:
-    { name: "Kuno"},
-    list:[
-      { name: "Joe"},
-      new package1.ConfigClass({
-        items:[
-          new package1.someOtherPackage.SomeOtherClass({ bla: 123})
-        ]
-      })
-    ],
-    other:
-    new package1.someOtherPackage.SomeOtherClass({ bla: 3,
-                        blubb_config: 'blub config expression',
-                        blubb_accessor: 'blub accessor expression'})});
-}/*
+public class DeclarationsMxmlClass extends SomeNativeClass{
 
     [Bindable]
     public var bar:String;
@@ -46,7 +26,27 @@ public class DeclarationsMxmlClass extends SomeNativeClass{public*/function Decl
     public var list:Array;
 
     [Bindable]
-    public var other:package1.someOtherPackage.SomeOtherClass;}}
+    public var other:package1.someOtherPackage.SomeOtherClass;public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){package1.someOtherPackage.SomeNativeClass.prototype.constructor.call(this);if(arguments.length<=0)config=null; net.jangaroo.ext.Exml.apply(this,{
+    bar: "BAR!",
+    /**
+     Some number.
+     */
+    num: 123,
+    blub:
+    { name: "Kuno"},
+    list:[
+      { name: "Joe"},
+      new package1.ConfigClass({
+        items:[
+          new package1.someOtherPackage.SomeOtherClass({ bla: 123})
+        ]
+      })
+    ],
+    other:
+    new package1.someOtherPackage.SomeOtherClass({ bla: 3,
+                        blubb_config: 'blub config expression',
+                        blubb_accessor: 'blub accessor expression'})});
+}/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {

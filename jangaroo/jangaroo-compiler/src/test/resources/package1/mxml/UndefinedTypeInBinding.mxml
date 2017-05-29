@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<TestComponentBase
+<ConfigClass
         xmlns:fx="http://ns.adobe.com/mxml/2009"
-        property_1="{/* UndefinedType will raise compiler error */function():*{return UndefinedType(null);}}"
-        xmlns="package1.mxml.pkg.*"
->
-</TestComponentBase>
+        items="{[function():*{
+          return /* UndefinedType.mxml would raise compiler error, but is only scoped, so all is fine: */ UndefinedType(null);
+        }]}"
+        xmlns="package1.*"/>

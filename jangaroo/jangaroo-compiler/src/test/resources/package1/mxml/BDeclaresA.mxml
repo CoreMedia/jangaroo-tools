@@ -3,9 +3,9 @@
            xmlns:ext="ext.*"
            xmlns:local="package1.mxml.*">
   <fx:Script><![CDATA[
-    private var config:AInstantiatesB;
+    private var config:BDeclaresA;
 
-    public native function AInstantiatesB(config:AInstantiatesB = null);
+    public native function BDeclaresA(config:BDeclaresA = null);
     ]]></fx:Script>
 
   <fx:Declarations>

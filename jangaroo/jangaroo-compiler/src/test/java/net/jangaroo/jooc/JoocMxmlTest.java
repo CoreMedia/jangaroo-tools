@@ -115,18 +115,9 @@ public class JoocMxmlTest extends AbstractJoocTest {
 
   @Test
   public void testMxmlUndefinedTypeInBinding() throws Exception {
-    File sourceFile = getFile("/package1/mxml/UndefinedTypeInBinding.mxml");
-    config.addSourceFile(sourceFile);
-    jooc.run();
-    String expected = "Unable to import package1.mxml.UndefinedType: error while parsing its source (see error above).";
-    assertTrue("Expected error (unable to import) did not occur",
-            testLog.hasError(expected));
-    assertErrorAt(expected, 4, 86);
-
-    String expected2 = "Undefined type: ext.config.UnknownClass";
-    assertTrue("Expected error (undefined type) did not occur",
-            testLog.hasError(expected2));
-    assertErrorAt(expected2, 12, 7);
+    // Although UndefinedType.mxml does not compile, an MXML class that only uses it as a type does compile.
+    // MXML has been fixed to analyse imported compilation units lazily.
+    assertCompilationResult("package1/mxml/UndefinedTypeInBinding", ".mxml");
   }
 
   @Test

@@ -64,6 +64,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final List<Directive> constructorBodyDirectives = new LinkedList<>();
 
   private FunctionDeclaration initMethod;
+  private FunctionDeclaration nativeConstructor;
   private Parameter constructorParam;
 
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
@@ -161,12 +162,28 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     createFields();
 
+    postProcessClassBodyDirectives();
+
+    super.scope(scope);
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    if(null != initMethod) {
+      List<Expr> args = constructorParam != null
+              ? Collections.singletonList(new IdeExpr(constructorParam.getIde())) : Collections.emptyList();
+      ApplyExpr methodInvocation = MxmlAstUtils.createMethodInvocation(initMethod, MxmlAstUtils.SYM_THIS, args);
+      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(methodInvocation));
+    }
+
+    JangarooParser parser = getPackageDeclaration().getIde().getScope().getCompiler();
     MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser);
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
     MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(this, mxmlParserHelper);
 
     ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
     // If the super constructor also has a 'config' param, use the force.
+    Ide superClassIde = ((ClassDeclaration) getPrimaryDeclaration()).getOptExtends().getSuperClass();
     if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
       applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
       applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(getPrimaryDeclaration().getName())), objectLiteral));
@@ -175,10 +192,11 @@ public class MxmlCompilationUnit extends CompilationUnit {
       applyOntoThis(mxmlModelToAstTransformer.getDefaults(mxmlModel));
       applyOntoThis(objectLiteral);
     }
-
-    postProcessClassBodyDirectives();
-
-    super.scope(scope);
+    FunctionDeclaration newConstructor = nativeConstructor == null
+            ? MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives)
+            : MxmlAstUtils.createConstructor(nativeConstructor, constructorBodyDirectives);
+    ((ClassDeclaration) getPrimaryDeclaration()).replaceConstructor(newConstructor);
+    super.analyze(parentNode);
   }
 
   private void applyConfigOnto(Expr objectLiteral) {
@@ -207,26 +225,19 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private void preProcessClassBodyDirectives() {
     List<Directive> classBodyDirectives = getClassBodyDirectives();
-    boolean hasNativeConstructor = false;
-    for (int i = 0; i < classBodyDirectives.size(); i++) {
-      Directive directive = classBodyDirectives.get(i);
+    for (Directive directive : classBodyDirectives) {
       if (isNativeConstructor.apply(directive)) {
-        hasNativeConstructor = true;
-        FunctionDeclaration constructor = MxmlAstUtils.createConstructor((FunctionDeclaration) directive, this.constructorBodyDirectives);
-        Parameters params = constructor.getParams();
-        if(null != params) {
+        nativeConstructor = (FunctionDeclaration) directive;
+        Parameters params = nativeConstructor.getParams();
+        if (null != params) {
           constructorParam = params.getHead();
         }
-        classBodyDirectives.set(i, constructor);
       } else if (isInitMethod.apply(directive)) {
         initMethod = (FunctionDeclaration) directive;
       }
     }
 
-    if(!hasNativeConstructor) {
-      // inserting constructor
-      classBodyDirectives.add(MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives));
-    } else if (null != constructorParam) {
+    if (constructorParam != null) {
       // remove "virtual" field declaration of constructor parameter:
       Iterator<Directive> iterator = classBodyDirectives.iterator();
       while (iterator.hasNext()) {
@@ -239,13 +250,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
           }
         }
       }
-    }
-
-    if(null != initMethod) {
-      List<Expr> args = constructorParam != null
-              ? Collections.singletonList(new IdeExpr(constructorParam.getIde())) : Collections.emptyList();
-      ApplyExpr methodInvocation = MxmlAstUtils.createMethodInvocation(initMethod, MxmlAstUtils.SYM_THIS, args);
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(methodInvocation));
     }
   }
 
@@ -287,10 +291,18 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return rootNode;
   }
 
+  private void addDirective(Directive directive) {
+    getDirectives().add(directive);
+    Scope scope = getPackageDeclaration().getIde().getScope();
+    if (scope != null) {
+      directive.scope(scope);
+    }
+  }
+
   private void addImport(Ide classIde) {
     if(isNotYetImported(classIde)) {
       ImportDirective directive = MxmlAstUtils.createImport(classIde);
-      getDirectives().add(directive);
+      addDirective(directive);
     }
   }
 
@@ -304,7 +316,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(!importedSymbols.contains(jooValue)) {
       ImportDirective directive = mxmlParserHelper.parseImport(symbol);
       if (null != directive && isNotYetImported(directive.getIde())) {
-        getDirectives().add(directive);
+        addDirective(directive);
       }
     }
   }
@@ -318,7 +330,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if (null != importDirective) {
         ide = importDirective.getIde();
         if (isNotYetImported(ide)) {
-          getDirectives().add(importDirective);
+          addDirective(importDirective);
         }
       }
     }
