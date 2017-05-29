@@ -360,10 +360,10 @@ final class MxmlToModelParser {
     return "";
   }
 
-  private boolean useConfigObjects(CompilationUnit compilationUnit) {
+  private static boolean useConfigObjects(CompilationUnit compilationUnit) {
     ClassDeclaration classModel = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
     // special case Plugin (avoid having to check all interfaces):
-    CompilationUnit extPluginCompilationUnit = jangarooParser.getCompilationUnit("ext.Plugin");
+    CompilationUnit extPluginCompilationUnit = compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getCompilationUnit("ext.Plugin");
     if (extPluginCompilationUnit != null &&
             classModel.isAssignableTo((ClassDeclaration) extPluginCompilationUnit.getPrimaryDeclaration())) {
       return true;
@@ -512,7 +512,7 @@ final class MxmlToModelParser {
     return new VariableDeclaration(new JooSymbol("var"), new Ide(name), new TypeRelation(new JooSymbol(allowAnyProperty ? UNTYPED_MARKER : "*")));
   }
 
-  private ClassDeclaration getSuperClassModel(ClassDeclaration classModel) {
+  private static ClassDeclaration getSuperClassModel(ClassDeclaration classModel) {
     return classModel.getSuperTypeDeclaration();
   }
 
@@ -521,7 +521,7 @@ final class MxmlToModelParser {
     return element.getTextNodes().stream().findFirst().orElse(new JooSymbol(""));
   }
 
-  private String getPropertyType(TypedIdeDeclaration propertyModel) {
+  private static String getPropertyType(TypedIdeDeclaration propertyModel) {
     TypeRelation optTypeRelation;
     if (propertyModel.isMethod() && ((FunctionDeclaration) propertyModel).isSetter()) {
       Parameters params = ((FunctionDeclaration) propertyModel).getParams();
@@ -551,7 +551,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlModel {
+  static class MxmlModel {
     private XmlElement sourceElement;
     private JooSymbol id;
     CompilationUnit type;
@@ -599,7 +599,7 @@ final class MxmlToModelParser {
             .filter(Objects::nonNull);
   }
 
-  class MxmlObjectModel extends MxmlModel {
+  static class MxmlObjectModel extends MxmlModel {
     List<MxmlMemberModel> members;
 
     List<MxmlMemberModel> getMembers() {
@@ -615,7 +615,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlRootModel extends MxmlObjectModel {
+  static class MxmlRootModel extends MxmlObjectModel {
     MxmlArrayModel declarations = new MxmlArrayModel(Collections.emptyList());
 
     MxmlArrayModel getDeclarations() {
@@ -623,7 +623,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlArrayModel extends MxmlModel {
+  static class MxmlArrayModel extends MxmlModel {
     List<MxmlModel> elements;
 
     MxmlArrayModel(List<MxmlModel> elements) {
@@ -641,7 +641,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlValueModel extends MxmlModel {
+  static class MxmlValueModel extends MxmlModel {
     private final XmlNode sourceNode;
     private final JooSymbol value;
 
@@ -661,7 +661,7 @@ final class MxmlToModelParser {
     }
   }
 
-  abstract class MxmlMemberModel {
+  static abstract class MxmlMemberModel {
     private final XmlNode sourceNode;
 
     MxmlMemberModel(XmlNode sourceNode) {
@@ -673,7 +673,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlPropertyModel extends MxmlMemberModel {
+  static class MxmlPropertyModel extends MxmlMemberModel {
     private final TypedIdeDeclaration propertyDeclaration;
     private final MxmlModel value;
     private final String extractXTypePropertyName;
@@ -691,7 +691,7 @@ final class MxmlToModelParser {
         value.doUsePlainObjects();
       }
       if (value.getType() == null && isArray()) {
-        value.type = jangarooParser.resolveCompilationUnit("Array");
+        value.type = propertyDeclaration.getIde().getScope().getCompiler().resolveCompilationUnit("Array");
       }
     }
 
@@ -716,7 +716,7 @@ final class MxmlToModelParser {
     }
   }
 
-  class MxmlEventHandlerModel extends MxmlMemberModel {
+  static class MxmlEventHandlerModel extends MxmlMemberModel {
     JooSymbol handlerCode;
     private String eventName;
     private String eventTypeStr;
