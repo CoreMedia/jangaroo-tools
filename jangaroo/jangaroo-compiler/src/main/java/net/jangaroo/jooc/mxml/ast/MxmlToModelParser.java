@@ -356,10 +356,13 @@ final class MxmlToModelParser {
     return "";
   }
 
-  private static boolean useConfigObjects(CompilationUnit compilationUnit) {
-    ClassDeclaration classModel = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
+  static boolean useConfigObjects(CompilationUnit compilationUnit) {
+    return useConfigObjects((ClassDeclaration) compilationUnit.getPrimaryDeclaration());
+  }
+
+  static boolean useConfigObjects(ClassDeclaration classModel) {
     // special case Plugin (avoid having to check all interfaces):
-    CompilationUnit extPluginCompilationUnit = compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getCompilationUnit("ext.Plugin");
+    CompilationUnit extPluginCompilationUnit = classModel.getIde().getScope().getCompiler().getCompilationUnit("ext.Plugin");
     if (extPluginCompilationUnit != null &&
             classModel.isAssignableTo((ClassDeclaration) extPluginCompilationUnit.getPrimaryDeclaration())) {
       return true;
@@ -410,7 +413,7 @@ final class MxmlToModelParser {
     return defaultValue;
   }
 
-  private static String getConfigOptionName(TypedIdeDeclaration propertyModel) {
+  static String getConfigOptionName(TypedIdeDeclaration propertyModel) {
     TypedIdeDeclaration setter = propertyModel instanceof PropertyDeclaration ? ((PropertyDeclaration) propertyModel).getSetter() : propertyModel;
     if (setter != null) { // should actually be there, or the assignment would not work!
       Iterator<Annotation> configOptionAnnotations = setter.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();

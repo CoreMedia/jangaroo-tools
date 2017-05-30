@@ -3,11 +3,9 @@ package net.jangaroo.jooc.mxml.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
@@ -25,6 +23,25 @@ import static net.jangaroo.jooc.mxml.MxmlParserHelper.parsePackageFromNamespace;
 
 public class XmlElement extends XmlNode {
 
+  enum InstantiationMode {
+    MXML,
+    PLAIN,
+    EXT_CONFIG,
+    EXT_CREATE;
+
+    static InstantiationMode from(boolean useConfigObjects) {
+      return useConfigObjects ? EXT_CONFIG : EXT_CREATE;
+    }
+
+    public boolean isExt() {
+      return this != MXML;
+    }
+
+    public boolean isConfig() {
+      return this == EXT_CONFIG || this == PLAIN;
+    }
+  }
+
   private final List<XmlElement> elements = new LinkedList<>();
 
   private final XmlTag openingMxmlTag;
@@ -33,6 +50,7 @@ public class XmlElement extends XmlNode {
 
   private String classQName;
   private ClassDeclaration type;
+  private InstantiationMode instantiationMode;
   private Scope scope;
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {
@@ -103,7 +121,7 @@ public class XmlElement extends XmlNode {
   public void analyze(AstNode parentNode) {
     if (parentNode instanceof MxmlCompilationUnit) {
       // we are the root node!
-      type = scope.getClassDeclaration(classQName); 
+      initObjectElement();
     } else {
       XmlElement parentElement = (XmlElement) parentNode;
       if (parentElement.getType() != null && !parentElement.isArray()) {
@@ -114,7 +132,7 @@ public class XmlElement extends XmlNode {
         // TODO: Default property!
       } else {
         //  We are a value!
-        type = scope.getClassDeclaration(classQName);
+        initObjectElement();
       }
     }
     analyze(this, openingMxmlTag.getAttributes());
@@ -132,6 +150,23 @@ public class XmlElement extends XmlNode {
   @Override
   public AstNode getParentNode() {
     return parent;
+  }
+
+  private void initObjectElement() {
+    type = scope.getClassDeclaration(classQName);
+    String id = getId();
+    if (instantiationMode == null) {
+      instantiationMode = type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type) ? InstantiationMode.MXML
+              : id == null ? InstantiationMode.from(MxmlToModelParser.useConfigObjects(type)) : InstantiationMode.EXT_CREATE;
+    } else {
+      if (id != null && instantiationMode == InstantiationMode.EXT_CONFIG) {
+        instantiationMode = InstantiationMode.EXT_CREATE;
+      }
+    }
+  }
+
+  InstantiationMode getInstantiationMode() {
+    return instantiationMode;
   }
 
   @Override

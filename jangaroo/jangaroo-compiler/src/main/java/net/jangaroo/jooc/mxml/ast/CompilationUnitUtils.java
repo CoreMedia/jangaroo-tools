@@ -17,7 +17,10 @@ class CompilationUnitUtils {
   }
 
   static boolean constructorSupportsConfigOptionsParameter(@Nonnull CompilationUnit compilationUnit) {
-    ClassDeclaration classModel = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
+    return constructorSupportsConfigOptionsParameter((ClassDeclaration) compilationUnit.getPrimaryDeclaration());
+  }
+
+  static boolean constructorSupportsConfigOptionsParameter(@Nonnull ClassDeclaration classModel) {
     if (classModel != null) {
       FunctionDeclaration constructorModel = classModel.getConstructor();
       if (constructorModel != null) {

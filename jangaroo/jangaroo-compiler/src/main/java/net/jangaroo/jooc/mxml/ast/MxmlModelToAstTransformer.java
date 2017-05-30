@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 
 final class MxmlModelToAstTransformer {
 
-  private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
+  static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
   private final MxmlParserHelper mxmlParserHelper;
   private MxmlCompilationUnit mxmlCompilationUnit;
@@ -103,11 +103,11 @@ final class MxmlModelToAstTransformer {
     return valueSymbol;
   }
 
-  private static JooSymbol replace(@Nullable JooSymbol original, JooSymbol replacementSymAndText) {
+  static JooSymbol replace(@Nullable JooSymbol original, JooSymbol replacementSymAndText) {
     return original == null ? replacementSymAndText
             : replace(original, replacementSymAndText.sym, replacementSymAndText.getText());
   }
-  private static JooSymbol replace(@Nullable JooSymbol original, int replacementSym, String replacementText) {
+  static JooSymbol replace(@Nullable JooSymbol original, int replacementSym, String replacementText) {
     return original == null ? new JooSymbol(replacementSym, replacementText)
             : new JooSymbol(replacementSym, original.getFileName(), original.getLine(), original.getColumn(), MxmlUtils.toASDoc(original.getWhitespace()), replacementText, replacementText);
   }
@@ -180,7 +180,7 @@ final class MxmlModelToAstTransformer {
     //TODO: construct JooSymbol from handler code symbol so that error line numbers are correct!
   }
 
-  private Ide createIde(JooSymbol symbol, String ideName) {
+  static Ide createIde(JooSymbol symbol, String ideName) {
     return new Ide(replace(symbol, sym.IDE, ideName));
   }
 
