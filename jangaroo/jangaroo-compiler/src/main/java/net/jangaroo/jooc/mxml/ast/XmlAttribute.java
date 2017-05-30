@@ -6,6 +6,8 @@ import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
+import net.jangaroo.jooc.mxml.MxmlUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
@@ -13,6 +15,13 @@ import java.util.Collections;
 import java.util.List;
 
 public class XmlAttribute extends XmlNode {
+
+  private static final String XMLNS = "xmlns";
+
+  /**
+   * http://help.adobe.com/en_US/flex/using/WS2db454920e96a9e51e63e3d11c0bf688f1-7ff1.html
+   */
+  private static final String IMPLEMENTS = "implements";
 
   private final Ide ide;
   private final JooSymbol eq;
@@ -47,9 +56,20 @@ public class XmlAttribute extends XmlNode {
     
   }
 
+  boolean isImplements() {
+    return IMPLEMENTS.equals(getLocalName()) && StringUtils.isBlank(getPrefix());
+  }
+
+  boolean isId() {
+    return MxmlUtils.MXML_ID_ATTRIBUTE.equals(getLocalName()) && StringUtils.isBlank(getPrefix());
+  }
+
   @Override
   public void analyze(AstNode parentNode) {
-
+    XmlElement parentElement = (XmlElement) parentNode;
+    if (parentElement.getType() != null && !isNamespaceDefinition() && !isImplements()) {
+      assignPropertyDeclarationOrEvent(parentElement);
+    }
   }
 
   @Override
@@ -88,7 +108,14 @@ public class XmlAttribute extends XmlNode {
   }
 
   boolean isNamespaceDefinition() {
-    String namespacePrefix = getPrefix();
-    return XmlTag.XMLNS.equals(namespacePrefix) || null == namespacePrefix && XmlTag.XMLNS.equals(getLocalName());
+    return isNamespacePrefixDefinition() || isDefaultNamespaceDefinition();
+  }
+
+  boolean isNamespacePrefixDefinition() {
+    return XMLNS.equals(getPrefix());
+  }
+
+  boolean isDefaultNamespaceDefinition() {
+    return getPrefix() == null && XMLNS.equals(getLocalName());
   }
 }

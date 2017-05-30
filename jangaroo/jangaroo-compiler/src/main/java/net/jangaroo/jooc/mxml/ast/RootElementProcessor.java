@@ -17,11 +17,6 @@ import java.util.stream.Collectors;
  */
 class RootElementProcessor {
 
-  /**
-   * http://help.adobe.com/en_US/flex/using/WS2db454920e96a9e51e63e3d11c0bf688f1-7ff1.html
-   */
-  private static final String IMPLEMENTS = "implements";
-
   private XmlElement declarationsElement;
   private final List<XmlElement> references = new LinkedList<>();
   private final List<JooSymbol> imports = new LinkedList<>();
@@ -63,26 +58,22 @@ class RootElementProcessor {
     for (XmlAttribute xmlAttribute : rootNodeAttributes) {
       if (xmlAttribute.isNamespaceDefinition()) {
         imports.add(xmlAttribute.getValue());
-      } else if (isImplements(xmlAttribute)) {
+      } else if (xmlAttribute.isImplements()) {
         impl = xmlAttribute.getValue();
       }
     }
   }
 
   private void findReferences(MxmlComponentRegistry mxmlComponentRegistry, XmlElement node) {
+    node.resolveClass(mxmlComponentRegistry);
     JooSymbol idSymbol = node.getIdSymbol();
     if (idSymbol != null) {
       Ide.verifyIdentifier((String) idSymbol.getJooValue(), idSymbol);
-      node.resolveClass(mxmlComponentRegistry);
       if (node.parent != declarationsElement) {
         references.add(node);
       }
     }
     node.getElements().forEach(subElement -> findReferences(mxmlComponentRegistry, subElement));
-  }
-
-  private static boolean isImplements(XmlAttribute xmlAttribute) {
-    return IMPLEMENTS.equals(xmlAttribute.getLocalName()) && StringUtils.isBlank(xmlAttribute.getPrefix());
   }
 
   private void addAll(List<JooSymbol> textNodes, List<JooSymbol> target) {
@@ -116,6 +107,6 @@ class RootElementProcessor {
   }
 
   static boolean alreadyProcessed(XmlAttribute attribute) {
-    return attribute.isNamespaceDefinition() || isImplements(attribute);
+    return attribute.isNamespaceDefinition() || attribute.isImplements();
   }
 }

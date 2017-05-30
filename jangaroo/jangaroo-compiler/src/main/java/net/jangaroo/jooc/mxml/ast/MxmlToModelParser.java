@@ -248,20 +248,16 @@ final class MxmlToModelParser {
 
   private JooSymbol getId(XmlElement node) {
     return node.getAttributes().stream()
-            .filter(isIdAttributePredicate())
+            .filter(XmlAttribute::isId)
             .map(XmlAttribute::getValue)
             .findFirst()
             .orElse(null);
   }
 
-  private static Predicate<XmlAttribute> isIdAttributePredicate() {
-    return attribute -> attribute.getPrefix() == null && MxmlUtils.MXML_ID_ATTRIBUTE.equals(attribute.getLocalName());
-  }
-
   private boolean isCodeContainer(XmlElement node) {
     String textContent = ((String) getTextContent(node).getJooValue()).trim();
     boolean hasTextContent = !textContent.isEmpty();
-    if (node.getElements().isEmpty() && node.getAttributes().stream().noneMatch(isIdAttributePredicate().negate())) {
+    if (node.getElements().isEmpty() && node.getAttributes().stream().noneMatch(((Predicate<XmlAttribute>) XmlAttribute::isId).negate())) {
       return hasTextContent;
     } else if (hasTextContent) {
       throw Jooc.error(node.getTextNodes().get(0), String.format("Unexpected text inside MXML element: '%s'.", textContent));
@@ -273,7 +269,7 @@ final class MxmlToModelParser {
     if (!RootElementProcessor.alreadyProcessed(attribute)) {
       String attributeNamespaceUri = objectNode.getNamespaceUri(attribute.getPrefix());
       boolean isUntypedAccess = MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
-      if (!isIdAttributePredicate().test(attribute)) {
+      if (!attribute.isId()) {
         String propertyName = attribute.getLocalName();
         if (attribute.getPrefix() == null || isUntypedAccess) {
           ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
@@ -441,7 +437,7 @@ final class MxmlToModelParser {
     }
   }
 
-  private TypedIdeDeclaration findPropertyModel(ClassDeclaration classModel, String propertyName) {
+  static TypedIdeDeclaration findPropertyModel(ClassDeclaration classModel, String propertyName) {
     TypedIdeDeclaration propertyModel = null;
     ClassDeclaration superClassModel = getSuperClassModel(classModel);
     if (superClassModel != null) {
@@ -456,7 +452,7 @@ final class MxmlToModelParser {
     return propertyModel;
   }
 
-  private Annotation findEvent(ClassDeclaration classModel, String propertyName) {
+  static Annotation findEvent(ClassDeclaration classModel, String propertyName) {
     for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
       Annotation eventModel = getEvent(current, propertyName);
       if (eventModel != null) {
@@ -466,7 +462,7 @@ final class MxmlToModelParser {
     return null;
   }
 
-  private Annotation getEvent(ClassDeclaration classDeclaration, String propertyName) {
+  private static Annotation getEvent(ClassDeclaration classDeclaration, String propertyName) {
     for (Annotation eventAnnotation : classDeclaration.getAnnotations("Event")) {
       CommaSeparatedList<AnnotationParameter> annotationParameters = eventAnnotation.getOptAnnotationParameters();
       while (annotationParameters != null) {
@@ -612,6 +608,11 @@ final class MxmlToModelParser {
 
     Stream<MxmlEventHandlerModel> getEventHandlers() {
       return filterByType(members, MxmlEventHandlerModel.class);
+    }
+
+    @Override
+    CompilationUnit getType() {
+      return super.getType();
     }
   }
 

@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.AstNode;
@@ -9,7 +7,6 @@ import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NodeImplBase;
-import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.w3c.dom.Node;
 
 import javax.annotation.Nullable;
@@ -21,8 +18,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class XmlTag extends NodeImplBase {
-
-  static final String XMLNS = "xmlns";
 
   private final Map<String, String> xmlNamespaces = new HashMap<>();
 
@@ -46,17 +41,13 @@ public class XmlTag extends NodeImplBase {
     String defaultNamespace = null;
     if (attributes != null) {
       for (XmlAttribute attribute : attributes) {
-        String localName = attribute.getLocalName();
-        String namespace = attribute.getPrefix();
-        String text = (String) attribute.getValue().getJooValue();
-        if (XMLNS.equals(namespace)) {
-          xmlNamespaces.put(localName, text);
-        } else if (namespace == null) {
-          if (XMLNS.equals(localName)) {
-            defaultNamespace = text;
-          } else if (MxmlUtils.MXML_ID_ATTRIBUTE.equals(localName)) {
-            id = attribute.getValue();
-          }
+        String attributeValue = (String) attribute.getValue().getJooValue();
+        if (attribute.isNamespacePrefixDefinition()) {
+          xmlNamespaces.put(attribute.getLocalName(), attributeValue);
+        } else if (attribute.isDefaultNamespaceDefinition()) {
+          defaultNamespace = attributeValue;
+        } else if (attribute.isId()) {
+          id = attribute.getValue();
         }
       }
     }
@@ -131,23 +122,11 @@ public class XmlTag extends NodeImplBase {
   }
 
   XmlAttribute getAttribute(final String name) {
-    return Iterables.getFirst(
-            Iterables.filter(attributes, new Predicate<XmlAttribute>() {
-              @Override
-              public boolean apply(@Nullable XmlAttribute input) {
-                return null != input && Objects.equals(name, input.getSymbol().getText());
-              }
-            }), null);
+    return attributes.stream().filter(input -> null != input && Objects.equals(name, input.getSymbol().getText())).findFirst().orElse(null);
   }
 
   XmlAttribute getAttribute(final String namespaceUri, final String localName) {
-    return Iterables.getFirst(
-            Iterables.filter(attributes, new Predicate<XmlAttribute>() {
-              @Override
-              public boolean apply(@Nullable XmlAttribute input) {
-                return null != input && Objects.equals(namespaceUri, xmlElement.getNamespaceUri(input.getPrefix())) && Objects.equals(localName, input.getLocalName());
-              }
-            }), null);
+    return attributes.stream().filter(input -> null != input && Objects.equals(namespaceUri, xmlElement.getNamespaceUri(input.getPrefix())) && Objects.equals(localName, input.getLocalName())).findFirst().orElse(null);
   }
 
   public List<XmlAttribute> getAttributes() {

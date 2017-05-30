@@ -119,6 +119,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   @Override
   public void scope(Scope scope) {
+    rootNode.scope(scope); // any scope, just used to resolve compilation units!
+
     JangarooParser parser = scope.getCompiler();
     rootElementProcessor.process(parser.getMxmlComponentRegistry(), rootNode);
 
@@ -170,6 +172,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   @Override
   public void analyze(AstNode parentNode) {
+    rootNode.analyze(this);
+
     if(null != initMethod) {
       List<Expr> args = constructorParam != null
               ? Collections.singletonList(new IdeExpr(constructorParam.getIde())) : Collections.emptyList();

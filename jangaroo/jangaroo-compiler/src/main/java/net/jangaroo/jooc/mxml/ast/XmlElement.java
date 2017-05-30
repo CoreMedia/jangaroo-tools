@@ -3,8 +3,11 @@ package net.jangaroo.jooc.mxml.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
+import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
@@ -28,8 +31,9 @@ public class XmlElement extends XmlNode {
   private final List<Object> children;
   private final XmlTag closingMxmlTag;
 
-  XmlElement parent;
   private String classQName;
+  private ClassDeclaration type;
+  private Scope scope;
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {
     this.openingMxmlTag = openingMxmlTag;
@@ -40,6 +44,9 @@ public class XmlElement extends XmlNode {
   }
 
   private void initChildren() {
+    for (XmlAttribute attribute : openingMxmlTag.getAttributes()) {
+      attribute.parent = this;
+    }
     for (Object child : children) {
       if (child instanceof XmlElement) {
         XmlElement xmlElement = (XmlElement) child;
@@ -70,8 +77,8 @@ public class XmlElement extends XmlNode {
   @Override
   public List<? extends AstNode> getChildren() {
     return children.stream()
-            .filter((AstNode.class)::isInstance)
-            .map(child -> (AstNode) child)
+            .filter(AstNode.class::isInstance)
+            .map(AstNode.class::cast)
             .collect(Collectors.toList());
   }
 
@@ -88,17 +95,43 @@ public class XmlElement extends XmlNode {
 
   @Override
   public void scope(Scope scope) {
-    
+    this.scope = scope;
+    scope(getChildren(), scope);
   }
 
   @Override
   public void analyze(AstNode parentNode) {
+    if (parentNode instanceof MxmlCompilationUnit) {
+      // we are the root node!
+      type = scope.getClassDeclaration(classQName); 
+    } else {
+      XmlElement parentElement = (XmlElement) parentNode;
+      if (parentElement.getType() != null && !parentElement.isArray()) {
+        // Are we a property element?
+        if (getNamespaceURI().equals(parentElement.getNamespaceURI())) {
+          assignPropertyDeclarationOrEvent(parentElement);
+        }
+        // TODO: Default property!
+      } else {
+        //  We are a value!
+        type = scope.getClassDeclaration(classQName);
+      }
+    }
+    analyze(this, openingMxmlTag.getAttributes());
+    analyze(this, getChildren());
+  }
 
+  public ClassDeclaration getType() {
+    return type;
+  }
+
+  boolean isArray() {
+    return "Array".equals(getType().getQualifiedNameStr());
   }
 
   @Override
   public AstNode getParentNode() {
-    return null;
+    return parent;
   }
 
   @Override
