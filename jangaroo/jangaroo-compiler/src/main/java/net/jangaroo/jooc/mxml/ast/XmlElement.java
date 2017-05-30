@@ -28,7 +28,7 @@ public class XmlElement extends XmlNode {
   private final List<Object> children;
   private final XmlTag closingMxmlTag;
 
-  private XmlElement parent;
+  XmlElement parent;
   private String classQName;
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {

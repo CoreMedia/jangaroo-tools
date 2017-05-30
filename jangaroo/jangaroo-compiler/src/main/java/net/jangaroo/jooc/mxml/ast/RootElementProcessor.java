@@ -7,6 +7,7 @@ import net.jangaroo.jooc.mxml.MxmlUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +22,8 @@ class RootElementProcessor {
    */
   private static final String IMPLEMENTS = "implements";
 
-  private final List<XmlElement> declarations = new LinkedList<>();
+  private XmlElement declarationsElement;
+  private final List<XmlElement> references = new LinkedList<>();
   private final List<JooSymbol> imports = new LinkedList<>();
   private final List<JooSymbol> metadata = new LinkedList<>();
   private final List<JooSymbol> scripts = new LinkedList<>();
@@ -32,7 +34,7 @@ class RootElementProcessor {
     rootNode.resolveClass(mxmlComponentRegistry);
     processAttributes(rootNode);
     processElements(rootNode);
-    findDeclarations(mxmlComponentRegistry, rootNode);
+    findReferences(mxmlComponentRegistry, rootNode);
   }
 
   /**
@@ -46,6 +48,8 @@ class RootElementProcessor {
           addAll(element.getTextNodes(), metadata);
         } else if (MxmlUtils.MXML_SCRIPT.equals(name)) {
           addAll(element.getTextNodes(), scripts);
+        } else if (MxmlUtils.MXML_DECLARATIONS.equals(name)) {
+          declarationsElement = element;
         }
       }
     }
@@ -65,14 +69,16 @@ class RootElementProcessor {
     }
   }
 
-  private void findDeclarations(MxmlComponentRegistry mxmlComponentRegistry, XmlElement node) {
+  private void findReferences(MxmlComponentRegistry mxmlComponentRegistry, XmlElement node) {
     JooSymbol idSymbol = node.getIdSymbol();
     if (idSymbol != null) {
       Ide.verifyIdentifier((String) idSymbol.getJooValue(), idSymbol);
       node.resolveClass(mxmlComponentRegistry);
-      declarations.add(node);
+      if (node.parent != declarationsElement) {
+        references.add(node);
+      }
     }
-    node.getElements().forEach(subElement -> findDeclarations(mxmlComponentRegistry, subElement));
+    node.getElements().forEach(subElement -> findReferences(mxmlComponentRegistry, subElement));
   }
 
   private static boolean isImplements(XmlAttribute xmlAttribute) {
@@ -85,7 +91,11 @@ class RootElementProcessor {
   }
 
   List<XmlElement> getDeclarations() {
-    return declarations;
+    return declarationsElement == null ? Collections.emptyList() : declarationsElement.getElements();
+  }
+
+  List<XmlElement> getReferences() {
+    return references;
   }
 
   List<JooSymbol> getImports() {

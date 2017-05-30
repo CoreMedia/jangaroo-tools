@@ -33,6 +33,7 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -261,7 +262,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private void createFields() {
     List<Directive> classBodyDirectives = getClassBodyDirectives();
-    for (XmlElement objectElement : rootElementProcessor.getDeclarations()) {
+    List<XmlElement> declarations = new ArrayList<>(rootElementProcessor.getDeclarations());
+    declarations.addAll(rootElementProcessor.getReferences());
+    for (XmlElement objectElement : declarations) {
       VariableDeclaration variableDeclaration = getVariables().get(objectElement.getId());
       if (variableDeclaration == null) {
         String classQName = objectElement.getClassQName();
