@@ -1,11 +1,18 @@
 package net.jangaroo.jooc.mxml.ast;
 
+import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CommaSeparatedList;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.CompilerUtils;
@@ -14,33 +21,19 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.jangaroo.jooc.mxml.MxmlParserHelper.parsePackageFromNamespace;
 
 public class XmlElement extends XmlNode {
 
-  enum InstantiationMode {
-    MXML,
-    PLAIN,
-    EXT_CONFIG,
-    EXT_CREATE;
-
-    static InstantiationMode from(boolean useConfigObjects) {
-      return useConfigObjects ? EXT_CONFIG : EXT_CREATE;
-    }
-
-    public boolean isExt() {
-      return this != MXML;
-    }
-
-    public boolean isConfig() {
-      return this == EXT_CONFIG || this == PLAIN;
-    }
-  }
+  private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
 
   private final List<XmlElement> elements = new LinkedList<>();
 
@@ -50,8 +43,9 @@ public class XmlElement extends XmlNode {
 
   private String classQName;
   private ClassDeclaration type;
-  private InstantiationMode instantiationMode;
-  private Scope scope;
+  private TypedIdeDeclaration defaultPropertyModel;
+  private List<XmlNode> members = new ArrayList<>();
+  private List<XmlNode> defaultPropertyValues = new ArrayList<>();
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {
     this.openingMxmlTag = openingMxmlTag;
@@ -81,6 +75,39 @@ public class XmlElement extends XmlNode {
   @Override
   public String getPrefix() {
     return openingMxmlTag.getPrefix();
+  }
+
+  JooSymbol getTextContent() {
+    JooSymbol jooSymbol = getTextNodes().stream().findFirst().orElse(new JooSymbol(""));
+    String textContent = ((String) jooSymbol.getJooValue()).trim();
+    boolean hasTextContent = !textContent.isEmpty();
+    if (hasTextContent) {
+      if (getElements().isEmpty() && getAttributes().stream().noneMatch(((Predicate<XmlAttribute>) XmlAttribute::isId).negate())) {
+        return jooSymbol;
+      }
+      throw Jooc.error(getTextNodes().get(0), String.format("Unexpected text inside MXML element: '%s'.", textContent));
+    }
+    return null;
+  }
+
+  @Override
+  Object getPropertyValue() {
+    JooSymbol jooSymbol = getTextContent();
+    if (jooSymbol != null) {
+      return jooSymbol;
+    }
+    String propertyType = MxmlToModelParser.getPropertyType(getPropertyDeclaration());
+    int elementCount = elements.size();
+    if ("Array".equals(propertyType) || elementCount > 1 && (propertyType == null || "*".equals(propertyType) || "Object".equals(propertyType))) {
+      return elements;
+    }
+    if (elementCount == 0) {
+      return null;
+    }
+    if (elementCount > 1) {
+      throw Jooc.error(elements.get(1).getSymbol(), "Non-array property may only have at most one sub-element.");
+    }
+    return elements.get(0);
   }
 
   @Override
@@ -113,8 +140,8 @@ public class XmlElement extends XmlNode {
 
   @Override
   public void scope(Scope scope) {
-    this.scope = scope;
-    scope(getChildren(), scope);
+    super.scope(scope);
+    scope(openingMxmlTag.getAttributes(), scope);
   }
 
   @Override
@@ -122,14 +149,23 @@ public class XmlElement extends XmlNode {
     if (parentNode instanceof MxmlCompilationUnit) {
       // we are the root node!
       initObjectElement();
-    } else {
+    } else if (!isBuiltInElement()) {
       XmlElement parentElement = (XmlElement) parentNode;
       if (parentElement.getType() != null && !parentElement.isArray()) {
         // Are we a property element?
-        if (getNamespaceURI().equals(parentElement.getNamespaceURI())) {
-          assignPropertyDeclarationOrEvent(parentElement);
+        boolean isPropertyOrEvent = getNamespaceURI().equals(parentElement.getNamespaceURI())
+                && assignPropertyDeclarationOrEvent(parentElement);
+        if (!isPropertyOrEvent) {
+          if (parentElement.getDefaultPropertyModel() != null) {
+            // try whether this is an object element first:
+            initObjectElement();
+            parentElement.addDefaultPropertyValue(this);
+          } else {
+            // dynamic property of a non-dynamic class: error!
+            getScope().getCompiler().getLog().error(parentElement.getSymbol(), "MXML: property " + getLocalName() + " not found in class " + parentElement.getType().getQualifiedNameStr() + ".");
+
+          }
         }
-        // TODO: Default property!
       } else {
         //  We are a value!
         initObjectElement();
@@ -137,10 +173,35 @@ public class XmlElement extends XmlNode {
     }
     analyze(this, openingMxmlTag.getAttributes());
     analyze(this, getChildren());
+    members = Collections.unmodifiableList(members); // no more modifications after analysing finished please!
   }
 
   public ClassDeclaration getType() {
     return type;
+  }
+
+  public TypedIdeDeclaration getDefaultPropertyModel() {
+    return defaultPropertyModel;
+  }
+
+  void addMember(XmlNode member) {
+    members.add(member);
+  }
+
+  List<XmlNode> getMembers() {
+    return members;
+  }
+
+  Stream<XmlNode> getProperties() {
+    return members.stream().filter(XmlNode::isProperty);
+  }
+
+  Stream<XmlNode> getEventHandlers() {
+    return members.stream().filter(XmlNode::isEvent);
+  }
+
+  private void addDefaultPropertyValue(XmlElement objectElement) {
+    defaultPropertyValues.add(objectElement);
   }
 
   boolean isArray() {
@@ -152,17 +213,62 @@ public class XmlElement extends XmlNode {
     return parent;
   }
 
-  private void initObjectElement() {
-    type = scope.getClassDeclaration(classQName);
-    String id = getId();
-    if (instantiationMode == null) {
-      instantiationMode = type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type) ? InstantiationMode.MXML
-              : id == null ? InstantiationMode.from(MxmlToModelParser.useConfigObjects(type)) : InstantiationMode.EXT_CREATE;
-    } else {
-      if (id != null && instantiationMode == InstantiationMode.EXT_CONFIG) {
-        instantiationMode = InstantiationMode.EXT_CREATE;
+  @Override
+  public XmlAttribute getConfigModeAttribute() {
+    return getAttributeNodeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
+  }
+
+  @Override
+  public String getConfigMode() {
+    XmlAttribute configModeAttribute = getConfigModeAttribute();
+    return configModeAttribute != null
+            ? (String) configModeAttribute.getValue().getJooValue()
+            : getConfigMode(getPropertyDeclaration());
+  }
+
+  private static String getConfigMode(TypedIdeDeclaration propertyDeclaration) {
+    Annotation extConfigAnnotation = propertyDeclaration.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME);
+    if (extConfigAnnotation != null) {
+      CommaSeparatedList<AnnotationParameter> annotationParameters = extConfigAnnotation.getOptAnnotationParameters();
+      while (annotationParameters != null) {
+        Ide name = annotationParameters.getHead().getOptName();
+        if (name != null && CONFIG_MODE_ATTRIBUTE_NAME.equals(name.getName())) {
+          AstNode value = annotationParameters.getHead().getValue();
+          if (value instanceof LiteralExpr) {
+            Object jooValue = value.getSymbol().getJooValue();
+            if (jooValue instanceof String) {
+              return (String) jooValue;
+            }
+          }
+        }
+        annotationParameters = annotationParameters.getTail();
       }
     }
+    return "";
+  }
+
+  private void initObjectElement() {
+    type = getScope().getClassDeclaration(classQName);
+    instantiationMode = computeInstantiationMode();
+    defaultPropertyModel = MxmlToModelParser.findDefaultPropertyModel(type);
+  }
+
+  private InstantiationMode computeInstantiationMode() {
+    if (parent == null) {
+      return InstantiationMode.PLAIN;
+    }
+    if (type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type)) {
+       return InstantiationMode.MXML;
+    }
+    String id = getId();
+    if (id != null) {
+      return InstantiationMode.EXT_CREATE;
+    }
+    InstantiationMode parentInstantiationMode = parent != null && parent.isProperty() ? parent.instantiationMode : null;
+    if (parentInstantiationMode != null) {
+      return parentInstantiationMode;
+    }
+    return InstantiationMode.from(MxmlToModelParser.useConfigObjects(type));
   }
 
   InstantiationMode getInstantiationMode() {

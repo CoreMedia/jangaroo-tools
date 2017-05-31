@@ -51,17 +51,23 @@ public class XmlAttribute extends XmlNode {
     return Collections.emptyList();
   }
 
-  @Override
-  public void scope(Scope scope) {
-    
-  }
-
   boolean isImplements() {
     return IMPLEMENTS.equals(getLocalName()) && StringUtils.isBlank(getPrefix());
   }
 
   boolean isId() {
     return MxmlUtils.MXML_ID_ATTRIBUTE.equals(getLocalName()) && StringUtils.isBlank(getPrefix());
+  }
+
+  @Override
+  boolean isUntypedAccess() {
+    String attributeNamespaceUri = parent.getNamespaceUri(getPrefix());
+    return MxmlUtils.EXML_UNTYPED_NAMESPACE.equals(attributeNamespaceUri);
+  }
+
+  @Override
+  boolean assignPropertyDeclarationOrEvent(XmlElement parentElement) {
+    return isId() || isNamespaceDefinition() || isImplements() || super.assignPropertyDeclarationOrEvent(parentElement);
   }
 
   @Override
@@ -94,6 +100,11 @@ public class XmlAttribute extends XmlNode {
       return ((NamespacedIde) ide).getNamespace().getName();
     }
     return null;
+  }
+
+  @Override
+  JooSymbol getPropertyValue() {
+    return getValue();
   }
 
   @Override

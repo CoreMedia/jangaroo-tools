@@ -48,7 +48,7 @@ import java.util.Map;
  */
 public class MxmlCompilationUnit extends CompilationUnit {
 
-  private static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
+  static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
   private static final JooSymbol EXML_SYMBOL = new JooSymbol("Exml");
   private static final String APPLY = "apply";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
@@ -184,17 +184,17 @@ public class MxmlCompilationUnit extends CompilationUnit {
     JangarooParser parser = getPackageDeclaration().getIde().getScope().getCompiler();
     MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser);
     MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
-    MxmlModelToAstTransformer mxmlModelToAstTransformer = new MxmlModelToAstTransformer(this, mxmlParserHelper);
+    MxmlNodeToAstTransformer mxmlNodeToAstTransformer = new MxmlNodeToAstTransformer(this, mxmlParserHelper);
 
-    ObjectLiteral objectLiteral = mxmlModelToAstTransformer.rootModelToObjectLiteral(mxmlModel);
+    Expr objectLiteral = mxmlNodeToAstTransformer.objectModelToObject(rootNode);
     // If the super constructor also has a 'config' param, use the force.
     Ide superClassIde = ((ClassDeclaration) getPrimaryDeclaration()).getOptExtends().getSuperClass();
     if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
-      applyConfigOnto(mxmlModelToAstTransformer.getDefaults(mxmlModel));
+      applyConfigOnto(mxmlNodeToAstTransformer.getDefaults(mxmlModel));
       applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(getPrimaryDeclaration().getName())), objectLiteral));
       constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(constructorParam.getIde()));
     } else {
-      applyOntoThis(mxmlModelToAstTransformer.getDefaults(mxmlModel));
+      applyOntoThis(mxmlNodeToAstTransformer.getDefaults(mxmlModel));
       applyOntoThis(objectLiteral);
     }
     FunctionDeclaration newConstructor = nativeConstructor == null
@@ -209,7 +209,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     exmlApply(configExpr, objectLiteral, configExpr);
   }
 
-  private void applyOntoThis(ObjectLiteral objectLiteral) {
+  private void applyOntoThis(Expr objectLiteral) {
     exmlApply(null, new IdeExpr(MxmlAstUtils.SYM_THIS), objectLiteral);
   }
 
