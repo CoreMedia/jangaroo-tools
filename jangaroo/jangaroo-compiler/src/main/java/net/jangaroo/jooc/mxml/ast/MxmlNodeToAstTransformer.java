@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mxml.ast;
 
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
@@ -223,13 +224,25 @@ final class MxmlNodeToAstTransformer {
     String eventTypeStr = getEventTypeStr(sourceNode.getEvent());
     JooSymbol handlerCode = (JooSymbol) sourceNode.getPropertyValue();
     mxmlCompilationUnit.addImport(eventTypeStr);
-    String eventHandlerExpr = String.format("{scope:this,fn:function():* {var event:%s=new %s(\"%s\",arguments);%s%s}}",
-            eventTypeStr, eventTypeStr, eventName,
-            handlerCode.getWhitespace(), handlerCode.getJooValue());
-    return new ObjectField(eventNameIde, symColon, mxmlParserHelper.parseExpression(new JooSymbol(eventHandlerExpr)));
-    //TODO: construct JooSymbol from handler code symbol so that error line numbers are correct!
+    // Construct JooSymbol from handler code symbol so that error line numbers are correct:
+    String eventHandlerExpr = String.format("{scope:this,fn:function():* {var event:%s=new %s(\"%s\",arguments);",
+            eventTypeStr, eventTypeStr, eventName);
+    int offset = eventHandlerExpr.length();
+    eventHandlerExpr += handlerCode.getWhitespace() + handlerCode.getJooValue() + "}}";
+    JooSymbol code = new JooSymbol(sym.STRING_LITERAL, handlerCode.getFileName(), handlerCode.getLine(), handlerCode.getColumn() - offset, "", eventHandlerExpr, eventHandlerExpr);
+    return new ObjectField(eventNameIde, symColon, parseExpressionReportError(sourceNode.getSymbol(), code));
   }
 
+  private Expr parseExpressionReportError(JooSymbol sourceSymbol, JooSymbol code) {
+    try {
+      return mxmlParserHelper.parseExpression(code);
+    } catch (CompilerError e) {
+      throw e;
+    } catch (Exception e) {
+      // message already logged in parser
+      throw Jooc.error(sourceSymbol, "Error in embedded ActionScript code (see error above).", e);
+    }
+  }
   private static Ide createIde(JooSymbol symbol, String ideName) {
     return new Ide(replace(symbol, sym.IDE, ideName));
   }
@@ -272,7 +285,7 @@ final class MxmlNodeToAstTransformer {
       JooSymbol atPropertyName = new JooSymbol(element.getConfigOptionName() + CONFIG_MODE_AT_SUFFIX)
               .withWhitespace(element.getSymbol().getWhitespace());
       Ide label = new Ide(atPropertyName);
-      result.add(new ObjectField(label, MxmlAstUtils.SYM_COLON, mxmlParserHelper.parseExpression(new JooSymbol(atValue))));
+      result.add(new ObjectField(label, MxmlAstUtils.SYM_COLON, parseExpressionReportError(element.getSymbol(), new JooSymbol(atValue))));
     }
   }
 
@@ -320,7 +333,7 @@ final class MxmlNodeToAstTransformer {
       String type = mxmlModel.isProperty()
               ? mxmlModel.getPropertyTypeName()
               : ((XmlElement) mxmlModel).getType().getQualifiedNameStr();
-      return mxmlParserHelper.parseExpression(getValue((JooSymbol) propertyValue, type));
+      return parseExpressionReportError((JooSymbol) propertyValue, getValue((JooSymbol) propertyValue, type));
     }
     if (propertyValue instanceof XmlElement) {
       return objectModelToObject((XmlElement) propertyValue);
