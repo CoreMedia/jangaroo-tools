@@ -177,6 +177,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public TypedIdeDeclaration getSetter() {
+    return isConst() ? null : this;
+  }
+
+  @Override
   public void scope(final Scope scope) {
     super.scope(scope);
     if (getOptInitializer() != null) {

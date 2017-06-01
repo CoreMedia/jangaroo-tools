@@ -5,8 +5,6 @@ import com.google.common.collect.Lists;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.ast.AnnotationsAndModifiers;
 import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.ArrayIndexExpr;
-import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassBody;
@@ -27,7 +25,6 @@ import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
-import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
@@ -63,7 +60,6 @@ class MxmlAstUtils {
   static final JooSymbol SYM_SEMICOLON = new JooSymbol(sym.SEMICOLON, ";");
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
-  static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
 
   private MxmlAstUtils() {
     // hide constructor for utility class
@@ -115,12 +111,6 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type) {
-    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
-    return new VariableDeclaration(new AnnotationsAndModifiers(null, null), SYM_VAR.withWhitespace(INDENT_4), name, typeRelation, null, null, SYM_SEMICOLON);
-  }
-
-  @Nonnull
   static SemicolonTerminatedStatement createSemicolonTerminatedStatement(@Nonnull AstNode astNode) {
     return new SemicolonTerminatedStatement(astNode, SYM_SEMICOLON);
   }
@@ -129,25 +119,6 @@ class MxmlAstUtils {
   static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
     CommaSeparatedList<Expr> args = new CommaSeparatedList<>(new IdeExpr(superConfigVar));
     return new SuperConstructorCallStatement(SYM_SUPER.withWhitespace(INDENT_4), SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
-  }
-
-  @SuppressWarnings("SameParameterValue")
-  @Nonnull
-  static Directive createPropertyAssignment(@Nonnull Ide variable, @Nonnull Expr rightHandSide, @Nonnull String propertyName, boolean untypedAccess) {
-    Expr leftHandSide;
-    JooSymbol varWithWhitespace = variable.getIde().withWhitespace(INDENT_4);
-    if (untypedAccess) {
-      leftHandSide = new ArrayIndexExpr(new IdeExpr(varWithWhitespace), SYM_LBRACK, new LiteralExpr(new JooSymbol('"' + propertyName + '"')), SYM_RBRACK);
-    } else {
-      if (Ide.THIS.equals(varWithWhitespace.getText())) {
-        leftHandSide = new IdeExpr(new Ide(propertyName));
-      } else {
-        leftHandSide = createDotExpr(varWithWhitespace, propertyName);
-      }
-    }
-
-    AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(leftHandSide, SYM_EQ.withWhitespace(" "), rightHandSide);
-    return createSemicolonTerminatedStatement(assignmentOpExpr);
   }
 
   @SafeVarargs

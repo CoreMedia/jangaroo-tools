@@ -26,7 +26,8 @@ public class DeclarationsMxmlClass extends SomeNativeClass{
     public var list:Array;
 
     [Bindable]
-    public var other:package1.someOtherPackage.SomeOtherClass;public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){package1.someOtherPackage.SomeNativeClass.prototype.constructor.call(this);if(arguments.length<=0)config=null; net.jangaroo.ext.Exml.apply(this,{
+    public var other:package1.someOtherPackage.SomeOtherClass;public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){package1.someOtherPackage.SomeNativeClass.prototype.constructor.call(this);if(arguments.length<=0)config=null; net.jangaroo.ext.Exml.apply(this,
+  {
     bar: "BAR!",
     /**
      Some number.
@@ -45,7 +46,8 @@ public class DeclarationsMxmlClass extends SomeNativeClass{
     other:
     new package1.someOtherPackage.SomeOtherClass({ bla: 3,
                         blubb_config: 'blub config expression',
-                        blubb_accessor: 'blub accessor expression'})});
+                        blubb_accessor: 'blub accessor expression'})
+  });
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

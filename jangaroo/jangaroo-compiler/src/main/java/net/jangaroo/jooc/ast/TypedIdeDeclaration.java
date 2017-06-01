@@ -111,4 +111,5 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     return optTypeRelation;
   }
 
+  public abstract TypedIdeDeclaration getSetter();
 }

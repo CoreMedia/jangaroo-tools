@@ -29,6 +29,7 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
     return getter;
   }
 
+  @Override
   public FunctionDeclaration getSetter() {
     return setter;
   }

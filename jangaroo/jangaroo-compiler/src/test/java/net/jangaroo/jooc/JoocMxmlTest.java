@@ -107,7 +107,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     File sourceFile = getFile("/package1/mxml/UndefinedType.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
-    String expected = "Undefined type: ext.config.UnknownClass";
+    String expected = "Class not found: ext.config.UnknownClass";
     assertTrue("Expected error (undefined type) did not occur",
             testLog.hasError(expected));
     assertErrorAt(expected, 12, 7);

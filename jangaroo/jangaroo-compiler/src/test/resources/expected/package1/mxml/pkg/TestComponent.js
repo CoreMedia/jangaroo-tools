@@ -3,8 +3,10 @@ import package1.mxml.pkg.*;
 import net.jangaroo.ext.Exml;
 public class TestComponent extends TestComponentBase{
 
-    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply({
-    property_1: "withDefault"},config);config = net.jangaroo.ext.Exml.apply(AS3.cast(TestComponent,{
+    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply(
+  {
+    property_1: "withDefault"
+  },config);config = net.jangaroo.ext.Exml.apply(AS3.cast(TestComponent,{
         emptyText: '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>',
         letters: [
               'a',

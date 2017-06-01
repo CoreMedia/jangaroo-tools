@@ -81,6 +81,10 @@ class RootElementProcessor {
             .collect(Collectors.toList()));
   }
 
+  XmlElement getDeclarationsElement() {
+    return declarationsElement;
+  }
+
   List<XmlElement> getDeclarations() {
     return declarationsElement == null ? Collections.emptyList() : declarationsElement.getElements();
   }
@@ -106,7 +110,4 @@ class RootElementProcessor {
     return impl;
   }
 
-  static boolean alreadyProcessed(XmlAttribute attribute) {
-    return attribute.isNamespaceDefinition() || attribute.isImplements();
-  }
 }

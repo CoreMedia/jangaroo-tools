@@ -10,7 +10,8 @@ public class SimpleMxmlClass extends ConfigClass{
 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
-    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply({
+    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;config = net.jangaroo.ext.Exml.apply(
+  {
     bar: "FOO & BAR!",
     computed: 'B' + 'AR!',
     /**
@@ -34,7 +35,8 @@ public class SimpleMxmlClass extends ConfigClass{
     other:
     new package1.someOtherPackage.SomeOtherClass({ bla: 3,
                           blubb_config: 'blub config expression',
-                          blubb_accessor: 'blub accessor expression'})},config);config = net.jangaroo.ext.Exml.apply(AS3.cast(SimpleMxmlClass,{
+                          blubb_accessor: 'blub accessor expression'})
+  },config);config = net.jangaroo.ext.Exml.apply(AS3.cast(SimpleMxmlClass,{
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,listeners:{
              click: {scope:this,fn:function()/*:**/ {arguments=Array.prototype.slice.call(arguments);var event/*:package1.someOtherPackage.SomeEvent*/ =new package1.someOtherPackage.SomeEvent("onClick",arguments);var result/*:String*/ = 'gotcha!';}}},

@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mxml.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
+import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
@@ -37,6 +38,7 @@ import static java.util.stream.Collectors.toList;
 
 final class MxmlNodeToAstTransformer {
 
+  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
   private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
   private final MxmlParserHelper mxmlParserHelper;
@@ -45,6 +47,22 @@ final class MxmlNodeToAstTransformer {
   MxmlNodeToAstTransformer(MxmlCompilationUnit mxmlCompilationUnit, MxmlParserHelper mxmlParserHelper) {
     this.mxmlCompilationUnit = mxmlCompilationUnit;
     this.mxmlParserHelper = mxmlParserHelper;
+  }
+
+  private static String getEventName(@Nonnull Annotation event) {
+    Object eventNameModel = event.getPropertiesByName().get("name");
+    return (String) (eventNameModel != null ? eventNameModel : event.getPropertiesByName().get(null));
+  }
+
+  private static String getEventTypeStr(@Nonnull Annotation event) {
+    Object eventType = event.getPropertiesByName().get("type");
+    String eventTypeStr;
+    if (eventType instanceof String) {
+      eventTypeStr = (String) eventType;
+    } else {
+      eventTypeStr = "Object";
+    }
+    return eventTypeStr;
   }
 
   private Expr modelToAst(@Nonnull XmlElement mxmlModel) {
@@ -62,14 +80,18 @@ final class MxmlNodeToAstTransformer {
     ClassDeclaration type = mxmlModel.getType();
     JooSymbol textContent = mxmlModel.getTextContent();
     if (textContent != null) {
+      if (!mxmlModel.getMembers().isEmpty() ||
+              !mxmlModel.getElements().isEmpty()) {
+        throw Jooc.error(textContent, String.format("Unexpected text inside MXML element: '%s'.", textContent.getText()));
+      }
       return propertyValueToExpr(mxmlModel, textContent);
     }
     if (mxmlModel.isArray()) {
       expr = arrayModelToArrayLiteral(mxmlModel.getElements(), mxmlModel.getClosingSymbol());
-    } else if (type != null) {
+    } else {
       String defaultValue = null;
       if (false) {
-        String typeName = type.getQualifiedNameStr();
+        String typeName = type == null ? "*" : type.getQualifiedNameStr();
         mxmlCompilationUnit.addImport(typeName);
         defaultValue = getDefaultValue(typeName);
       }
@@ -78,8 +100,6 @@ final class MxmlNodeToAstTransformer {
       } else {
         expr = objectModelToObject(mxmlModel);
       }
-    } else {
-      throw new IllegalStateException("Unknown MxmlModel subclass " + mxmlModel.getClass());
     }
     return expr;
   }
@@ -147,6 +167,15 @@ final class MxmlNodeToAstTransformer {
     Stream<ObjectField> propertyFieldStream = objectModel.getMembers().stream()
             .map(memberModel -> propertyModelToObjectField(memberModel, eventHandlerFields))
             .flatMap(Collection::stream);
+    List<XmlElement> defaultPropertyValues = objectModel.getDefaultPropertyValues();
+    if (!defaultPropertyValues.isEmpty()) {
+      Expr defaultValueExpr = objectModel.isArrayDefaultPropertyValue()
+              ? arrayModelToArrayLiteral(defaultPropertyValues, null)
+              : objectModelToObject(objectModel.getSingleDefaultPropertyValue());
+      ObjectField defaultPropertyField = new ObjectField(new Ide(objectModel.getDefaultPropertyName()),
+              MxmlAstUtils.SYM_COLON, defaultValueExpr);
+      propertyFieldStream = Stream.concat(propertyFieldStream, Stream.of(defaultPropertyField));
+    }
     return propertyFieldStream.collect(toList());
   }
 
@@ -179,10 +208,10 @@ final class MxmlNodeToAstTransformer {
   }
 
   private ObjectField eventHandlerModelToObjectField(XmlNode sourceNode) {
-    String eventName = MxmlToModelParser.getEventName(sourceNode.getEvent());
+    String eventName = getEventName(sourceNode.getEvent());
     Ide eventNameIde = createIde(sourceNode.getSymbol(), getExtEventName(eventName));
     JooSymbol symColon = replace(sourceNode instanceof XmlAttribute ? ((XmlAttribute)sourceNode).getEq() : null, MxmlAstUtils.SYM_COLON);
-    String eventTypeStr = MxmlToModelParser.getEventTypeStr(sourceNode.getEvent());
+    String eventTypeStr = getEventTypeStr(sourceNode.getEvent());
     JooSymbol handlerCode = (JooSymbol) sourceNode.getPropertyValue();
     mxmlCompilationUnit.addImport(eventTypeStr);
     String eventHandlerExpr = String.format("{scope:this,fn:function():* {var event:%s=new %s(\"%s\",arguments);%s%s}}",
@@ -210,7 +239,7 @@ final class MxmlNodeToAstTransformer {
       assert memberModel.isProperty();
       String configOptionName = memberModel.getConfigOptionName();
       if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(configOptionName)) {
-        createMixinsObjectFields((XmlElement) memberModel, result);
+        createMixinsObjectFields(memberModel, result);
       } else {
         Expr configOptionValue = propertyValueToExpr(memberModel, memberModel.getPropertyValue());
         JooSymbol sourceSymbol = memberModel.getSymbol();
@@ -231,7 +260,7 @@ final class MxmlNodeToAstTransformer {
     String configMode = element.getConfigMode();
     if (!configMode.isEmpty()) {
       String atValue = MxmlCompilationUnit.NET_JANGAROO_EXT_EXML + "." + configMode.toUpperCase();
-      JooSymbol atPropertyName = new JooSymbol(element.getConfigOptionName() + MxmlToModelParser.CONFIG_MODE_AT_SUFFIX)
+      JooSymbol atPropertyName = new JooSymbol(element.getConfigOptionName() + CONFIG_MODE_AT_SUFFIX)
               .withWhitespace(element.getSymbol().getWhitespace());
       Ide label = new Ide(atPropertyName);
       result.add(new ObjectField(label, MxmlAstUtils.SYM_COLON, mxmlParserHelper.parseExpression(new JooSymbol(atValue))));
@@ -280,7 +309,7 @@ final class MxmlNodeToAstTransformer {
     }
     if (propertyValue instanceof JooSymbol) {
       String type = mxmlModel.isProperty()
-              ? MxmlToModelParser.getPropertyType(mxmlModel.getPropertyDeclaration())
+              ? mxmlModel.getPropertyTypeName()
               : ((XmlElement) mxmlModel).getType().getQualifiedNameStr();
       return mxmlParserHelper.parseExpression(getValue((JooSymbol) propertyValue, type));
     }
@@ -291,21 +320,20 @@ final class MxmlNodeToAstTransformer {
     return arrayModelToArrayLiteral((List<XmlElement>) propertyValue, ((XmlElement) mxmlModel).getClosingSymbol());
   }
 
-  private ObjectField declarationToObjectField(MxmlToModelParser.MxmlModel mxmlModel) {
+  private ObjectField declarationToObjectField(XmlElement mxmlModel) {
     if (mxmlModel.getId() == null ||
-            mxmlModel instanceof MxmlToModelParser.MxmlObjectModel &&
-                    ((MxmlToModelParser.MxmlObjectModel) mxmlModel).getMembers().isEmpty() ||
-            mxmlModel instanceof MxmlToModelParser.MxmlArrayModel &&
-                    ((MxmlToModelParser.MxmlArrayModel) mxmlModel).getElements().isEmpty()) {
+            mxmlModel.getTextContent() == null &&
+                    (!mxmlModel.isArray() && mxmlModel.getMembers().isEmpty() ||
+                            mxmlModel.isArray() && mxmlModel.getElements().isEmpty())) {
       return null;
     }
-    Ide fieldName = new Ide(new JooSymbol(mxmlModel.getId()).withWhitespace(MxmlUtils.toASDoc(mxmlModel.getSourceElement().getSymbol().getWhitespace())));
-    return new ObjectField(fieldName, MxmlAstUtils.SYM_COLON, modelToAstNoId(mxmlModel.getSourceElement()));
+    Ide fieldName = new Ide(new JooSymbol(mxmlModel.getId()).withWhitespace(MxmlUtils.toASDoc(mxmlModel.getSymbol().getWhitespace())));
+    return new ObjectField(fieldName, MxmlAstUtils.SYM_COLON, modelToAstNoId(mxmlModel));
   }
 
-  ObjectLiteral getDefaults(MxmlToModelParser.MxmlRootModel mxmlRootModel) {
-    return createObjectLiteral(mxmlRootModel.getDeclarations().getSourceElement(),
-            mxmlRootModel.getDeclarations().getElements().stream()
+  ObjectLiteral getDefaults(RootElementProcessor rootElementProcessor) {
+    return createObjectLiteral(rootElementProcessor.getDeclarationsElement(),
+            rootElementProcessor.getDeclarations().stream()
                     .map(this::declarationToObjectField)
                     .filter(Objects::nonNull)
                     .collect(toList()));

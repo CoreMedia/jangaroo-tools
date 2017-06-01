@@ -37,7 +37,9 @@ public class AllElements extends panel{
       };
     }/*
 
-    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$4(config);config = net.jangaroo.ext.Exml.apply({
+    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$4(config);config = net.jangaroo.ext.Exml.apply(
+
+  {
     config:
     { myProperty: "My Property!",
       myPropertyWithDescription: false
@@ -51,7 +53,8 @@ public class AllElements extends panel{
     myVar4:[
       { header: "a", sortable: false, menuDisabled: true},
       { header: "b", sortable: true, menuDisabled: false}
-    ]},config);config = net.jangaroo.ext.Exml.apply(AS3.cast(AllElements,{
+    ]
+  },config);config = net.jangaroo.ext.Exml.apply(AS3.cast(AllElements,{
            title: "I am a panel",
            layout: config.myProperty$4,
         someList$at: net.jangaroo.ext.Exml.APPEND,

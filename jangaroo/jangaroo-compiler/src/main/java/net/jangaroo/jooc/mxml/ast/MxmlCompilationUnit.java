@@ -119,7 +119,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   @Override
   public void scope(Scope scope) {
-    rootNode.scope(scope); // any scope, just used to resolve compilation units!
+    // any scope, just used to resolve compilation units!
+    withNewDeclarationScope(this, scope, rootNode::scope);
 
     JangarooParser parser = scope.getCompiler();
     rootElementProcessor.process(parser.getMxmlComponentRegistry(), rootNode);
@@ -182,19 +183,17 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     JangarooParser parser = getPackageDeclaration().getIde().getScope().getCompiler();
-    MxmlToModelParser mxmlToModelParser = new MxmlToModelParser(parser);
-    MxmlToModelParser.MxmlRootModel mxmlModel = mxmlToModelParser.parse(rootNode);
     MxmlNodeToAstTransformer mxmlNodeToAstTransformer = new MxmlNodeToAstTransformer(this, mxmlParserHelper);
 
     Expr objectLiteral = mxmlNodeToAstTransformer.objectModelToObject(rootNode);
     // If the super constructor also has a 'config' param, use the force.
     Ide superClassIde = ((ClassDeclaration) getPrimaryDeclaration()).getOptExtends().getSuperClass();
     if (constructorParam != null && CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser)) {
-      applyConfigOnto(mxmlNodeToAstTransformer.getDefaults(mxmlModel));
+      applyConfigOnto(mxmlNodeToAstTransformer.getDefaults(rootElementProcessor));
       applyConfigOnto(MxmlAstUtils.createApplyExpr(new IdeExpr(new Ide(getPrimaryDeclaration().getName())), objectLiteral));
       constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(constructorParam.getIde()));
     } else {
-      applyOntoThis(mxmlNodeToAstTransformer.getDefaults(mxmlModel));
+      applyOntoThis(mxmlNodeToAstTransformer.getDefaults(rootElementProcessor));
       applyOntoThis(objectLiteral);
     }
     FunctionDeclaration newConstructor = nativeConstructor == null
@@ -292,10 +291,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
   @SuppressWarnings("unused")
   XmlTag getOptXmlHeader() {
     return optXmlHeader;
-  }
-
-  XmlElement getRootNode() {
-    return rootNode;
   }
 
   private void addDirective(Directive directive) {

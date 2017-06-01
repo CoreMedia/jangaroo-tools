@@ -344,6 +344,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     return isConstructor() ? getClassDeclaration() : super.resolveDeclaration();
   }
 
+  @Override
+  public TypedIdeDeclaration getSetter() {
+    return isSetter() ? this : null;
+  }
+
   public void setConstructor(boolean constructor) {
     isConstructor = constructor;
   }

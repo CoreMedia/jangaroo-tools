@@ -45,7 +45,7 @@ public class XmlElement extends XmlNode {
   private ClassDeclaration type;
   private TypedIdeDeclaration defaultPropertyModel;
   private List<XmlNode> members = new ArrayList<>();
-  private List<XmlNode> defaultPropertyValues = new ArrayList<>();
+  private List<XmlElement> defaultPropertyValues = new ArrayList<>();
 
   public XmlElement(@Nonnull XmlTag openingMxmlTag, @Nullable List children, @Nullable XmlTag closingMxmlTag) {
     this.openingMxmlTag = openingMxmlTag;
@@ -53,6 +53,25 @@ public class XmlElement extends XmlNode {
     this.closingMxmlTag = closingMxmlTag;
     initChildren();
     openingMxmlTag.setElement(this);
+  }
+
+  private static TypedIdeDeclaration findDefaultPropertyModel(ClassDeclaration classModel) {
+    for (ClassDeclaration current = classModel; current != null; current = current.getSuperTypeDeclaration()) {
+      TypedIdeDeclaration defaultPropertyModel = findPropertyWithAnnotation(current, MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION);
+      if (defaultPropertyModel != null) {
+        return defaultPropertyModel;
+      }
+    }
+    return null;
+  }
+
+  private static TypedIdeDeclaration findPropertyWithAnnotation(ClassDeclaration current, String annotation) {
+    for (TypedIdeDeclaration member : current.getMembers()) {
+      if (!member.getAnnotations(annotation).isEmpty()) {
+        return member;
+      }
+    }
+    return null;
   }
 
   private void initChildren() {
@@ -96,15 +115,21 @@ public class XmlElement extends XmlNode {
     if (jooSymbol != null) {
       return jooSymbol;
     }
-    String propertyType = MxmlToModelParser.getPropertyType(getPropertyDeclaration());
-    int elementCount = elements.size();
-    if ("Array".equals(propertyType) || elementCount > 1 && (propertyType == null || "*".equals(propertyType) || "Object".equals(propertyType))) {
+    if (isArrayPropertyValue(getPropertyTypeName(), elements)) {
       return elements;
     }
-    if (elementCount == 0) {
+    return getSinglePropertyValue(elements);
+  }
+
+  private static boolean isArrayPropertyValue(String propertyType, List<XmlElement> elements) {
+    return "Array".equals(propertyType) || elements.size() > 1 && (propertyType == null || "*".equals(propertyType) || "Object".equals(propertyType));
+  }
+
+  private static XmlElement getSinglePropertyValue(List<XmlElement> elements) {
+    if (elements.isEmpty()) {
       return null;
     }
-    if (elementCount > 1) {
+    if (elements.size() > 1) {
       throw Jooc.error(elements.get(1).getSymbol(), "Non-array property may only have at most one sub-element.");
     }
     return elements.get(0);
@@ -156,14 +181,13 @@ public class XmlElement extends XmlNode {
         boolean isPropertyOrEvent = getNamespaceURI().equals(parentElement.getNamespaceURI())
                 && assignPropertyDeclarationOrEvent(parentElement);
         if (!isPropertyOrEvent) {
-          if (parentElement.getDefaultPropertyModel() != null) {
+          if (parentElement.getDefaultPropertyName() != null) {
             // try whether this is an object element first:
             initObjectElement();
             parentElement.addDefaultPropertyValue(this);
           } else {
             // dynamic property of a non-dynamic class: error!
             getScope().getCompiler().getLog().error(parentElement.getSymbol(), "MXML: property " + getLocalName() + " not found in class " + parentElement.getType().getQualifiedNameStr() + ".");
-
           }
         }
       } else {
@@ -178,10 +202,6 @@ public class XmlElement extends XmlNode {
 
   public ClassDeclaration getType() {
     return type;
-  }
-
-  public TypedIdeDeclaration getDefaultPropertyModel() {
-    return defaultPropertyModel;
   }
 
   void addMember(XmlNode member) {
@@ -200,12 +220,28 @@ public class XmlElement extends XmlNode {
     return members.stream().filter(XmlNode::isEvent);
   }
 
+  public String getDefaultPropertyName() {
+    return defaultPropertyModel == null ? null : defaultPropertyModel.getName();
+  }
+
   private void addDefaultPropertyValue(XmlElement objectElement) {
     defaultPropertyValues.add(objectElement);
   }
 
+  public boolean isArrayDefaultPropertyValue() {
+    return isArrayPropertyValue(getPropertyTypeName(defaultPropertyModel), defaultPropertyValues);
+  }
+
+  public XmlElement getSingleDefaultPropertyValue() {
+    return getSinglePropertyValue(defaultPropertyValues);
+  }
+
+  public List<XmlElement> getDefaultPropertyValues() {
+    return defaultPropertyValues;
+  }
+
   boolean isArray() {
-    return "Array".equals(getType().getQualifiedNameStr());
+    return getType() != null && "Array".equals(getType().getQualifiedNameStr());
   }
 
   @Override
@@ -248,9 +284,21 @@ public class XmlElement extends XmlNode {
   }
 
   private void initObjectElement() {
+    if (classQName == null) {
+      String name = getLocalName();
+      if (getPrefix() != null) {
+        name = getPrefix() + ":" + name;
+      }
+      throw Jooc.error(this, "Could not resolve class from MXML node <" + name + "/>");
+    }
+
     type = getScope().getClassDeclaration(classQName);
+    if (type == null || type.isInterface()) {
+      throw Jooc.error(getSymbol(), "Class not found: " + classQName);
+    }
+    ((MxmlCompilationUnit)getScope().getCompilationUnit()).addImport(classQName);
     instantiationMode = computeInstantiationMode();
-    defaultPropertyModel = MxmlToModelParser.findDefaultPropertyModel(type);
+    defaultPropertyModel = findDefaultPropertyModel(type);
   }
 
   private InstantiationMode computeInstantiationMode() {
@@ -268,7 +316,7 @@ public class XmlElement extends XmlNode {
     if (parentInstantiationMode != null) {
       return parentInstantiationMode;
     }
-    return InstantiationMode.from(MxmlToModelParser.useConfigObjects(type));
+    return InstantiationMode.from(XmlNode.useConfigObjects(type));
   }
 
   InstantiationMode getInstantiationMode() {
@@ -371,12 +419,6 @@ public class XmlElement extends XmlNode {
         } else {
           classQName = mxmlComponentRegistry.getClassName(uri, name);
         }
-      }
-      if (classQName == null) {
-        if (getPrefix() != null) {
-          name = getPrefix() + ":" + name;
-        }
-        throw Jooc.error(this, "Could not resolve class from MXML node <" + name + "/>");
       }
     }
     return classQName;
