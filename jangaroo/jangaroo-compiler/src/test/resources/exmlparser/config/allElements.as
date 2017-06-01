@@ -13,6 +13,9 @@ public class allElements {
 
   public static const CODE_CONSTANT:int = 1 + 1;
 
+  public function allElements(config:allElements = null) {
+  }
+
   /* describe the config properties of this component */
   public native function get myProperty():String;
 

@@ -302,10 +302,10 @@ public class XmlElement extends XmlNode {
   }
 
   private InstantiationMode computeInstantiationMode() {
-    if (parent == null) {
+    if (parent == null || type == null || "Object".equals(type.getQualifiedNameStr())) {
       return InstantiationMode.PLAIN;
     }
-    if (type == null || !CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type)) {
+    if (!CompilationUnitUtils.constructorSupportsConfigOptionsParameter(type)) {
        return InstantiationMode.MXML;
     }
     String id = getId();

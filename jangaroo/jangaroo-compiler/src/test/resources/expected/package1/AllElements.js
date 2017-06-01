@@ -41,9 +41,9 @@ public class AllElements extends panel{
 
   {
     config:
-    { myProperty: "My Property!",
+    new exmlparser.config.allElements({ myProperty: "My Property!",
       myPropertyWithDescription: false
-    },
+    }),
   
     myVar3:
   

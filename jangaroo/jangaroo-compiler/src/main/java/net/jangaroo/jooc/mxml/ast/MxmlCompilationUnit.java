@@ -214,13 +214,17 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private void exmlApply(Expr assignTo, Expr targetObject, Expr sourceObject) {
     if (!isEmptyObjectLiteral(sourceObject) && !isEmptyObjectLiteral(targetObject)) {
-      addImport(NET_JANGAROO_EXT_EXML);
-      Expr expr = MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(" "), APPLY), targetObject, sourceObject);
+      Expr expr = createExmlApplyExpr(" ", targetObject, sourceObject);
       if (assignTo != null) {
         expr = new AssignmentOpExpr(assignTo, MxmlAstUtils.SYM_EQ.withWhitespace(" "), expr);
       }
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(expr));
     }
+  }
+
+  ApplyExpr createExmlApplyExpr(String whitespace, Expr targetObject, Expr sourceObject) {
+    addImport(NET_JANGAROO_EXT_EXML);
+    return MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(EXML_SYMBOL.withWhitespace(whitespace), APPLY), targetObject, sourceObject);
   }
 
   private static boolean isEmptyObjectLiteral(Expr sourceObject) {

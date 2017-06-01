@@ -149,16 +149,25 @@ final class MxmlNodeToAstTransformer {
     ObjectLiteral objectLiteral = createObjectLiteral(objectModel, objectFields);
     switch (objectModel.getInstantiationMode()) {
       case PLAIN:
+        // { ... }
         return objectLiteral;
       case EXT_CONFIG:
-        // wrap in type cast:
+        // wrap in type cast: <type>({ ... })
         return createApplyTypeToObjectLiteralExpr(objectModel, objectLiteral);
       case MXML:
-        return objectLiteral; // TODO
+        // Exml.apply(new <type>, { ... })
+        return createApplyObjectLiteralOnNewExpr(objectModel, objectLiteral);
       case EXT_CREATE:
+        // new <type>({ ... })
         return createNewOfObjectListeralExpr(objectModel, objectLiteral);
     }
     throw new IllegalStateException("Cannot happen: No case for " + objectModel.getInstantiationMode());
+  }
+
+  private Expr createApplyObjectLiteralOnNewExpr(XmlElement objectModel, ObjectLiteral objectLiteral) {
+    String whitespace = objectLiteral.getSymbol().getWhitespace();
+    objectLiteral.getSymbol().setWhitespace("");
+    return mxmlCompilationUnit.createExmlApplyExpr(whitespace, new NewExpr(MxmlAstUtils.SYM_NEW, new IdeExpr(mxmlParserHelper.parseIde(objectModel.getType().getQualifiedNameStr()))), objectLiteral);
   }
 
   private List<ObjectField> createObjectFields(XmlElement objectModel) {
