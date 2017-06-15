@@ -111,12 +111,8 @@
       <artifactId>commons-exec</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
+      <groupId>com.google.javascript</groupId>
+      <artifactId>closure-compiler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.plugins</groupId>

@@ -187,7 +187,7 @@
       <dependency>
         <groupId>com.google.javascript</groupId>
         <artifactId>closure-compiler</artifactId>
-        <version>v20170218</version>
+        <version>v20150126</version>
       </dependency>
       <dependency>
         <groupId>org.json</groupId>
@@ -197,7 +197,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>20.0</version>
+        <version>18.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>

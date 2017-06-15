@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class CompressorImpl implements Compressor {
 
-  private static final Charset OUTPUT_CHARSET = Charset.forName("UTF-8");
+  private static final String OUTPUT_CHARSET = "UTF-8";
   private static final String SOURCE_MAP_EXTENSION = ".map";
 
   /**
@@ -82,7 +82,8 @@ public class CompressorImpl implements Compressor {
       throw new IllegalArgumentException(compiler.getErrors()[0].description);
     }
 
-    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output), OUTPUT_CHARSET))) {
+    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(output),
+            Charset.forName(OUTPUT_CHARSET)))) {
       writer.append(compiler.toSource());
       writer.printf("\n//# sourceMappingURL=%s\n", sourceMap.getName());
     }
