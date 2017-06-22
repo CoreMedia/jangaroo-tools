@@ -5,17 +5,59 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.LogOutputStream;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
 
 public class SenchaCmdExecutor {
 
-  static final long MAX_EXECUTION_TIME = ExecuteWatchdog.INFINITE_TIMEOUT;
+  private static final long MAX_EXECUTION_TIME = ExecuteWatchdog.INFINITE_TIMEOUT;
+
+  @Nonnull
+  public static int[] queryVersion() throws IOException {
+    final String[] versionStringVar = new String[1];
+    internalExecute(CommandLine.parse("sencha switch -l"),  new LogOutputStream() {
+    //internalExecute(CommandLine.parse("echo %TEST%"),  new LogOutputStream() {
+      private boolean parseNext = true;
+      @Override
+      protected void processLine(String line, int level) {
+        if (parseNext) {
+          parseNext = false;
+          versionStringVar[0] = line;
+        } else if ("Current version".equalsIgnoreCase(line)) {
+          parseNext = true;
+        }
+      }
+    }, null);
+    final String versionString = versionStringVar[0];
+    if (versionString == null) {
+      throw new IOException("No 'Current version' found in output of 'sencha switch -l'.");
+    }
+    return parseVersion(versionString);
+  }
+
+  static int[] parseVersion(String versionString) throws IOException {
+    int[] versions = null;
+    try {
+      versions = Arrays.stream(StringUtils.split(versionString.trim(), "."))
+              .mapToInt(Integer::parseInt)
+              .toArray();
+    } catch (NumberFormatException e) {
+      // handle below
+    }
+    if (versions == null || versions.length < 3) {
+      throw new IOException("Incorrect Sencha Cmd version format: " + versionString);
+    }
+    return versions;
+  }
 
   private File workingDirectory;
   private String arguments;
@@ -39,23 +81,23 @@ public class SenchaCmdExecutor {
     try {
       CommandLine cmdLine = getCommandLine(line);
       log.info(String.format("Executing Sencha Cmd '%s' in directory '%s'", line, workingDirectory));
-      internalExecute(cmdLine);
+      internalExecute(cmdLine, new SenchaCmdLogOutputStream(log), workingDirectory);
       log.debug("Executed Sencha Cmd successfully");
     } catch (IOException e) {
       throw new MojoExecutionException("Execution of Sencha Cmd failed.", e);
     }
   }
 
-  private void internalExecute(CommandLine cmdLine) throws IOException {
+  private static void internalExecute(CommandLine cmdLine, OutputStream outputStream, File workingDirectory) throws IOException {
     Executor executor = getExecutor();
     ExecuteWatchdog watchdog = getExecuteWatchdog();
     executor.setWatchdog(watchdog);
-    executor.setWorkingDirectory(workingDirectory);
+    if (workingDirectory != null) {
+      executor.setWorkingDirectory(workingDirectory);
+    }
     // set allowed exit values (0 is actually the default)
     executor.setExitValue(0);
-
-    SenchaCmdLogOutputStream logOutputStream = new SenchaCmdLogOutputStream(log);
-    PumpStreamHandler psh = new PumpStreamHandler(logOutputStream);
+    PumpStreamHandler psh = new PumpStreamHandler(outputStream);
     executor.setStreamHandler(psh);
     executor.execute(cmdLine);
 
@@ -96,15 +138,15 @@ public class SenchaCmdExecutor {
   /**
    * Extracted for testing...
    */
-  protected CommandLine getCommandLine(String line) {
+  private static CommandLine getCommandLine(String line) {
     return CommandLine.parse(line);
   }
 
-  protected Executor getExecutor() {
+  private static Executor getExecutor() {
     return new DefaultExecutor();
   }
 
-  protected ExecuteWatchdog getExecuteWatchdog() {
+  private static ExecuteWatchdog getExecuteWatchdog() {
     return new ExecuteWatchdog(MAX_EXECUTION_TIME);
   }
 

@@ -8,6 +8,7 @@ import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
@@ -102,7 +103,23 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     }
 
     getLog().info("Generating Sencha workspace module");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workspaceDir, "generate workspace .", getLog(), getSenchaLogLevel());
+    List<String> arguments =  new ArrayList<>();
+    arguments.add("generate workspace");
+    // special case: Sencha Cmd 6.5 made a breaking change in "generate workspace", and to restore
+    // the original behavior, we have to specify the new parameter "--full" (which Cmd < 6.5 prompts with an error).
+    try {
+      int[] cmdVersion = SenchaCmdExecutor.queryVersion();
+      // version is 6.5 or above?
+      if (cmdVersion[0] > 6 || cmdVersion[0] == 6 && cmdVersion[1] >= 5) {
+        // add new command line switch:
+        arguments.add("--full");
+      }
+    } catch (IOException ioe) {
+      throw new MojoExecutionException("Could not determine Sencha Cmd version.", ioe);
+    }
+    arguments.add(".");
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workspaceDir,
+            StringUtils.join(arguments, ' '), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
 
     // sencha.cfg should be recreated
