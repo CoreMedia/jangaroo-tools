@@ -59,7 +59,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   private String testSuite = null;
 
 
-  private final Object lock = new Object();
+  private static final Object lock = new Object();
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -115,7 +115,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
         arguments.add("--full");
       }
     } catch (IOException ioe) {
-      throw new MojoExecutionException("Could not determine Sencha Cmd version.", ioe);
+      getLog().warn("Could not determine Sencha Cmd version, assuming it is < 6.5.", ioe);
     }
     arguments.add(".");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workspaceDir,
@@ -296,10 +296,11 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   private void touch(File file, long timestamp) throws MojoExecutionException {
     try {
       FileUtils.touch(file);
-      //noinspection ResultOfMethodCallIgnored
-      file.setLastModified(timestamp);
+      if (!file.setLastModified(timestamp)) {
+        throw new MojoExecutionException("unable to set last-modified on timestamp file " + file.getPath());
+      }
     } catch (IOException e) {
-      throw new MojoExecutionException("unable to create file " + file.getAbsolutePath(), e);
+      throw new MojoExecutionException("unable to create timestamp file " + file.getAbsolutePath(), e);
     }
   }
 
