@@ -381,8 +381,9 @@ public class JooTestMojo extends AbstractSenchaMojo {
     createAppJson();
   }
 
-  private static boolean isTestDependency(Dependency dependency) {
-    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && isSenchaDependency(dependency);
+  private boolean isTestDependency(Dependency dependency) {
+    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && isSenchaDependency(dependency)
+            && !isExtFrameworkDependency(dependency);
   }
 
   private void createAppJson() throws MojoExecutionException {
