@@ -2,14 +2,6 @@
   <components>
 
     <component>
-      <role>org.apache.maven.shared.dependency.analyzer.ProjectDependencyAnalyzer</role>
-      <role-hint>skipJangarooAnalyzer</role-hint>
-      <!-- there is no implementation of SARUnArchiver, but ZipUnArchive will do the job -->
-      <implementation>net.jangaroo.jooc.mvnplugin.analyzer.SkipJangarooAnalyzer</implementation>
-      <instantiation-strategy>per-lookup</instantiation-strategy>
-    </component>
-
-    <component>
       <role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
       <role-hint>JangarooResourcesExtension</role-hint>
       <implementation>net.jangaroo.jooc.mvnplugin.lifecycle.JangarooResourcesExtension</implementation>
