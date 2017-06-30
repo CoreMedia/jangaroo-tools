@@ -668,7 +668,7 @@ public class JoocTest extends AbstractJoocTest {
     config.addSourceFile(sourcefile);
     jooc.run();
 
-    checkForDeclarationErrorMessage("Square", "Rectangle", 7, 20);
+    checkForDeclarationErrorMessage("assignment.Square", "assignment.Rectangle", 7, 20);
   }
 
   private void checkForErrorMessage(String message, String expectedError, int lineOfError, int columnOfError) {

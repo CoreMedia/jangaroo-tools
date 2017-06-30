@@ -71,34 +71,34 @@ public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
       if ((expectedTypeDeclaration instanceof ClassDeclaration)
               && !((ClassDeclaration)expectedTypeDeclaration).isObject()) {
         // this is a LiteralExpr, check types, but only if we do not expect it is supposed to be an object anyway
-        validateSimpleTypes(symbol, expectedType.getAS3Type(), actualExpression, isDeclaration);
+        validateSimpleTypes(symbol, expectedType, actualExpression, isDeclaration);
       }
       return;
     }
 
     // actual must be equal to or implement/extend expected
     if (!actualExpression.getType().isAssignableTo(expectedType)) {
-      logException(symbol, expectedTypeDeclaration.getName(),
-              actualExpression.getType().getDeclaration().getName(), isDeclaration);
+      logException(symbol, expectedTypeDeclaration.getQualifiedNameStr(),
+              actualExpression.getType().getDeclaration().getQualifiedNameStr(), isDeclaration);
     }
 
   }
 
-  private void validateSimpleTypes(JooSymbol symbol, AS3Type expectedType, Expr actualExpression, boolean isDeclaration) {
+  private void validateSimpleTypes(JooSymbol symbol, ExpressionType expectedType, Expr actualExpression, boolean isDeclaration) {
 
-    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !ExpressionType.isNumber(expectedType)) {
+    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !ExpressionType.isNumber(expectedType.getAS3Type())) {
       // this is supposed to be a number but is not
       logException(symbol, expectedType, AS3Type.INT, isDeclaration);
-    } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL ) && !AS3Type.STRING.equals(expectedType))  {
+    } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL ) && !AS3Type.STRING.equals(expectedType.getAS3Type()))  {
       // this is supposed to be a string but is not
       logException(symbol, expectedType, AS3Type.STRING, isDeclaration);
     }
   }
 
 
-  private void logException(JooSymbol jooSymbol, AS3Type expectedType, AS3Type actualType, boolean declaration) {
+  private void logException(JooSymbol jooSymbol, ExpressionType expectedType, AS3Type actualType, boolean declaration) {
     String actualTypeString = actualType == null ? null : actualType.name;
-    String expectedTypeString = expectedType == null ? null : expectedType.name;
+    String expectedTypeString = expectedType == null ? null : expectedType.getDeclaration().getQualifiedNameStr();
 
     logException(jooSymbol, expectedTypeString, actualTypeString, declaration);
   }
