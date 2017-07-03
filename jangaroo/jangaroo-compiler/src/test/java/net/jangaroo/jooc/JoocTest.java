@@ -4,7 +4,6 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.CatalogComponentsParser;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -678,7 +677,7 @@ public class JoocTest extends AbstractJoocTest {
 
   private void checkForAssignmentErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError) {
 
-    String expectedError = String.format(CheckAssignmentAndDeclationVisitor.ASSIGNED_EXPRESSION_ERROR_MESSAGE, actualType, expectedType);
+    String expectedError = String.format(TypeChecker.ASSIGNED_EXPRESSION_ERROR_MESSAGE, actualType, expectedType);
     String message = String.format("Initializer type %s is not assignable to variable type %s", actualType, expectedType);
 
     checkForErrorMessage(message, expectedError, lineOfError, columnOfError);
@@ -686,7 +685,7 @@ public class JoocTest extends AbstractJoocTest {
 
   private void checkForDeclarationErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError) {
 
-    String expectedError = String.format(CheckAssignmentAndDeclationVisitor.VARIABLE_DECLARATION_ERROR_MESSAGE, actualType, expectedType);
+    String expectedError = String.format(TypeChecker.VARIABLE_DECLARATION_ERROR_MESSAGE, actualType, expectedType);
     String message = String.format("Variable of type %s is not assignable to variable type %s", actualType, expectedType);
 
     checkForErrorMessage(message, expectedError, lineOfError, columnOfError);

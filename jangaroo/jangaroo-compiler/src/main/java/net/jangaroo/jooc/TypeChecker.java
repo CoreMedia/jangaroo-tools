@@ -1,10 +1,20 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstVisitorBase;
 import net.jangaroo.jooc.ast.ClassDeclaration;
+import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.Parameters;
+import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -14,14 +24,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-public class CheckAssignmentAndDeclationVisitor extends AstVisitorBase {
+public class TypeChecker extends AstVisitorBase {
 
   static final String ASSIGNED_EXPRESSION_ERROR_MESSAGE = "Assigned expression type %s is not assignable to type %s";
   static final String VARIABLE_DECLARATION_ERROR_MESSAGE = "Initializer type %s is not assignable to variable type %s";
 
   private CompileLog log;
 
-  public CheckAssignmentAndDeclationVisitor(CompileLog log) {
+  TypeChecker(CompileLog log) {
     this.log = log;
   }
 

@@ -171,8 +171,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
           implementedMembersAnalyzer.analyzeImplementedMembers(unit);
 
-          CheckAssignmentAndDeclationVisitor checkAssignmentAndDeclationVisitor = new CheckAssignmentAndDeclationVisitor(log);
-          unit.visit(new TransitiveAstVisitor(checkAssignmentAndDeclationVisitor));
+          TypeChecker typeChecker = new TypeChecker(log);
+          unit.visit(new TransitiveAstVisitor(typeChecker));
         }
       }
 
