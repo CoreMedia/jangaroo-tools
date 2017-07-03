@@ -5,7 +5,7 @@ import ext.mixin.Observable;
 
 public class ConfigClass extends Observable {
 
-  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {ext.mixin.Observable.prototype.constructor.call(this);if(arguments.length<=0)config=null;
+  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {this.super$2();if(arguments.length<=0)config=null;
   }/*
 
   public var foo:String = "foo";
@@ -53,6 +53,9 @@ public class ConfigClass extends Observable {
         items: ["DefaultProperty"]
       },
       constructor: ConfigClass$,
+      super$2: function() {
+        ext.mixin.Observable.prototype.constructor.apply(this, arguments);
+      },
       foo: "foo",
       number: 0,
       _title$2: "- empty -",

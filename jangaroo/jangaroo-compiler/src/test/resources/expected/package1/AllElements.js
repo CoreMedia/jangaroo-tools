@@ -92,7 +92,7 @@ public class AllElements extends panel{
     var aplugin_126_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
     config_$1["plugins"] = [aplugin_125_7_$1, aplugin_126_7_$1];
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    ext.config.panel.prototype.constructor.call(this,config_$1);
+    this.super$4(config_$1);
   }/*
 
       /*
@@ -116,6 +116,9 @@ public class AllElements extends panel{
       myVar4$4: null,
       __initialize__$4: __initialize__,
       constructor: AllElements$,
+      super$4: function() {
+        ext.config.panel.prototype.constructor.apply(this, arguments);
+      },
       config: {gear: null},
       statics: {
         SOME_CONSTANT: undefined,

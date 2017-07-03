@@ -72,7 +72,7 @@ public class SimpleMxmlClass extends ConfigClass{
     config_$1["items"] = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new package1.ConfigClass(configClass_61_5_$1), new package1.ConfigClass(configClass_67_5_$1)];
     config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND;
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    package1.ConfigClass.prototype.constructor.call(this,config_$1);
+    this.super$3(config_$1);
   }/*
 
     private var blub:*;*/function static$0(){
@@ -145,6 +145,9 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
       extend: "package1.ConfigClass",
       alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
+      super$3: function() {
+        package1.ConfigClass.prototype.constructor.apply(this, arguments);
+      },
       blub$3: undefined,
       $on_config_$1_click$3: $on_config_$1_click,
       $on_other$ns_SomeOtherClass_55_5_$1_clickClack$3: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,

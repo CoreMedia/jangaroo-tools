@@ -15,7 +15,7 @@ public class TestComponent extends TestComponentBase{
               'c'
              ];
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    package1.mxml.pkg.TestComponentBase.prototype.constructor.call(this,config_$1);
+    this.super$2(config_$1);
   }/*
 
     [Bindable]
@@ -29,6 +29,9 @@ public class TestComponent extends TestComponentBase{
     return {
       extend: "package1.mxml.pkg.TestComponentBase",
       constructor: TestComponent$,
+      super$2: function() {
+        package1.mxml.pkg.TestComponentBase.prototype.constructor.apply(this, arguments);
+      },
       config: {
         property_1: null,
         property_2: 0

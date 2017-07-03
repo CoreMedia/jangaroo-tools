@@ -1052,7 +1052,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateFunJsCode(ApplyExpr applyExpr) throws IOException {
-    // leave out constructor function if called as type cast function!
+    // handle constructor function if called as type cast function!
     // these old-style type casts are soo ugly....
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCast()) {
@@ -1933,8 +1933,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    out.write(getSuperClassPrototypeAccessCode() + ".constructor");
-    generateSuperCallParameters(args);
+    ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
+    String superWithLevel = "super$" + classDeclaration.getInheritanceLevel();
+    out.write("this." + superWithLevel);
+    if (args == null) {
+      out.writeToken("()");
+    } else {
+      args.visit(this);
+    }
+    String callSuperCode = "function() {\n" +
+            "        " + getSuperClassPrototypeAccessCode() + ".constructor.apply(this, arguments);\n" +
+            "      }";
+    primaryClassDefinitionBuilder.members.put(superWithLevel, new PropertyDefinition(callSuperCode));
   }
 
   private String getSuperClassPrototypeAccessCode() {

@@ -12,13 +12,16 @@ public class AInstantiatesB extends Panel{
     local_BDeclaresA_12_5_$1["someProperty"] = "yes";
     config_$1["items"] = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)];
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    ext.Panel.prototype.constructor.call(this,config_$1);
+    this.super$3(config_$1);
   }/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.Panel",
       constructor: AInstantiatesB$,
+      super$3: function() {
+        ext.Panel.prototype.constructor.apply(this, arguments);
+      },
       requires: ["ext.Panel"],
       uses: [
         "net.jangaroo.ext.Exml",

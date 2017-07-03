@@ -3,7 +3,7 @@ import package1.*;
 
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
-public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){package1.ConfigClass.prototype.constructor.call(this);if(arguments.length<=0)config=null;
+public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){this.super$3();if(arguments.length<=0)config=null;
     var config_$1/*:MetadataMxmlClass*/ =AS3.cast(MetadataMxmlClass,{});
 }/*}}
 
@@ -19,6 +19,9 @@ public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxml
         ]
       ]},
       constructor: MetadataMxmlClass$,
+      super$3: function() {
+        package1.ConfigClass.prototype.constructor.apply(this, arguments);
+      },
       requires: ["package1.ConfigClass"]
     };
 });
