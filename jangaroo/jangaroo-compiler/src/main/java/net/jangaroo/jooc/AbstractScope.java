@@ -230,6 +230,9 @@ public abstract class AbstractScope implements Scope {
           }
           if (declaration instanceof FunctionDeclaration) {
             FunctionDeclaration functionDeclaration = (FunctionDeclaration) declaration;
+            if (functionDeclaration.isSetter()) {
+              return getExpressionType(functionDeclaration.getParams().getHead().getOptTypeRelation());
+            }
             if (!functionDeclaration.isGetterOrSetter()) {
               return getFunctionSignature(functionDeclaration.getParams(), expressionType);
             }

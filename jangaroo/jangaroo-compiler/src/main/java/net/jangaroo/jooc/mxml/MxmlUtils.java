@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mxml;
 
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -97,11 +96,15 @@ public class MxmlUtils {
   public static Object getAttributeValue(String attributeValue, String type) {
     if (!MxmlUtils.isBindingExpression(attributeValue)) {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
+      attributeValue = attributeValue.trim();
+      if (attributeValue.isEmpty() && !(AS3Type.STRING.equals(as3Type) || AS3Type.ARRAY.equals(as3Type))) {
+        // empty string is only kept if type is explicitly set to "String" or "Array", otherwise, we use null:
+        return null;
+      }
       if (AS3Type.ANY.equals(as3Type)) {
         as3Type = CompilerUtils.guessType(attributeValue);
       }
       if (as3Type != null) {
-        attributeValue = attributeValue.trim();
         switch (as3Type) {
           case BOOLEAN:
             return Boolean.parseBoolean(attributeValue);
@@ -111,8 +114,9 @@ public class MxmlUtils {
           case INT:
             return Long.parseLong(attributeValue);
           case ARRAY:
-            Object singleItem = getAttributeValue(attributeValue, AS3Type.ANY.name);
-            String code = StringUtils.isBlank(attributeValue) ? "[]" : String.format("[%s]", valueToString(singleItem));
+            String code = attributeValue.isEmpty()
+                    ? "[]"
+                    : String.format("[%s]", valueToString(getAttributeValue(attributeValue, AS3Type.ANY.name)));
             return  MxmlUtils.createBindingExpression(code);
         }
       }

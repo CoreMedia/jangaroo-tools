@@ -8,6 +8,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
+import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
@@ -15,8 +16,8 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
+import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
@@ -36,10 +37,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.APPLY;
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
 final class MxmlToModelParser {
 
@@ -165,12 +168,6 @@ final class MxmlToModelParser {
                 createEventHandlerCode(variable, textContent, eventModel);
                 continue;
               }
-            } else if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
-              List<XmlElement> exmlMixins = element.getElements();
-              for (XmlElement exmlMixin : exmlMixins) {
-                processAttributesAndChildNodes(exmlMixin, configVariable, targetVariable, generatingConfig);
-              }
-              continue;
             }
           }
         }
@@ -186,7 +183,17 @@ final class MxmlToModelParser {
             JooSymbol textContent = getTextContent(element);
             createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, textContent, propertyModel);
           } else {
-            createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
+            if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
+              StringBuilder constructorCode = new StringBuilder();
+              for (XmlElement arrayItemNode : childElements) {
+                String itemValue = createValueCodeFromElement(null, arrayItemNode, true);
+                createDeleteTypePropertiesCode(constructorCode, itemValue);
+                constructorCode.append("\n    " + NET_JANGAROO_EXT_EXML + "." + APPLY + "(" + configVariable + ", " + itemValue + ");");
+              }
+              constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+            } else {
+              createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
+            }
           }
           String configMode = getConfigMode(element, propertyModel);
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
@@ -248,13 +255,17 @@ final class MxmlToModelParser {
             constructorCode.append("    ")
                     .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
           }
-          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
-          constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+          createDeleteTypePropertiesCode(constructorCode, value);
           constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
         }
       }
     }
     createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
+  }
+
+  private static void createDeleteTypePropertiesCode(StringBuilder constructorCode, String value) {
+    constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
+    constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
   }
 
   private String createArrayCodeFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
@@ -425,7 +436,7 @@ final class MxmlToModelParser {
             classModel.isAssignableTo((ClassDeclaration) extPluginCompilationUnit.getPrimaryDeclaration())) {
       return true;
     }
-    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+    for (ClassDeclaration current = classModel; current != null; current = current.getSuperTypeDeclaration()) {
       Iterator<Annotation> extConfigAnnotations = current.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).iterator();
       if (extConfigAnnotations.hasNext()) {
         Annotation extConfigAnnotation = extConfigAnnotations.next();
@@ -531,9 +542,13 @@ final class MxmlToModelParser {
     String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue((String) value.getJooValue(), untyped ? null : propertyType));
 
     String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    boolean untypedAccess = true; // untyped || !propertyName.equals(propertyModel.getName());
+    boolean untypedAccess = untyped || !propertyName.equals(propertyModel.getName());
 
     Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, attributeValueAsString));
+    // special case: String properties auto-cast any right-hand-side into a String:
+    if ("String".equals(propertyType) && !(rightHandSide instanceof LiteralExpr && ((LiteralExpr)rightHandSide).getValue().getJooValue() instanceof String)) {
+      rightHandSide = new ApplyExpr(new DotExpr(new IdeExpr(new Ide("Exml")), MxmlAstUtils.SYM_DOT , new Ide("asString")), MxmlAstUtils.SYM_LPAREN, new CommaSeparatedList<>(rightHandSide), MxmlAstUtils.SYM_RPAREN);
+    }
     return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
   }
 
@@ -572,7 +587,7 @@ final class MxmlToModelParser {
 
   private TypedIdeDeclaration findPropertyModel(ClassDeclaration classModel, String propertyName) {
     TypedIdeDeclaration propertyModel = null;
-    ClassDeclaration superClassModel = getSuperClassModel(classModel);
+    ClassDeclaration superClassModel = classModel.getSuperTypeDeclaration();
     if (superClassModel != null) {
       propertyModel = findPropertyModel(superClassModel, propertyName);
     }
@@ -586,7 +601,7 @@ final class MxmlToModelParser {
   }
 
   private Annotation findEvent(ClassDeclaration classModel, String propertyName) {
-    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+    for (ClassDeclaration current = classModel; current != null; current = current.getSuperTypeDeclaration()) {
       Annotation eventModel = getEvent(current, propertyName);
       if (eventModel != null) {
         return eventModel;
@@ -614,7 +629,7 @@ final class MxmlToModelParser {
   }
 
   private TypedIdeDeclaration findDefaultPropertyModel(ClassDeclaration classModel) {
-    for (ClassDeclaration current = classModel; current != null; current = getSuperClassModel(current)) {
+    for (ClassDeclaration current = classModel; current != null; current = current.getSuperTypeDeclaration()) {
       TypedIdeDeclaration defaultPropertyModel = findPropertyWithAnnotation(current, MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION);
       if (defaultPropertyModel != null) {
         return defaultPropertyModel;
@@ -639,10 +654,6 @@ final class MxmlToModelParser {
       jangarooParser.getLog().error(element.getSymbol(), "MXML: property " + name + " not found in class " + compilationUnitModel.getQualifiedNameStr() + ".");
     }
     return new VariableDeclaration(new JooSymbol("var"), new Ide(name), new TypeRelation(new JooSymbol(allowAnyProperty ? UNTYPED_MARKER : "*")));
-  }
-
-  private ClassDeclaration getSuperClassModel(ClassDeclaration classModel) {
-    return classModel.getSuperTypeDeclaration();
   }
 
   @Nonnull

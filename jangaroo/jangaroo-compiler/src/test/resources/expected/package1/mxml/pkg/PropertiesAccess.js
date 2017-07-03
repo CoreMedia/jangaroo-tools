@@ -2,9 +2,9 @@ Ext.define("package1.mxml.pkg.PropertiesAccess", function(PropertiesAccess) {/*p
 import package1.mxml.pkg.*;
 public class PropertiesAccess extends PropertiesAccessBase{public*/function PropertiesAccess$(config/*:PropertiesAccess=null*/){this.super$2();if(arguments.length<=0)config=null;
     var config_$1/*:PropertiesAccess*/ =AS3.cast(PropertiesAccess,{});
-    config_$1["property_1"] = "egal";
-    config_$1["property_2"] = "egaler";
-    config_$1["property_3"] = "am egalsten";
+    config_$1.property_1 = "egal";
+    config_$1.property_2 = "egaler";
+    config_$1.property_3 = "am egalsten";
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

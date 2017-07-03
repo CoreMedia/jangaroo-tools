@@ -77,6 +77,14 @@ public class DotExpr extends PostfixOpExpr {
           getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
         }
       } else {
+        if (memberDeclaration instanceof PropertyDeclaration) {
+          // It may make a difference whether we read or write:
+          if (parentNode instanceof AssignmentOpExpr && ((AssignmentOpExpr)parentNode).getArg1() == this) {
+            // We are the left-hand-side of an assignment: Use setter's type!
+            memberDeclaration = ((PropertyDeclaration)memberDeclaration).getSetter();
+          }
+          // Otherwise, keep the PropertyDeclaration, as it already uses the type of the getter.
+        }
         setType(getIde().getScope().getExpressionType(memberDeclaration));
       }
     }

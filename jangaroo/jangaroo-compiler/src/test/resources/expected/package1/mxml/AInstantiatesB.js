@@ -9,8 +9,8 @@ public class AInstantiatesB extends Panel{
     var defaults_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var local_BDeclaresA_12_5_$1/*: package1.mxml.BDeclaresA*/ =AS3.cast(package1.mxml.BDeclaresA,{});
-    local_BDeclaresA_12_5_$1["someProperty"] = "yes";
-    config_$1["items"] = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)];
+    AS3.setBindable(local_BDeclaresA_12_5_$1,"someProperty" , "yes");
+    config_$1.items = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)];
     net.jangaroo.ext.Exml.apply(config_$1,config);
     this.super$3(config_$1);
   }/*}}

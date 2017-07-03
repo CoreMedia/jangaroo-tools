@@ -3,8 +3,7 @@ public class TestOldPropertyAccessSyntax extends Object{
 
     import testPackage.PropertiesTest_properties;
 
-    public static const BUNDLE:PropertiesTest_properties =*/function BUNDLE$static_(){TestOldPropertyAccessSyntax.BUNDLE=( testPackage.PropertiesTest_properties.INSTANCE);}/*;public*/function TestOldPropertyAccessSyntax$(config/*:TestOldPropertyAccessSyntax=null*/){if(arguments.length<=0)config=null;
-    this["foo"] = TestOldPropertyAccessSyntax.BUNDLE.key;
+    public static const BUNDLE:PropertiesTest_properties =*/function BUNDLE$static_(){TestOldPropertyAccessSyntax.BUNDLE=( testPackage.PropertiesTest_properties.INSTANCE);}/*;public*/function TestOldPropertyAccessSyntax$(config/*:TestOldPropertyAccessSyntax=null*/){if(arguments.length<=0)config=null;foo = TestOldPropertyAccessSyntax.BUNDLE.key;
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

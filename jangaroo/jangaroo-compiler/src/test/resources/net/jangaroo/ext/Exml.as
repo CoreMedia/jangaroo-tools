@@ -10,5 +10,7 @@ public class Exml {
 
   public static native function apply(config:Object, overrideConfig:Object):*;
 
+  public static native function asString(value:*):String;
+
 }
 }
