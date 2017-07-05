@@ -216,7 +216,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     if(null != initMethod) {
       CommaSeparatedList<Expr> args = null;
-      if(null != constructorParam) {
+      if(null != constructorParam && initMethod.getParams() != null) {
         args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
       }
       DotExpr initFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));

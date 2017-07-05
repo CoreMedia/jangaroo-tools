@@ -23,7 +23,7 @@ public class IncorrectDeclarationFunction {
   }
 
   private function thisIsAVoidFunction():void {
-    // do nothing
+    return "this is not allowed!";
   }
 }
 }

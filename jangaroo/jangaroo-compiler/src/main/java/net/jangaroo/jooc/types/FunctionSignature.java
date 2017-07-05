@@ -23,6 +23,18 @@ public class FunctionSignature extends ExpressionType {
     this.parameterTypes = parameterTypes;
   }
 
+  public int getMinArgumentCount() {
+    return minArgumentCount;
+  }
+
+  public boolean hasRest() {
+    return hasRest;
+  }
+
+  public List<ExpressionType> getParameterTypes() {
+    return parameterTypes;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

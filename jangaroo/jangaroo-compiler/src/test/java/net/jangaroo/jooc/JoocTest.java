@@ -477,7 +477,7 @@ public class JoocTest extends AbstractJoocTest {
 
 
   @Test
-  public void testIncorrectAssingnmentString() throws Exception {
+  public void testIncorrectAssignmentString() throws Exception {
 
     // TOOD assignment like: var x:String = ""; => will result in a VariableDeclaration
     int firstLineOfError = 13;
@@ -682,25 +682,39 @@ public class JoocTest extends AbstractJoocTest {
     checkForDeclarationErrorMessage("assignment.Square", "assignment.Rectangle", 7, 20);
   }
 
+  @Test
+  public void testIncorrectReturnType() throws Exception {
+    File sourcefile = getFile("/assignment/IncorrectReturnType.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+
+    checkForReturnErrorMessage("void", "String", 14, 12);
+    checkForReturnErrorMessage("void", "Number", 18, 12);
+    checkForReturnErrorMessage("package1.mxml.AnotherInterface", "package1.SomeClass", 22, 12);
+    checkForReturnErrorMessage("String", "int", 26, 12);
+    checkForReturnErrorMessage("Number", "String", 31, 14);
+  }
+
   private void checkForErrorMessage(String message, String expectedError, int lineOfError, int columnOfError) {
     assertTrue(message, testLog.hasError(expectedError));
     assertErrorAt(expectedError, lineOfError, columnOfError);
   }
 
   private void checkForAssignmentErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError) {
-
-    String expectedError = String.format(TypeChecker.ASSIGNED_EXPRESSION_ERROR_MESSAGE, actualType, expectedType);
-    String message = String.format("Initializer type %s is not assignable to variable type %s", actualType, expectedType);
-
-    checkForErrorMessage(message, expectedError, lineOfError, columnOfError);
+    checkForTypeErrorMessage(expectedType, actualType, lineOfError, columnOfError, TypeChecker.ASSIGNED_EXPRESSION_ERROR_MESSAGE);
   }
 
   private void checkForDeclarationErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError) {
+    checkForTypeErrorMessage(expectedType, actualType, lineOfError, columnOfError, TypeChecker.VARIABLE_DECLARATION_ERROR_MESSAGE);
+  }
 
-    String expectedError = String.format(TypeChecker.VARIABLE_DECLARATION_ERROR_MESSAGE, actualType, expectedType);
-    String message = String.format("Variable of type %s is not assignable to variable type %s", actualType, expectedType);
+  private void checkForReturnErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError) {
+    checkForTypeErrorMessage(expectedType, actualType, lineOfError, columnOfError, TypeChecker.RETURN_EXPRESSION_ERROR_MESSAGE);
+  }
 
-    checkForErrorMessage(message, expectedError, lineOfError, columnOfError);
+  private void checkForTypeErrorMessage(String expectedType, String actualType, int lineOfError, int columnOfError, String typeErrorMessageTemplate) {
+    String expectedError = String.format(typeErrorMessageTemplate, actualType, expectedType);
+    checkForErrorMessage("Expected error did not occur: " + expectedError, expectedError, lineOfError, columnOfError);
   }
 
 }

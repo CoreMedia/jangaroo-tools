@@ -29,6 +29,10 @@ public abstract class KeywordExprStatement extends SemicolonTerminatedStatement 
     this.symKeyword = symKeyword;
   }
 
+  public Expr getOptExpr() {
+    return (Expr) getOptStatement();
+  }
+
   public JooSymbol getSymbol() {
     return getSymKeyword();
   }

@@ -5,7 +5,7 @@ import net.jangaroo.example.HelloWorldTest;
 
 public class TestSuite {
 
-  public function TestSuite() {
+  public function TestSuite(test:Object) {
   }
 
   public static function suite():TestSuite {
