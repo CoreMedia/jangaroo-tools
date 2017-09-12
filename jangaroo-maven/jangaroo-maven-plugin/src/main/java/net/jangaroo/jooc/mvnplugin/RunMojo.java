@@ -33,9 +33,10 @@ public class RunMojo extends AbstractMojo {
 
   /**
    * The host name of the started server. Defaults to 'localhost'.
+   * To expose the server on all network interfaces, use 0.0.0.0 instead.
    */
   @Parameter(property = "jooJettyHost")
-  private String jooJettyHost = "0.0.0.0";
+  private String jooJettyHost = "localhost";
 
   /**
    * The port of the started server. Defaults to 8080.
