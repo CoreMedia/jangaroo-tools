@@ -16,6 +16,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
+import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_APP_PACKAGING;
+
 /**
  * Starts a Jetty server serving the static resources below the Sencha workspace root (i.e. the parent directory of the
  * {@code .remote-packages} directory).
@@ -25,8 +27,6 @@ import java.util.List;
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractMojo {
-
-  private static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
