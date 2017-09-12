@@ -119,11 +119,16 @@ public class SenchaUtils {
 
   public static String getSenchaVersionForMavenVersion(String version) {
     // Very simple matching for now, maybe needs some adjustment
-    String senchaVersion = version.replaceAll("[^0-9.-]", "").replace("-", ".").replaceAll("[.]+", ".").replaceAll("[.]+$", "");
+    String senchaVersion = version
+      .replaceAll("[^0-9.-]", "")
+      .replace("-", ".")
+      .replaceAll("[.]+", ".")
+      .replaceAll("[.]+$", "")
+      .replaceAll("^[.]+", "");
     if (SENCHA_VERSION_PATTERN.matcher(senchaVersion).matches()) {
       return senchaVersion;
     } else {
-      return null;
+      return "0.0.1";
     }
   }
 
