@@ -16,23 +16,29 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SenchaCmdExecutor {
 
   private static final long MAX_EXECUTION_TIME = ExecuteWatchdog.INFINITE_TIMEOUT;
+  private static final Pattern SENCHA_CMD_VERSION_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+){2,3}");
 
   @Nonnull
   public static int[] queryVersion() throws IOException {
     final String[] versionStringVar = new String[1];
     internalExecute(CommandLine.parse("sencha switch -l"),  new LogOutputStream() {
-    //internalExecute(CommandLine.parse("echo %TEST%"),  new LogOutputStream() {
+      /*
+       * Parse first line or preferably, if a line containing "current version" appears, the line after that.
+       */
+
       private boolean parseNext = true;
       @Override
       protected void processLine(String line, int level) {
         if (parseNext) {
           parseNext = false;
           versionStringVar[0] = line;
-        } else if ("Current version".equalsIgnoreCase(line)) {
+        } else if (line.toLowerCase().contains("current version")) {
           parseNext = true;
         }
       }
@@ -45,15 +51,18 @@ public class SenchaCmdExecutor {
   }
 
   static int[] parseVersion(String versionString) throws IOException {
+    Matcher matcher = SENCHA_CMD_VERSION_PATTERN.matcher(versionString);
     int[] versions = null;
-    try {
-      versions = Arrays.stream(StringUtils.split(versionString.trim(), "."))
-              .mapToInt(Integer::parseInt)
-              .toArray();
-    } catch (NumberFormatException e) {
-      // handle below
+    if (matcher.find()) {
+      try {
+        versions = Arrays.stream(StringUtils.split(matcher.group(), "."))
+                .mapToInt(Integer::parseInt)
+                .toArray();
+      } catch (NumberFormatException e) {
+        // handle below
+      }
     }
-    if (versions == null || versions.length < 3) {
+    if (versions == null) {
       throw new IOException("Incorrect Sencha Cmd version format: " + versionString);
     }
     return versions;
