@@ -45,6 +45,7 @@
         <extension>jar</extension>
         <language>jangaroo</language>
         <addedToClasspath>false</addedToClasspath>
+        <includesDependencies>true</includesDependencies>
         <packaging>jangaroo-app</packaging>
       </configuration>
     </component>
