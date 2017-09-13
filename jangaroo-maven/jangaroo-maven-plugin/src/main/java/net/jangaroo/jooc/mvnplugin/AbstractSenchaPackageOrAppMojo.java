@@ -39,6 +39,8 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
         extends AbstractSenchaMojo
         implements SenchaProfileConfiguration {
 
+  private static final String SENCHA_FALLBACK_VERSION = "0.0.1";
+
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
 
@@ -104,8 +106,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   private void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder)
           throws MojoExecutionException {
     String version = SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
-    if (null == version) {
-      throw new MojoExecutionException("Could not determine Sencha version from maven version");
+    if (version == null) {
+      version = SENCHA_FALLBACK_VERSION;
+      getLog().warn("Could not determine Sencha version from maven version " + project.getVersion() +
+              ", falling back to " + version + ".");
     }
     configBuilder.name(getSenchaPackageName(project.getGroupId(), project.getArtifactId()));
     configBuilder.version(version);
