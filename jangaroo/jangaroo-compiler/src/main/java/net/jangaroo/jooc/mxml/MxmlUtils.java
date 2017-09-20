@@ -5,6 +5,8 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +32,7 @@ public class MxmlUtils {
 
   private static final Pattern MXML_COMMENT = Pattern.compile("<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
   public static final String CONFIG = "config";
+  private static final List<AS3Type> AS3_TYPES_THAT_ALLOW_EMPTY_STRING = Arrays.asList(AS3Type.ANY, AS3Type.OBJECT, AS3Type.STRING, AS3Type.ARRAY);
 
   public static boolean isMxmlNamespace(String uri) {
     return MXML_NAMESPACE_URI.equals(uri);
@@ -97,8 +100,8 @@ public class MxmlUtils {
     if (!MxmlUtils.isBindingExpression(attributeValue)) {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       attributeValue = attributeValue.trim();
-      if (attributeValue.isEmpty() && !(AS3Type.STRING.equals(as3Type) || AS3Type.ARRAY.equals(as3Type))) {
-        // empty string is only kept if type is explicitly set to "String" or "Array", otherwise, we use null:
+      if (attributeValue.isEmpty() && !AS3_TYPES_THAT_ALLOW_EMPTY_STRING.contains(as3Type)) {
+        // empty string is only kept if type is compatible with "String" or "Array", otherwise, we use null:
         return null;
       }
       if (AS3Type.ANY.equals(as3Type)) {
