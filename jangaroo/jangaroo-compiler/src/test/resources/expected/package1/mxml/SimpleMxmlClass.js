@@ -11,7 +11,7 @@ public class SimpleMxmlClass extends ConfigClass{
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
     public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
+    var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
     var defaults_$1/*:SimpleMxmlClass*/ =AS3.cast(SimpleMxmlClass,{});
     AS3.setBindable(defaults_$1,"bar" , "FOO & BAR!");
     AS3.setBindable(defaults_$1,"computed" , 'B' + 'AR!');

@@ -38,7 +38,7 @@ public class AllElements extends panel{
     }/*
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$4(config);
-    var config_$1/*:AllElements*/ =AS3.cast(AllElements,{});
+    var config_$1/*: ext.config.panel*/ =AS3.cast(ext.config.panel,{});
     var defaults_$1/*:AllElements*/ =AS3.cast(AllElements,{});
     var myVar3_54_5_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
     myVar3_54_5_$1.text = "Foo";

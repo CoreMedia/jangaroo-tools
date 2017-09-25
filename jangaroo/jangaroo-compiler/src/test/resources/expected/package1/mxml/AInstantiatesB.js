@@ -5,7 +5,7 @@ import net.jangaroo.ext.Exml;
 public class AInstantiatesB extends Panel{
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
+    var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});
     var defaults_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     var local_BDeclaresA_12_5_$1/*: package1.mxml.BDeclaresA*/ =AS3.cast(package1.mxml.BDeclaresA,{});

@@ -4,7 +4,7 @@ import package1.*;
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
 public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){this.super$3();if(arguments.length<=0)config=null;
-    var config_$1/*:MetadataMxmlClass*/ =AS3.cast(MetadataMxmlClass,{});
+    var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

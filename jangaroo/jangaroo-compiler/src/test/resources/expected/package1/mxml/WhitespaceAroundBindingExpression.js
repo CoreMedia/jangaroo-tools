@@ -3,7 +3,7 @@ import ext.*;
 public class WhitespaceAroundBindingExpression extends Panel{
 
     import ext.layout.ContainerLayout;public*/function WhitespaceAroundBindingExpression$(config/*:WhitespaceAroundBindingExpression=null*/){this.super$3();if(arguments.length<=0)config=null;
-    var config_$1/*:WhitespaceAroundBindingExpression*/ =AS3.cast(WhitespaceAroundBindingExpression,{});
+    var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});
     config_$1.layout = new ext.layout.ContainerLayout();
 }/*}}
 

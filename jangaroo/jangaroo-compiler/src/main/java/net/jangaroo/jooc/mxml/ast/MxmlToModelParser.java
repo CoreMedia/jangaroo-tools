@@ -586,18 +586,15 @@ final class MxmlToModelParser {
   }
 
   private TypedIdeDeclaration findPropertyModel(ClassDeclaration classModel, String propertyName) {
-    TypedIdeDeclaration propertyModel = null;
-    ClassDeclaration superClassModel = classModel.getSuperTypeDeclaration();
-    if (superClassModel != null) {
-      propertyModel = findPropertyModel(superClassModel, propertyName);
-    }
-    if (propertyModel == null) {
-      TypedIdeDeclaration memberModel = classModel.getMemberDeclaration(propertyName);
+    for (ClassDeclaration currentClassModel = classModel;
+         currentClassModel != null;
+         currentClassModel = currentClassModel.getSuperTypeDeclaration()) {
+      TypedIdeDeclaration memberModel = currentClassModel.getMemberDeclaration(propertyName);
       if (memberModel != null && !memberModel.isPrivate() && memberModel.isWritable()) {
-        propertyModel = memberModel;
+        return memberModel;
       }
     }
-    return propertyModel;
+    return null;
   }
 
   private Annotation findEvent(ClassDeclaration classModel, String propertyName) {

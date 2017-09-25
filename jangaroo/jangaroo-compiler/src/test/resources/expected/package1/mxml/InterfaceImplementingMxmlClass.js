@@ -5,7 +5,7 @@ import net.jangaroo.ext.Exml;
 public class InterfaceImplementingMxmlClass extends ConfigClass implements package1.mxml.YetAnotherInterface{
 
     public*/function InterfaceImplementingMxmlClass$(config/*:InterfaceImplementingMxmlClass = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
+    var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
     var defaults_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     net.jangaroo.ext.Exml.apply(config_$1,config);

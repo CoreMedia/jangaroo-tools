@@ -4,7 +4,7 @@ import net.jangaroo.ext.Exml;
 public class TestComponent extends TestComponentBase{
 
     public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
+    var config_$1/*: package1.mxml.pkg.TestComponentBase*/ =AS3.cast(package1.mxml.pkg.TestComponentBase,{});
     var defaults_$1/*:TestComponent*/ =AS3.cast(TestComponent,{});
     AS3.setBindable(defaults_$1,"property_1" , "withDefault");
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
