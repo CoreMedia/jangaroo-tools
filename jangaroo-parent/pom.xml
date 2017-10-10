@@ -329,6 +329,16 @@
         <artifactId>mockito-core</artifactId>
         <version>1.10.19</version>
       </dependency>
+      <dependency>
+        <groupId>org.mitre.dsmiley.httpproxy</groupId>
+        <artifactId>smiley-http-proxy-servlet</artifactId>
+        <version>1.9</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.3</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <properties>
