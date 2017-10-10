@@ -50,8 +50,6 @@ import static org.apache.commons.io.FileUtils.cleanDirectory;
         threadSafe = true)
 public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
-  private static final String REMOTE_PACKAGES_DIR = ".remote-packages";
-
   /**
    * Non-null if we have joounit tests in this module
    */
@@ -86,7 +84,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     FileHelper.ensureDirectory(workspaceDir);
     SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
     SenchaUtils.configureDefaults(configBuilder, "default.workspace.json");
-    File remotePackagesDir = remotePackagesDir();
+    File remotePackagesDir = SenchaUtils.remotePackagesDir(session.getRequest().getMultiModuleProjectDirectory());
     File extDirectory = configurePackages(project, workspaceDir, remotePackagesDir, configBuilder);
     callSenchaGenerateWorkspace(workspaceDir, extDirectory, webRootDir(), remotePackagesDir);
     writeFile(configBuilder, workspaceDir.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT, getLog());
@@ -231,23 +229,6 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
   private File webRootDir() {
     return  session.getRequest().getMultiModuleProjectDirectory();
-  }
-
-  private File remotePackagesDir() {
-    File base = session.getRequest().getMultiModuleProjectDirectory();
-    for (;;) {
-      File remotePackagesDir = new File(base, REMOTE_PACKAGES_DIR);
-      File baseParent = base.getParentFile();
-      if (remotePackagesDir.exists() || baseParent == null) {
-        return remotePackagesDir;
-      }
-      File pom = new File(baseParent, "pom.xml");
-      if (!pom.exists()) {
-        // don't go out of maven projects
-        return remotePackagesDir;
-      }
-      base = baseParent;
-    }
   }
 
   /**

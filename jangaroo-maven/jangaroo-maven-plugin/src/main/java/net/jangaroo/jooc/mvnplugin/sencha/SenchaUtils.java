@@ -100,6 +100,7 @@ public class SenchaUtils {
 
   private static final ObjectMapper objectMapper;
   private static final String DOT_SWC_EXTENSION = '.' + Type.SWC_EXTENSION;
+  private static final String REMOTE_PACKAGES_DIR = ".remote-packages";
 
   static {
     objectMapper = new ObjectMapper();
@@ -379,6 +380,23 @@ public class SenchaUtils {
       }
     } catch (IOException e) {
       throw new MojoExecutionException("IO Error while extracting archive", e);
+    }
+  }
+
+  public static File remotePackagesDir(File baseDir) {
+    File currentBaseDir = baseDir;
+    for (;;) {
+      File remotePackagesDir = new File(currentBaseDir, REMOTE_PACKAGES_DIR);
+      File baseParent = currentBaseDir.getParentFile();
+      if (remotePackagesDir.exists() || baseParent == null) {
+        return remotePackagesDir;
+      }
+      File pom = new File(baseParent, "pom.xml");
+      if (!pom.exists()) {
+        // don't go out of maven projects
+        return remotePackagesDir;
+      }
+      currentBaseDir = baseParent;
     }
   }
 }
