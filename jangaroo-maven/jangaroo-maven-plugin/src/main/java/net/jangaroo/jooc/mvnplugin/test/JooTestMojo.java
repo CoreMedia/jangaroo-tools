@@ -8,7 +8,9 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.Range;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
@@ -21,14 +23,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.cli.CommandLineException;
-import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
-import org.eclipse.jetty.server.AbstractNetworkConnector;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -45,9 +39,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
@@ -85,8 +78,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isSenchaDependency;
         threadSafe = true)
 public class JooTestMojo extends AbstractSenchaMojo {
 
-  private static final int MAXIMUM_NUMBER_OF_RETRIES = 30;
-  private static final int WAITING_TIME = 1000;
+  private static final int JETTY_START_TIMEOUT_MILLIS = 30000;
 
   private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
 
@@ -165,7 +157,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
    * enable it using the "maven.test.skip" property, because maven.test.skip disables both running the
    * tests and compiling the tests. Consider using the skipTests parameter instead.
    */
-  @Parameter(property =  "maven.test.skip")
+  @Parameter(property = "maven.test.skip")
   private boolean skip;
 
   /**
@@ -294,42 +286,28 @@ public class JooTestMojo extends AbstractSenchaMojo {
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
 
       File baseDir = session.getRequest().getMultiModuleProjectDirectory();
-      Server server = jettyRunTest(!interactiveJooUnitTests, baseDir);
-      String url = getTestUrl(server, baseDir);
-      getLog().info("Test-URL: " + url);
 
+      JettyWrapper jettyWrapper = new JettyWrapper(getLog());
+      Range<Integer> portRange = interactiveJooUnitTests
+              ? Range.is(jooUnitJettyPortLowerBound)
+              : Range.between(jooUnitJettyPortLowerBound, jooUnitJettyPortUpperBound);
       try {
+        jettyWrapper.start(jooUnitJettyHost, portRange, baseDir);
+
+        String url = getTestUrl(jettyWrapper.getUri(), baseDir);
+        getLog().info("Test-URL: " + url);
+
         if (interactiveJooUnitTests) {
-          try {
-            server.join();
-          } catch (InterruptedException e) {
-            // okay, good-bye!
-          }
+          jettyWrapper.blockUntilInterrupted();
         } else {
-          checkServerState(server);
+          jettyWrapper.waitUntilStarted(JETTY_START_TIMEOUT_MILLIS);
           runTests(url);
         }
+      } catch (JettyWrapper.JettyHelperException e) {
+        throw new MojoExecutionException("Could not start Jetty", e);
       } finally {
-        stopServerIgnoreException(server);
+        jettyWrapper.stop();
       }
-    }
-  }
-
-  private void checkServerState(Server server) {
-    for (int i = 0; i < MAXIMUM_NUMBER_OF_RETRIES; i++) {
-      if (server.isStarted()) {
-        break;
-      } else {
-        try {
-          getLog().info("Server not ready yet i=" + i);
-          Thread.sleep(WAITING_TIME);
-        } catch (InterruptedException e) { // NOSONAR
-          // IGNORE
-        }
-      }
-    }
-    if (!server.isStarted()) {
-      getLog().error("Could not start jetty server");
     }
   }
 
@@ -411,108 +389,18 @@ public class JooTestMojo extends AbstractSenchaMojo {
     }
   }
 
-  protected String getJettyUrl(Server server) {
-    String url = "http://" + jooUnitJettyHost;
-    Connector connector = server.getConnectors()[0];
-    if (connector instanceof AbstractNetworkConnector) {
-      AbstractNetworkConnector networkConnector = (AbstractNetworkConnector)connector;
-      url += ":" + (networkConnector.getLocalPort() <= 0 ? networkConnector.getPort() : networkConnector.getLocalPort());
-    }
-    return url;
-  }
-
-  protected Server jettyRunTest(boolean tryPortRange, File baseDir) throws MojoExecutionException {
-    JettyWebAppContext handler;
-    try {
-      handler = new JettyWebAppContext();
-      handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
-      List<org.eclipse.jetty.util.resource.Resource> baseResources = new ArrayList<>();
-      baseResources.add(toResource(baseDir));
-      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new org.eclipse.jetty.util.resource.Resource[baseResources.size()])));
-      getLog().info("Using base resources " + baseResources);
-      ServletHolder servletHolder = new ServletHolder("default", DefaultServlet.class);
-      servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
-      handler.addServlet(servletHolder, "/");
-      getLog().info("Set servlet cache control to 'do not cache'.");
-    } catch (Exception e) {
-      throw wrap(e);
-    }
-    return startJetty(handler, tryPortRange);
-  }
-
-  private org.eclipse.jetty.util.resource.Resource toResource(File file) {
-    return org.eclipse.jetty.util.resource.Resource.newResource(file);
-  }
-
-  private Server startJetty(Handler handler, boolean tryPortRange) throws MojoExecutionException {
-    if (tryPortRange && jooUnitJettyPortUpperBound != jooUnitJettyPortLowerBound) {
-      return startJettyOnRandomPort(handler);
-    } else {
-      try {
-        return startJettyOnPort(handler, jooUnitJettyPortLowerBound);
-      } catch (Exception e) {
-        throw wrapJettyException(e, jooUnitJettyPortLowerBound);
-      }
-    }
-  }
-
-  private Server startJettyOnRandomPort(Handler handler) throws MojoExecutionException {
-    List<Integer> ports = new ArrayList<>(jooUnitJettyPortUpperBound - jooUnitJettyPortLowerBound + 1);
-    for (int i = jooUnitJettyPortLowerBound; i <= jooUnitJettyPortUpperBound; i++) {
-      ports.add(i);
-    }
-    Collections.shuffle(ports);
-    int lastPort = ports.get(ports.size() - 1);
-    Exception finalException = null;
-    for (int jooUnitJettyPort : ports) {
-      try {
-        return startJettyOnPort(handler, jooUnitJettyPort);
-      } catch (Exception e) {
-        if (jooUnitJettyPort != lastPort) {
-          getLog().info(String.format("Starting Jetty on port %d failed. Retrying ...", jooUnitJettyPort));
-        } else {
-          finalException = e;
-        }
-      }
-    }
-    throw wrapJettyException(finalException, lastPort);
-  }
-
-  private Server startJettyOnPort(Handler handler, int jettyPort) throws Exception {
-    Server server = new Server(jettyPort);
-    try {
-      server.setHandler(handler);
-      server.start();
-      getLog().info(String.format("Started Jetty for unit tests on port %d.", jettyPort));
-    } catch (Exception e) {
-      stopServerIgnoreException(server);
-      throw e;
-    }
-    return server;
-  }
-
   protected MojoExecutionException wrap(Exception e) {
     return new MojoExecutionException(e.toString(), e);
   }
 
-  private MojoExecutionException wrapJettyException(Exception e, int jettyPort) {
-    getLog().error(String.format("Starting Jetty on port %d failed.", jettyPort));
-    return new MojoExecutionException(String.format("Cannot start jetty server on port %d.", jettyPort), e);
-  }
-
-  protected void stopServerIgnoreException(Server server) {
-    try {
-      server.stop();
-    } catch (Exception e1) {
-      getLog().warn("Stopping Jetty failed. Never mind.");
-    }
-  }
-
-  protected String getTestUrl(Server server, File workspaceDir) throws MojoExecutionException {
+  protected String getTestUrl(URI serverUri, File workspaceDir) throws MojoExecutionException {
     String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
-    StringBuilder builder = new StringBuilder(getJettyUrl(server))
-            .append("/").append(path).append("?cache"); // "?cache" because phantomjs@2.1.1. seems to have a problem with the cached resources
-    return builder.toString();
+    String serverUriString = serverUri.toString();
+    if (!serverUriString.endsWith("/")) {
+      serverUriString += "/";
+    }
+    // "?cache" because phantomjs@2.1.1. seems to have a problem with the cached resources
+    return serverUriString + path + "?cache";
   }
 
   void executeSelenium(String testsHtmlUrl) throws MojoExecutionException, MojoFailureException {
@@ -616,7 +504,4 @@ public class JooTestMojo extends AbstractSenchaMojo {
     this.testFailureIgnore = b;
   }
 
-  static {
-    org.eclipse.jetty.util.resource.Resource.setDefaultUseCaches(false);
-  }
 }
