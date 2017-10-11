@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -383,8 +384,17 @@ public class SenchaUtils {
     }
   }
 
+  public static File remotePackagesDir(MavenSession mavenSession) {
+    File baseDir = mavenSession.getRequest().getMultiModuleProjectDirectory();
+    if (baseDir == null) {
+      baseDir = new File(mavenSession.getRequest().getBaseDirectory());
+    }
+    return remotePackagesDir(baseDir);
+  }
+
   public static File remotePackagesDir(File baseDir) {
     File currentBaseDir = baseDir;
+
     for (;;) {
       File remotePackagesDir = new File(currentBaseDir, REMOTE_PACKAGES_DIR);
       File baseParent = currentBaseDir.getParentFile();

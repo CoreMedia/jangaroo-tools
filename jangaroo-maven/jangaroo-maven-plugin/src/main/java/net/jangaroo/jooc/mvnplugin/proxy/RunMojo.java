@@ -12,7 +12,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.File;
 
 /**
- * Starts a Jetty server serving the static resources below the workspace root (i.e. the parent directory of the
+ * Starts a Jetty server serving the static resources below the Sencha workspace root (i.e. the parent directory of the
  * {@code .remote-packages} directory).
  * <br>
  * If the parameters {@code jooProxyTargetUri} and {@code jooProxyPathSpec} are provided, all requests matching the
@@ -50,7 +50,7 @@ public class RunMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    File baseDir = SenchaUtils.remotePackagesDir(session.getRequest().getMultiModuleProjectDirectory()).getParentFile();
+    File baseDir = SenchaUtils.remotePackagesDir(session).getParentFile();
 
     JettyWrapper jettyWrapper = jooProxyTargetUri != null && jooProxyPathSpec != null
             ? new ProxyJettyWrapper(getLog(), jooProxyTargetUri, jooProxyPathSpec)

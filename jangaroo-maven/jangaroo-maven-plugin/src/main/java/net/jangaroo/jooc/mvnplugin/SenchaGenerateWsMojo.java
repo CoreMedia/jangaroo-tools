@@ -84,7 +84,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     FileHelper.ensureDirectory(workspaceDir);
     SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
     SenchaUtils.configureDefaults(configBuilder, "default.workspace.json");
-    File remotePackagesDir = SenchaUtils.remotePackagesDir(session.getRequest().getMultiModuleProjectDirectory());
+    File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
     File extDirectory = configurePackages(project, workspaceDir, remotePackagesDir, configBuilder);
     callSenchaGenerateWorkspace(workspaceDir, extDirectory, webRootDir(), remotePackagesDir);
     writeFile(configBuilder, workspaceDir.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT, getLog());
