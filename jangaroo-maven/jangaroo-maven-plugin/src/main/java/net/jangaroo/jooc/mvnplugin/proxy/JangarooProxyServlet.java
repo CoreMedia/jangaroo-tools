@@ -90,7 +90,7 @@ public class JangarooProxyServlet extends ProxyServlet {
       ctx = SSLContext.getInstance("TLS");
       ctx.init(null, new TrustManager[]{TRUST_MANAGER}, null);
     } catch (NoSuchAlgorithmException | KeyManagementException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
 
     return HttpClients.custom()
