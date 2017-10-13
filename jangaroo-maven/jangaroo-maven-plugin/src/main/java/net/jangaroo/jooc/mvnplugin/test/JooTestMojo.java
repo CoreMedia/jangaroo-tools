@@ -287,12 +287,12 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
       File baseDir = session.getRequest().getMultiModuleProjectDirectory();
 
-      JettyWrapper jettyWrapper = new JettyWrapper(getLog());
+      JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
       Range<Integer> portRange = interactiveJooUnitTests
               ? Range.is(jooUnitJettyPortLowerBound)
               : Range.between(jooUnitJettyPortLowerBound, jooUnitJettyPortUpperBound);
       try {
-        jettyWrapper.start(jooUnitJettyHost, portRange, baseDir);
+        jettyWrapper.start(jooUnitJettyHost, portRange);
 
         String url = getTestUrl(jettyWrapper.getUri(), baseDir);
         getLog().info("Test-URL: " + url);
@@ -303,7 +303,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
           jettyWrapper.waitUntilStarted(JETTY_START_TIMEOUT_MILLIS);
           runTests(url);
         }
-      } catch (JettyWrapper.JettyHelperException e) {
+      } catch (JettyWrapper.JettyWrapperException e) {
         throw new MojoExecutionException("Could not start Jetty", e);
       } finally {
         jettyWrapper.stop();
