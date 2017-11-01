@@ -184,6 +184,18 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testDoubleSuper() throws Exception {
+    File sourcefile = getFile("/package2/TestDoubleSuper.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    String expected = "must not call super constructor twice";
+    assertTrue("Expected error (must not call super constructor twice) did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, 6, 5);
+
+  }
+
+  @Test
   public void testImportReduction() throws Exception {
     assertApiCompilationResult("package1/someOtherPackage/ImportReduction");
   }
