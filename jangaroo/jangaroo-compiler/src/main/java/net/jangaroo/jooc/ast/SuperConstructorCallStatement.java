@@ -51,6 +51,11 @@ public class SuperConstructorCallStatement extends Statement {
 
   @Override
   public void scope(final Scope scope) {
+    getFun().scope(scope);
+    if (getArgs() != null) {
+      getArgs().scope(scope);
+    }
+    setClassDeclaration(scope.getClassDeclaration());
     FunctionDeclaration method = scope.getMethodDeclaration();
     if (method == null || !method.isConstructor()) {
       throw JangarooParser.error(getSymbol(), "must only call super constructor from constructor method");
@@ -59,11 +64,6 @@ public class SuperConstructorCallStatement extends Statement {
       throw JangarooParser.error(getSymbol(), "must not call super constructor twice");
     }
     method.setContainsSuperConstructorCall(true);
-    getFun().scope(scope);
-    if (getArgs() != null) {
-      getArgs().scope(scope);
-    }
-    setClassDeclaration(scope.getClassDeclaration());
   }
 
   public void analyze(AstNode parentNode) {
