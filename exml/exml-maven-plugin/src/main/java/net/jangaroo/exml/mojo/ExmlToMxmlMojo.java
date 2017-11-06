@@ -6,6 +6,12 @@ package net.jangaroo.exml.mojo;
 import net.jangaroo.exml.compiler.Exmlc;
 import net.jangaroo.exml.config.ExmlConfiguration;
 import net.jangaroo.exml.mojo.pom.PomConverter;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
@@ -26,8 +32,10 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
  * @requiresDependencyResolution
  * @threadSafe
  */
+@SuppressWarnings("unused")
 public class ExmlToMxmlMojo extends AbstractExmlMojo {
 
+  private static final DefaultArtifactVersion EXT_AS_FIRST_SWC_ARTIFACT_VERSION = new DefaultArtifactVersion("6.2.0-12");
   /**
    * Set this to 'true' to rename EXML files to MXML files only and to skip the actual conversion. This allows to give
    * a hint to SCM systems like Git about the renaming and then run the actual conversion in a second step.
@@ -43,21 +51,53 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
   private boolean alreadyRenamed;
 
   /**
-   * The JAR containing the target ExtAS API for converting EXML into MXML.
-   * @parameter default-value="${extAsJar}"
+   * The target version of the Ext AS API artifact (net.jangaroo:ext-as), needed for converting EXML into MXML.
+   * @parameter default-value="${extAsVersion}"
    */
-  private File extAsJar;
+  private String extAsVersion;
+
+  /**
+   * @component
+   */
+  private ArtifactResolver artifactResolver;
+
+  /**
+   * @component
+   */
+  private ArtifactFactory artifactFactory;
+
+  /**
+   * @parameter expression="${localRepository}"
+   * @required
+   */
+  private ArtifactRepository localRepository;
+
+  /**
+   * @parameter expression="${project.remoteArtifactRepositories}"
+   * @required
+   */
+  private List remoteRepositories;
 
   @Override
   public void execute() throws MojoExecutionException {
-    if (!renameOnly && hasExmlConfiguration()) {
-      getLog().info("removing exml-maven-plugin from POM");
-      PomConverter.removeExmlPlugin(getProject().getBasedir());
-    }
+    boolean useNewPackagingType = extAsVersion != null &&
+            new DefaultArtifactVersion(extAsVersion).compareTo(EXT_AS_FIRST_SWC_ARTIFACT_VERSION) >= 0;
+    if (!renameOnly && (hasExmlConfiguration() || "jangaroo".equals(getProject().getPackaging()))) {
+      getLog().info("reading POM from " + getProject().getBasedir().getPath());
+      PomConverter pomConverter = new PomConverter(getProject().getBasedir());
 
-    if (!renameOnly && "jangaroo".equals(getProject().getPackaging())) {
-      getLog().info("changing packaging from jangaroo to jangaroo-pkg");
-      PomConverter.changePackaging(getProject().getBasedir());
+      getLog().info("removing exml-maven-plugin from POM");
+      pomConverter.removeExmlPlugin();
+      String newPackaging = useNewPackagingType ? "swc" : "jangaroo-pkg";
+      getLog().info("changing packaging from 'jangaroo' to '" + newPackaging + "'");
+      pomConverter.changePackaging(newPackaging);
+      if (useNewPackagingType) {
+        getLog().info("adding dependency type 'swc' to all compile dependencies");
+        pomConverter.addDependencyType(newPackaging);
+      }
+
+      getLog().info("updating POM at " + getProject().getBasedir().getPath());
+      pomConverter.writePom();
     }
 
     if (!isExmlProject()) {
@@ -86,9 +126,11 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       }
     }
 
-    if (extAsJar != null && !extAsJar.exists()) {
-      throw new MojoExecutionException("error: extAsJar " + extAsJar.getAbsolutePath() + " does not exist.");
+    if (extAsVersion == null) {
+      throw new MojoExecutionException("exml-to-mxml needs an extAsVersion.");
     }
+    Artifact extAsArtifact = resolveExtAsArtifact(extAsVersion, useNewPackagingType ? "swc" : "jar");
+    File extAsJar = extAsArtifact.getFile();
 
     // Convert main EXML sources to MXML:
     ExmlConfiguration config = createExmlConfiguration(getActionScriptClassPath(),
@@ -103,6 +145,17 @@ public class ExmlToMxmlMojo extends AbstractExmlMojo {
       new Exmlc(testConfig).convertAllExmlToMxml();
     }
   }
+
+  private Artifact resolveExtAsArtifact(String version, String packaging) throws MojoExecutionException {
+    Artifact toDownload = artifactFactory.createBuildArtifact("net.jangaroo", "ext-as", version, packaging);
+    try {
+      getLog().info("Resolving " + toDownload + "...");
+      artifactResolver.resolve(toDownload, remoteRepositories, localRepository);
+      return toDownload;
+    } catch (AbstractArtifactResolutionException e) {
+      throw new MojoExecutionException("Couldn't download artifact: " + e.getMessage(), e);
+    }
+  } 
 
   private List<File> getActionScriptClassPath() {
     List<File> classPath = getMavenPluginHelper().getActionScriptClassPath(false);

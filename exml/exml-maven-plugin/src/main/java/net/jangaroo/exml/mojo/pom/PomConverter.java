@@ -2,7 +2,9 @@ package net.jangaroo.exml.mojo.pom;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -22,27 +24,18 @@ import java.io.PrintWriter;
 
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 import static javax.xml.xpath.XPathConstants.NODE;
+import static javax.xml.xpath.XPathConstants.NODESET;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.lang.StringUtils.repeat;
 
 public class PomConverter {
-  /**
-   * Replaces exml-maven-plugin configuration by jangaroo-maven-plugin configuration in a POM within the given
-   * directory.
-   */
-  public static void removeExmlPlugin(File projectBaseDir) throws MojoExecutionException {
-    Document document = readPom(projectBaseDir);
-    removeExmlPlugin(document);
-    writePom(document, projectBaseDir);
-  }
 
-  /**
-   * Change the packaging from jangaroo to jangaroo-pkg in a POM within the given directory.
-   */
-  public static void changePackaging(File projectBaseDir) throws MojoExecutionException {
-    Document document = readPom(projectBaseDir);
-    changePackaging(document);
-    writePom(document, projectBaseDir);
+  private final File projectBaseDir;
+  private final Document document;
+
+  public PomConverter(File projectBaseDir) throws MojoExecutionException {
+    this.projectBaseDir = projectBaseDir;
+    document = readPom(projectBaseDir);
   }
 
   /**
@@ -65,7 +58,7 @@ public class PomConverter {
   /**
    * Serializes the given DOM document into a POM file within the given directory.
    */
-  private static void writePom(Document document, File projectBaseDir) throws MojoExecutionException {
+  public void writePom() throws MojoExecutionException {
     try {
       File pomFile = new File(projectBaseDir, "pom.xml");
 
@@ -104,7 +97,7 @@ public class PomConverter {
    * Replaces exml-maven-plugin configuration by jangaroo-maven-plugin configuration within
    * {@code /project/build/plugins} and {@code /project/build/pluginManagement/plugins}.
    */
-  private static void removeExmlPlugin(Document document) throws MojoExecutionException {
+  public void removeExmlPlugin() throws MojoExecutionException {
     try {
       XPathFactory xPathFactory = XPathFactory.newInstance();
       XPath xPath = xPathFactory.newXPath();
@@ -119,16 +112,16 @@ public class PomConverter {
   }
 
   /**
-   * Changes the packaging from jangaroo to jangaroo-pkg in {@code /project/packaging}
+   * Change the packaging from jangaroo to jangaroo-pkg in my POM to the given packaging.
    */
-  private static void changePackaging(Document document) throws MojoExecutionException {
+  public void changePackaging(String newPackaging) throws MojoExecutionException {
     try {
       XPathFactory xPathFactory = XPathFactory.newInstance();
       XPath xPath = xPathFactory.newXPath();
 
       Node packagingNode = (Node) xPath.evaluate("/project/packaging[text() = 'jangaroo']", document, NODE);
       if (packagingNode != null) {
-        packagingNode.setTextContent("jangaroo-pkg");
+        packagingNode.setTextContent(newPackaging);
       }
     } catch (XPathException e) {
       throw new MojoExecutionException("error while generating modified POM", e);
@@ -276,5 +269,23 @@ public class PomConverter {
       }
     }
     return 2;
+  }
+
+  public void addDependencyType(String dependencyType) throws MojoExecutionException {
+    try {
+      XPathFactory xPathFactory = XPathFactory.newInstance();
+      XPath xPath = xPathFactory.newXPath();
+
+      NodeList dependencyNodes = (NodeList) xPath.evaluate("/project/dependencies/dependency", document, NODESET);
+      for (int i = 0; i < dependencyNodes.getLength(); i++) {
+        Node dependencyNode = dependencyNodes.item(i);
+        Element typeNode = document.createElement("type");
+        typeNode.appendChild(document.createTextNode(dependencyType));
+        insertChildWithWhitespace(dependencyNode, typeNode, null);
+      }
+    } catch (XPathException e) {
+      throw new MojoExecutionException("error while trying to add dependency type to POM", e);
+    }
+    
   }
 }
