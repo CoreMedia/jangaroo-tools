@@ -252,7 +252,7 @@ public class SenchaUtils {
             .append(" -ext ")
             .append(toolkit)
             .append(" --template ").append(templateName)
-            .append(" --path=\"\"")
+            .append(" --path=\".\"")
             .append(" --refresh=false");
 
     if (properties != null) {
