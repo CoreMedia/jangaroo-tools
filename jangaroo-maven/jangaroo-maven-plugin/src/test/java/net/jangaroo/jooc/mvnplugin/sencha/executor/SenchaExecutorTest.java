@@ -13,11 +13,6 @@ public class SenchaExecutorTest extends TestCase {
     assertArrayEquals(new int[]{7, 5, 3}, SenchaCmdExecutor.parseVersion("   7.5.3"));
     assertArrayEquals(new int[]{6, 2, 2, 28}, SenchaCmdExecutor.parseVersion("Sencha Cmd 6.2.2.28"));
     assertArrayEquals(new int[]{6, 5, 0}, SenchaCmdExecutor.parseVersion("Sencha Cmd v6.5.0"));
-    try {
-      SenchaCmdExecutor.parseVersion("Sencha Cmd 6.2"); // too short
-      fail("Sencha Cmd version must have at least three parts.");
-    } catch (IOException e) {
-      // alright
-    }
+    assertNull("Sencha Cmd version must have at least three parts.", SenchaCmdExecutor.parseVersion("Sencha Cmd 6.2")); // too short
   }
 }

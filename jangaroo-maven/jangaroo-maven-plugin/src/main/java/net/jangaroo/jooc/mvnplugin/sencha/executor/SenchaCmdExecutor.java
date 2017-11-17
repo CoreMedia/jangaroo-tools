@@ -26,46 +26,49 @@ public class SenchaCmdExecutor {
 
   @Nonnull
   public static int[] queryVersion() throws IOException {
-    final String[] versionStringVar = new String[1];
-    internalExecute(CommandLine.parse("sencha switch -l"),  new LogOutputStream() {
-      /*
-       * Parse first line or preferably, if a line containing "current version" appears, the line after that.
-       */
-
-      private boolean parseNext = true;
-      @Override
-      protected void processLine(String line, int level) {
-        if (parseNext) {
-          parseNext = false;
-          versionStringVar[0] = line;
-        } else if (line.toLowerCase().contains("current version")) {
-          parseNext = true;
-        }
-      }
-    }, null);
-    final String versionString = versionStringVar[0];
-    if (versionString == null) {
+    SenchaVersionParser senchaVersionParser = new SenchaVersionParser();
+    internalExecute(CommandLine.parse("sencha switch -l"), senchaVersionParser, null);
+    if (senchaVersionParser.versions == null) {
       throw new IOException("No 'Current version' found in output of 'sencha switch -l'.");
     }
-    return parseVersion(versionString);
+    return senchaVersionParser.versions;
   }
 
-  static int[] parseVersion(String versionString) throws IOException {
+  /**
+   * Parse first line or preferably, if a line containing "current version" appears, the line after that.
+   */
+  private static class SenchaVersionParser extends LogOutputStream {
+
+    private int[] versions;
+    private boolean parseNext = true;
+
+    @Override
+    protected void processLine(String line, int level) {
+      if (parseNext) {
+        int[] parsedVersions = parseVersion(line);
+        if (parsedVersions != null) {
+          versions = parsedVersions;
+          parseNext = false;
+        }
+      }
+      if (!parseNext && line.toLowerCase().contains("current version")) {
+        parseNext = true;
+      }
+    }
+  }
+
+  static int[] parseVersion(String versionString) {
     Matcher matcher = SENCHA_CMD_VERSION_PATTERN.matcher(versionString);
-    int[] versions = null;
     if (matcher.find()) {
       try {
-        versions = Arrays.stream(StringUtils.split(matcher.group(), "."))
+        return Arrays.stream(StringUtils.split(matcher.group(), "."))
                 .mapToInt(Integer::parseInt)
                 .toArray();
       } catch (NumberFormatException e) {
         // handle below
       }
     }
-    if (versions == null) {
-      throw new IOException("Incorrect Sencha Cmd version format: " + versionString);
-    }
-    return versions;
+    return null;
   }
 
   private File workingDirectory;
