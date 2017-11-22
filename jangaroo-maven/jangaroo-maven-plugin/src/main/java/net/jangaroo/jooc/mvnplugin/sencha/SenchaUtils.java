@@ -248,22 +248,44 @@ public class SenchaUtils {
                                                     Log log,
                                                     String logLevel
   ) throws MojoExecutionException {
-    StringBuilder arguments = new StringBuilder("generate app")
-            .append(" -ext ")
-            .append(toolkit)
-            .append(" --template ").append(templateName)
-            .append(" --path=\".\"")
-            .append(" --refresh=false");
+    List<String> arguments = new ArrayList<>();
+    arguments.add("generate app");
+    arguments.add("-ext " + toolkit);
+    arguments.add("--template " + templateName);
+    arguments.add("--path=\".\"");
+    arguments.add("--refresh=false");
+
+    addSwitchFullIfCmd6_5(arguments);
 
     if (properties != null) {
       for (Map.Entry<String, String> entry: properties.entrySet()) {
-        arguments.append(String.format(" -D%s=%s",entry.getKey(), entry.getValue()));
+        arguments.add(String.format("-D%s=%s",entry.getKey(), entry.getValue()));
       }
     }
-    arguments.append(" ").append(appName);
+    arguments.add(appName);
 
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, arguments.toString(), log, logLevel);
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, StringUtils.join(arguments, ' '), log, logLevel);
     senchaCmdExecutor.execute();
+  }
+
+  /**
+   * Special case: Sencha Cmd 6.5 made a breaking change in "generate workspace/app", and to restore
+   * the original behavior, we have to specify the new parameter "--full" (which Cmd < 6.5 prompts with an error).
+   *
+   * @param arguments the arguments list to add "--full" to if Sencha Cmd version is 6.5 or higher
+   * @throws MojoExecutionException if Sencha Cmd version cannot be determined
+   */
+  public static void addSwitchFullIfCmd6_5(List<String> arguments) throws MojoExecutionException {
+    try {
+      int[] cmdVersion = SenchaCmdExecutor.queryVersion();
+      // version is 6.5 or above?
+      if (cmdVersion[0] > 6 || cmdVersion[0] == 6 && cmdVersion[1] >= 5) {
+        // add new command line switch:
+        arguments.add("--full");
+      }
+    } catch (IOException ioe) {
+      throw new MojoExecutionException("Could not determine Sencha Cmd version.", ioe);
+    }
   }
 
   public static void refreshApp(File dir, Log log, String logLevel) throws MojoExecutionException {
