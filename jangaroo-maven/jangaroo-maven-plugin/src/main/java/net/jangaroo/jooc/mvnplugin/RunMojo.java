@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mvnplugin.proxy;
+package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
