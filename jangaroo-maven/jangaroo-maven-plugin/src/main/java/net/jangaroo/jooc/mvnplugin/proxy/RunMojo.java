@@ -32,7 +32,7 @@ public class RunMojo extends AbstractMojo {
    * The host name of the started server. Defaults to 'localhost'.
    */
   @Parameter(property = "jooJettyHost")
-  private String jooJettyHost = "localhost";
+  private String jooJettyHost = "0.0.0.0";
 
   /**
    * The port of the started server. Defaults to 8080.
