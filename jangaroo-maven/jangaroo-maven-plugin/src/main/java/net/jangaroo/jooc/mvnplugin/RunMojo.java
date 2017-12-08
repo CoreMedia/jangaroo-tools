@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mvnplugin.proxy;
+package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
@@ -32,7 +32,7 @@ public class RunMojo extends AbstractMojo {
    * The host name of the started server. Defaults to 'localhost'.
    */
   @Parameter(property = "jooJettyHost")
-  private String jooJettyHost = "localhost";
+  private String jooJettyHost = "0.0.0.0";
 
   /**
    * The port of the started server. Defaults to 8080.
@@ -82,15 +82,19 @@ public class RunMojo extends AbstractMojo {
 
     jettyWrapper.setStaticResourcesServletConfigs(jooStaticResourcesServletConfigs);
 
-    if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
+    if (jooProxyServletConfigs != null && !jooProxyServletConfigs.isEmpty()) {
+      jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
+    } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
       jettyWrapper.setProxyServletConfigs(Collections.singletonList(
               new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
     } else {
-      jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
+      throw new IllegalArgumentException(
+              "Either 'jooProxyServletConfigs' or 'jooProxyTargetUri' and 'jooProxyPathSpec' must be provided");
     }
 
     try {
       jettyWrapper.start(jooJettyHost, jooJettyPort);
+      getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
       jettyWrapper.blockUntilInterrupted();
     } catch (JettyWrapper.JettyWrapperException e) {
       throw new MojoExecutionException("Could not start Jetty", e);
