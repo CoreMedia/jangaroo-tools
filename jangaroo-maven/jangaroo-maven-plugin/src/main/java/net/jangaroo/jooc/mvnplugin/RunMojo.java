@@ -94,6 +94,7 @@ public class RunMojo extends AbstractMojo {
 
     try {
       jettyWrapper.start(jooJettyHost, jooJettyPort);
+      getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
       jettyWrapper.blockUntilInterrupted();
     } catch (JettyWrapper.JettyWrapperException e) {
       throw new MojoExecutionException("Could not start Jetty", e);
