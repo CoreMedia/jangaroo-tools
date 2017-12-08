@@ -10,6 +10,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.Collections;
@@ -24,6 +25,8 @@ import java.util.List;
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractMojo {
+
+  private static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
@@ -94,12 +97,29 @@ public class RunMojo extends AbstractMojo {
 
     try {
       jettyWrapper.start(jooJettyHost, jooJettyPort);
+
       getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
+
+      session.getProjects().forEach(project -> logJangarooAppUrl(baseDir, jettyWrapper, project));
+
       jettyWrapper.blockUntilInterrupted();
     } catch (JettyWrapper.JettyWrapperException e) {
       throw new MojoExecutionException("Could not start Jetty", e);
     } finally {
       jettyWrapper.stop();
+    }
+  }
+
+  private void logJangarooAppUrl(File baseDir, JettyWrapper jettyWrapper, MavenProject project) {
+    String packaging = project.getPackaging();
+
+    if (JANGAROO_APP_PACKAGING.equals(packaging)) {
+      File projectDir = project.getBasedir();
+      String appPath = baseDir.toURI().relativize(projectDir.toURI()).getPath();
+      appPath += "target/app/";
+      if (new File(baseDir, appPath).exists()) {
+        getLog().info("Found jangaroo app at: " + jettyWrapper.getUri() + appPath);
+      }
     }
   }
 }
