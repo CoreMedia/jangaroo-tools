@@ -1,7 +1,7 @@
 Jangaroo
 ========
 
-License: [Apache 2.0](CoreMedia/jangaroo-tools/wiki/License@github)
+License: [Apache 2.0](https://github.com/CoreMedia/jangaroo-tools/wiki/License)
 
 Use ActionScript 3 for JavaScript Development
 
