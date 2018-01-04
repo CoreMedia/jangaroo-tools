@@ -11,7 +11,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.util.StringUtils;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,13 +23,9 @@ public class SenchaCmdExecutor {
   private static final long MAX_EXECUTION_TIME = ExecuteWatchdog.INFINITE_TIMEOUT;
   private static final Pattern SENCHA_CMD_VERSION_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+){2,3}");
 
-  @Nonnull
   public static int[] queryVersion() throws IOException {
     SenchaVersionParser senchaVersionParser = new SenchaVersionParser();
     internalExecute(CommandLine.parse("sencha switch -l"), senchaVersionParser, null);
-    if (senchaVersionParser.versions == null) {
-      throw new IOException("No 'Current version' found in output of 'sencha switch -l'.");
-    }
     return senchaVersionParser.versions;
   }
 

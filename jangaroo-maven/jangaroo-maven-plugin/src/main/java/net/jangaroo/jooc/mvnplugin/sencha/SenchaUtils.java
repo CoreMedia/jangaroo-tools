@@ -278,13 +278,16 @@ public class SenchaUtils {
   public static void addSwitchFullIfCmd6_5(List<String> arguments) throws MojoExecutionException {
     try {
       int[] cmdVersion = SenchaCmdExecutor.queryVersion();
+      if (cmdVersion == null) {
+        throw new MojoExecutionException("No version information found in output of 'sencha switch -l'.");
+      }
       // version is 6.5 or above?
       if (cmdVersion[0] > 6 || cmdVersion[0] == 6 && cmdVersion[1] >= 5) {
         // add new command line switch:
         arguments.add("--full");
       }
     } catch (IOException ioe) {
-      throw new MojoExecutionException("Could not determine Sencha Cmd version.", ioe);
+      throw new MojoExecutionException("Could not run 'sencha'. Please install Sencha Cmd >= 6.2.1 or check your PATH environment variable.", ioe);
     }
   }
 
