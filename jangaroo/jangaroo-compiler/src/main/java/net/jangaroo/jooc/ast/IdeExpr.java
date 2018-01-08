@@ -124,6 +124,10 @@ public class IdeExpr extends Expr {
     ide.analyze(this);
     ide.analyzeAsExpr(parentNode, this);
     Expr normalizedExpr = getNormalizedExpr();
+    if (normalizedExpr == this // normalized DotExpr has to check for itself!
+            && !ide.isDeclared()) {
+      ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "undeclared identifier '" + ide.getName() + "'.");
+    }
     ExpressionType type = normalizedExpr != this
             ? normalizedExpr.getType()
             : ide.getScope().getExpressionType(ide.getDeclaration(false));

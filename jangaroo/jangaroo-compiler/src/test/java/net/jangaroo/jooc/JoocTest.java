@@ -130,6 +130,23 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testUndeclaredIdentifier() throws Exception {
+    File sourcefile = getFile("/package1/TestUndeclaredIdeError.as");
+    config.addSourceFile(sourcefile);
+    jooc.run();
+    assertUndeclaredIdentifier(6, 5);
+    assertUndeclaredIdentifier(7, 15);
+    assertUndeclaredIdentifier(8, 5);
+  }
+
+  private void assertUndeclaredIdentifier(int line, int column) {
+    String expected = String.format("undeclared identifier 'undeclaredIde%d'.", line);
+    assertTrue("Expected error (" + expected + ") did not occur",
+            testLog.hasError(expected));
+    assertErrorAt(expected, line, column);
+  }
+
+  @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
   }

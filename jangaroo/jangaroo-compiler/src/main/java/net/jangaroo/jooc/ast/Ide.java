@@ -321,7 +321,7 @@ public class Ide extends NodeImplBase {
     return ideDeclaration;
   }
 
-  private boolean isDeclared() {
+  boolean isDeclared() {
     return getDeclaration(false) != null;
   }
 
