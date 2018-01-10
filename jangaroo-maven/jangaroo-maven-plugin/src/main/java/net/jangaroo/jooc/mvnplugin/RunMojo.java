@@ -92,9 +92,10 @@ public class RunMojo extends AbstractMojo {
     } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
       jettyWrapper.setProxyServletConfigs(Collections.singletonList(
               new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
-    } else {
-      throw new IllegalArgumentException(
-              "Either 'jooProxyServletConfigs' or 'jooProxyTargetUri' and 'jooProxyPathSpec' must be provided");
+    } else if (jooProxyTargetUri != null){
+      getLog().warn("Ignoring 'jooProxyTargetUri' since there is no 'jooProxyPathSpec'.");
+    } else if (jooProxyPathSpec != null){
+      getLog().warn("Ignoring 'jooProxyPathSpec' since there is no 'jooProxyTargetUri'.");
     }
 
     try {
