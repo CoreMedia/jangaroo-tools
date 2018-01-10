@@ -245,13 +245,7 @@ public abstract class AbstractScope implements Scope {
   }
 
   private ExpressionType getExpressionType(Type type) {
-    TypeDeclaration typeDeclaration = type.getDeclaration();
-    if (typeDeclaration != null) {
-      ExpressionType typeParameter = type.getIde() instanceof IdeWithTypeParam
-              ? getExpressionType(((IdeWithTypeParam) type.getIde()).getType()) : null;
-      return new ExpressionType(typeDeclaration, typeParameter);
-    }
-    return null;
+    return type != null ? new ExpressionType(type) : null;
   }
 
   private static TypeDeclaration findArrayElementType(IdeDeclaration declaration) {

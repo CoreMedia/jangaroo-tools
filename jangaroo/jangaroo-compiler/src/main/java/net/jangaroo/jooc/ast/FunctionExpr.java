@@ -44,7 +44,6 @@ public class FunctionExpr extends Expr {
   private JooSymbol rParen;
   private BlockStatement optBody;
 
-  private Scope scope;
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
@@ -106,7 +105,6 @@ public class FunctionExpr extends Expr {
 
   @Override
   public void scope(Scope scope) {
-    this.scope = scope;
     classDeclaration = scope.getClassDeclaration();
     /*
     if (parentDeclaration == null) {
@@ -143,6 +141,7 @@ public class FunctionExpr extends Expr {
         });
       }
     });
+    setType(scope.getFunctionSignature(params, scope.getExpressionType(optTypeRelation)));
   }
 
   public void analyze(AstNode parentNode) {
@@ -152,7 +151,6 @@ public class FunctionExpr extends Expr {
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-      setType(scope.getFunctionSignature(params, scope.getExpressionType(optTypeRelation)));
     }
     if (optBody != null) {
       optBody.analyze(this);

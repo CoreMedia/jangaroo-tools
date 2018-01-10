@@ -2,6 +2,8 @@ package net.jangaroo.jooc.types;
 
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeWithTypeParam;
+import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.utils.AS3Type;
 
@@ -13,48 +15,59 @@ import javax.annotation.Nullable;
  */
 public class ExpressionType {
 
-  private final AS3Type as3Type;
-  private final TypeDeclaration declaration;
-  private final ExpressionType typeParameter;
+  private Type type;
+  private AS3Type as3Type;
+  private TypeDeclaration declaration;
+  private ExpressionType typeParameter;
+
+  public ExpressionType(@Nonnull Type type) {
+    this.type = type;
+  }
 
   public ExpressionType(@Nonnull TypeDeclaration declaration) {
     this(declaration, null);
   }
 
   public ExpressionType(@Nonnull TypeDeclaration declaration, @Nullable ExpressionType typeParameter) {
-    this.as3Type = computeAS3Type(declaration);
     this.declaration = declaration;
     this.typeParameter = typeParameter;
   }
 
   @Nonnull
-  private static AS3Type computeAS3Type(TypeDeclaration declaration) {
-    String typeQName = declaration.getQualifiedNameStr();
-    AS3Type as3Type = AS3Type.typeByName(typeQName);
-    return as3Type != null ? as3Type : AS3Type.OBJECT;
-  }
-
   public AS3Type getAS3Type() {
+    if (as3Type == null) {
+      String typeQName = getDeclaration().getQualifiedNameStr();
+      as3Type = AS3Type.typeByName(typeQName);
+      if (as3Type == null) {
+        as3Type = AS3Type.OBJECT;
+      }
+    }
     return as3Type;
   }
 
   @Nonnull
   public TypeDeclaration getDeclaration() {
+    if (declaration == null) {
+      declaration = type.getDeclaration();
+    }
     return declaration;
   }
 
   @Nullable
   public ExpressionType getTypeParameter() {
+    if (typeParameter == null && type != null && type.getIde() instanceof IdeWithTypeParam) {
+      typeParameter = new ExpressionType(((IdeWithTypeParam) type.getIde()).getType());
+    }
     return typeParameter;
   }
 
   public boolean isArrayLike() {
-    return as3Type == AS3Type.ARRAY || as3Type == AS3Type.VECTOR;
+    return getAS3Type() == AS3Type.ARRAY || getAS3Type() == AS3Type.VECTOR;
   }
 
   public IdeDeclaration resolvePropertyDeclaration(String memberName) {
-    if (as3Type == AS3Type.CLASS && typeParameter != null) {
-      return typeParameter.getDeclaration().getStaticMemberDeclaration(memberName);
+    if (getAS3Type() == AS3Type.CLASS && getTypeParameter() != null) {
+      return getTypeParameter().getDeclaration().getStaticMemberDeclaration(memberName);
     } else {
       return getDeclaration().resolvePropertyDeclaration(memberName);
     }
@@ -62,7 +75,7 @@ public class ExpressionType {
 
   public boolean isAssignableTo(@Nonnull ExpressionType toCheck) {
 
-    if (as3Type == null || AS3Type.ANY.equals(as3Type) ||  AS3Type.BOOLEAN.equals(as3Type)) {
+    if (AS3Type.ANY.equals(getAS3Type()) ||  AS3Type.BOOLEAN.equals(getAS3Type())) {
       // this expression type can be anything
       return true;
     }
@@ -76,11 +89,11 @@ public class ExpressionType {
     }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
-    if (!AS3Type.OBJECT.equals(as3Type) && as3Type.equals(expectedAS3Type)) {
+    if (!getAS3Type().equals(AS3Type.OBJECT) && getAS3Type().equals(expectedAS3Type)) {
       return true;
     }
 
-    if (isNumber(expectedAS3Type) && isNumber(as3Type)) {
+    if (isNumber(expectedAS3Type) && isNumber(getAS3Type())) {
       return true;
     }
 
@@ -97,11 +110,11 @@ public class ExpressionType {
 
     if (toCheckClassDeclaration == null || !(getDeclaration() instanceof ClassDeclaration)) {
       // this is either a void declaration, cannot be any as this was already checked
-      return as3Type.equals(expectedAS3Type);
+      return getAS3Type().equals(expectedAS3Type);
     }
 
     ClassDeclaration currentDeclaration = (ClassDeclaration) getDeclaration();
-    if (AS3Type.CLASS.equals(as3Type) && getTypeParameter() != null) {
+    if (AS3Type.CLASS.equals(getAS3Type()) && getTypeParameter() != null) {
       TypeDeclaration typeDeclaration = getTypeParameter().getDeclaration();
       if (typeDeclaration instanceof ClassDeclaration) {
         currentDeclaration = (ClassDeclaration) typeDeclaration;
@@ -115,6 +128,7 @@ public class ExpressionType {
 
   @Override
   public boolean equals(Object o) {
+    TypeDeclaration declaration = getDeclaration();
     if (this == o) {
       return true;
     }
@@ -122,14 +136,14 @@ public class ExpressionType {
       return false;
     }
     ExpressionType that = (ExpressionType) o;
-    return declaration.equals(that.declaration) && (typeParameter != null ? typeParameter.equals(that.typeParameter) : that.typeParameter == null);
+    return declaration.equals(that.getDeclaration()) && (getTypeParameter() != null ? getTypeParameter().equals(that.getTypeParameter()) : that.typeParameter == null);
 
   }
 
   @Override
   public int hashCode() {
-    int result = declaration.hashCode();
-    result = 31 * result + (typeParameter != null ? typeParameter.hashCode() : 0);
+    int result = getDeclaration().hashCode();
+    result = 31 * result + (getTypeParameter() != null ? getTypeParameter().hashCode() : 0);
     return result;
   }
 

@@ -1,6 +1,7 @@
 package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
@@ -12,7 +13,9 @@ import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.ReturnStatement;
+import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -59,6 +62,19 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
+  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    FunctionDeclaration superConstructor = superConstructorCallStatement.getClassDeclaration().getSuperTypeDeclaration().getConstructor();
+    if (superConstructor != null) {
+      if (superConstructor.getFun().getType() instanceof FunctionSignature) {
+        checkParameterTypes(
+                (FunctionSignature) superConstructor.getFun().getType(),
+                superConstructorCallStatement.getSymbol(),
+                superConstructorCallStatement.getArgs());
+      }
+    }
+  }
+
+  @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
     ExpressionType type = applyExpr.getFun().getType();
     if (type != null && applyExpr.getFun() instanceof NewExpr) {
@@ -70,26 +86,29 @@ public class TypeChecker extends AstVisitorBase {
       }
     }
     if (type instanceof FunctionSignature) {
-      FunctionSignature functionSignature = (FunctionSignature) type;
-      List<Expr> args = new ArrayList<>();
-      if (applyExpr.getArgs() != null) {
-        CommaSeparatedList<Expr> argsCSL = applyExpr.getArgs().getExpr();
-        while (argsCSL != null) {
-          args.add(argsCSL.getHead());
-          argsCSL = argsCSL.getTail();
-        }
+      checkParameterTypes((FunctionSignature) type, applyExpr.getSymbol(), applyExpr.getArgs());
+    }
+  }
+
+  private void checkParameterTypes(FunctionSignature functionSignature, FilePosition parameterCountErrorSymbol, ParenthesizedExpr<CommaSeparatedList<Expr>> parameters) {
+    List<Expr> args = new ArrayList<>();
+    if (parameters != null) {
+      CommaSeparatedList<Expr> argsCSL = parameters.getExpr();
+      while (argsCSL != null) {
+        args.add(argsCSL.getHead());
+        argsCSL = argsCSL.getTail();
       }
-      // check number of arguments against number of parameters:
-      int maxParameterCount = functionSignature.getParameterTypes().size();
-      if (args.size() < functionSignature.getMinArgumentCount() || !functionSignature.hasRest() && args.size() > maxParameterCount) {
-        log.error(applyExpr.getSymbol(), "Wrong number of arguments, must be " + functionSignature.getMinArgumentCount() + (functionSignature.hasRest() || maxParameterCount == functionSignature.getMinArgumentCount() ? "" : " to " + maxParameterCount) + ".");
-      } else {
-        List<ExpressionType> parameterTypes = functionSignature.getParameterTypes();
-        for (int i = 0; i < Math.min(parameterTypes.size(), args.size()); i++) {
-          ExpressionType parameterType = parameterTypes.get(i);
-          Expr arg = args.get(i);
-          validateTypes(arg.getSymbol(), parameterType, arg, ARGUMENT_EXPRESSION_ERROR_MESSAGE);
-        }
+    }
+    // check number of arguments against number of parameters:
+    int maxParameterCount = functionSignature.getParameterTypes().size();
+    if (args.size() < functionSignature.getMinArgumentCount() || !functionSignature.hasRest() && args.size() > maxParameterCount) {
+      log.error(parameterCountErrorSymbol, "Wrong number of arguments, must be " + functionSignature.getMinArgumentCount() + (functionSignature.hasRest() || maxParameterCount == functionSignature.getMinArgumentCount() ? "" : " to " + maxParameterCount) + ".");
+    } else {
+      List<ExpressionType> parameterTypes = functionSignature.getParameterTypes();
+      for (int i = 0; i < Math.min(parameterTypes.size(), args.size()); i++) {
+        ExpressionType parameterType = parameterTypes.get(i);
+        Expr arg = args.get(i);
+        validateTypes(arg.getSymbol(), parameterType, arg, ARGUMENT_EXPRESSION_ERROR_MESSAGE);
       }
     }
   }

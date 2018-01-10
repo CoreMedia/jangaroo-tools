@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public class Type extends NodeImplBase {
     return getIde().getSymbol();
   }
 
+  @Nonnull
   public TypeDeclaration getDeclaration() {
     return getDeclaration(true);
   }
