@@ -2,19 +2,28 @@ package net.jangaroo.exml.tools;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -28,26 +37,22 @@ public class ExtJsApi {
   private Map<String,ExtClass> extClassByName;
   private Set<ExtClass> mixins;
 
-  private static ExtClass readExtApiJson(File jsonFile) throws IOException {
+  private static Doxi readExtApiJson(File jsonFile) throws IOException {
     System.out.printf("Reading API from %s...\n", jsonFile.getPath());
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerSubtypes(Property.class, Cfg.class, Method.class, Event.class);
-    return objectMapper.readValue(jsonFile, ExtClass.class);
+    objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    return objectMapper.readValue(jsonFile, Doxi.class);
   }
 
-  public <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, List<Member> members, Class<T> memberType) {
-    Set<String> superclassNames = new HashSet<String>();
-    for (ExtClass superclass : computeTransitiveSupersAndMixins(getSuperClass(owner))) {
-      superclassNames.add(superclass.name);
-    }
+  public <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, String membersTypeName, Class<T> memberType) {
     List<T> result = new ArrayList<T>();
+    Optional<Members> membersWithType = owner.items.stream().filter(members -> membersTypeName.equals(members.$type)).findFirst();
+    List<? extends Member> members = membersWithType.isPresent() ? membersWithType.get().items : Collections.emptyList();
     for (Member member : members) {
       if (memberType.isInstance(member) &&
-              member.meta.removed == null &&
               member.static_ == isStatic &&
-              !member.private_ &&
-              (member.autodetected == null || !member.autodetected.containsKey("tagname")) &&
-              !superclassNames.contains(member.owner) && (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member))) {
+              !"private".equals(member.access) &&
+              (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member))) {
         result.add(memberType.cast(member));
       }
     }
@@ -56,12 +61,13 @@ public class ExtJsApi {
 
   private static <T extends Member> T resolve(ExtClass owner, String name, Class<T> memberType) {
     if (owner != null) {
-      for (Member member : owner.members) {
-        if (memberType.isInstance(member) &&
-                member.owner.equals(owner.name) &&
-                name.equals(member.name) &&
-                !member.meta.static_) {
-          return memberType.cast(member);
+      for (Members members : owner.items) {
+        for (Member member : members.items) {
+          if (memberType.isInstance(member) &&
+                  name.equals(member.name) &&
+                  !member.static_) {
+            return memberType.cast(member);
+          }
         }
       }
     }
@@ -72,17 +78,15 @@ public class ExtJsApi {
     if (member.overrides != null && !member.overrides.isEmpty()) {
       final Overrides override = member.overrides.get(0); // or the last element? Didn't find any example of more than one element.
       final Member superMember = resolve(getExtClass(override.owner), override.name, member.getClass());
-      if (superMember != null && superMember.doc != null) {
-        final String normalizedDoc = member.doc.replace(member.owner, superMember.owner);
-        return normalizedDoc.equals(superMember.doc);
+      if (superMember != null && superMember.text != null) {
+        return member.text.equals(superMember.text);
       }
     }
     return false;
   }
 
   public boolean isStatic(Member member) {
-    ExtClass extClass = getExtClass(member.owner);
-    return !extClass.singleton && (member.static_ || member.meta.static_ || isConstantName(member.name));
+    return member.static_ || isConstantName(member.name);
   }
 
   private static boolean isConstantName(String name) {
@@ -90,50 +94,55 @@ public class ExtJsApi {
   }
 
   public boolean isReadOnly(Member member) {
-    return member.meta.readonly || member.readonly || isConstantName(member.name);
+    return member.readonly || isConstantName(member.name);
   }
 
   public boolean isProtected(Member member) {
-    return member.protected_ || member.meta.protected_;
+    return "protected".equals(member.access);
   }
 
   public static boolean isPublicNonStaticMethodOrPropertyOrCfg(Member member) {
     return (member instanceof Method || member instanceof Property || member instanceof Cfg)
-            && !member.meta.static_ && !(member.meta.private_ || member.private_) && !(member.meta.protected_ || member.protected_)
+            && !member.static_ && !"private".equals(member.access) && !"protected".equals(member.access)
             && !"constructor".equals(member.name);
   }
 
   public static boolean isConst(Member member) {
-    return member.meta.readonly || member.readonly || (member.name.equals(member.name.toUpperCase()) && member.default_ != null);
+    return member.readonly || (member.name.equals(member.name.toUpperCase()) && member.value != null);
   }
 
   // normalize / use alternate class name if it can be found in reference API:
-  public ExtJsApi(File[] files) throws IOException {
+  public ExtJsApi(File srcFile) throws IOException {
     extClassByName = new HashMap<String, ExtClass>();
     extClasses = new LinkedHashSet<ExtClass>();
 
-    for (File jsonFile : files) {
-      ExtClass extClass = readExtApiJson(jsonFile);
-      extClasses.add(extClass);
-      extClassByName.put(extClass.name, extClass);
-      if (extClass.alternateClassNames != null) {
-        for (String alternateClassName : extClass.alternateClassNames) {
-          extClassByName.put(alternateClassName, extClass);
+    Doxi doxi = readExtApiJson(srcFile);
+    for (Tag global : doxi.global.items) {
+      if (global instanceof ExtClass) {
+        ExtClass extClass = (ExtClass) global;
+        extClasses.add(extClass);
+        extClassByName.put(extClass.name, extClass);
+        if (extClass.alternateClassNames != null) {
+          for (String alternateClassName : extClass.alternateClassNames) {
+            extClassByName.put(alternateClassName, extClass);
+          }
         }
       }
     }
     Set<ExtClass> collectMixins = new HashSet<ExtClass>();
-    for (ExtClass extClass : extClasses) {
-      for (String mixin : extClass.mixins) {
-        final ExtClass mixinClass = getExtClass(mixin);
-        if (mixinClass != null) {
-          collectMixins.add(mixinClass);
+    for (Tag global : doxi.global.items) {
+      if (global instanceof ExtClass) {
+        ExtClass extClass = (ExtClass) global;
+        for (String mixin : extClass.mixins) {
+          final ExtClass mixinClass = getExtClass(mixin);
+          if (mixinClass != null) {
+            collectMixins.add(mixinClass);
+          }
         }
       }
     }
     markTransitiveSupersAsMixins(collectMixins);
     mixins = Collections.unmodifiableSet(collectMixins);
-    extClasses = Collections.unmodifiableSet(extClasses);
   }
 
   private void markTransitiveSupersAsMixins(Set<ExtClass> extClasses) {
@@ -193,64 +202,76 @@ public class ExtJsApi {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr"})
+  @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="$type", visible = true)
+  @JsonSubTypes({
+          @JsonSubTypes.Type(value = ExtClass.class, name = "class"),
+          @JsonSubTypes.Type(value = Enum.class, name = "enum"),
+          @JsonSubTypes.Type(value = Member.class, name = "member"),
+  })
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Tag {
-    public String tagname;
+    public String $type;
     public String name;
-    public String doc = "";
-    @JsonProperty("private")
-    public boolean private_;
-    public MemberReference inheritdoc;
-    public Object author;
-    public Object docauthor;
-    public Object removed;
-    public List<Param> properties;
+    public String text = "";
+    public String access;
 
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Tag tag = (Tag)o;
-      return name.equals(tag.name) && !(tagname != null ? !tagname.equals(tag.tagname) : tag.tagname != null);
+      return name.equals(tag.name) && !($type != null ? !$type.equals(tag.$type) : tag.$type != null);
 
     }
 
     @Override
     public int hashCode() {
-      int result = tagname != null ? tagname.hashCode() : 0;
+      int result = $type != null ? $type.hashCode() : 0;
       result = 31 * result + name.hashCode();
       return result;
     }
   }
 
+  @JsonTypeName("doxi")
+  private static class Doxi extends Tag {
+    public List<String> files;
+    public Namespace global;
+  }
+
+  @JsonTypeName("namespace")
+  private static class Namespace extends Tag {
+    public List<? extends Tag> items;
+  }
+
   @SuppressWarnings("unused")
-  @JsonIgnoreProperties({"html_meta", "html_type", "short_doc", "localdoc", "linenr", "enum", "override", "autodetected", "params"})
   public static class ExtClass extends Tag {
-    public Deprecation deprecated;
-    public String since;
+    public String deprecatedMessage;
+    public String deprecatedVersion;
     @JsonProperty("extends")
+    @JsonDeserialize(using = FixExtendsDeserializer.class)
     public String extends_;
+    @JsonDeserialize(using = CommaSeparatedStringsDeserializer.class)
     public List<String> mixins = Collections.emptyList();
+    @JsonDeserialize(using = CommaSeparatedStringsDeserializer.class)
     public List<String> alternateClassNames;
-    public Map<String,List<String>> aliases;
+    public String alias;
     public boolean singleton;
-    public List<String> requires;
-    public List<String> uses;
-    public String code_type;
-    public boolean inheritable;
-    public Meta meta;
-    public String id;
-    public List<Member> members;
-    public List<FilenNameAndLineNumber> files;
-    public boolean component;
-    public List<String> superclasses;
-    public List<String> subclasses;
-    public List<String> mixedInto;
-    public List<String> parentMixins;
-    @JsonProperty("abstract")
-    public boolean abstract_;
-    @JsonProperty("protected")
-    public boolean protected_;
+    public List<Members> items = Collections.emptyList();
+  }
+
+  @SuppressWarnings("unused")
+  @JsonSubTypes({
+          @JsonSubTypes.Type(value = Members.class, name = "methods"),
+          @JsonSubTypes.Type(value = Members.class, name = "static-methods"),
+          @JsonSubTypes.Type(value = Members.class, name = "properties"),
+          @JsonSubTypes.Type(value = Members.class, name = "static-properties"),
+          @JsonSubTypes.Type(value = Members.class, name = "configs"),
+          @JsonSubTypes.Type(value = Members.class, name = "vars"),
+          @JsonSubTypes.Type(value = Members.class, name = "events"),
+          @JsonSubTypes.Type(value = Members.class, name = "sass-mixins"),
+  })
+  private static class Members extends Tag {
+    public List<? extends Member> items;
   }
 
   @SuppressWarnings("unused")
@@ -260,45 +281,49 @@ public class ExtJsApi {
     public String href;
   }
 
-  public static class Deprecation {
-    public String text;
-    public String version;
-  }
-
-  @JsonIgnoreProperties({"html_type", "html_meta", "linenr"})
+  @JsonSubTypes({
+          @JsonSubTypes.Type(value = Param.class, name = "param"),
+          @JsonSubTypes.Type(value = Return.class, name = "return"),
+  })
   public abstract static class Var extends Tag {
-    public String type;
-    @JsonProperty("default")
-    public String default_;
+    public String type = "";
+    public String value;
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="tagname")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr"})
+  @JsonSubTypes({
+          @JsonSubTypes.Type(value = Method.class, name = "method"),
+          @JsonSubTypes.Type(value = Property.class, name = "property"),
+          @JsonSubTypes.Type(value = Cfg.class, name = "cfg"),
+          @JsonSubTypes.Type(value = Event.class, name = "event"),
+
+  })
   public static class Member extends Var {
-    public String owner;
-    public Deprecation deprecated;
+    public String deprecatedMessage;
+    public String deprecatedVersion;
     public String since;
     @JsonProperty("static")
     public boolean static_;
-    public Meta meta = new Meta();
     public boolean inheritable;
-    public String id;
-    public List<FilenNameAndLineNumber> files;
-    public boolean accessor;
+    public Object src;
+    public Object accessor; // TRUE or "w"
     public boolean evented;
     public List<Overrides> overrides;
-    @JsonProperty("protected")
-    public boolean protected_;
     public boolean readonly;
     public Map<String,Object> autodetected;
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeName("cfg")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "params", "fires", "throws", "return"})
+  public static class Enum extends Member {
+  }
+  
+  @SuppressWarnings("unused")
   public static class Cfg extends Member {
     public boolean required;
+
+    public Cfg() {
+      System.out.println("FOO");
+    }
   }
   
   @SuppressWarnings("unused")
@@ -317,44 +342,40 @@ public class ExtJsApi {
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeName("property")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "params", "return", "throws", "chainable"})
   public static class Property extends Member {
+    public boolean required;
+
     @Override
     public String toString() {
-      return meta + "var " + super.toString();
+      return access + " var " + super.toString();
     }
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeName("params")
   public static class Param extends Var {
     public boolean optional;
-    public Object ext4_auto_param;
+    public List<Property> items = Collections.emptyList();
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeName("method")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "throws", "fires", "method_calls", "template", "required"})
+  public static class Return extends Var {
+  }
+
+  @SuppressWarnings("unused")
   public static class Method extends Member {
-    public List<Param> params;
-    @JsonProperty("return")
-    public Param return_;
+    public List<Var> items = Collections.emptyList();
     public boolean chainable;
     @JsonProperty("abstract")
     public boolean abstract_;
   }
 
   @SuppressWarnings("unused")
-  @JsonTypeName("event")
-  @JsonIgnoreProperties({"html_type", "html_meta", "short_doc", "localdoc", "linenr", "return", "throws"})
   public static class Event extends Member {
-    public List<Param> params;
+    public List<Var> items = Collections.emptyList();
     public boolean preventable;
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @JsonIgnoreProperties({"aside", "chainable", "preventable"})
   public static class Meta {
     @JsonProperty("protected")
     public boolean protected_;
@@ -366,7 +387,8 @@ public class ExtJsApi {
     @JsonProperty("abstract")
     public boolean abstract_;
     public boolean markdown;
-    public Deprecation deprecated;
+    public String deprecatedMessage;
+    public String deprecatedVersion;
     public String template;
     public List<String> author;
     public List<String> docauthor;
@@ -375,4 +397,18 @@ public class ExtJsApi {
     public String since;
   }
 
+  private static class CommaSeparatedStringsDeserializer extends JsonDeserializer<List<String>> {
+    @Override
+    public List<String> deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      String string = jsonParser.readValueAs(String.class);
+      return new ArrayList<>(Arrays.asList(string.split(",")));
+    }
+  }
+
+  private static class FixExtendsDeserializer extends JsonDeserializer<String> {
+    @Override
+    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      return jsonParser.readValueAs(String.class).split(",")[0];
+    }
+  }
 }

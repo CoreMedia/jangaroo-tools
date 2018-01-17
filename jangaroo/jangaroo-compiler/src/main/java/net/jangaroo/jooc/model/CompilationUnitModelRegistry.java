@@ -41,7 +41,6 @@ public class CompilationUnitModelRegistry extends CompilationUnitModelResolver {
   private static final CompilationUnitModel ERROR_COMPILATION_UNIT = new CompilationUnitModel("", createErrorClass());
 
   @Override
-  @Nonnull
   public CompilationUnitModel resolveCompilationUnit(@Nonnull String qName) {
     if ("Error".equals(qName)) {
       return ERROR_COMPILATION_UNIT;
