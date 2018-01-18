@@ -123,13 +123,13 @@ public class ExtAsApiGenerator {
         generateClassModel(extClass);
       }
       compilationUnitModelRegistry.complementOverrides();
-      compilationUnitModelRegistry.complementImports();
+      //compilationUnitModelRegistry.complementImports();
 
       adaptToReferenceApi();
 
       // again, to make corrections consistent (actually needed?)
-//      compilationUnitModelRegistry.complementOverrides();
-//      compilationUnitModelRegistry.complementImports();
+      compilationUnitModelRegistry.complementOverrides();
+      compilationUnitModelRegistry.complementImports();
 
       annotateBindableConfigProperties();
 
@@ -314,7 +314,7 @@ public class ExtAsApiGenerator {
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
-    extAsClass.setAsdoc(toAsDoc(extClass));
+    extAsClass.setAsdoc(toAsDoc(extClass, extClass.singleton ? extAsClass.getName() : ""));
     addDeprecation(extClass.deprecatedMessage, extClass.deprecatedVersion, extAsClass);
     CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
@@ -322,7 +322,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.text) + "\n * @see " + extClassName);
+      extAsInterface.setAsdoc(toAsDoc(extClass.text, "") + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -373,8 +373,8 @@ public class ExtAsApiGenerator {
     if (extAsInterfaceUnit != null) {
       addNonStaticMembers(extClass, extAsInterfaceUnit);
     } else {
-      addFields(extAsClass, extJsApi.filterByOwner(false, true, extClass, "static-properties", Property.class));
-      addMethods(extAsClass, extJsApi.filterByOwner(false, true, extClass, "static-methods", Method.class));
+      addFields(extAsClass, extJsApi.filterByOwner(false, true, extClass, "static-properties", Property.class), extClass);
+      addMethods(extAsClass, extClass, extJsApi.filterByOwner(false, true, extClass, "static-methods", Method.class));
     }
 
     addNonStaticMembers(extClass, extAsClassUnit);
@@ -470,7 +470,7 @@ public class ExtAsApiGenerator {
       addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, "events", Event.class));
     }
     addProperties(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "properties", Property.class), false);
-    addMethods(extAsClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "methods", Method.class));
+    addMethods(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "methods", Method.class));
     addProperties(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "configs", Property.class), true);
   }
 
@@ -518,7 +518,7 @@ public class ExtAsApiGenerator {
       String eventName = toCamelCase(event.name);
       AnnotationModel annotationModel = new AnnotationModel("Event",
               new AnnotationPropertyModel("name", "'on" + eventName + "'"));
-      String asdoc = toAsDoc(event);
+      String asdoc = toAsDoc(event, "");
       if (generateEventClasses) {
         String eventTypeQName = generateEventClass(compilationUnitModel, event);
         annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
@@ -538,16 +538,20 @@ public class ExtAsApiGenerator {
     if (SINGLETON_CLASS_NAME_PATTERN.matcher(eventTypeNamePrefix).find()) {
       eventTypeNamePrefix = eventTypeNamePrefix.substring(1);
     }
-    String eventTypeQName = eventClientClass.getPackage() + ".events." + eventTypeNamePrefix;
+    StringBuilder eventTypeQNameBuilder = new StringBuilder()
+            .append(eventClientClass.getPackage())
+            .append(".events.")
+            .append(eventTypeNamePrefix);
     String eventClientClassQName = eventClientClass.getQName();
     for (int i = 0; i < event.items.size(); i++) {
       Var param = event.items.get(i);
       String asType = convertType(param.type);
-      if (!"eOpts".equals(param.name) && !"this".equals(param.name) && (i > 0 || !eventClientClassQName.equals(asType))) {
-        eventTypeQName += "_" + param.name;
+      if (!"this".equals(param.name) && (i > 0 || !eventClientClassQName.equals(asType))) {
+        eventTypeQNameBuilder.append("_").append(param.name);
       }
     }
-    eventTypeQName += "Event";
+    eventTypeQNameBuilder.append("Event");
+    String eventTypeQName = eventTypeQNameBuilder.toString();
 
     String eventName = toCamelCase(event.name);
 
@@ -562,8 +566,7 @@ public class ExtAsApiGenerator {
       constructorModel.addParam(new ParamModel("arguments", "Array"));
       constructorModel.setBody("super(type, arguments);");
 
-      StringBuilder parameterSequence = new StringBuilder();
-      String separator = "[";
+      StringBuilder parameterSequence = new StringBuilder("[");
       for (Var param : event.items) {
         if (!(param instanceof Param)) {
           continue;
@@ -571,17 +574,14 @@ public class ExtAsApiGenerator {
         String parameterName = convertName(param.name);
 
         // add parameter to sequence constant:
-        parameterSequence.append(separator).append(CompilerUtils.quote(parameterName));
-        separator = ", ";
+        parameterSequence.append(CompilerUtils.quote(parameterName)).append(", ");
 
-        if (!"eOpts".equals(param.name)) { // eOpts is inherited from FlExtEvent!
-          // add getter method:
-          MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
-          property.setAsdoc(toAsDoc(param));
-          extAsClass.addMember(property);
-        }
+        // add getter method:
+        MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
+        property.setAsdoc(toAsDoc(param, ""));
+        extAsClass.addMember(property);
       }
-      parameterSequence.append("]");
+      parameterSequence.append(CompilerUtils.quote("eOpts")).append("]");
 
       FieldModel parameterSequenceConstant = new FieldModel("__PARAMETER_SEQUENCE__", "Array", parameterSequence.toString());
       parameterSequenceConstant.setStatic(true);
@@ -592,7 +592,7 @@ public class ExtAsApiGenerator {
     FieldModel eventNameConstant = new FieldModel(toConstantName(event.name), "String", CompilerUtils.quote("on" + eventName));
     eventNameConstant.setStatic(true);
     eventNameConstant.setConst(true);
-    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event), eventClientClass.getQName(), "on" + eventName));
+    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, ""), eventClientClass.getQName(), "on" + eventName));
     eventType.getClassModel().addMember(eventNameConstant);
 
     return eventTypeQName;
@@ -640,12 +640,12 @@ public class ExtAsApiGenerator {
     } return words;
   }
 
-  private static void addFields(ClassModel classModel, List<? extends Member> fields) {
+  private static void addFields(ClassModel classModel, List<? extends Member> fields, ExtClass extClass) {
     for (Member member : fields) {
       PropertyModel fieldModel = new PropertyModel(convertName(member.name), convertType(member.type));
       setVisibility(fieldModel, member);
       setStatic(fieldModel, member);
-      fieldModel.addGetter().setAsdoc(toAsDoc(member));
+      fieldModel.addGetter().setAsdoc(toAsDoc(member, extClass.singleton ? classModel.getName() : ""));
       if (!isConst(member)) {
         fieldModel.addSetter().setAsdoc("@private");
       }
@@ -664,7 +664,7 @@ public class ExtAsApiGenerator {
       boolean isStatic = !extClass.singleton && extJsApi.isStatic(member);
       String name = convertName(member.name);
       String type = convertType(member.type);
-      String asDoc = toAsDoc(member);
+      String asDoc = toAsDoc(member, extClass.singleton ? classModel.getName() : "");
       if (type == null || "*".equals(type) || "Object".equals(type)) {
         // try to deduce a more specific type from the property name:
         type = "cls".equals(member.name) ? "String"
@@ -740,7 +740,7 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addMethods(ClassModel classModel, List<Method> methods) {
+  private static void addMethods(ClassModel classModel, ExtClass extClass, List<Method> methods) {
     for (Method method : methods) {
       String methodName = method.name;
       if (methodName == null || methodName.length() == 0) {
@@ -757,17 +757,20 @@ public class ExtAsApiGenerator {
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), !return_.isPresent() ? "void" : convertType(return_.get().type));
-        methodModel.setAsdoc(toAsDoc(method));
-        return_.ifPresent(var -> methodModel.getReturnModel().setAsdoc(toAsDoc(var)));
+        String thisClassName = extClass.singleton ? classModel.getName() : "";
+        methodModel.setAsdoc(toAsDoc(method, thisClassName));
+        return_.ifPresent(var -> methodModel.getReturnModel().setAsdoc(toAsDoc(var, thisClassName)));
         setVisibility(methodModel, method);
-        setStatic(methodModel, method);
+        if (!extClass.singleton) {
+          setStatic(methodModel, method);
+        }
         addDeprecation(method.deprecatedMessage, method.deprecatedVersion, methodModel);
         for (Var var_ : method.items) {
           if (var_ instanceof Param) {
             Param param = (Param) var_;
             String paramName = param.name == null ? "param" + (method.items.indexOf(param) + 1) : convertName(param.name);
             ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
-            paramModel.setAsdoc(toAsDoc(param, param.name));
+            paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName));
             setDefaultValue(paramModel, param);
             paramModel.setRest(param == method.items.get(method.items.size() - 1) && param.type.endsWith("..."));
             methodModel.addParam(paramModel);
@@ -790,12 +793,12 @@ public class ExtAsApiGenerator {
     memberModel.setStatic(extJsApi.isStatic(member));
   }
 
-  private static String toAsDoc(Tag tag) {
-    return toAsDoc(tag, null);
+  private static String toAsDoc(Tag tag, String thisClassName) {
+    return toAsDoc(tag, null, thisClassName);
   }
 
-  private static String toAsDoc(Tag tag, String paramPrefix) {
-    StringBuilder asDoc = new StringBuilder(toAsDoc(tag.text));
+  private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName) {
+    StringBuilder asDoc = new StringBuilder(toAsDoc(tag.text, thisClassName));
     if (tag instanceof Var && ((Var)tag).value != null) {
       asDoc.append("\n@default ").append(((Var)tag).value);
     }
@@ -819,7 +822,7 @@ public class ExtAsApiGenerator {
               asDoc.append(qualifiedPropertyName);
             }
             asDoc.append(" ");
-            asDoc.append(toAsDoc(property, qualifiedPropertyName));
+            asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName));
           }
         } else {
           asDoc.append("\n   * <ul>");
@@ -833,7 +836,7 @@ public class ExtAsApiGenerator {
             if (!property.required) {
               asDoc.append(" (optional)");
             }
-            String propertyAsDoc = toAsDoc(property);
+            String propertyAsDoc = toAsDoc(property, thisClassName);
             if (!propertyAsDoc.trim().isEmpty()) {
               asDoc.append("\n   * ").append(propertyAsDoc).append("\n   *   ");
             }
@@ -852,16 +855,18 @@ public class ExtAsApiGenerator {
     return result;
   }
 
-  private static String toAsDoc(String doc) {
+  private static String toAsDoc(String doc, String thisClassName) {
     // left-align "@example" (it is not part of the code!):
     doc = doc.replaceAll(" *@example\n", "@example\n\n");
     // convert markdown to HTML:
     doc = markdownToHtml(doc);
+    // undo &quot; escaping to increase readability:
+    doc = doc.replace("&quot;", "\"");
     // strip generated paragraph around @example doc tag:
-    doc = doc.replaceAll("<p>@example</p>", "@example");
+    doc = doc.replace("<p>@example</p>", "@example");
 
     // process {@link} doc tags:
-    doc = processLinkTags(doc);
+    doc = processLinkTags(doc, thisClassName);
 
     // remove <locale> and </locale>:
     String asDoc = doc.replaceAll("</?locale>", "");
@@ -886,7 +891,7 @@ public class ExtAsApiGenerator {
   }
 
   // process {@link} doc tags
-  private static String processLinkTags(String doc) {
+  private static String processLinkTags(String doc, String thisClassName) {
     Matcher linkMatcher = Pattern.compile("\\{@link(\\s+)([^\\s}]*)([^}]*)?}").matcher(doc);
     StringBuffer newDoc = new StringBuffer();
     while (linkMatcher.find()) {
@@ -902,13 +907,19 @@ public class ExtAsApiGenerator {
       linkText = linkText.replaceAll("\\$", "_");
 
       String[] parts = link.split("#");
-      link = parts[0].isEmpty() ? "" : convertType(parts[0]);
+      link = parts[0].isEmpty() ? thisClassName : convertType(parts[0]);
       if (parts.length > 1) {
         String member = parts[1];
-        if (member.startsWith("cfg-")) {
-          member = member.substring("cfg-".length());
+        Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|event)[!-](.*)").matcher(member);
+        if (memberNameMatcher.matches()) {
+          member = memberNameMatcher.group(2);
+          if ("event".equals(memberNameMatcher.group(1))) {
+            String flexEventName = "on" + toCamelCase(member);
+            linkText = linkText.replace(member, flexEventName);
+            member = "event:" + flexEventName;
+          }
         }
-        link += "#" + member;
+        link += "#" + convertName(member); // might be "is" etc.
       }
       linkMatcher.appendReplacement(newDoc, "{@link" + whitespace + link + linkText + "}");
     }
@@ -958,7 +969,8 @@ public class ExtAsApiGenerator {
                     "this".equals(name) ? "source" :
                             "new".equals(name) ? "new_" :
                                     "default".equals(name) ? "default_" :
-                                            name;
+                                            "catch".equals(name) ? "catch_" :
+                                                    name;
   }
 
   private static String replaceSeparatorByCamelCase(String string, char separator) {
