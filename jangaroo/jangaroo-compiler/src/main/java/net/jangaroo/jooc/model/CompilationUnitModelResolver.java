@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
  */
 public abstract class CompilationUnitModelResolver {
 
-  @Nonnull
   public abstract CompilationUnitModel resolveCompilationUnit(@Nonnull String qName);
 
   public boolean implementsInterface(CompilationUnitModel classCompilationUnitModel, String anInterface) {
