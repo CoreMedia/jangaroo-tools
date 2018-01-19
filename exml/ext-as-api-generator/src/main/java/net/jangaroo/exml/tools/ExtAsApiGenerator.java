@@ -578,7 +578,7 @@ public class ExtAsApiGenerator {
 
         // add getter method:
         MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
-        property.setAsdoc(toAsDoc(param, ""));
+        property.setAsdoc(toAsDoc(param, eventClientClassQName));
         extAsClass.addMember(property);
       }
       parameterSequence.append(CompilerUtils.quote("eOpts")).append("]");
@@ -592,7 +592,7 @@ public class ExtAsApiGenerator {
     FieldModel eventNameConstant = new FieldModel(toConstantName(event.name), "String", CompilerUtils.quote("on" + eventName));
     eventNameConstant.setStatic(true);
     eventNameConstant.setConst(true);
-    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, ""), eventClientClass.getQName(), "on" + eventName));
+    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, eventClientClassQName), eventClientClass.getQName(), "on" + eventName));
     eventType.getClassModel().addMember(eventNameConstant);
 
     return eventTypeQName;
@@ -721,10 +721,18 @@ public class ExtAsApiGenerator {
         getter.addAnnotation(extConfigAnnotation);
       }
       if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
-        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+//        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+        MethodModel getMethod = new MethodModel("get" + capitalize(name), type);
+        getMethod.setAsdoc("Returns the value of {@link #" + name + "}.");
+        classModel.addMember(getMethod);
       }
       if (!extJsApi.isReadOnly(member)) {
         MethodModel setter = propertyModel.addSetter();
+        ParamModel setMethodParam = new ParamModel(name, type);
+        MethodModel setMethod = new MethodModel("set" + capitalize(name), "void", setMethodParam);
+        setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
+        setMethodParam.setAsdoc("The new value.");
+        classModel.addMember(setMethod);
         if (classModel.isInterface()) {
           // do not add @private to ASDoc in interfaces, or IDEA will completely ignore the declaration!
           setter.setAsdoc(null);
@@ -732,9 +740,9 @@ public class ExtAsApiGenerator {
         if (extConfigAnnotation != null) {
           setter.addAnnotation(extConfigAnnotation);
         }
-        if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
-          setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-        }
+//        if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
+//          setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+//        }
       }
       classModel.addMember(propertyModel);
     }
