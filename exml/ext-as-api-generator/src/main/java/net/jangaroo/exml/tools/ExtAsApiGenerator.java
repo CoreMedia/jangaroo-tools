@@ -732,7 +732,7 @@ public class ExtAsApiGenerator {
       }
       if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
 //        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-        MethodModel getMethod = new MethodModel("get" + capitalize(name), type);
+        MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
         getMethod.setAsdoc("Returns the value of {@link #" + name + "}.");
         classModel.addMember(getMethod);
       }
@@ -747,7 +747,7 @@ public class ExtAsApiGenerator {
         }
         if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
           ParamModel setMethodParam = new ParamModel(name, type);
-          MethodModel setMethod = new MethodModel("set" + capitalize(name), "void", setMethodParam);
+          MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
           setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
           setMethodParam.setAsdoc("The new value.");
           classModel.addMember(setMethod);
@@ -1208,7 +1208,8 @@ public class ExtAsApiGenerator {
   }
 
   private static void annotateBindableConfigProperty(ClassModel classModel, MethodModel accessor) {
-    if (accessor.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME).isEmpty()) {
+    List<AnnotationModel> annotations = accessor.getAnnotations(Jooc.EXT_CONFIG_ANNOTATION_NAME);
+    if (annotations.isEmpty()) {
       return;
     }
     String prefix = accessor.getMethodType().toString();
@@ -1219,7 +1220,9 @@ public class ExtAsApiGenerator {
       return;
     }
 
-    String methodName = prefix + capitalize(accessor.getName());
+    AnnotationPropertyModel annotationPropertyModel = annotations.get(0).getPropertiesByName().get(null);
+    String propertyName = annotationPropertyModel == null ? accessor.getName() : annotationPropertyModel.getStringValue();
+    String methodName = prefix + capitalize(propertyName);
     MethodModel method = compilationUnitModelRegistry.resolveMethod(classModel, null, methodName);
     if (method == null) {
       warnConfigProperty("no matching " + prefix + "ter method", classModel, accessor);
