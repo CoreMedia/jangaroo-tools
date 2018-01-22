@@ -165,7 +165,7 @@ public class MethodModel extends MemberModel {
     if (!super.equals(o)) return false;
     MethodModel that = (MethodModel)o;
     return methodType == that.methodType && params.equals(that.params) &&
-      (returnModel == null ? that.returnModel == null : returnModel.equals(that.returnModel));
+            (getReturnModel().equals(that.getReturnModel()));
   }
 
   @Override
