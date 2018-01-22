@@ -66,6 +66,7 @@ import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
 public class ExtAsApiGenerator {
 
   private static final Pattern SINGLETON_CLASS_NAME_PATTERN = Pattern.compile("^S[A-Z]");
+  private static final Pattern LINK_PATTERN = Pattern.compile("\\{@link(\\s+)([^\\s}]*)([^}]*)?}");
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -501,17 +502,17 @@ public class ExtAsApiGenerator {
     if (deprecatedMessage != null) {
       final AnnotationModel deprecated = new AnnotationModel("Deprecated");
       if (!deprecatedMessage.matches("\\s*")) {
-        Matcher replacementMatcher = Pattern.compile("<a href=\"#!/api/.*\" rel=\"(.*)\" class=\"docClass\">.*</a>").matcher(deprecatedMessage);
+        Matcher replacementMatcher = LINK_PATTERN.matcher(deprecatedMessage);
         String name;
         String value;
         if (replacementMatcher.find()) {
           name = "replacement";
-          String reference = replacementMatcher.group(1);
-          Matcher referenceMatcher = Pattern.compile("(.*)-(.*)-(.*)").matcher(reference);
-          if (referenceMatcher.matches()) {
-            value = referenceMatcher.group(3); // TODO: check whether group 1 contains the current class, otherwise mention it!
+          String reference = replacementMatcher.group(2);
+          String[] parts = reference.split("[#-]");
+          if (parts.length > 1) {
+            value = parts[parts.length - 1]; // TODO: check whether part 1 contains the current class, otherwise mention it!
           } else {
-            value = convertType(reference);
+            value = convertType(parts[0]);
           }
         } else {
           name = "message";
@@ -927,7 +928,7 @@ public class ExtAsApiGenerator {
 
   // process {@link} doc tags
   private static String processLinkTags(String doc, String thisClassName) {
-    Matcher linkMatcher = Pattern.compile("\\{@link(\\s+)([^\\s}]*)([^}]*)?}").matcher(doc);
+    Matcher linkMatcher = LINK_PATTERN.matcher(doc);
     StringBuffer newDoc = new StringBuffer();
     while (linkMatcher.find()) {
       String whitespace = linkMatcher.group(1);
