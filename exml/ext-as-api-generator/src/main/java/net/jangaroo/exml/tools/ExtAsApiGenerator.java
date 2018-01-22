@@ -970,6 +970,7 @@ public class ExtAsApiGenerator {
     options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create()));
 
     options.set(HtmlRenderer.FORMAT_FLAGS, HtmlRenderer.FORMAT_ALL_OPTIONS); // TODO: seems to have no effect?!
+    options.set(Parser.HEADING_NO_ATX_SPACE, true);
 
     Parser parser = Parser.builder(options).build();
     HtmlRenderer renderer = HtmlRenderer.builder(options).build();
