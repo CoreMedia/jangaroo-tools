@@ -6,6 +6,7 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
 import net.jangaroo.exml.tools.ExtJsApi.ExtClass;
+import net.jangaroo.exml.tools.ExtJsApi.Return;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
@@ -37,6 +38,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -363,9 +365,13 @@ public class ExtAsApiGenerator {
     for (String mixin : extClass.mixins) {
       ExtClass extMixinClass = extJsApi.getExtClass(mixin);
       if (extMixinClass != null) {
-        addNonStaticMembers(extMixinClass, extAsClassUnit);
         String superInterface = convertToInterface(getActionScriptName(extMixinClass));
-        if (superInterface != null) {
+        if (superInterface == null) {
+          // mix-in all members of Mixin:
+          addNonStaticMembers(extMixinClass, extAsClassUnit);
+        } else {
+          // mix-in only non-public members of Mixin, the interface will take care about the rest:
+          addNonStaticMembers(extMixinClass, true, extAsClassUnit);
           extAsClass.addInterface(superInterface);
           if (extAsInterfaceUnit != null) {
             extAsInterfaceUnit.getClassModel().addInterface(superInterface);
@@ -469,13 +475,18 @@ public class ExtAsApiGenerator {
   }
 
   private static void addNonStaticMembers(ExtClass extClass, CompilationUnitModel extAsClassUnit) {
+    addNonStaticMembers(extClass, false, extAsClassUnit);
+  }
+
+  private static void addNonStaticMembers(ExtClass extClass, boolean isMixin, CompilationUnitModel extAsClassUnit) {
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     if (!extAsClass.isInterface()) {
-      addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(false, false, extClass, "events", Event.class));
+      addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(isMixin, false, false, extClass, "events", Event.class));
     }
-    addProperties(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "properties", Property.class), false);
-    addMethods(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "methods", Method.class));
-    addProperties(extAsClass, extClass, extJsApi.filterByOwner(extAsClass.isInterface(), false, extClass, "configs", Property.class), true);
+    addProperties(extAsClass, extClass, extJsApi.filterByOwner(isMixin, extAsClass.isInterface(), false, extClass, "properties", Property.class), false);
+    addMethods(extAsClass, extClass, extJsApi.filterByOwner(isMixin, extAsClass.isInterface(), false, extClass, "methods", Method.class));
+    // always add configs, even from mixins, as [ExtConfig] annotations are not inherited from interfaces:
+    addProperties(extAsClass, extClass, extJsApi.filterByOwner(false, extAsClass.isInterface(), false, extClass, "configs", Property.class), true);
   }
 
   private static void generateActionScriptCode(CompilationUnitModel extAsClass, File outputDir) throws IOException {
@@ -760,7 +771,7 @@ public class ExtAsApiGenerator {
         String thisClassName = extClass.singleton ? classModel.getName() : "";
         method = getDelegateTag(method, thisClassName);
 
-        Optional<Var> return_ = method.items.stream().filter((Var item) -> item instanceof ExtJsApi.Return).findAny();
+        Optional<Var> return_ = method.items.stream().filter((Var item) -> item instanceof Return).findAny();
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), !return_.isPresent() ? "void" : convertType(return_.get().type));
@@ -830,45 +841,44 @@ public class ExtAsApiGenerator {
     if (tag instanceof Member && ((Member)tag).since != null) {
       asDoc.append("\n@since ").append(((Member)tag).since);
     }
-    if (tag instanceof Param) {
+    if (paramPrefix != null && tag instanceof Param) {
       List<Property> subParams = ((Param) tag).items;
-      if (!subParams.isEmpty()) {
-        if (paramPrefix != null) {
-          for (Property property : subParams) {
-            asDoc.append("\n   * @param ");
-            String propertyType = convertType(property.type);
-            if (propertyType != null && !"*".equals(propertyType)) {
-              asDoc.append("{").append(propertyType).append("} ");
-            }
-            String qualifiedPropertyName = paramPrefix + "." + property.name;
-            if (!property.required) {
-              asDoc.append("[").append(qualifiedPropertyName).append("]");
-            } else {
-              asDoc.append(qualifiedPropertyName);
-            }
-            asDoc.append(" ");
-            asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName));
-          }
-        } else {
-          asDoc.append("\n   * <ul>");
-          for (Property property : subParams) {
-            asDoc.append("\n   *   <li>");
-            asDoc.append("<code>").append(property.name).append("</code>");
-            String propertyType = convertType(property.type);
-            if (propertyType != null && !"*".equals(propertyType)) {
-              asDoc.append(" : ").append(propertyType);
-            }
-            if (!property.required) {
-              asDoc.append(" (optional)");
-            }
-            String propertyAsDoc = toAsDoc(property, thisClassName);
-            if (!propertyAsDoc.trim().isEmpty()) {
-              asDoc.append("\n   * ").append(propertyAsDoc).append("\n   *   ");
-            }
-            asDoc.append("</li>");
-          }
-          asDoc.append("\n   * </ul>");
+      for (Property property : subParams) {
+        asDoc.append("\n   * @param ");
+        String propertyType = convertType(property.type);
+        if (propertyType != null && !"*".equals(propertyType)) {
+          asDoc.append("{").append(propertyType).append("} ");
         }
+        String qualifiedPropertyName = paramPrefix + "." + property.name;
+        if (!property.required) {
+          asDoc.append("[").append(qualifiedPropertyName).append("]");
+        } else {
+          asDoc.append(qualifiedPropertyName);
+        }
+        asDoc.append(" ");
+        asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName));
+      }
+    } else if (tag instanceof Var && !(tag instanceof Method)) { // methods handle their parameters themselves
+      List<Var> subParams = ((Var)tag).items;
+      if (!subParams.isEmpty()) {
+        asDoc.append("\n   * <ul>");
+        for (Var property : subParams) {
+          asDoc.append("\n   *   <li>");
+          asDoc.append("<code>").append(property.name).append("</code>");
+          String propertyType = convertType(property.type);
+          if (propertyType != null && !"*".equals(propertyType)) {
+            asDoc.append(" : ").append(propertyType);
+          }
+          if (property instanceof Property && !((Property) property).required) {
+            asDoc.append(" (optional)");
+          }
+          String propertyAsDoc = toAsDoc(property, thisClassName);
+          if (!propertyAsDoc.trim().isEmpty()) {
+            asDoc.append("\n   * ").append(propertyAsDoc).append("\n   *   ");
+          }
+          asDoc.append("</li>");
+        }
+        asDoc.append("\n   * </ul>");
       }
     }
 
@@ -1102,11 +1112,18 @@ public class ExtAsApiGenerator {
 
     extClasses.removeAll(privateClasses);
 
-    System.out.println("*****ADD TO JS-AS-NAME-MAPPING:");
+    List<String> missingMappings = new ArrayList<>();
     for (ExtClass extClass : extClasses) {
       if (getActionScriptName(extClass) == null) {
-        System.out.println(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1));
+        missingMappings.add(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1));
       }
+    }
+    Collections.sort(missingMappings);
+
+    System.out.println("*****ADD TO JS-AS-NAME-MAPPING:");
+    for (String missingMapping : missingMappings) {
+      System.out.println(missingMapping);
+      
     }
     System.out.println("*****END ADD TO JS-AS-NAME-MAPPING");
   }

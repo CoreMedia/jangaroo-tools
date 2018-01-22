@@ -45,6 +45,10 @@ public class ExtJsApi {
   }
 
   public <T extends Member> List<T> filterByOwner(boolean isInterface, boolean isStatic, ExtClass owner, String membersTypeName, Class<T> memberType) {
+    return filterByOwner(false, isInterface, isStatic, owner, membersTypeName, memberType);
+  }
+
+  public <T extends Member> List<T> filterByOwner(boolean isMixin, boolean isInterface, boolean isStatic, ExtClass owner, String membersTypeName, Class<T> memberType) {
     List<T> result = new ArrayList<T>();
     Optional<Members> membersWithType = owner.items.stream().filter(members -> membersTypeName.equals(members.$type)).findFirst();
     List<? extends Member> members = membersWithType.isPresent() ? membersWithType.get().items : Collections.emptyList();
@@ -52,7 +56,8 @@ public class ExtJsApi {
       if (memberType.isInstance(member) &&
               member.static_ == isStatic &&
               !"private".equals(member.access) &&
-              (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member))) {
+              (!isInterface || isPublicNonStaticMethodOrPropertyOrCfg(member)) &&
+              (!isMixin || !isPublicNonStaticMethodOrPropertyOrCfg(member))) {
         result.add(memberType.cast(member));
       }
     }
@@ -295,10 +300,15 @@ public class ExtJsApi {
   @JsonSubTypes({
           @JsonSubTypes.Type(value = Param.class, name = "param"),
           @JsonSubTypes.Type(value = Return.class, name = "return"),
+          @JsonSubTypes.Type(value = Method.class, name = "method"),
+          @JsonSubTypes.Type(value = Property.class, name = "property"),
+          @JsonSubTypes.Type(value = Cfg.class, name = "cfg"),
+          @JsonSubTypes.Type(value = Event.class, name = "event"),
   })
   public abstract static class Var extends Tag {
     public String type = "";
     public String value;
+    public List<Var> items = Collections.emptyList();
   }
 
   @SuppressWarnings("unused")
@@ -324,7 +334,7 @@ public class ExtJsApi {
   }
 
   @SuppressWarnings("unused")
-  public static class Enum extends Member {
+  public static class Enum extends Tag {
   }
   
   @SuppressWarnings("unused")
@@ -373,7 +383,6 @@ public class ExtJsApi {
 
   @SuppressWarnings("unused")
   public static class Method extends Member {
-    public List<Var> items = Collections.emptyList();
     public boolean chainable;
     @JsonProperty("abstract")
     public boolean abstract_;
