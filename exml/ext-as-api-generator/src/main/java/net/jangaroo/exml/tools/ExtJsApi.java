@@ -59,30 +59,40 @@ public class ExtJsApi {
     return result;
   }
 
-  private static <T extends Member> T resolve(ExtClass owner, String name, Class<T> memberType) {
+  public <T extends Tag> T resolve(String reference, String thisClassName, Class<T> memberType) {
+    String[] parts = reference.split("[#-]");
+    String className = parts[0].isEmpty() ? thisClassName : parts[0];
+    ExtClass owner = getExtClass(className);
+    if (parts.length == 1) {
+      return memberType.cast(owner);
+    }
+    String name = parts[parts.length - 1];
+    return resolve(owner, name, memberType);
+  }
+
+  private <T extends Tag> T resolve(ExtClass owner, String name, Class<T> memberType) {
     if (owner != null) {
       for (Members members : owner.items) {
         for (Member member : members.items) {
-          if (memberType.isInstance(member) &&
-                  name.equals(member.name) &&
-                  !member.static_) {
+          if (name.equals(member.name) && memberType.isInstance(member)) {
             return memberType.cast(member);
+          }
+        }
+      }
+      if (owner.extends_ != null) {
+        T result = resolve(getExtClass(owner.extends_), name, memberType);
+        if (result != null) {
+          return result;
+        }
+        for (String mixin : owner.mixins) {
+          result = resolve(getExtClass(mixin), name, memberType);
+          if (result != null) {
+            return result;
           }
         }
       }
     }
     return null;
-  }
-
-  public boolean inheritsDoc(Member member) {
-    if (member.overrides != null && !member.overrides.isEmpty()) {
-      final Overrides override = member.overrides.get(0); // or the last element? Didn't find any example of more than one element.
-      final Member superMember = resolve(getExtClass(override.owner), override.name, member.getClass());
-      if (superMember != null && superMember.text != null) {
-        return member.text.equals(superMember.text);
-      }
-    }
-    return false;
   }
 
   public boolean isStatic(Member member) {
@@ -213,6 +223,7 @@ public class ExtJsApi {
     public String $type;
     public String name;
     public String text = "";
+    public String inheritdoc;
     public String access;
 
     @Override
@@ -308,7 +319,6 @@ public class ExtJsApi {
     public Object src;
     public Object accessor; // TRUE or "w"
     public boolean evented;
-    public List<Overrides> overrides;
     public boolean readonly;
     public Map<String,Object> autodetected;
   }

@@ -361,11 +361,15 @@ public class ExtAsApiGenerator {
       extAsClass.addInterface(extAsInterfaceUnit.getQName());
     }
     for (String mixin : extClass.mixins) {
-      String superInterface = convertToInterface(getActionScriptName(mixin));
-      if (superInterface != null) {
-        extAsClass.addInterface(superInterface);
-        if (extAsInterfaceUnit != null) {
-          extAsInterfaceUnit.getClassModel().addInterface(superInterface);
+      ExtClass extMixinClass = extJsApi.getExtClass(mixin);
+      if (extMixinClass != null) {
+        addNonStaticMembers(extMixinClass, extAsClassUnit);
+        String superInterface = convertToInterface(getActionScriptName(extMixinClass));
+        if (superInterface != null) {
+          extAsClass.addInterface(superInterface);
+          if (extAsInterfaceUnit != null) {
+            extAsInterfaceUnit.getClassModel().addInterface(superInterface);
+          } 
         }
       }
     }
@@ -656,11 +660,6 @@ public class ExtAsApiGenerator {
 
   private static void addProperties(ClassModel classModel, ExtClass extClass, List<? extends Member> properties, boolean isConfig) {
     for (Member member : properties) {
-      if (extJsApi.inheritsDoc(member)) {
-        // suppress overridden properties with the same JSDoc!
-        continue;
-      }
-
       boolean isStatic = !extClass.singleton && extJsApi.isStatic(member);
       String name = convertName(member.name);
       String type = convertType(member.type);
@@ -728,11 +727,6 @@ public class ExtAsApiGenerator {
       }
       if (!extJsApi.isReadOnly(member)) {
         MethodModel setter = propertyModel.addSetter();
-        ParamModel setMethodParam = new ParamModel(name, type);
-        MethodModel setMethod = new MethodModel("set" + capitalize(name), "void", setMethodParam);
-        setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
-        setMethodParam.setAsdoc("The new value.");
-        classModel.addMember(setMethod);
         if (classModel.isInterface()) {
           // do not add @private to ASDoc in interfaces, or IDEA will completely ignore the declaration!
           setter.setAsdoc(null);
@@ -740,9 +734,14 @@ public class ExtAsApiGenerator {
         if (extConfigAnnotation != null) {
           setter.addAnnotation(extConfigAnnotation);
         }
-//        if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
+        if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
+          ParamModel setMethodParam = new ParamModel(name, type);
+          MethodModel setMethod = new MethodModel("set" + capitalize(name), "void", setMethodParam);
+          setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
+          setMethodParam.setAsdoc("The new value.");
+          classModel.addMember(setMethod);
 //          setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
-//        }
+        }
       }
       classModel.addMember(propertyModel);
     }
@@ -757,15 +756,14 @@ public class ExtAsApiGenerator {
       }
       if (classModel.getMember(methodName) == null) {
         boolean isConstructor = methodName.equals("constructor");
-        if (!isConstructor && extJsApi.inheritsDoc(method)) {
-          // suppress overridden methods with the same JSDoc!
-          continue;
-        }
+
+        String thisClassName = extClass.singleton ? classModel.getName() : "";
+        method = getDelegateTag(method, thisClassName);
+
         Optional<Var> return_ = method.items.stream().filter((Var item) -> item instanceof ExtJsApi.Return).findAny();
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), !return_.isPresent() ? "void" : convertType(return_.get().type));
-        String thisClassName = extClass.singleton ? classModel.getName() : "";
         methodModel.setAsdoc(toAsDoc(method, thisClassName));
         return_.ifPresent(var -> methodModel.getReturnModel().setAsdoc(toAsDoc(var, thisClassName)));
         setVisibility(methodModel, method);
@@ -801,14 +799,33 @@ public class ExtAsApiGenerator {
     memberModel.setStatic(extJsApi.isStatic(member));
   }
 
+  private static <T extends Tag> T getDelegateTag(T tag, String thisClassName) {
+    if (tag.text.isEmpty() && tag.inheritdoc != null && !"true".equals(tag.inheritdoc)) {
+      // dispatch generating ASDoc to given source
+      String reference = tag.inheritdoc;
+      @SuppressWarnings("unchecked")
+      T delegateTag = extJsApi.resolve(reference, thisClassName, (Class<T>) tag.getClass());
+      if (delegateTag != null) {
+        System.out.println("+*+*+*+* Found 'inheritdoc' in " + thisClassName + "#" + tag.name + ": Dispatching to #" + delegateTag.name);
+        return delegateTag;
+      } else {
+        System.out.println("+*+*+*+* Could not resolve 'inheritdoc' " + tag.inheritdoc + ", ignoring.");
+      }
+    }
+    return tag;
+  }
+
   private static String toAsDoc(Tag tag, String thisClassName) {
     return toAsDoc(tag, null, thisClassName);
   }
 
   private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName) {
     StringBuilder asDoc = new StringBuilder(toAsDoc(tag.text, thisClassName));
-    if (tag instanceof Var && ((Var)tag).value != null) {
-      asDoc.append("\n@default ").append(((Var)tag).value);
+    if (tag instanceof Var) {
+      String value = ((Var) tag).value;
+      if (value != null && !"null".equals(value) && !"undefined".equals(value)) {
+        asDoc.append("\n@default ").append(value);
+      }
     }
     if (tag instanceof Member && ((Member)tag).since != null) {
       asDoc.append("\n@since ").append(((Member)tag).since);
@@ -923,7 +940,8 @@ public class ExtAsApiGenerator {
           member = memberNameMatcher.group(2);
           if ("event".equals(memberNameMatcher.group(1))) {
             String flexEventName = "on" + toCamelCase(member);
-            linkText = linkText.replace(member, flexEventName);
+            // TODO: line below also uses Flex event names in documentation text. Good or bad?
+            // linkText = linkText.replace(member, flexEventName);
             member = "event:" + flexEventName;
           }
         }
