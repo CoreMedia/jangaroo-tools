@@ -427,7 +427,11 @@ public class ExtJsApi {
   private static class FixExtendsDeserializer extends JsonDeserializer<String> {
     @Override
     public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-      return jsonParser.readValueAs(String.class).split(",")[0];
+      String value = jsonParser.readValueAs(String.class);
+      return Arrays.stream(value.split(","))
+              .filter(className -> !"Object".equals(className))
+              .findFirst()
+              .orElse("Object");
     }
   }
 }
