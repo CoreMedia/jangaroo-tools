@@ -80,6 +80,7 @@ public class ExtAsApiGenerator {
   private static Properties eventWordsProperties = new Properties();
   private static final String EXT_3_4_EVENT = "ext.IEventObject";
   private static String EXT_EVENT;
+  private static final Set<String> invalidJsDocReferences = new HashSet<>();
   private static Map<String, Map<String, String>> aliasGroupToAliasToClass = new TreeMap<String, Map<String, String>>();
 
   public static void main(String[] args) throws IOException {
@@ -146,6 +147,17 @@ public class ExtAsApiGenerator {
     }
 
     generateManifest(outputDir);
+
+    if (!invalidJsDocReferences.isEmpty()) {
+      ArrayList<String> sortedInvalidJsDocReferences = new ArrayList<>(invalidJsDocReferences);
+      Collections.sort(sortedInvalidJsDocReferences);
+      System.out.println("************ Invalid JSDoc References *****************");
+      for (String invalidJsDocReference : sortedInvalidJsDocReferences) {
+        ExtClass extClass = extJsApi.getExtClass(invalidJsDocReference);
+        System.out.println(invalidJsDocReference + (extClass == null ? " (unknown)" : ("private".equals(extClass.access) ? " (private)" : " (not mapped)")));
+      }
+      System.out.println("************ END Invalid JSDoc References *****************");
+    }
   }
 
   private static void generateManifest(File outputDir) throws FileNotFoundException, UnsupportedEncodingException {
@@ -424,10 +436,6 @@ public class ExtAsApiGenerator {
         }
       }
     }
-  }
-
-  private static String getActionScriptName(String extClassName) {
-    return getActionScriptName(extJsApi.getExtClass(extClassName));
   }
 
   private static String getConfigClassQName(ExtClass extClass) {
@@ -943,26 +951,55 @@ public class ExtAsApiGenerator {
       linkText = linkText.replaceAll("\\$", "_");
 
       String[] parts = link.split("#");
-      link = parts[0].isEmpty() ? thisClassName : convertType(parts[0]);
-      if (parts.length > 1) {
-        String member = parts[1];
-        Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|event)[!-](.*)").matcher(member);
-        if (memberNameMatcher.matches()) {
-          member = memberNameMatcher.group(2);
-          if ("event".equals(memberNameMatcher.group(1))) {
-            String flexEventName = "on" + toCamelCase(member);
-            // TODO: line below also uses Flex event names in documentation text. Good or bad?
-            // linkText = linkText.replace(member, flexEventName);
-            member = "event:" + flexEventName;
+      String rewrittenLink = parts[0].isEmpty() ? thisClassName : getAsDocReference(parts[0], parts.length > 1);
+      String replacement;
+      if (rewrittenLink == null) {
+        // class not found in AS API: use original linkText or, as fallback, link:
+        replacement = linkText.trim().isEmpty() ? link : linkText.trim();
+      } else {
+        if (parts.length > 1) {
+          String member = parts[1];
+          Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|static-property|event)[!-](.*)").matcher(member);
+          if (memberNameMatcher.matches()) {
+            member = memberNameMatcher.group(2);
+            if ("event".equals(memberNameMatcher.group(1))) {
+              String flexEventName = "on" + toCamelCase(member);
+              // TODO: line below also uses Flex event names in documentation text. Good or bad?
+              // linkText = linkText.replace(member, flexEventName);
+              member = "event:" + flexEventName;
+            }
           }
+          rewrittenLink += "#" + convertName(member); // might be "is" etc.
         }
-        link += "#" + convertName(member); // might be "is" etc.
+        replacement = "{@link" + whitespace + rewrittenLink + linkText + "}";
       }
-      linkMatcher.appendReplacement(newDoc, "{@link" + whitespace + link + linkText + "}");
+      linkMatcher.appendReplacement(newDoc, replacement);
     }
     linkMatcher.appendTail(newDoc);
     doc = newDoc.toString();
     return doc;
+  }
+
+  private static String getAsDocReference(String jsDocReference, boolean convertSingletonToType) {
+    if (jsDocReference.startsWith("http")) {
+      return jsDocReference;
+    }
+    ExtClass extClass = extJsApi.getExtClass(jsDocReference);
+    if (extClass != null) {
+      String actionScriptName = getActionScriptName(extClass);
+      if (actionScriptName != null) {
+        return extClass.singleton
+                ? CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
+                (convertSingletonToType ? "S" : "#") +  CompilerUtils.className(actionScriptName))
+                : actionScriptName;
+      } else if (!extClass.name.contains(".")) {
+        // top-level, built-in type:
+        return extClass.name;
+      }
+    }
+    System.err.println("*** JSDoc class reference could not be resolved: " + jsDocReference);
+    invalidJsDocReferences.add(jsDocReference);
+    return null;
   }
 
   private static String markdownToHtml(String doc) {
@@ -1172,13 +1209,12 @@ public class ExtAsApiGenerator {
 
   // normalize / use alternate class name if it can be found in reference API:
   private static String getActionScriptName(ExtClass extClass) {
-    String normalizedClassName = jsAsNameMappingProperties.getProperty(extClass.name);
-    if (normalizedClassName == null) {
-      // System.err.println(String.format("Ext JS class name %s not mapped to AS.", extClass.name));
-      // throw new IllegalStateException("unmapped class " + extClass.name);
-      return null;
-    }
-    return normalizedClassName;
+    return getActionScriptName(extClass.name);
+  }
+
+  // normalize / use alternate class name if it can be found in reference API:
+  private static String getActionScriptName(String extClass) {
+    return jsAsNameMappingProperties.getProperty(extClass);
   }
 
 
