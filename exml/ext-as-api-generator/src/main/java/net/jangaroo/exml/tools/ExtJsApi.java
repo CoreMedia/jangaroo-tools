@@ -216,20 +216,24 @@ public class ExtJsApi {
     return extClass != null && extClass.singleton;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
   @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="$type", visible = true)
   @JsonSubTypes({
           @JsonSubTypes.Type(value = ExtClass.class, name = "class"),
           @JsonSubTypes.Type(value = Enum.class, name = "enum"),
           @JsonSubTypes.Type(value = Member.class, name = "member"),
   })
-  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Tag {
     public String $type;
     public String name;
+    public String since;
+    public boolean deprecated;
+    public String deprecatedMessage;
+    public String deprecatedVersion;
     public String text = "";
     public String inheritdoc;
+    public String localdoc;
     public String access;
+    public Object src;
 
     @Override
     public boolean equals(Object o) {
@@ -249,8 +253,8 @@ public class ExtJsApi {
   }
 
   @JsonTypeName("doxi")
+  @JsonIgnoreProperties({"files", "version"})
   private static class Doxi extends Tag {
-    public List<String> files;
     public Namespace global;
   }
 
@@ -259,15 +263,14 @@ public class ExtJsApi {
     public List<? extends Tag> items;
   }
 
-  @SuppressWarnings("unused")
+  @JsonIgnoreProperties({"extended", "extenders", "package", "mixed", "mixers", "requires", "uses", "abstract", "Classic"})
   public static class ExtClass extends Tag {
-    public String deprecatedMessage;
-    public String deprecatedVersion;
     @JsonProperty("extends")
     @JsonDeserialize(using = FixExtendsDeserializer.class)
     public String extends_;
     @JsonDeserialize(using = CommaSeparatedStringsDeserializer.class)
     public List<String> mixins = Collections.emptyList();
+    public String override;
     @JsonDeserialize(using = CommaSeparatedStringsDeserializer.class)
     public List<String> alternateClassNames;
     public String alias;
@@ -275,7 +278,6 @@ public class ExtJsApi {
     public List<Members> items = Collections.emptyList();
   }
 
-  @SuppressWarnings("unused")
   @JsonSubTypes({
           @JsonSubTypes.Type(value = Members.class, name = "methods"),
           @JsonSubTypes.Type(value = Members.class, name = "static-methods"),
@@ -288,13 +290,6 @@ public class ExtJsApi {
   })
   private static class Members extends Tag {
     public List<? extends Member> items;
-  }
-
-  @SuppressWarnings("unused")
-  public static class FilenNameAndLineNumber {
-    public String filename;
-    public String linenr;
-    public String href;
   }
 
   @JsonSubTypes({
@@ -311,7 +306,6 @@ public class ExtJsApi {
     public List<Var> items = Collections.emptyList();
   }
 
-  @SuppressWarnings("unused")
   @JsonSubTypes({
           @JsonSubTypes.Type(value = Method.class, name = "method"),
           @JsonSubTypes.Type(value = Property.class, name = "property"),
@@ -320,24 +314,20 @@ public class ExtJsApi {
 
   })
   public static class Member extends Var {
-    public String deprecatedMessage;
-    public String deprecatedVersion;
-    public String since;
     @JsonProperty("static")
     public boolean static_;
     public boolean inheritable;
-    public Object src;
     public Object accessor; // TRUE or "w"
     public boolean evented;
     public boolean readonly;
-    public Map<String,Object> autodetected;
+    public boolean hide;
+    public boolean ignore;
   }
 
-  @SuppressWarnings("unused")
+  @JsonIgnoreProperties({"aliasPrefix", "items"})
   public static class Enum extends Tag {
   }
   
-  @SuppressWarnings("unused")
   public static class Cfg extends Member {
     public boolean required;
 
@@ -345,25 +335,13 @@ public class ExtJsApi {
       System.out.println("FOO");
     }
   }
-  
-  @SuppressWarnings("unused")
-  public static class MemberReference extends Tag {
-    public String cls;
-    public String member;
-    public String type;
-  }
 
-  @SuppressWarnings("UnusedDeclaration")
-  public static class Overrides {
-    public String name;
-    public String owner;
-    public String id;
-    public String link;
-  }
-
-  @SuppressWarnings("unused")
+  @JsonIgnoreProperties({"removedMessage", "removedVersion"})
   public static class Property extends Member {
     public boolean required;
+    public boolean optional;
+    public boolean controllable;
+    public boolean dynamic;
 
     @Override
     public String toString() {
@@ -371,49 +349,38 @@ public class ExtJsApi {
     }
   }
 
-  @SuppressWarnings("unused")
   public static class Param extends Var {
     public boolean optional;
+
+    @JsonProperty("optional")
+    public void setOptional(boolean value) {
+      optional = value;
+    }
+
+    @JsonProperty("Optional")
+    public void setUpperCaseOptional(boolean value) {
+      optional = value;
+    }
+
     public List<Property> items = Collections.emptyList();
   }
 
-  @SuppressWarnings("unused")
   public static class Return extends Var {
   }
 
-  @SuppressWarnings("unused")
+  @JsonIgnoreProperties({"disable", "fires", "removedMessage", "removedVersion"})
   public static class Method extends Member {
+    public boolean template;
+    public boolean constructor;
     public boolean chainable;
     @JsonProperty("abstract")
     public boolean abstract_;
   }
 
-  @SuppressWarnings("unused")
   public static class Event extends Member {
     public List<Var> items = Collections.emptyList();
     public boolean preventable;
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public static class Meta {
-    @JsonProperty("protected")
-    public boolean protected_;
-    @JsonProperty("private")
-    public boolean private_;
-    public boolean readonly;
-    @JsonProperty("static")
-    public boolean static_;
-    @JsonProperty("abstract")
-    public boolean abstract_;
-    public boolean markdown;
-    public String deprecatedMessage;
-    public String deprecatedVersion;
-    public String template;
-    public List<String> author;
-    public List<String> docauthor;
-    public boolean required;
-    public Map<String,String> removed;
-    public String since;
+    public boolean undocumented;
   }
 
   private static class CommaSeparatedStringsDeserializer extends JsonDeserializer<List<String>> {
