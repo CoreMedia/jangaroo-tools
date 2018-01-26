@@ -132,10 +132,18 @@ public class ExtJsApi {
     extClasses = new LinkedHashSet<ExtClass>();
 
     Doxi doxi = readExtApiJson(srcFile);
+
+    Set<ExtClass> overrides = new LinkedHashSet<>();
     for (Tag global : doxi.global.items) {
       if (global instanceof ExtClass) {
         ExtClass extClass = (ExtClass) global;
         extClasses.add(extClass);
+        if (extClass.override != null) {
+          overrides.add(extClass);
+          if (extClass.name.equals(extClass.override) && extClassByName.containsKey(extClass.name)) {
+            continue; // do not let an override hide the original class!
+          }
+        }
         extClassByName.put(extClass.name, extClass);
         if (extClass.alternateClassNames != null) {
           for (String alternateClassName : extClass.alternateClassNames) {
@@ -144,6 +152,25 @@ public class ExtJsApi {
         }
       }
     }
+    // apply overrides:
+    for (ExtClass override : overrides) {
+      ExtClass overriddenClass = extClassByName.get(override.override);
+      if (overriddenClass == override) {
+        // ignore self-overrides!
+        continue;
+      }
+      if (overriddenClass == null) {
+        System.err.println("Overridden class not found: " + override.name + " wants to override " + override.override);
+      } else {
+        overriddenClass.text += "\n<p><strong>From override " + override.name + ":</strong> " + override.text;
+        for (Members members : override.items) {
+          // find members.type in overriddenClass:
+          List<Member> overriddenMembers = findOrCreateMembers(overriddenClass, members.$type);
+          overriddenMembers.addAll(members.items); // TODO: maybe members are actually replaced, not complemented? Currently not.
+        }
+      }
+    }
+    // mark classes as mixins:
     Set<ExtClass> collectMixins = new HashSet<ExtClass>();
     for (Tag global : doxi.global.items) {
       if (global instanceof ExtClass) {
@@ -158,6 +185,18 @@ public class ExtJsApi {
     }
     markTransitiveSupersAsMixins(collectMixins);
     mixins = Collections.unmodifiableSet(collectMixins);
+  }
+
+  private List<Member> findOrCreateMembers(ExtClass extClass, String memberType) {
+    for (Members members : extClass.items) {
+      if (memberType.equals(members.$type)) {
+        return (List<Member>) members.items;
+      }
+    }
+    Members members = new Members();
+    members.$type = memberType;
+    extClass.items.add(members);
+    return (List<Member>) members.items;
   }
 
   private void markTransitiveSupersAsMixins(Set<ExtClass> extClasses) {
