@@ -329,7 +329,7 @@ public class ExtAsApiGenerator {
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
-    extAsClass.setAsdoc(toAsDoc(extClass, extClass.singleton ? extAsClass.getName() : ""));
+    extAsClass.setAsdoc(toAsDoc(extClass, getThisClassName(extAsClass, extClass)));
     addDeprecation(extClass.deprecatedMessage, extClass.deprecatedVersion, extAsClass);
     CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
@@ -337,7 +337,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.text, "") + "\n * @see " + extClassName);
+      extAsInterface.setAsdoc(toAsDoc(extClass.text, getThisClassName(extAsInterface, extClass)) + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -777,7 +777,7 @@ public class ExtAsApiGenerator {
       if (classModel.getMember(methodName) == null) {
         boolean isConstructor = methodName.equals("constructor");
 
-        String thisClassName = extClass.singleton ? classModel.getName() : "";
+        String thisClassName = getThisClassName(classModel, extClass);
         method = getDelegateTag(method, thisClassName);
 
         Optional<Var> return_ = method.items.stream().filter((Var item) -> item instanceof Return).findAny();
@@ -809,6 +809,12 @@ public class ExtAsApiGenerator {
         }
       }
     }
+  }
+
+  private static String getThisClassName(ClassModel classModel, ExtClass extClass) {
+    return extClass.singleton ? classModel.getName()
+            : classModel.isInterface() ? getActionScriptName(extClass) // use mixin implementation name to fix links to protected methods!
+            : "";
   }
 
   private static void setVisibility(MemberModel memberModel, Member member) {
