@@ -1045,7 +1045,8 @@ public class ExtAsApiGenerator {
                             "new".equals(name) ? "new_" :
                                     "default".equals(name) ? "default_" :
                                             "catch".equals(name) ? "catch_" :
-                                                    name;
+                                                    "override".equals(name) ? "override_" :
+                                                            name;
   }
 
   private static String replaceSeparatorByCamelCase(String string, char separator) {
