@@ -796,6 +796,9 @@ public class ExtAsApiGenerator {
         for (Var var_ : method.items) {
           if (var_ instanceof Param) {
             Param param = (Param) var_;
+            if ("private".equals(param.access)) {
+              continue;
+            }
             String paramName = param.name == null ? "param" + (method.items.indexOf(param) + 1) : convertName(param.name);
             ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
             paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName));
