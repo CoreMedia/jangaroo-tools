@@ -5,8 +5,6 @@ import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
-import net.jangaroo.exml.tools.ExtJsApi.ExtClass;
-import net.jangaroo.exml.tools.ExtJsApi.Return;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
@@ -43,18 +41,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static net.jangaroo.exml.tools.ExtJsApi.Event;
+import static net.jangaroo.exml.tools.ExtJsApi.ExtClass;
 import static net.jangaroo.exml.tools.ExtJsApi.Member;
 import static net.jangaroo.exml.tools.ExtJsApi.Method;
 import static net.jangaroo.exml.tools.ExtJsApi.Param;
 import static net.jangaroo.exml.tools.ExtJsApi.Property;
+import static net.jangaroo.exml.tools.ExtJsApi.Return;
 import static net.jangaroo.exml.tools.ExtJsApi.Tag;
 import static net.jangaroo.exml.tools.ExtJsApi.Var;
 import static net.jangaroo.exml.tools.ExtJsApi.isConst;
@@ -782,30 +782,31 @@ public class ExtAsApiGenerator {
         String thisClassName = getThisClassName(classModel, extClass);
         method = getDelegateTag(method, thisClassName);
 
-        Optional<Var> return_ = method.items.stream().filter((Var item) -> item instanceof Return).findAny();
+        List<Var> methodItems = method.items;
+        List<Return> return_ = filterByType(methodItems, Return.class);
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
-                : new MethodModel(convertName(methodName), !return_.isPresent() ? "void" : convertType(return_.get().type));
+                : new MethodModel(convertName(methodName), return_.isEmpty() ? "void" : convertType(return_.get(0).type));
         methodModel.setAsdoc(toAsDoc(method, thisClassName));
-        return_.ifPresent(var -> methodModel.getReturnModel().setAsdoc(toAsDoc(var, thisClassName)));
+        if (!return_.isEmpty()) {
+          methodModel.getReturnModel().setAsdoc(toAsDoc(return_.get(0), thisClassName));
+        }
         setVisibility(methodModel, method);
         if (!extClass.singleton) {
           setStatic(methodModel, method);
         }
         addDeprecation(method.deprecatedMessage, method.deprecatedVersion, methodModel);
-        for (Var var_ : method.items) {
-          if (var_ instanceof Param) {
-            Param param = (Param) var_;
-            if ("private".equals(param.access)) {
-              continue;
-            }
-            String paramName = param.name == null ? "param" + (method.items.indexOf(param) + 1) : convertName(param.name);
-            ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
-            paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName));
-            setDefaultValue(paramModel, param);
-            paramModel.setRest(param == method.items.get(method.items.size() - 1) && param.type.endsWith("..."));
-            methodModel.addParam(paramModel);
+        List<Param> params = filterByType(methodItems, Param.class);
+        for (Param param : params) {
+          if ("private".equals(param.access)) {
+            continue;
           }
+          String paramName = param.name == null ? "param" + (methodItems.indexOf(param) + 1) : convertName(param.name);
+          ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
+          paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName));
+          setDefaultValue(paramModel, param);
+          paramModel.setRest(param == params.get(params.size() - 1) && param.type.contains("..."));
+          methodModel.addParam(paramModel);
         }
         try {
           classModel.addMember(methodModel);
@@ -814,6 +815,10 @@ public class ExtAsApiGenerator {
         }
       }
     }
+  }
+
+  private static <S, T> List<S> filterByType(List<T> methodItems, Class<S> filterType) {
+    return methodItems.stream().filter(filterType::isInstance).map(filterType::cast).collect(Collectors.toList());
   }
 
   private static String getThisClassName(ClassModel classModel, ExtClass extClass) {
@@ -1102,8 +1107,12 @@ public class ExtAsApiGenerator {
     if (extType.startsWith("Ext.enums.") || extType.matches("(['\"].*['\"]/)*['\"].*['\"]")) {
       return "String";
     }
-    // array / vararg syntax:
-    if (extType.endsWith("...") || extType.matches("[a-zA-Z0-9._$<>]+\\[\\]")) {
+    // vararg syntax:
+    if (extType.contains("...")) {
+      return null; // "...args" works better in IDEA than "...args:Array"
+    }
+    // array syntax:
+    if (extType.matches("[a-zA-Z0-9._$<>]+\\[\\]")) {
       return "Array";
     }
     if (!extType.matches("[a-zA-Z0-9._$<>]+") || "Mixed".equals(extType)) {
