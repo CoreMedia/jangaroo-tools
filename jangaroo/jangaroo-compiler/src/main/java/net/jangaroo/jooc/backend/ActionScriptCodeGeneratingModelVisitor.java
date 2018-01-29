@@ -269,7 +269,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
-      for (String line : asdoc.split("\n")) {
+      for (String line : asdoc.trim().split("\n")) {
         Matcher matcher = LEADING_ASDOC_WHITESPACE_PATTERN.matcher(line);
         if (matcher.matches()) {
           line = matcher.group(1);
