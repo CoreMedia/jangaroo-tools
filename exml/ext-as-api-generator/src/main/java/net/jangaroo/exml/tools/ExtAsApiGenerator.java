@@ -961,13 +961,6 @@ public class ExtAsApiGenerator {
       String link = linkMatcher.group(2);
       String linkText = linkMatcher.groupCount() > 2 ? linkMatcher.group(3) : "";
 
-      // IDEA does not like newlines inside {@link}:
-      whitespace = whitespace.replaceAll("\n", " ");
-      linkText = linkText.replaceAll("\n", " ");
-      // prevent $ from being interpreted as RegExp group:
-      link = link.replaceAll("\\$", "_");
-      linkText = linkText.replaceAll("\\$", "_");
-
       String[] parts = link.split("#");
       String rewrittenLink = parts[0].isEmpty() ? thisClassName : getAsDocReference(parts[0], parts.length > 1);
       String replacement;
@@ -977,7 +970,7 @@ public class ExtAsApiGenerator {
       } else {
         if (parts.length > 1) {
           String member = parts[1];
-          Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|static-property|event)[!-](.*)").matcher(member);
+          Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|static-property|event|var)[!-](.*)").matcher(member);
           if (memberNameMatcher.matches()) {
             member = memberNameMatcher.group(2);
             if ("event".equals(memberNameMatcher.group(1))) {
@@ -987,9 +980,16 @@ public class ExtAsApiGenerator {
               member = "event:" + flexEventName;
             }
           }
-          rewrittenLink += "#" + convertName(member); // might be "is" etc.
+          if (member.startsWith("$")) { // reference to SASS variable
+            member = "style:" + member;  // currently unsupported by IDEA, but who knows...
+          } else {
+            member = convertName(member); // might be "is" etc.
+          }
+          rewrittenLink += "#" + member;
         }
-        replacement = "{@link" + whitespace + rewrittenLink + linkText + "}";
+        replacement = ("{@link" + whitespace + rewrittenLink + linkText + "}")
+                .replace("$", "\\$") // prevent $ from being interpreted as RegExp group
+                .replaceAll("\n", " "); // IDEA does not like newlines inside {@link}:
       }
       linkMatcher.appendReplacement(newDoc, replacement);
     }
