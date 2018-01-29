@@ -745,6 +745,7 @@ public class ExtAsApiGenerator {
 //        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
         MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
         getMethod.setAsdoc("Returns the value of {@link #" + name + "}.");
+        addDeprecation(member.deprecatedMessage, member.deprecatedVersion, getMethod);
         classModel.addMember(getMethod);
       }
       if (!extJsApi.isReadOnly(member)) {
@@ -761,6 +762,7 @@ public class ExtAsApiGenerator {
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
           setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
           setMethodParam.setAsdoc("The new value.");
+          addDeprecation(member.deprecatedMessage, member.deprecatedVersion, setMethod);
           classModel.addMember(setMethod);
 //          setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
         }
