@@ -569,9 +569,11 @@ public class ExtAsApiGenerator {
     String eventClientClassQName = eventClientClass.getQName();
     for (int i = 0; i < event.items.size(); i++) {
       Var param = event.items.get(i);
-      String asType = convertType(param.type);
-      if (!"this".equals(param.name) && (i > 0 || !eventClientClassQName.equals(asType))) {
-        eventTypeQNameBuilder.append("_").append(param.name);
+      if (param instanceof Param) { // not a rare Return!
+        String asType = convertType(param.type);
+        if (!"this".equals(param.name) && (i > 0 || !eventClientClassQName.equals(asType))) {
+          eventTypeQNameBuilder.append("_").append(param.name);
+        }
       }
     }
     eventTypeQNameBuilder.append("Event");
