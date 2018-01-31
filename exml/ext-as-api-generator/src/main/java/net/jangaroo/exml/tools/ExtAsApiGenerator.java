@@ -994,7 +994,7 @@ public class ExtAsApiGenerator {
       }
 
       // normalize link:
-      JSDocReference jsDocReference = new JSDocReference(link, thisClassName);
+      JSDocReference jsDocReference = new JSDocReference(link);
       // report issues:
       if (jsDocReference.url != null) {
         if (!jsDocReference.url.startsWith("http")) {
@@ -1005,7 +1005,7 @@ public class ExtAsApiGenerator {
         invalidJsDocReferences.add(jsDocReference.jsClassName);
       }
       // try to normalize linkText (may be a code reference, too):
-      JSDocReference jsDocReferenceFromText = new JSDocReference(linkText, thisClassName);
+      JSDocReference jsDocReferenceFromText = new JSDocReference(linkText);
       // merge all gathered information (sometimes methods or events are only detected by analyzing linkText):
       jsDocReference.merge(jsDocReferenceFromText);
 
@@ -1020,8 +1020,11 @@ public class ExtAsApiGenerator {
 
       String rewrittenLink = jsDocReference.toAsString();
       if (rewrittenLink != null) {
-        String see = ("@see" + whitespace + rewrittenLink + (renderAsCode ? "" : " " + linkText))
-                .replaceAll("\n", " "); // no newline after @see
+        boolean addThisClass = "".equals(jsDocReference.actionScriptClassName) && !"".equals(thisClassName);
+        String see = ("@see" + whitespace
+                + ((addThisClass ? thisClassName : "") + rewrittenLink)
+                + (renderAsCode ? "" : " " + linkText)
+        ).replaceAll("\n", " "); // no newline after @see
         sees.add(see);
       }
 
@@ -1385,11 +1388,11 @@ public class ExtAsApiGenerator {
     String memberName = "";
     boolean hasParentheses;
 
-    private JSDocReference(String jsDocReference, String thisClassName) {
+    private JSDocReference(String jsDocReference) {
       Matcher jsDocRefMatcher = JSDOC_REF_PATTERN.matcher(jsDocReference);
       if (jsDocRefMatcher.matches()) {
         jsClassName = nullToEmptyString(jsDocRefMatcher.group(1));
-        actionScriptClassName = jsClassName.isEmpty() ? thisClassName : getAsDocClassName(jsClassName);
+        actionScriptClassName = getAsDocClassName(jsClassName);
         memberType = nullToEmptyString(jsDocRefMatcher.group(2));
         memberName = nullToEmptyString(jsDocRefMatcher.group(3));
         hasParentheses = jsDocRefMatcher.group(4) != null;
@@ -1451,6 +1454,9 @@ public class ExtAsApiGenerator {
     }
 
     private static String getAsDocClassName(String jsClassName) {
+      if (jsClassName.isEmpty()) {
+        return "";
+      }
       ExtClass extClass = extJsApi.getExtClass(jsClassName);
       if (extClass != null) {
         String actionScriptName = getActionScriptName(extClass);
