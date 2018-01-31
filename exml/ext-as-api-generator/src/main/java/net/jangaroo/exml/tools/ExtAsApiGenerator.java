@@ -34,11 +34,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -66,7 +68,9 @@ import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
 public class ExtAsApiGenerator {
 
   private static final Pattern SINGLETON_CLASS_NAME_PATTERN = Pattern.compile("^S[A-Z]");
-  private static final Pattern LINK_PATTERN = Pattern.compile("\\{@link(\\s+)([^\\s}]*)([^}]*)?}");
+  private static final String LINK_PATTERN_STR = "\\{@link(\\s+)([^\\s}]*)(?: ([^}]*))?\\s*}";
+  private static final Pattern LINK_PATTERN = Pattern.compile(LINK_PATTERN_STR);
+  private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|em)>|" + LINK_PATTERN_STR);
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -858,7 +862,7 @@ public class ExtAsApiGenerator {
   }
 
   private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName) {
-    StringBuilder asDoc = new StringBuilder(toAsDoc(tag.text, thisClassName));
+    StringBuilder asDoc = new StringBuilder();
     if (tag instanceof Var) {
       String value = ((Var) tag).value;
       if (value != null && !"null".equals(value) && !"undefined".equals(value)) {
@@ -871,7 +875,7 @@ public class ExtAsApiGenerator {
     if (paramPrefix != null && tag instanceof Param) {
       List<Property> subParams = ((Param) tag).items;
       for (Property property : subParams) {
-        asDoc.append("\n   * @param ");
+        asDoc.append("\n@param ");
         String propertyType = convertType(property.type);
         if (propertyType != null && !"*".equals(propertyType)) {
           asDoc.append("{").append(propertyType).append("} ");
@@ -888,9 +892,9 @@ public class ExtAsApiGenerator {
     } else if (tag instanceof Var && !(tag instanceof Method)) { // methods handle their parameters themselves
       List<Var> subParams = ((Var)tag).items;
       if (!subParams.isEmpty()) {
-        asDoc.append("\n   * <ul>");
+        asDoc.append("\n<ul>");
         for (Var property : subParams) {
-          asDoc.append("\n   *   <li>");
+          asDoc.append("\n<li>");
           asDoc.append("<code>").append(property.name).append("</code>");
           String propertyType = convertType(property.type);
           if (propertyType != null && !"*".equals(propertyType)) {
@@ -901,11 +905,11 @@ public class ExtAsApiGenerator {
           }
           String propertyAsDoc = toAsDoc(property, thisClassName);
           if (!propertyAsDoc.trim().isEmpty()) {
-            asDoc.append("\n   * ").append(propertyAsDoc).append("\n   *   ");
+            asDoc.append("\n").append(propertyAsDoc).append("\n");
           }
           asDoc.append("</li>");
         }
-        asDoc.append("\n   * </ul>");
+        asDoc.append("\n</ul>");
       }
     }
 
@@ -914,7 +918,15 @@ public class ExtAsApiGenerator {
       // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
       result = result.replaceAll("\n+", "\n");
     }
-    return result;
+    return insertBeforeSees(toAsDoc(tag.text, thisClassName), result);
+  }
+
+  // to place @default, @param etc. before any @see
+  private static String insertBeforeSees(String asDoc, String additionalAsDoc) {
+    int seeIndex = asDoc.indexOf("\n@see");
+    return seeIndex == -1
+            ? asDoc + additionalAsDoc
+            : asDoc.substring(0, seeIndex) + additionalAsDoc + asDoc.substring(seeIndex);
   }
 
   private static String toAsDoc(String doc, String thisClassName) {
@@ -954,70 +966,78 @@ public class ExtAsApiGenerator {
 
   // process {@link} doc tags
   private static String processLinkTags(String doc, String thisClassName) {
-    Matcher linkMatcher = LINK_PATTERN.matcher(doc);
+    Matcher linkMatcher = INLINE_TAG_OR_LINK_PATTERN.matcher(doc);
     StringBuffer newDoc = new StringBuffer();
+    LinkedHashSet<String> sees = new LinkedHashSet<>();
+    boolean insideCode = false;
+    boolean insideEm = false;
     while (linkMatcher.find()) {
-      String whitespace = linkMatcher.group(1);
-      String link = linkMatcher.group(2);
-      String linkText = linkMatcher.groupCount() > 2 ? linkMatcher.group(3) : "";
-
-      String[] parts = link.split("#");
-      String rewrittenLink = parts[0].isEmpty() ? thisClassName : getAsDocReference(parts[0], parts.length > 1);
-      String replacement;
-      if (rewrittenLink == null) {
-        // class not found in AS API: use original linkText or, as fallback, link:
-        replacement = linkText.trim().isEmpty() ? link : linkText.trim();
-      } else {
-        if (parts.length > 1) {
-          String member = parts[1];
-          Matcher memberNameMatcher = Pattern.compile("(method|static-method|cfg|property|static-property|event|var)[!-](.*)").matcher(member);
-          if (memberNameMatcher.matches()) {
-            member = memberNameMatcher.group(2);
-            if ("event".equals(memberNameMatcher.group(1))) {
-              String flexEventName = "on" + toCamelCase(member);
-              // TODO: line below also uses Flex event names in documentation text. Good or bad?
-              // linkText = linkText.replace(member, flexEventName);
-              member = "event:" + flexEventName;
-            }
-          }
-          if (member.startsWith("$")) { // reference to SASS variable
-            member = "style:" + member;  // currently unsupported by IDEA, but who knows...
-          } else {
-            member = convertName(member); // might be "is" etc.
-          }
-          rewrittenLink += "#" + member;
+      String codeTag = linkMatcher.group(2);
+      if (codeTag != null) {
+        boolean startTag = linkMatcher.group(1).isEmpty();
+        switch (codeTag) {
+          case "code":
+            insideCode = startTag;
+            break;
+          case "em":
+            insideEm = startTag;
+            break;
         }
-        replacement = ("{@link" + whitespace + rewrittenLink + linkText + "}")
-                .replace("$", "\\$") // prevent $ from being interpreted as RegExp group
-                .replaceAll("\n", " "); // IDEA does not like newlines inside {@link}:
+        linkMatcher.appendReplacement(newDoc, linkMatcher.group());
+        continue;
+      }
+      String whitespace = linkMatcher.group(3);
+      String link = linkMatcher.group(4);
+      String linkText = linkMatcher.group(5);
+      if (linkText == null) {
+        linkText = "";
+      }
+
+      // normalize:
+      JSDocReference jsDocReference = new JSDocReference(link, thisClassName);
+      if (jsDocReference.url != null && !jsDocReference.url.startsWith("http")) {
+        System.out.println("*** suspicious reference in {@link}: '" + jsDocReference.url + "'");
+      }
+      JSDocReference jsDocReferenceFromText = new JSDocReference(linkText, thisClassName);
+      jsDocReference.merge(jsDocReferenceFromText);
+
+      // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
+      if (jsDocReference.equals(jsDocReferenceFromText)) {
+        linkText = "";
+      }
+
+      boolean renderAsCode = jsDocReferenceFromText.url == null
+              || jsDocReference.memberName.equals(linkText)
+              || jsDocReference.isMethod() && (jsDocReference.memberName + "()").equals(linkText);
+
+      String rewrittenLink = jsDocReference.toAsString();
+      if (rewrittenLink != null) {
+        String see = ("@see" + whitespace + rewrittenLink + (renderAsCode ? "" : " " + linkText))
+                .replaceAll("\n", " "); // no newline after @see
+        sees.add(see);
+      }
+
+      String replacement = !linkText.isEmpty() ? linkText : rewrittenLink != null ? rewrittenLink : link;
+      // suppress hash when leading or after a dot:
+      replacement = replacement.replaceAll("(^|[.])#", "$1");
+      // prevent $ from being interpreted as RegExp group:
+      replacement = replacement.replace("$", "\\$");
+      if (!insideCode && !insideEm) {
+        // either render as code or as emphasized text:
+        replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "em", replacement);
       }
       linkMatcher.appendReplacement(newDoc, replacement);
     }
     linkMatcher.appendTail(newDoc);
+    int lastIndex = newDoc.length() - 1;
+    if (lastIndex >= 0 && newDoc.charAt(lastIndex) == '\n') {
+      newDoc.setLength(lastIndex);
+    }
+    for (String see : sees) {
+      newDoc.append('\n').append(see);
+    }
     doc = newDoc.toString();
     return doc;
-  }
-
-  private static String getAsDocReference(String jsDocReference, boolean convertSingletonToType) {
-    if (jsDocReference.startsWith("http")) {
-      return jsDocReference;
-    }
-    ExtClass extClass = extJsApi.getExtClass(jsDocReference);
-    if (extClass != null) {
-      String actionScriptName = getActionScriptName(extClass);
-      if (actionScriptName != null) {
-        return extClass.singleton
-                ? CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
-                (convertSingletonToType ? "S" : "#") +  CompilerUtils.className(actionScriptName))
-                : actionScriptName;
-      } else if (!extClass.name.contains(".")) {
-        // top-level, built-in type:
-        return extClass.name;
-      }
-    }
-    System.err.println("*** JSDoc class reference could not be resolved: " + jsDocReference);
-    invalidJsDocReferences.add(jsDocReference);
-    return null;
   }
 
   private static String markdownToHtml(String doc) {
@@ -1347,5 +1367,110 @@ public class ExtAsApiGenerator {
     System.err.format("!!! Config property %s#%s: %s\n", classModel.getName(), propertySetter.getName(), message);
   }
 
+  private static class JSDocReference {
+    private static final Pattern JSDOC_REF_PATTERN = Pattern.compile("^([A-Za-z0-9_$.]*)(?:#(?:(method|static-method|cfg|property|static-property|event|var|sass-mixin)[!-])?([a-zA-Z0-9_$-]+)(\\(\\))?)?$");
+
+    String url = null;
+    String actionScriptClassName = "";
+    String jsClassName = "";
+    String memberType = "";
+    String memberName = "";
+    boolean hasParentheses;
+
+    private JSDocReference(String jsDocReference, String thisClassName) {
+      Matcher jsDocRefMatcher = JSDOC_REF_PATTERN.matcher(jsDocReference);
+      if (jsDocRefMatcher.matches()) {
+        jsClassName = nullToEmptyString(jsDocRefMatcher.group(1));
+        actionScriptClassName = jsClassName.isEmpty() ? thisClassName : getAsDocClassName(jsClassName);
+        memberType = nullToEmptyString(jsDocRefMatcher.group(2));
+        memberName = nullToEmptyString(jsDocRefMatcher.group(3));
+        hasParentheses = jsDocRefMatcher.group(4) != null;
+      } else {
+        url = jsDocReference;
+      }
+    }
+
+    private String nullToEmptyString(String group) {
+      return group == null ? "" : group;
+    }
+
+    boolean isMethod() {
+      return hasParentheses || memberType.contains("method");
+    }
+
+    private boolean isEvent() {
+      return memberType.equals("event");
+    }
+
+    void merge(JSDocReference other) {
+      if (url != null || other.url != null) {
+        return;
+      }
+      if (hasParentheses || other.hasParentheses) {
+        hasParentheses = other.hasParentheses = true;
+      }
+      if (memberType.isEmpty()) {
+        memberType = other.memberType;
+      } else if (other.memberType.isEmpty()) {
+        other.memberType = memberType;
+      }
+    }
+
+    String toAsString() {
+      if (url != null) {
+        return url;
+      }
+      if (actionScriptClassName == null) {
+        return null;
+      }
+      StringBuilder builder = new StringBuilder();
+      builder.append(actionScriptClassName);
+      if (!memberName.isEmpty()) {
+        builder.append("#");
+        if (isEvent()) {
+          String flexEventName = "on" + toCamelCase(memberName);
+          builder.append("event:").append(flexEventName);
+        } else if (memberName.startsWith("$")) { // reference to SASS variable
+          builder.append("style:").append(memberName);  // currently unsupported by IDEA, but who knows...
+        } else {
+          builder.append(convertName(memberName)); // might be "is" etc.
+          if (isMethod()) {
+            builder.append("()");
+          }
+        }
+      }
+      return builder.toString();
+    }
+
+    private static String getAsDocClassName(String jsClassName) {
+      ExtClass extClass = extJsApi.getExtClass(jsClassName);
+      if (extClass != null) {
+        String actionScriptName = getActionScriptName(extClass);
+        if (actionScriptName != null) {
+          if (extClass.singleton) {
+            return CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
+                    "#" + CompilerUtils.className(actionScriptName));
+          } else {
+            return actionScriptName;
+          }
+        } else if (!jsClassName.contains(".")) {
+          // top-level, built-in type:
+          return jsClassName;
+        }
+      }
+      // System.err.println("*** JSDoc class reference could not be resolved: " + jsClassName);
+      invalidJsDocReferences.add(jsClassName);
+      return null;
+    }
+
+    @Override
+    public String toString() {
+      return url != null ? url : jsClassName +
+              (memberName.isEmpty() ? "" : "#" +
+                      (memberType.isEmpty() ? "" : memberType + "!") + memberName +
+                      (isMethod() ? "()" : "")
+              );
+    }
+  }
 
 }
