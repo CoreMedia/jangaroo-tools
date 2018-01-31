@@ -993,12 +993,20 @@ public class ExtAsApiGenerator {
         linkText = "";
       }
 
-      // normalize:
+      // normalize link:
       JSDocReference jsDocReference = new JSDocReference(link, thisClassName);
-      if (jsDocReference.url != null && !jsDocReference.url.startsWith("http")) {
-        System.out.println("*** suspicious reference in {@link}: '" + jsDocReference.url + "'");
+      // report issues:
+      if (jsDocReference.url != null) {
+        if (!jsDocReference.url.startsWith("http")) {
+          System.out.println("*** suspicious reference in {@link}: '" + jsDocReference.url + "'");
+        }
+      } else if (jsDocReference.actionScriptClassName == null) {
+        // System.err.println("*** JSDoc class reference could not be resolved: " + jsClassName);
+        invalidJsDocReferences.add(jsDocReference.jsClassName);
       }
+      // try to normalize linkText (may be a code reference, too):
       JSDocReference jsDocReferenceFromText = new JSDocReference(linkText, thisClassName);
+      // merge all gathered information (sometimes methods or events are only detected by analyzing linkText):
       jsDocReference.merge(jsDocReferenceFromText);
 
       // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
@@ -1458,8 +1466,6 @@ public class ExtAsApiGenerator {
           return jsClassName;
         }
       }
-      // System.err.println("*** JSDoc class reference could not be resolved: " + jsClassName);
-      invalidJsDocReferences.add(jsClassName);
       return null;
     }
 
