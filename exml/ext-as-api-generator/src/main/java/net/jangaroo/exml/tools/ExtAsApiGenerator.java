@@ -1477,6 +1477,11 @@ public class ExtAsApiGenerator {
                       (isMethod() ? "()" : "")
               );
     }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof JSDocReference && toString().equals(obj.toString());
+    }
   }
 
 }
