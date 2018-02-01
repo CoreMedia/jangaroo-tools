@@ -748,7 +748,7 @@ public class ExtAsApiGenerator {
       if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
 //        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
         MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
-        getMethod.setAsdoc("Returns the value of {@link #" + name + "}.");
+        getMethod.setAsdoc("Returns the value of <code>" + name + "</code>.\n@see #" + name);
         addDeprecation(member.deprecatedMessage, member.deprecatedVersion, getMethod);
         classModel.addMember(getMethod);
       }
@@ -764,7 +764,7 @@ public class ExtAsApiGenerator {
         if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
           ParamModel setMethodParam = new ParamModel(name, type);
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
-          setMethod.setAsdoc("Sets the value of {@link #" + name + "}.");
+          setMethod.setAsdoc("Sets the value of <code>" + name + "</code>.\n@see #" + name);
           setMethodParam.setAsdoc("The new value.");
           addDeprecation(member.deprecatedMessage, member.deprecatedVersion, setMethod);
           classModel.addMember(setMethod);
