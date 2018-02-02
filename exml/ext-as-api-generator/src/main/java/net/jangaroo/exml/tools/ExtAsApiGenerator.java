@@ -22,6 +22,7 @@ import net.jangaroo.jooc.model.NamedModel;
 import net.jangaroo.jooc.model.NamespacedModel;
 import net.jangaroo.jooc.model.ParamModel;
 import net.jangaroo.jooc.model.PropertyModel;
+import net.jangaroo.jooc.model.ReturnModel;
 import net.jangaroo.jooc.model.TypedModel;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
@@ -283,7 +284,7 @@ public class ExtAsApiGenerator {
     String newType = newMember.getType(); // already fully-qualified!
     if (oldType != null && !oldType.equals(newType)) {
       //System.err.printf("*** found %s member %s type change: from %s to %s%n", classModel.getName(), member.getName(), oldType, newType);
-      if (shouldCorrect(oldType, newType)) {
+      if (shouldCorrect(newMember, oldType, newType)) {
         newMember.setType(oldType);
         //System.err.printf("!!! corrected type of %s.%s from %s back to %s%n", classModel.getName(), member.getName(), newType, oldType);
         return true;
@@ -300,14 +301,19 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static boolean shouldCorrect(String oldType, String newType) {
+  private static boolean shouldCorrect(TypedModel newMember, String oldType, String newType) {
     return newType == null ||
             "void".equals(newType) ||
             "*".equals(newType) ||
-            "void".equals(oldType) ||
+            "void".equals(oldType) && (!(newMember instanceof MethodModel) || returnsThis((MethodModel) newMember)) ||
             "Object".equals(newType) && "*".equals(oldType) ||
             EXT_EVENT.equals(oldType) && newType.contains("Event") ||
             "Function".equals(newType) && "Class".equals(oldType);
+  }
+
+  private static boolean returnsThis(MethodModel newMember) {
+    ReturnModel returnModel = newMember.getReturnModel();
+    return returnModel != null && returnModel.getType() != null && returnModel.getType().contains(".") && returnModel.getAsdoc() != null && returnModel.getAsdoc().toLowerCase().startsWith("this");
   }
 
   private static MemberModel findMemberModel(CompilationUnitModel compilationUnitModel, MemberModel referenceMemberModel) {
@@ -1249,6 +1255,10 @@ public class ExtAsApiGenerator {
 
   private static void markPublic(Set<ExtClass> privateClasses, String extClassName) {
     ExtClass extClass = extJsApi.getExtClass(extClassName);
+    if (extClass == null) {
+      System.err.println("*** extends-reference to undeclared class " + extClassName);
+      return;
+    }
     //noinspection StatementWithEmptyBody
     if (privateClasses.remove(extClass)) {
       //System.err.println("*** marked public because it is a super class: " + extClass.name);
