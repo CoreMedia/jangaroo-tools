@@ -302,7 +302,7 @@ public class ExtJsApi {
     public List<? extends Tag> items;
   }
 
-  @JsonIgnoreProperties({"extended", "extenders", "package", "mixed", "mixers", "requires", "uses", "abstract", "Classic"})
+  @JsonIgnoreProperties({"extended", "extenders", "package", "mixed", "mixers", "requires", "uses", "abstract", "Classic", "CT_Location", "disable"})
   public static class ExtClass extends Tag {
     @JsonProperty("extends")
     @JsonDeserialize(using = FixExtendsDeserializer.class)
@@ -361,6 +361,8 @@ public class ExtJsApi {
     public boolean readonly;
     public boolean hide;
     public boolean ignore;
+    public boolean undocumented;
+    public boolean locale;
   }
 
   @JsonIgnoreProperties({"aliasPrefix", "items"})
@@ -419,7 +421,6 @@ public class ExtJsApi {
   public static class Event extends Member {
     public List<Var> items = Collections.emptyList();
     public boolean preventable;
-    public boolean undocumented;
   }
 
   private static class CommaSeparatedStringsDeserializer extends JsonDeserializer<List<String>> {
