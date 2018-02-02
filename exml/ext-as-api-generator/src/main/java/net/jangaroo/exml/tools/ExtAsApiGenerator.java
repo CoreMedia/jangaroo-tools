@@ -340,7 +340,7 @@ public class ExtAsApiGenerator {
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     System.out.printf("Generating AS3 API model %s for %s...%n", extAsClassUnit.getQName(), extClassName);
-    extAsClass.setAsdoc(toAsDoc(extClass, getThisClassName(extAsClass, extClass)));
+    extAsClass.setAsdoc(toAsDoc(extClass, getThisClassName(extAsClass, extClass), extClass.name));
     addDeprecation(extClass.deprecatedMessage, extClass.deprecatedVersion, extAsClass);
     CompilationUnitModel extAsInterfaceUnit = null;
     if (interfaces.contains(extClassName)) {
@@ -348,7 +348,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.text, getThisClassName(extAsInterface, extClass)) + "\n * @see " + extClassName);
+      extAsInterface.setAsdoc(toAsDoc(extClass.text, getThisClassName(extAsInterface, extClass), extClass.name) + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -501,7 +501,7 @@ public class ExtAsApiGenerator {
   private static void addNonStaticMembers(ExtClass extClass, boolean isMixin, CompilationUnitModel extAsClassUnit) {
     ClassModel extAsClass = extAsClassUnit.getClassModel();
     if (!extAsClass.isInterface()) {
-      addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(isMixin, false, false, extClass, "events", Event.class));
+      addEvents(extAsClass, extAsClassUnit, extJsApi.filterByOwner(isMixin, false, false, extClass, "events", Event.class), extClass.name);
     }
     addProperties(extAsClass, extClass, extJsApi.filterByOwner(isMixin, extAsClass.isInterface(), false, extClass, "properties", Property.class), false);
     addMethods(extAsClass, extClass, extJsApi.filterByOwner(isMixin, extAsClass.isInterface(), false, extClass, "methods", Method.class));
@@ -548,14 +548,14 @@ public class ExtAsApiGenerator {
     }
   }
 
-  private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events) {
+  private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events, String thisJsClassName) {
     for (Event event : events) {
       String eventName = toCamelCase(event.name);
       AnnotationModel annotationModel = new AnnotationModel("Event",
               new AnnotationPropertyModel("name", "'on" + eventName + "'"));
-      String asdoc = toAsDoc(event, "");
+      String asdoc = toAsDoc(event, "", thisJsClassName);
       if (generateEventClasses) {
-        String eventTypeQName = generateEventClass(compilationUnitModel, event);
+        String eventTypeQName = generateEventClass(compilationUnitModel, event, thisJsClassName);
         annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
         asdoc +=  String.format("%n@eventType %s.%s", eventTypeQName, toConstantName(event.name));
       }
@@ -568,7 +568,7 @@ public class ExtAsApiGenerator {
     return name == null || name.length() == 0 ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  private static String generateEventClass(CompilationUnitModel eventClientClass, Event event) {
+  private static String generateEventClass(CompilationUnitModel eventClientClass, Event event, String thisJsClassName) {
     String eventTypeNamePrefix = eventClientClass.getPrimaryDeclaration().getName();
     if (SINGLETON_CLASS_NAME_PATTERN.matcher(eventTypeNamePrefix).find()) {
       eventTypeNamePrefix = eventTypeNamePrefix.substring(1);
@@ -615,7 +615,7 @@ public class ExtAsApiGenerator {
 
         // add getter method:
         MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
-        property.setAsdoc(toAsDoc(param, eventClientClassQName));
+        property.setAsdoc(toAsDoc(param, eventClientClassQName, thisJsClassName));
         extAsClass.addMember(property);
       }
       parameterSequence.append(CompilerUtils.quote("eOpts")).append("]");
@@ -629,7 +629,7 @@ public class ExtAsApiGenerator {
     FieldModel eventNameConstant = new FieldModel(toConstantName(event.name), "String", CompilerUtils.quote("on" + eventName));
     eventNameConstant.setStatic(true);
     eventNameConstant.setConst(true);
-    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, eventClientClassQName), eventClientClass.getQName(), "on" + eventName));
+    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, eventClientClassQName, thisJsClassName), eventClientClass.getQName(), "on" + eventName));
     eventType.getClassModel().addMember(eventNameConstant);
 
     return eventTypeQName;
@@ -682,7 +682,7 @@ public class ExtAsApiGenerator {
       PropertyModel fieldModel = new PropertyModel(convertName(member.name), convertType(member.type));
       setVisibility(fieldModel, member);
       setStatic(fieldModel, member);
-      fieldModel.addGetter().setAsdoc(toAsDoc(member, extClass.singleton ? classModel.getName() : ""));
+      fieldModel.addGetter().setAsdoc(toAsDoc(member, extClass.singleton ? classModel.getName() : "", extClass.name));
       if (!isConst(member)) {
         fieldModel.addSetter().setAsdoc("@private");
       }
@@ -696,7 +696,7 @@ public class ExtAsApiGenerator {
       boolean isStatic = !extClass.singleton && extJsApi.isStatic(member);
       String name = convertName(member.name);
       String type = convertType(member.type);
-      String asDoc = toAsDoc(member, extClass.singleton ? classModel.getName() : "");
+      String asDoc = toAsDoc(member, extClass.singleton ? classModel.getName() : "", extClass.name);
       if (type == null || "*".equals(type) || "Object".equals(type)) {
         // try to deduce a more specific type from the property name:
         type = "cls".equals(member.name) ? "String"
@@ -800,9 +800,9 @@ public class ExtAsApiGenerator {
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), return_.isEmpty() ? "void" : convertType(return_.get(0).type));
-        methodModel.setAsdoc(toAsDoc(method, thisClassName));
+        methodModel.setAsdoc(toAsDoc(method, thisClassName, extClass.name));
         if (!return_.isEmpty()) {
-          methodModel.getReturnModel().setAsdoc(toAsDoc(return_.get(0), thisClassName));
+          methodModel.getReturnModel().setAsdoc(toAsDoc(return_.get(0), thisClassName, extClass.name));
         }
         setVisibility(methodModel, method);
         if (!extClass.singleton) {
@@ -816,7 +816,7 @@ public class ExtAsApiGenerator {
           }
           String paramName = param.name == null ? "param" + (methodItems.indexOf(param) + 1) : convertName(param.name);
           ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
-          paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName));
+          paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName, extClass.name));
           setDefaultValue(paramModel, param);
           paramModel.setRest(param == params.get(params.size() - 1) && param.type.contains("..."));
           methodModel.addParam(paramModel);
@@ -864,11 +864,11 @@ public class ExtAsApiGenerator {
     return tag;
   }
 
-  private static String toAsDoc(Tag tag, String thisClassName) {
-    return toAsDoc(tag, null, thisClassName);
+  private static String toAsDoc(Tag tag, String thisClassName, String thisJsClassName) {
+    return toAsDoc(tag, null, thisClassName, thisJsClassName);
   }
 
-  private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName) {
+  private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName, String thisJsClassName) {
     StringBuilder asDoc = new StringBuilder();
     if (tag instanceof Var) {
       String value = ((Var) tag).value;
@@ -894,7 +894,7 @@ public class ExtAsApiGenerator {
           asDoc.append(qualifiedPropertyName);
         }
         asDoc.append(" ");
-        asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName));
+        asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName, thisJsClassName));
       }
     } else if (tag instanceof Var && !(tag instanceof Method)) { // methods handle their parameters themselves
       List<Var> subParams = ((Var)tag).items;
@@ -910,7 +910,7 @@ public class ExtAsApiGenerator {
           if (property instanceof Property && !((Property) property).required) {
             asDoc.append(" (optional)");
           }
-          String propertyAsDoc = toAsDoc(property, thisClassName);
+          String propertyAsDoc = toAsDoc(property, thisClassName, thisJsClassName);
           if (!propertyAsDoc.trim().isEmpty()) {
             asDoc.append("\n").append(propertyAsDoc).append("\n");
           }
@@ -925,7 +925,7 @@ public class ExtAsApiGenerator {
       // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
       result = result.replaceAll("\n+", "\n");
     }
-    return insertBeforeSees(toAsDoc(tag.text, thisClassName), result);
+    return insertBeforeSees(toAsDoc(tag.text, thisClassName, thisJsClassName), result);
   }
 
   // to place @default, @param etc. before any @see
@@ -936,7 +936,7 @@ public class ExtAsApiGenerator {
             : asDoc.substring(0, seeIndex) + additionalAsDoc + asDoc.substring(seeIndex);
   }
 
-  private static String toAsDoc(String doc, String thisClassName) {
+  private static String toAsDoc(String doc, String thisClassName, String thisJsClassName) {
     // left-align "@example" (it is not part of the code!):
     doc = doc.replaceAll(" *@example\n", "@example\n\n");
     // convert markdown to HTML:
@@ -947,7 +947,7 @@ public class ExtAsApiGenerator {
     doc = doc.replace("<p>@example</p>", "@example");
 
     // process {@link} doc tags:
-    doc = processLinkTags(doc, thisClassName);
+    doc = processLinkTags(doc, thisClassName, thisJsClassName);
 
     // remove <locale> and </locale>:
     String asDoc = doc.replaceAll("</?locale>", "");
@@ -972,7 +972,7 @@ public class ExtAsApiGenerator {
   }
 
   // process {@link} doc tags
-  private static String processLinkTags(String doc, String thisClassName) {
+  private static String processLinkTags(String doc, String thisClassName, String thisJsClassName) {
     Matcher linkMatcher = INLINE_TAG_OR_LINK_PATTERN.matcher(doc);
     StringBuffer newDoc = new StringBuffer();
     LinkedHashSet<String> sees = new LinkedHashSet<>();
@@ -1015,6 +1015,16 @@ public class ExtAsApiGenerator {
       JSDocReference jsDocReferenceFromText = new JSDocReference(linkText);
       // merge all gathered information (sometimes methods or events are only detected by analyzing linkText):
       jsDocReference.merge(jsDocReferenceFromText);
+
+      // after merging all information, is there a member, but still no member type?
+      if (!jsDocReference.memberName.isEmpty() && jsDocReference.memberType.isEmpty()) {
+        Member resolvedMember = extJsApi.resolve(jsDocReference.toString(), thisJsClassName, Member.class);
+        if (resolvedMember == null) {
+          System.out.println("##### cannot resolve JSDoc reference " + jsDocReference.toString());
+        } else {
+          jsDocReference.memberType = resolvedMember.$type;
+        }
+      }
 
       // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
       if (jsDocReference.equals(jsDocReferenceFromText)) {
