@@ -185,15 +185,15 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     if (methodModel.getAsdoc() != null) {
       asdoc.append(methodModel.getAsdoc());
     }
+    ReturnModel returnModel = methodModel.getReturnModel();
     if (!PARAM_SUPPRESSING_ASDOC_TAGS.contains(asdoc.toString())) {
       for (ParamModel paramModel : methodModel.getParams()) {
         if (!isEmpty(paramModel.getAsdoc())) {
           asdoc.append("\n@param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
         }
       }
-      String returnAsDoc = methodModel.getReturnModel().getAsdoc();
-      if (!isEmpty(returnAsDoc)) {
-        asdoc.append("\n@return ").append(returnAsDoc);
+      if (!"void".equals(returnModel.getType()) && !isEmpty(returnModel.getAsdoc())) {
+        asdoc.append("\n@return ").append(returnModel.getAsdoc());
       }
     }
     printAsdoc(asdoc.toString());
@@ -212,7 +212,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     output.print(methodModel.getName());
     printParameterList(methodModel.getParams());
-    methodModel.getReturnModel().visit(this);
+    returnModel.visit(this);
     if (methodBody != null) {
       output.printf(" {%n    %s%n  }%n", methodModel.getBody());
     } else {
