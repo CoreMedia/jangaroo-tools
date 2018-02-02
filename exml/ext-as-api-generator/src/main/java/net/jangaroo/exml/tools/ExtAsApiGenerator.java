@@ -305,6 +305,7 @@ public class ExtAsApiGenerator {
     return newType == null ||
             "void".equals(newType) ||
             "*".equals(newType) ||
+            // keep old type void, but for methods only if they are "chainable" (return this):
             "void".equals(oldType) && (!(newMember instanceof MethodModel) || returnsThis((MethodModel) newMember)) ||
             "Object".equals(newType) && "*".equals(oldType) ||
             EXT_EVENT.equals(oldType) && newType.contains("Event") ||
