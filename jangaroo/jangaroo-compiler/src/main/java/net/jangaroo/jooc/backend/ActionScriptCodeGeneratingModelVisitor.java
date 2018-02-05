@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -269,6 +270,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
+      // all @see lines must come last, so collect them and print them after everything else, removing duplicates:
+      LinkedHashSet<String> atSeeLines = new LinkedHashSet<>();
       for (String line : asdoc.trim().split("\n")) {
         Matcher matcher = LEADING_ASDOC_WHITESPACE_PATTERN.matcher(line);
         if (matcher.matches()) {
@@ -277,9 +280,17 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         // asdoc tool does not like "@" that is not followed by a directive.
         // Thus, we escape all "@"s not following white-space or "*" (so that /**@private*/ still works):
         line = line.replaceAll("([^\\s*{])@", "$1&#64;");
-        indent(); output.println(" " + ("* " + line).trim());
+        String printedLine = indent + " " + ("* " + line).trim();
+        if (line.startsWith("@see ")) {
+          atSeeLines.add(printedLine);
+        } else {
+          output.println(printedLine);
+        }
       }
-      indent(); output.println(" */");
+      for (String atSeeLine : atSeeLines) {
+        output.println(atSeeLine);
+      }
+      output.println(indent + " */");
     }
   }
 

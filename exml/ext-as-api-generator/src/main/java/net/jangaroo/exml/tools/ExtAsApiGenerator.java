@@ -921,15 +921,7 @@ public class ExtAsApiGenerator {
       // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
       result = result.replaceAll("\n+", "\n");
     }
-    return insertBeforeSees(toAsDoc(tag.text, thisClassName, thisJsClassName), result);
-  }
-
-  // to place @default, @param etc. before any @see
-  private static String insertBeforeSees(String asDoc, String additionalAsDoc) {
-    int seeIndex = asDoc.indexOf("\n@see");
-    return seeIndex == -1
-            ? asDoc + additionalAsDoc
-            : asDoc.substring(0, seeIndex) + additionalAsDoc + asDoc.substring(seeIndex);
+    return toAsDoc(tag.text, thisClassName, thisJsClassName) + result;
   }
 
   private static String toAsDoc(String doc, String thisClassName, String thisJsClassName) {
