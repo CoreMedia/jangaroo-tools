@@ -418,18 +418,14 @@ public class ExtAsApiGenerator {
       addConfigConstructor(extAsClassUnit);
     }
 
-    // TODO
-//    for (Map.Entry<String, List<String>> aliasEntry : extClass.aliases.entrySet()) {
-//      String aliasGroup = aliasEntry.getKey();
-//      Map<String, String> aliasMapping = aliasGroupToAliasToClass.get(aliasGroup);
-//      if (aliasMapping == null) {
-//        aliasMapping = new TreeMap<String, String>();
-//        aliasGroupToAliasToClass.put(aliasGroup, aliasMapping);
-//      }
-//      for (String alias : aliasEntry.getValue()) {
-//        aliasMapping.put(alias, extAsClassUnit.getQName());
-//      }
-//    }
+    if (extClass.alias != null) {
+      for (String alias : extClass.alias.split(",")) {
+        int dotIndex = alias.indexOf('.');
+        String aliasGroup = alias.substring(0, dotIndex);
+        Map<String, String> aliasMapping = aliasGroupToAliasToClass.computeIfAbsent(aliasGroup, k -> new TreeMap<>());
+        aliasMapping.put(alias.substring(dotIndex + 1), extAsClassUnit.getQName());
+      }
+    }
   }
 
   private static void addConfigConstructor(CompilationUnitModel extAsClassUnit) {
