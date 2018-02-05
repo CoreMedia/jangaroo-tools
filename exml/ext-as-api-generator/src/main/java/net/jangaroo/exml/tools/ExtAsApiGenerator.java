@@ -71,7 +71,7 @@ public class ExtAsApiGenerator {
   private static final Pattern SINGLETON_CLASS_NAME_PATTERN = Pattern.compile("^S[A-Z]");
   private static final String LINK_PATTERN_STR = "\\{@link(\\s+)([^\\s}]*)(?: ([^}]*))?\\s*}";
   private static final Pattern LINK_PATTERN = Pattern.compile(LINK_PATTERN_STR);
-  private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|em)>|" + LINK_PATTERN_STR);
+  private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -965,7 +965,7 @@ public class ExtAsApiGenerator {
     StringBuffer newDoc = new StringBuffer();
     LinkedHashSet<String> sees = new LinkedHashSet<>();
     boolean insideCode = false;
-    boolean insideEm = false;
+    boolean insideEmphasised = false;
     while (linkMatcher.find()) {
       String codeTag = linkMatcher.group(2);
       if (codeTag != null) {
@@ -974,8 +974,8 @@ public class ExtAsApiGenerator {
           case "code":
             insideCode = startTag;
             break;
-          case "em":
-            insideEm = startTag;
+          case "i":
+            insideEmphasised = startTag;
             break;
         }
         linkMatcher.appendReplacement(newDoc, linkMatcher.group());
@@ -1038,9 +1038,9 @@ public class ExtAsApiGenerator {
       replacement = replacement.replaceAll("(^|[.])#", "$1");
       // prevent $ from being interpreted as RegExp group:
       replacement = replacement.replace("$", "\\$");
-      if (!insideCode && !insideEm) {
+      if (!insideCode && !insideEmphasised) {
         // either render as code or as emphasized text:
-        replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "em", replacement);
+        replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "i", replacement);
       }
       linkMatcher.appendReplacement(newDoc, replacement);
     }
@@ -1063,6 +1063,10 @@ public class ExtAsApiGenerator {
 
     options.set(HtmlRenderer.FORMAT_FLAGS, HtmlRenderer.FORMAT_ALL_OPTIONS); // TODO: seems to have no effect?!
     options.set(Parser.HEADING_NO_ATX_SPACE, true);
+    options.set(HtmlRenderer.EMPHASIS_STYLE_HTML_OPEN, "<i>");
+    options.set(HtmlRenderer.EMPHASIS_STYLE_HTML_CLOSE, "</i>");
+    options.set(HtmlRenderer.STRONG_EMPHASIS_STYLE_HTML_OPEN, "<b>");
+    options.set(HtmlRenderer.STRONG_EMPHASIS_STYLE_HTML_CLOSE, "</b>");
 
     Parser parser = Parser.builder(options).build();
     HtmlRenderer renderer = HtmlRenderer.builder(options).build();
