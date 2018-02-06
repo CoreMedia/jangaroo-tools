@@ -938,6 +938,8 @@ public class ExtAsApiGenerator {
     doc = doc.replace("*", "&#42;");
     // undo &quot; escaping to increase readability:
     doc = doc.replace("&quot;", "\"");
+    // remove <code> nested into <pre> (otherwise, ASDoc inserts non-ignorable white-space):
+    doc = doc.replace("<pre><code>", "<pre>\n").replace("</code></pre>", "</pre>");
     // strip generated paragraph around @example doc tag:
     doc = doc.replace("<p>@example</p>", "@example");
 
