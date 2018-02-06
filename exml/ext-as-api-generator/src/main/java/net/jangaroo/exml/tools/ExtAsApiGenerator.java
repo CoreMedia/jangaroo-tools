@@ -927,6 +927,8 @@ public class ExtAsApiGenerator {
   private static String toAsDoc(String doc, String thisClassName, String thisJsClassName) {
     // left-align "@example" (it is not part of the code!):
     doc = doc.replaceAll(" *@example\n", "@example\n\n");
+    // insert missing semicolon to terminate numeric entity:
+    doc = doc.replaceAll("(&#[0-9]+)([^0-9;])", "$1;$2");
     // convert markdown to HTML:
     doc = markdownToHtml(doc);
     // undo &quot; escaping to increase readability:
