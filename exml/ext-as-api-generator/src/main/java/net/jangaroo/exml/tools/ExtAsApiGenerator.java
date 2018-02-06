@@ -931,6 +931,8 @@ public class ExtAsApiGenerator {
     doc = doc.replaceAll("(&#[0-9]+)([^0-9;])", "$1;$2");
     // convert markdown to HTML:
     doc = markdownToHtml(doc);
+    // escape '*' for ASDoc tool:
+    doc = doc.replace("*", "&#42;");
     // undo &quot; escaping to increase readability:
     doc = doc.replace("&quot;", "\"");
     // strip generated paragraph around @example doc tag:
@@ -1106,7 +1108,8 @@ public class ExtAsApiGenerator {
                                     "default".equals(name) ? "default_" :
                                             "catch".equals(name) ? "catch_" :
                                                     "override".equals(name) ? "override_" :
-                                                            name;
+                                                            "include".equals(name) ? "include_" :
+                                                                    name;
   }
 
   private static String replaceSeparatorByCamelCase(String string, char separator) {
