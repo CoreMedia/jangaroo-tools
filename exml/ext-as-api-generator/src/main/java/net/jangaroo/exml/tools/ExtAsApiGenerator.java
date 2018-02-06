@@ -1484,7 +1484,7 @@ public class ExtAsApiGenerator {
         if (actionScriptName != null) {
           if (extClass.singleton) {
             return CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
-                    "#" + CompilerUtils.className(actionScriptName));
+                    "S" + CompilerUtils.className(actionScriptName));
           } else {
             return actionScriptName;
           }
