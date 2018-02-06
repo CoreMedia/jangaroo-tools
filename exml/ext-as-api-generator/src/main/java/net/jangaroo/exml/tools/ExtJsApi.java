@@ -162,7 +162,7 @@ public class ExtJsApi {
       if (overriddenClass == null) {
         System.err.println("Overridden class not found: " + override.name + " wants to override " + override.override);
       } else {
-        overriddenClass.text += "\n<p><b>From override " + override.name + ":</b> " + override.text;
+        overriddenClass.text += "\n<p><b>From override " + override.name + ":</b></p>\n" + override.text;
         for (Members members : override.items) {
           // find members.type in overriddenClass:
           List<Member> overriddenMembers = findOrCreateMembers(overriddenClass, members.$type);
