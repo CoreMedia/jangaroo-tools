@@ -280,6 +280,8 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         // asdoc tool does not like "@" that is not followed by a directive.
         // Thus, we escape all "@"s not following white-space or "*" (so that /**@private*/ still works):
         line = line.replaceAll("([^\\s*{])@", "$1&#64;");
+        // also escape "@"s not followed by a letter (cannot be a directive):
+        line = line.replaceAll("@([^a-zA-Z])", "&#64;$1");
         String printedLine = indent + " " + ("* " + line).trim();
         if (line.startsWith("@see ")) {
           atSeeLines.add(printedLine);
