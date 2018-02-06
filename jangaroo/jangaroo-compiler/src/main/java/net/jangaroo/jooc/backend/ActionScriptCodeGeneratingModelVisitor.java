@@ -270,7 +270,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
   private void printAsdoc(String asdoc) {
     if (!skipAsDoc && asdoc != null && asdoc.trim().length() > 0) {
       indent(); output.println("/**");
-      // all @see lines must come last, so collect them and print them after everything else, removing duplicates:
+      // all @see (and @eventType) lines must come last, so collect them and print them after everything else, removing duplicates:
       LinkedHashSet<String> atSeeLines = new LinkedHashSet<>();
       for (String line : asdoc.trim().split("\n")) {
         Matcher matcher = LEADING_ASDOC_WHITESPACE_PATTERN.matcher(line);
@@ -283,7 +283,7 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
         // also escape "@"s not followed by a letter (cannot be a directive):
         line = line.replaceAll("@([^a-zA-Z])", "&#64;$1");
         String printedLine = indent + " " + ("* " + line).trim();
-        if (line.startsWith("@see ")) {
+        if (line.startsWith("@see ") || line.startsWith("@eventType ")) {
           atSeeLines.add(printedLine);
         } else {
           output.println(printedLine);

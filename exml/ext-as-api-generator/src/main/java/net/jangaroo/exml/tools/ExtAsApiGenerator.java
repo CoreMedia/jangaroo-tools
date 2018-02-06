@@ -549,11 +549,14 @@ public class ExtAsApiGenerator {
       String eventName = toCamelCase(event.name);
       AnnotationModel annotationModel = new AnnotationModel("Event",
               new AnnotationPropertyModel("name", "'on" + eventName + "'"));
-      String asdoc = toAsDoc(event, "", thisJsClassName);
-      if (generateEventClasses) {
+      String asdoc;
+      if (!generateEventClasses) {
+        asdoc = toAsDoc(event, "", thisJsClassName);
+      } else {
         String eventTypeQName = generateEventClass(compilationUnitModel, event, thisJsClassName);
         annotationModel.addProperty(new AnnotationPropertyModel("type", "'" + eventTypeQName + "'"));
-        asdoc +=  String.format("%n@eventType %s.%s", eventTypeQName, toConstantName(event.name));
+        String eventReference =  String.format("%s.%s", eventTypeQName, toConstantName(event.name));
+        asdoc = "@see " + eventReference + "\n" + "@eventType " + eventReference;
       }
       annotationModel.setAsdoc(asdoc);
       classModel.addAnnotation(annotationModel);
@@ -625,7 +628,7 @@ public class ExtAsApiGenerator {
     FieldModel eventNameConstant = new FieldModel(toConstantName(event.name), "String", CompilerUtils.quote("on" + eventName));
     eventNameConstant.setStatic(true);
     eventNameConstant.setConst(true);
-    eventNameConstant.setAsdoc(String.format("\"%s%n@see %s%n@eventType %s", toAsDoc(event, eventClientClassQName, thisJsClassName), eventClientClass.getQName(), "on" + eventName));
+    eventNameConstant.setAsdoc(String.format("%s%n@see %s%n@eventType %s", toAsDoc(event, eventClientClassQName, thisJsClassName), eventClientClass.getQName(), "on" + eventName));
     eventType.getClassModel().addMember(eventNameConstant);
 
     return eventTypeQName;
