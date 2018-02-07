@@ -9,6 +9,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
 import net.jangaroo.jooc.model.AbstractAnnotatedModel;
+import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -72,6 +73,7 @@ public class ExtAsApiGenerator {
   private static final String LINK_PATTERN_STR = "\\{@link(\\s+)([^\\s}]*)(?: ([^}]*))?\\s*}";
   private static final Pattern LINK_PATTERN = Pattern.compile(LINK_PATTERN_STR);
   private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
+  private static final Pattern TYPED_ARRAY_PATTERN = Pattern.compile("([a-zA-Z0-9._$<>]+)\\[]");
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -614,6 +616,7 @@ public class ExtAsApiGenerator {
 
         // add getter method:
         MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
+        addArrayElementTypeAnnotation(property, param.type);
         property.setAsdoc(toAsDoc(param, eventClientClassQName, thisJsClassName));
         extAsClass.addMember(property);
       }
@@ -685,6 +688,7 @@ public class ExtAsApiGenerator {
       if (!isConst(member)) {
         fieldModel.addSetter().setAsdoc("@private");
       }
+      addArrayElementTypeAnnotation(fieldModel, member.type);
       addDeprecation(member.deprecatedMessage, member.deprecatedVersion, fieldModel);
       classModel.addMember(fieldModel);
     }
@@ -738,6 +742,7 @@ public class ExtAsApiGenerator {
       if (generateForMxml && "items".equals(member.name)) {
         propertyModel.addAnnotation(new AnnotationModel(MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION));
       }
+      addArrayElementTypeAnnotation(propertyModel, member.type);
       propertyModel.setAsdoc(asDoc);
       addDeprecation(member.deprecatedMessage, member.deprecatedVersion, propertyModel);
       setVisibility(propertyModel, member);
@@ -799,6 +804,9 @@ public class ExtAsApiGenerator {
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
                 : new MethodModel(convertName(methodName), return_.isEmpty() ? "void" : convertType(return_.get(0).type));
+        if (!return_.isEmpty()) {
+          addArrayElementTypeAnnotation(methodModel, return_.get(0).type);
+        }
         methodModel.setAsdoc(toAsDoc(method, thisClassName, extClass.name));
         if (!return_.isEmpty()) {
           methodModel.getReturnModel().setAsdoc(toAsDoc(return_.get(0), thisClassName, extClass.name));
@@ -1164,7 +1172,7 @@ public class ExtAsApiGenerator {
       return null; // "...args" works better in IDEA than "...args:Array"
     }
     // array syntax:
-    if (extType.matches("[a-zA-Z0-9._$<>]+\\[\\]")) {
+    if (TYPED_ARRAY_PATTERN.matcher(extType).matches()) {
       return "Array";
     }
     if (!extType.matches("[a-zA-Z0-9._$<>]+") || "Mixed".equals(extType)) {
@@ -1190,6 +1198,20 @@ public class ExtAsApiGenerator {
     return qName;
   }
 
+  private static void addArrayElementTypeAnnotation(AnnotatedModel model, String extType) {
+    if (extType != null) {
+      Matcher matcher = TYPED_ARRAY_PATTERN.matcher(extType);
+      if (matcher.matches()) {
+        String arrayElementType = convertType(matcher.group(1));
+        if (!"*".equals(arrayElementType) && !"Object".equals(arrayElementType)) {
+          AnnotationModel arrayElementTypeAnnotation = new AnnotationModel(Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
+                  new AnnotationPropertyModel(null, CompilerUtils.quote(arrayElementType)));
+          model.addAnnotation(arrayElementTypeAnnotation);
+        }
+      }
+    }
+  }
+ 
   // normalize / use alternate class name if it can be found in reference API:
   private static void removePrivateApiClasses() {
     // collect all non-public classes:
