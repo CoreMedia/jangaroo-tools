@@ -948,8 +948,8 @@ public class ExtAsApiGenerator {
     doc = doc.replace("&quot;", "\"");
     // remove <code> nested into <pre> (otherwise, ASDoc inserts non-ignorable white-space):
     doc = doc.replace("<pre><code>", "<pre>\n").replace("</code></pre>", "</pre>");
-    // strip generated paragraph around @example doc tag:
-    doc = doc.replace("<p>@example</p>", "@example");
+    // replace @example doc tags, as there is no syntax that works in both IDEA and ASDoc:
+    doc = doc.replace("<p>@example</p>", "<p><b>Example:</b></p>");
 
     // process {@link} doc tags:
     doc = processLinkTags(doc, thisClassName, thisJsClassName);
