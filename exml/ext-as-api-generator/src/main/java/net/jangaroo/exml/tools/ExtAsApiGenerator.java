@@ -775,7 +775,6 @@ public class ExtAsApiGenerator {
         if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
           ParamModel setMethodParam = new ParamModel(name, type);
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
-          setMethod.addAnnotation(arrayElementTypeAnnotation);
           setMethod.setAsdoc("Sets the value of <code>" + name + "</code>.\n@see #" + name);
           setMethodParam.setAsdoc("The new value.");
           addDeprecation(member.deprecatedMessage, member.deprecatedVersion, setMethod);
