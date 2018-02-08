@@ -43,6 +43,8 @@ public abstract class AbstractAnnotatedModel extends DocumentedModel implements 
 
   @Override
   public void addAnnotation(AnnotationModel annotation) {
-    annotations.add(annotation);
+    if (annotation != null) {
+      annotations.add(annotation);
+    }
   }
 }

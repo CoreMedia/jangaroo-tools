@@ -9,7 +9,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.backend.ActionScriptCodeGeneratingModelVisitor;
 import net.jangaroo.jooc.backend.JsCodeGenerator;
 import net.jangaroo.jooc.model.AbstractAnnotatedModel;
-import net.jangaroo.jooc.model.AnnotatedModel;
 import net.jangaroo.jooc.model.AnnotationModel;
 import net.jangaroo.jooc.model.AnnotationPropertyModel;
 import net.jangaroo.jooc.model.ClassModel;
@@ -616,7 +615,7 @@ public class ExtAsApiGenerator {
 
         // add getter method:
         MethodModel property = new MethodModel(MethodType.GET, parameterName, convertType(param.type));
-        addArrayElementTypeAnnotation(property, param.type);
+        property.addAnnotation(createArrayElementTypeAnnotation(param.type));
         property.setAsdoc(toAsDoc(param, eventClientClassQName, thisJsClassName));
         extAsClass.addMember(property);
       }
@@ -688,7 +687,7 @@ public class ExtAsApiGenerator {
       if (!isConst(member)) {
         fieldModel.addSetter().setAsdoc("@private");
       }
-      addArrayElementTypeAnnotation(fieldModel, member.type);
+      fieldModel.addAnnotation(createArrayElementTypeAnnotation(member.type));
       addDeprecation(member.deprecatedMessage, member.deprecatedVersion, fieldModel);
       classModel.addMember(fieldModel);
     }
@@ -742,7 +741,8 @@ public class ExtAsApiGenerator {
       if (generateForMxml && "items".equals(member.name)) {
         propertyModel.addAnnotation(new AnnotationModel(MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION));
       }
-      AnnotationModel arrayElementTypeAnnotation = addArrayElementTypeAnnotation(propertyModel, member.type);
+      AnnotationModel arrayElementTypeAnnotation = createArrayElementTypeAnnotation(member.type);
+      propertyModel.addAnnotation(arrayElementTypeAnnotation);
       propertyModel.setAsdoc(asDoc);
       addDeprecation(member.deprecatedMessage, member.deprecatedVersion, propertyModel);
       setVisibility(propertyModel, member);
@@ -758,9 +758,7 @@ public class ExtAsApiGenerator {
       }
       if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
         MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
-        if (arrayElementTypeAnnotation != null) {
-          getMethod.addAnnotation(arrayElementTypeAnnotation);
-        }
+        getMethod.addAnnotation(arrayElementTypeAnnotation);
         getMethod.setAsdoc("Returns the value of <code>" + name + "</code>.\n@see #" + name);
         addDeprecation(member.deprecatedMessage, member.deprecatedVersion, getMethod);
         classModel.addMember(getMethod);
@@ -777,9 +775,7 @@ public class ExtAsApiGenerator {
         if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
           ParamModel setMethodParam = new ParamModel(name, type);
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
-          if (arrayElementTypeAnnotation != null) {
-            setMethod.addAnnotation(arrayElementTypeAnnotation);
-          }
+          setMethod.addAnnotation(arrayElementTypeAnnotation);
           setMethod.setAsdoc("Sets the value of <code>" + name + "</code>.\n@see #" + name);
           setMethodParam.setAsdoc("The new value.");
           addDeprecation(member.deprecatedMessage, member.deprecatedVersion, setMethod);
@@ -804,16 +800,17 @@ public class ExtAsApiGenerator {
         method = getDelegateTag(method, thisClassName);
 
         List<Var> methodItems = method.items;
-        List<Return> return_ = filterByType(methodItems, Return.class);
+        List<Return> returns = filterByType(methodItems, Return.class);
+        Return return_ = returns.isEmpty() ? null : returns.get(0);
         MethodModel methodModel = isConstructor
                 ? new MethodModel(classModel.getName(), null)
-                : new MethodModel(convertName(methodName), return_.isEmpty() ? "void" : convertType(return_.get(0).type));
-        if (!return_.isEmpty()) {
-          addArrayElementTypeAnnotation(methodModel, return_.get(0).type);
+                : new MethodModel(convertName(methodName), return_ == null ? "void" : convertType(return_.type));
+        if (return_ != null) {
+          methodModel.addAnnotation(createArrayElementTypeAnnotation(return_.type));
         }
         methodModel.setAsdoc(toAsDoc(method, thisClassName, extClass.name));
-        if (!return_.isEmpty()) {
-          methodModel.getReturnModel().setAsdoc(toAsDoc(return_.get(0), thisClassName, extClass.name));
+        if (return_ != null) {
+          methodModel.getReturnModel().setAsdoc(toAsDoc(return_, thisClassName, extClass.name));
         }
         setVisibility(methodModel, method);
         if (!extClass.singleton) {
@@ -1202,16 +1199,14 @@ public class ExtAsApiGenerator {
     return qName;
   }
 
-  private static AnnotationModel addArrayElementTypeAnnotation(AnnotatedModel model, String extType) {
+  private static AnnotationModel createArrayElementTypeAnnotation(String extType) {
     if (extType != null) {
       Matcher matcher = TYPED_ARRAY_PATTERN.matcher(extType);
       if (matcher.matches()) {
         String arrayElementType = convertType(matcher.group(1));
         if (!"*".equals(arrayElementType) && !"Object".equals(arrayElementType)) {
-          AnnotationModel arrayElementTypeAnnotation = new AnnotationModel(Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
+          return new AnnotationModel(Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
                   new AnnotationPropertyModel(null, CompilerUtils.quote(arrayElementType)));
-          model.addAnnotation(arrayElementTypeAnnotation);
-          return arrayElementTypeAnnotation;
         }
       }
     }
