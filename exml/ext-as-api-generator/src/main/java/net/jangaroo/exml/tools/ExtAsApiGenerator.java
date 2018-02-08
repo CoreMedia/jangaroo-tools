@@ -935,6 +935,24 @@ public class ExtAsApiGenerator {
     return toAsDoc(tag.text, thisClassName, thisJsClassName) + result;
   }
 
+  private static String replaceTagSequence(String tagSequence, String replacementSequence, String doc) {
+    String[] openAndCloseTags = openAndCloseTags(tagSequence.split(","));
+    String[] openAndCloseTagsReplacement = openAndCloseTags(replacementSequence.split(","));
+    return doc.replace(openAndCloseTags[0], openAndCloseTagsReplacement[0])
+            .replace(openAndCloseTags[1], openAndCloseTagsReplacement[1]);
+  }
+
+  private static String[] openAndCloseTags(String[] tagSequence) {
+    StringBuilder openTags = new StringBuilder();
+    StringBuilder closeTags = new StringBuilder();
+    for (String tag : tagSequence) {
+      //noinspection StringConcatenationInsideStringBufferAppend
+      openTags.append("<" + tag + ">");
+      closeTags.insert(0, "</" + tag + ">");
+    }
+    return new String[]{ openTags.toString(), closeTags.toString() };
+  }
+
   private static String toAsDoc(String doc, String thisClassName, String thisJsClassName) {
     // left-align "@example" (it is not part of the code!):
     doc = doc.replaceAll(" *@example( preview)?\n", "@example\n\n");
@@ -950,6 +968,11 @@ public class ExtAsApiGenerator {
     doc = doc.replace("<pre><code>", "<pre>\n").replace("</code></pre>", "</pre>");
     // replace @example doc tags, as there is no syntax that works in both IDEA and ASDoc:
     doc = doc.replace("<p>@example</p>", "<p><b>Example:</b></p>");
+    // replace <h1> ... <h4>, since neither IDEA nor asdoc can handle them:
+    doc = replaceTagSequence("h1", "p,b", doc);
+    doc = replaceTagSequence("h2", "p,b,i", doc);
+    doc = replaceTagSequence("h3", "p,i", doc);
+    doc = replaceTagSequence("h4", "p,i", doc);
 
     // process {@link} doc tags:
     doc = processLinkTags(doc, thisClassName, thisJsClassName);
