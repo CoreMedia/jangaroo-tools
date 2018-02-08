@@ -742,7 +742,7 @@ public class ExtAsApiGenerator {
       if (generateForMxml && "items".equals(member.name)) {
         propertyModel.addAnnotation(new AnnotationModel(MxmlUtils.MXML_DEFAULT_PROPERTY_ANNOTATION));
       }
-      addArrayElementTypeAnnotation(propertyModel, member.type);
+      AnnotationModel arrayElementTypeAnnotation = addArrayElementTypeAnnotation(propertyModel, member.type);
       propertyModel.setAsdoc(asDoc);
       addDeprecation(member.deprecatedMessage, member.deprecatedVersion, propertyModel);
       setVisibility(propertyModel, member);
@@ -757,8 +757,10 @@ public class ExtAsApiGenerator {
         getter.addAnnotation(extConfigAnnotation);
       }
       if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
-//        getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
         MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
+        if (arrayElementTypeAnnotation != null) {
+          getMethod.addAnnotation(arrayElementTypeAnnotation);
+        }
         getMethod.setAsdoc("Returns the value of <code>" + name + "</code>.\n@see #" + name);
         addDeprecation(member.deprecatedMessage, member.deprecatedVersion, getMethod);
         classModel.addMember(getMethod);
@@ -775,11 +777,13 @@ public class ExtAsApiGenerator {
         if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
           ParamModel setMethodParam = new ParamModel(name, type);
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
+          if (arrayElementTypeAnnotation != null) {
+            setMethod.addAnnotation(arrayElementTypeAnnotation);
+          }
           setMethod.setAsdoc("Sets the value of <code>" + name + "</code>.\n@see #" + name);
           setMethodParam.setAsdoc("The new value.");
           addDeprecation(member.deprecatedMessage, member.deprecatedVersion, setMethod);
           classModel.addMember(setMethod);
-//          setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
         }
       }
       classModel.addMember(propertyModel);
@@ -1198,7 +1202,7 @@ public class ExtAsApiGenerator {
     return qName;
   }
 
-  private static void addArrayElementTypeAnnotation(AnnotatedModel model, String extType) {
+  private static AnnotationModel addArrayElementTypeAnnotation(AnnotatedModel model, String extType) {
     if (extType != null) {
       Matcher matcher = TYPED_ARRAY_PATTERN.matcher(extType);
       if (matcher.matches()) {
@@ -1207,9 +1211,11 @@ public class ExtAsApiGenerator {
           AnnotationModel arrayElementTypeAnnotation = new AnnotationModel(Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
                   new AnnotationPropertyModel(null, CompilerUtils.quote(arrayElementType)));
           model.addAnnotation(arrayElementTypeAnnotation);
+          return arrayElementTypeAnnotation;
         }
       }
     }
+    return null;
   }
  
   // normalize / use alternate class name if it can be found in reference API:
