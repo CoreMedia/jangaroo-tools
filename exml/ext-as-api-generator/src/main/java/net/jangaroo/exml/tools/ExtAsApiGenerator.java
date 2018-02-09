@@ -817,6 +817,7 @@ public class ExtAsApiGenerator {
         }
         addDeprecation(method.deprecatedMessage, method.deprecatedVersion, methodModel);
         List<Param> params = filterByType(methodItems, Param.class);
+        makeUndocumentedTrailingParametersOptional(params);
         for (Param param : params) {
           if ("private".equals(param.access)) {
             continue;
@@ -835,6 +836,29 @@ public class ExtAsApiGenerator {
         }
       }
     }
+  }
+
+  // fix for undocumented trailing parameters: make them optional!
+  private static void makeUndocumentedTrailingParametersOptional(List<Param> params) {
+    if (params.size() > 1) {
+      // only apply heuristic if first parameter is actually documented:
+      Param firstParam = params.get(0);
+      if (!isUndocumented(firstParam)) {
+        for (int i = params.size() - 1; i > 0; i--) {
+          Param param = params.get(i);
+          if (isUndocumented(param)) {
+            param.optional = true;
+          } else {
+            break;
+          }
+        }
+        
+      }
+    }
+  }
+
+  private static boolean isUndocumented(Param param) {
+    return param.value == null && !param.optional && param.text.isEmpty() && param.type.isEmpty();
   }
 
   private static <S, T> List<S> filterByType(List<T> methodItems, Class<S> filterType) {
