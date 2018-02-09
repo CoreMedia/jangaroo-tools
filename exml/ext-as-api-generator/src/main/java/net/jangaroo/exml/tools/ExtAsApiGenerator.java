@@ -28,9 +28,11 @@ import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
@@ -81,9 +83,9 @@ public class ExtAsApiGenerator {
   private static ExtAsApi referenceApi;
   private static boolean generateEventClasses;
   private static boolean generateForMxml;
-  private static Properties jsAsNameMappingProperties = new Properties();
-  private static Properties jsConfigClassNameMappingProperties = new Properties();
-  private static Properties eventWordsProperties = new Properties();
+  private static Properties jsAsNameMappingProperties;
+  private static Properties jsConfigClassNameMappingProperties;
+  private static Properties eventWordsProperties;
   private static final String EXT_3_4_EVENT = "ext.IEventObject";
   private static String EXT_EVENT;
   private static final Set<String> invalidJsDocReferences = new HashSet<>();
@@ -92,8 +94,10 @@ public class ExtAsApiGenerator {
   public static void main(String[] args) throws IOException {
     String extVersion = args[0];
     File srcFile = new File(args[1]);
-    File outputDir = new File(args[2]);
-    referenceApi = new ExtAsApi("2.0.14", "2.0.13");
+    File outputDir = new File(args[2] + "/joo");
+    File configDir = new File(args[2] + "/config");
+    referenceApi = new ExtAsApi(loadProperties(configDir, "net/jangaroo/exml/tools/ext-js-3.4-6.0-name-mapping.properties"),
+            "2.0.14", "2.0.13");
     EXT_EVENT = referenceApi.getMappedQName(EXT_3_4_EVENT);
     if (EXT_EVENT == null) {
       EXT_EVENT = EXT_3_4_EVENT;
@@ -102,9 +106,9 @@ public class ExtAsApiGenerator {
     generateEventClasses = args.length <= 3 || Boolean.valueOf(args[3]);
     generateForMxml = args.length <= 4 ? false : Boolean.valueOf(args[4]);
 
-    jsAsNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-as-name-mapping.properties"));
-    jsConfigClassNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-config-name-mapping.properties"));
-    eventWordsProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/event-words.properties"));
+    ExtAsApiGenerator.jsAsNameMappingProperties = loadProperties(configDir, "net/jangaroo/exml/tools/js-as-name-mapping.properties");
+    jsConfigClassNameMappingProperties = loadProperties(configDir, "net/jangaroo/exml/tools/js-config-name-mapping.properties");
+    eventWordsProperties = loadProperties(configDir, "net/jangaroo/exml/tools/event-words.properties");
 
     if (srcFile.exists()) {
       compilationUnitModelRegistry = new CompilationUnitModelRegistry();
@@ -165,6 +169,12 @@ public class ExtAsApiGenerator {
       }
       System.out.println("************ END Invalid JSDoc References *****************");
     }
+  }
+
+  private static Properties loadProperties(File configDir, String configFile) throws IOException {
+    Properties properties = new Properties();
+    properties.load(new BufferedReader(new FileReader(new File(configDir, configFile))));
+    return properties;
   }
 
   private static void generateManifest(File outputDir) throws FileNotFoundException, UnsupportedEncodingException {

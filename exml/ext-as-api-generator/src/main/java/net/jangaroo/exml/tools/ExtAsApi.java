@@ -34,8 +34,8 @@ public class ExtAsApi {
   private JangarooParser jangarooParser;
   private CompilationUnitModelRegistry compilationUnitModelRegistry;
 
-  public ExtAsApi(String jangarooRuntimeVersion, String jangarooLibsVersion) throws IOException {
-    extJsNameMappingProperties.load(getClass().getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/ext-js-3.4-6.0-name-mapping.properties"));
+  public ExtAsApi(Properties extJsNameMappingProperties, String jangarooRuntimeVersion, String jangarooLibsVersion) throws IOException {
+    this.extJsNameMappingProperties = extJsNameMappingProperties;
     jangarooParser = getParser(jangarooRuntimeVersion, jangarooLibsVersion);
     compilationUnitModelRegistry = new CompilationUnitModelRegistry();
     apiModelGenerator = new ApiModelGenerator(false);
