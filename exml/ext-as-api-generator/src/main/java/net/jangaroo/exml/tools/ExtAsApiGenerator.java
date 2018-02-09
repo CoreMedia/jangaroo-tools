@@ -90,16 +90,17 @@ public class ExtAsApiGenerator {
   private static Map<String, Map<String, String>> aliasGroupToAliasToClass = new TreeMap<String, Map<String, String>>();
 
   public static void main(String[] args) throws IOException {
-    File srcFile = new File(args[0]);
-    File outputDir = new File(args[1]);
+    String extVersion = args[0];
+    File srcFile = new File(args[1]);
+    File outputDir = new File(args[2]);
     referenceApi = new ExtAsApi("2.0.14", "2.0.13");
     EXT_EVENT = referenceApi.getMappedQName(EXT_3_4_EVENT);
     if (EXT_EVENT == null) {
       EXT_EVENT = EXT_3_4_EVENT;
     }
 
-    generateEventClasses = args.length <= 2 || Boolean.valueOf(args[2]);
-    generateForMxml = args.length <= 3 ? false : Boolean.valueOf(args[3]);
+    generateEventClasses = args.length <= 3 || Boolean.valueOf(args[3]);
+    generateForMxml = args.length <= 4 ? false : Boolean.valueOf(args[4]);
 
     jsAsNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-as-name-mapping.properties"));
     jsConfigClassNameMappingProperties.load(ExtAsApiGenerator.class.getClassLoader().getResourceAsStream("net/jangaroo/exml/tools/js-config-name-mapping.properties"));
@@ -108,7 +109,7 @@ public class ExtAsApiGenerator {
     if (srcFile.exists()) {
       compilationUnitModelRegistry = new CompilationUnitModelRegistry();
       interfaces = new HashSet<String>();
-      extJsApi = new ExtJsApi(srcFile);
+      extJsApi = new ExtJsApi(extVersion, srcFile);
       extClasses = new HashSet<ExtClass>(extJsApi.getExtClasses());
       removePrivateApiClasses();
 
@@ -956,7 +957,7 @@ public class ExtAsApiGenerator {
       if (tag instanceof Member) {
         jsReference += String.format("#%s%s-%s", ((Member) tag).static_ ? "static-" : "", tag.$type, tag.name);
       }
-      asDoc.append("\n@see https://docs.sencha.com/extjs/6.2.1/classic/").append(jsReference)
+      asDoc.append("\n@see https://docs.sencha.com/extjs/" + extJsApi.getVersion() + "/classic/").append(jsReference)
               .append(" Original Ext JS documentation of '").append(tag.name).append("'");
     }
 

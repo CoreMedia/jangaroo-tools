@@ -36,6 +36,7 @@ public class ExtJsApi {
   private Set<ExtClass> extClasses;
   private Map<String,ExtClass> extClassByName;
   private Set<ExtClass> mixins;
+  private String version;
 
   private static Doxi readExtApiJson(File jsonFile) throws IOException {
     System.out.printf("Reading API from %s...\n", jsonFile.getPath());
@@ -127,7 +128,8 @@ public class ExtJsApi {
   }
 
   // normalize / use alternate class name if it can be found in reference API:
-  public ExtJsApi(File srcFile) throws IOException {
+  public ExtJsApi(String version, File srcFile) throws IOException {
+    this.version = version;
     extClassByName = new HashMap<String, ExtClass>();
     extClasses = new LinkedHashSet<ExtClass>();
 
@@ -185,6 +187,10 @@ public class ExtJsApi {
     }
     markTransitiveSupersAsMixins(collectMixins);
     mixins = Collections.unmodifiableSet(collectMixins);
+  }
+
+  public String getVersion() {
+    return version;
   }
 
   private List<Member> findOrCreateMembers(ExtClass extClass, String memberType) {
