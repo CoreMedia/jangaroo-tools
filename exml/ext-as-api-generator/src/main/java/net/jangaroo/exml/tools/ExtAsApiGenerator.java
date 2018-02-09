@@ -349,7 +349,7 @@ public class ExtAsApiGenerator {
       System.out.printf("Generating AS3 API model %s for %s...%n", extAsInterfaceUnit.getQName(), extClassName);
       ClassModel extAsInterface = (ClassModel)extAsInterfaceUnit.getPrimaryDeclaration();
       extAsInterface.setInterface(true);
-      extAsInterface.setAsdoc(toAsDoc(extClass.text, getThisClassName(extAsInterface, extClass), extClass.name) + "\n * @see " + extClassName);
+      extAsInterface.setAsdoc(toAsDoc(extClass, getThisClassName(extAsInterface, extClass), extClass.name) + "\n * @see " + extClassName);
       if (extClass.extends_ != null) {
         String superInterface = convertToInterface(getActionScriptName(extClass.extends_));
         if (superInterface != null) {
@@ -925,6 +925,15 @@ public class ExtAsApiGenerator {
         }
         asDoc.append("\n</ul>");
       }
+    }
+
+    if (tag instanceof ExtClass || (tag instanceof Member && paramPrefix == null)) {
+      String jsReference = thisJsClassName + ".html";
+      if (tag instanceof Member) {
+        jsReference += String.format("#%s%s-%s", ((Member) tag).static_ ? "static-" : "", tag.$type, tag.name);
+      }
+      asDoc.append("\n@see https://docs.sencha.com/extjs/6.2.1/classic/").append(jsReference)
+              .append(" Original Ext JS documentation of '").append(tag.name).append("'");
     }
 
     String result = asDoc.toString();

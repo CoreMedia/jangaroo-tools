@@ -117,7 +117,7 @@ public class ExtJsApi {
   }
 
   public static boolean isPublicNonStaticMethodOrPropertyOrCfg(Member member) {
-    return (member instanceof Method || member instanceof Property || member instanceof Cfg)
+    return (member instanceof Method || member instanceof Property)
             && !member.static_ && !"private".equals(member.access) && !"protected".equals(member.access)
             && !"constructor".equals(member.name);
   }
@@ -328,7 +328,18 @@ public class ExtJsApi {
           @JsonSubTypes.Type(value = Members.class, name = "sass-mixins"),
   })
   private static class Members extends Tag {
-    public List<? extends Member> items;
+    private List<? extends Member> items;
+
+    public void setItems(List<? extends Member> items) {
+      // "configs" and "properties" both use "property" items, but documentation references require the correct member
+      // type, so fix this:
+      if ("configs".equals($type)) {
+        for (Member item : items) {
+          item.$type = "cfg";
+        }
+      }
+      this.items = items;
+    }
   }
 
   @JsonSubTypes({
@@ -336,7 +347,6 @@ public class ExtJsApi {
           @JsonSubTypes.Type(value = Return.class, name = "return"),
           @JsonSubTypes.Type(value = Method.class, name = "method"),
           @JsonSubTypes.Type(value = Property.class, name = "property"),
-          @JsonSubTypes.Type(value = Cfg.class, name = "cfg"),
           @JsonSubTypes.Type(value = Event.class, name = "event"),
   })
   public abstract static class Var extends Tag {
@@ -348,7 +358,6 @@ public class ExtJsApi {
   @JsonSubTypes({
           @JsonSubTypes.Type(value = Method.class, name = "method"),
           @JsonSubTypes.Type(value = Property.class, name = "property"),
-          @JsonSubTypes.Type(value = Cfg.class, name = "cfg"),
           @JsonSubTypes.Type(value = Event.class, name = "event"),
 
   })
@@ -369,14 +378,6 @@ public class ExtJsApi {
   public static class Enum extends Tag {
   }
   
-  public static class Cfg extends Member {
-    public boolean required;
-
-    public Cfg() {
-      System.out.println("FOO");
-    }
-  }
-
   @JsonIgnoreProperties({"removedMessage", "removedVersion"})
   public static class Property extends Member {
     public boolean required;
