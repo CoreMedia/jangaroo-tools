@@ -295,6 +295,11 @@ public class ExtJsApi {
       result = 31 * result + name.hashCode();
       return result;
     }
+
+    @Override
+    public String toString() {
+      return (access != null ? access + " " : "") + $type + " " + name;
+    }
   }
 
   @JsonTypeName("doxi")
@@ -334,9 +339,9 @@ public class ExtJsApi {
           @JsonSubTypes.Type(value = Members.class, name = "sass-mixins"),
   })
   private static class Members extends Tag {
-    private List<? extends Member> items;
+    private List<Member> items;
 
-    public void setItems(List<? extends Member> items) {
+    public void setItems(List<Member> items) {
       // "configs" and "properties" both use "property" items, but documentation references require the correct member
       // type, so fix this:
       if ("configs".equals($type)) {
@@ -344,6 +349,28 @@ public class ExtJsApi {
           item.$type = "cfg";
         }
       }
+
+      // Merge entries with the same name:
+      this.items = new ArrayList<>(items.size());
+      Map<String, Member> itemByName = new HashMap<>();
+      for (Member member : items) {
+        String key = member.static_ + "-" + member.name;
+        Member oldMember = itemByName.get(key);
+        if (oldMember != null) {
+          System.out.println("merging " + oldMember + " and " + member);
+          if (oldMember.text.isEmpty()) {
+            oldMember.text = member.text;
+          }
+          if (oldMember.items.size() < member.items.size()) {
+            oldMember.items = member.items;
+          }
+          // TODO: what else to merge?
+          continue;
+        }
+        itemByName.put(key, member);
+        this.items.add(member);
+      }
+      
       this.items = items;
     }
   }
@@ -390,11 +417,6 @@ public class ExtJsApi {
     public boolean optional;
     public boolean controllable;
     public boolean dynamic;
-
-    @Override
-    public String toString() {
-      return access + " var " + super.toString();
-    }
   }
 
   public static class Param extends Var {
@@ -423,6 +445,11 @@ public class ExtJsApi {
     public boolean chainable;
     @JsonProperty("abstract")
     public boolean abstract_;
+
+    @Override
+    public String toString() {
+      return super.toString() + "(" + items.size() + ")";
+    }
   }
 
   public static class Event extends Member {
