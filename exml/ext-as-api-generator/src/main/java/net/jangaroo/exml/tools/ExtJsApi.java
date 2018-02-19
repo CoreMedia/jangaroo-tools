@@ -361,7 +361,7 @@ public class ExtJsApi {
           if (oldMember.text.isEmpty()) {
             oldMember.text = member.text;
           }
-          if (oldMember.items.size() < member.items.size()) {
+          if (countNonPrivateItems(oldMember.items) < countNonPrivateItems(member.items)) {
             oldMember.items = member.items;
           }
           // TODO: what else to merge?
@@ -372,6 +372,10 @@ public class ExtJsApi {
       }
       
       this.items = items;
+    }
+
+    private long countNonPrivateItems(List<? extends Tag> items) {
+      return items.stream().filter(item -> !"private".equals(item.access)).count();
     }
   }
 
