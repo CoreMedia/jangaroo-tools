@@ -435,8 +435,6 @@ public class ExtJsApi {
     public void setUpperCaseOptional(boolean value) {
       optional = value;
     }
-
-    public List<Property> items = Collections.emptyList();
   }
 
   public static class Return extends Var {

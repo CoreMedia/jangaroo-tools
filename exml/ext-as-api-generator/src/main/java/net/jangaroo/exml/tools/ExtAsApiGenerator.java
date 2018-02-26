@@ -932,16 +932,16 @@ public class ExtAsApiGenerator {
     if (tag instanceof Member && ((Member)tag).since != null) {
       asDoc.append("\n@since ").append(((Member)tag).since);
     }
-    if (paramPrefix != null && tag instanceof Param) {
-      List<Property> subParams = ((Param) tag).items;
-      for (Property property : subParams) {
+    if (paramPrefix != null && !paramPrefix.isEmpty() && tag instanceof Param) {
+      List<Var> subParams = ((Param) tag).items;
+      for (Var property : subParams) {
         asDoc.append("\n@param ");
         String propertyType = convertType(property.type);
         if (propertyType != null && !"*".equals(propertyType)) {
           asDoc.append("{").append(propertyType).append("} ");
         }
         String qualifiedPropertyName = paramPrefix + "." + property.name;
-        if (!property.required) {
+        if (property instanceof Property && !((Property) property).required) {
           asDoc.append("[").append(qualifiedPropertyName).append("]");
         } else {
           asDoc.append(qualifiedPropertyName);
@@ -963,7 +963,7 @@ public class ExtAsApiGenerator {
           if (property instanceof Property && !((Property) property).required) {
             asDoc.append(" (optional)");
           }
-          String propertyAsDoc = toAsDoc(property, thisClassName, thisJsClassName);
+          String propertyAsDoc = toAsDoc(property, "", thisClassName, thisJsClassName);
           if (!propertyAsDoc.trim().isEmpty()) {
             asDoc.append("\n").append(propertyAsDoc).append("\n");
           }
