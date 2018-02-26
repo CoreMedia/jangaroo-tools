@@ -987,7 +987,14 @@ public class ExtAsApiGenerator {
       // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
       result = result.replaceAll("\n+", "\n");
     }
-    return toAsDoc(tag.text, thisClassName, thisJsClassName) + result;
+    String mainAsDoc = toAsDoc(tag.text, thisClassName, thisJsClassName);
+
+    boolean isSubTag = paramPrefix != null || tag instanceof Param || tag instanceof Return;
+    // fix missing full-stops for the ASDoc summary table, but not if this is a sub-tag
+    if (!isSubTag) {
+      mainAsDoc = fixMissingFullStop(mainAsDoc);
+    }
+    return mainAsDoc + result;
   }
 
   private static String replaceTagSequence(String tagSequence, String replacementSequence, String doc) {
@@ -1052,6 +1059,29 @@ public class ExtAsApiGenerator {
     // add closing "/" on <img> elements:
     asDoc = asDoc.replaceAll("(<img[^>]*[^/])>", "$1/>");
     return asDoc;
+  }
+
+  private static String fixMissingFullStop(String doc) {
+    if (!doc.isEmpty()) {
+      // ASDoc needs a full-stop at the end of the first sentence. Even colon and semicolon do not work. :-(
+      Matcher paragraphEndMatcher = Pattern.compile("\\.|\n<pre|\n<p|\n<ul|\n<ol|\n<table").matcher(doc);
+      if (paragraphEndMatcher.find(1)) {
+        int start = paragraphEndMatcher.start();
+        String match = paragraphEndMatcher.group();
+        if (!match.equals(".")) {
+          Matcher semicolonMatcher = Pattern.compile(";(\\s).").matcher(doc.substring(0, start));
+          if (semicolonMatcher.find()) {
+            int semicolonPos = semicolonMatcher.start();
+            // upper-case the first character of the word following the semicolon
+            return doc.substring(0, semicolonPos) + "." + semicolonMatcher.group(1) + Character.toUpperCase(doc.charAt(semicolonPos + 2)) + doc.substring(semicolonPos + 3);
+          }
+          int beforeStart = start - 1;
+          boolean isColon = doc.charAt(beforeStart) == ':';
+          return doc.substring(0, isColon ? beforeStart : start) + (isColon || !"\n<p".equals(match) ? "..." : ".") + doc.substring(start);
+        }
+      }
+    }
+    return doc;
   }
 
   // process {@link} doc tags
