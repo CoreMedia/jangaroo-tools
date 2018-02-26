@@ -912,6 +912,9 @@ public class ExtAsApiGenerator {
 
   private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName, String thisJsClassName) {
     StringBuilder asDoc = new StringBuilder();
+    if (tag instanceof Method && ((Method) tag).template) {
+      asDoc.append("\n<p class=\"template-method\"><i>This is a template method, a hook into the functionality of this class. Feel free to override it in child classes.</i></p>");
+    }
     if (tag instanceof Var) {
       Var var = (Var) tag;
       String value = var.value;
