@@ -913,9 +913,17 @@ public class ExtAsApiGenerator {
   private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName, String thisJsClassName) {
     StringBuilder asDoc = new StringBuilder();
     if (tag instanceof Var) {
-      String value = ((Var) tag).value;
-      if (value != null && !"null".equals(value) && !"undefined".equals(value)) {
-        asDoc.append("\n@default ").append(value);
+      Var var = (Var) tag;
+      String value = var.value;
+      if (value != null) {
+        String defaultValue = AS3Type.getDefaultValue(convertType(var.type));
+        // Leave out @default only if it equals the type's default null or undefined.
+        // We could leave out all default values that equal the type's default, but that would exclude many 
+        // booleans with @default false, which is redundant but still adds the value that the author definitely
+        // did not just forget to document the default.
+        if (!(("null".equals(defaultValue) || "undefined".equals(defaultValue)) && defaultValue.equals(value))) {
+          asDoc.append("\n@default ").append(value);
+        }
       }
     }
     if (tag instanceof Member && ((Member)tag).since != null) {
