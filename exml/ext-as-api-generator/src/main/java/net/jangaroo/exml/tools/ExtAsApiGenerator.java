@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -978,7 +979,7 @@ public class ExtAsApiGenerator {
       if (tag instanceof Member) {
         jsReference += String.format("#%s%s-%s", ((Member) tag).static_ ? "static-" : "", tag.$type, tag.name);
       }
-      asDoc.append("\n@see https://docs.sencha.com/extjs/" + extJsApi.getVersion() + "/classic/").append(jsReference)
+      asDoc.append("\n@see " + getSenchaDocsBaseUrl()).append(jsReference)
               .append(" Original Ext JS documentation of '").append(tag.name).append("'");
     }
 
@@ -995,6 +996,10 @@ public class ExtAsApiGenerator {
       mainAsDoc = fixMissingFullStop(mainAsDoc);
     }
     return mainAsDoc + result;
+  }
+
+  private static String getSenchaDocsBaseUrl() {
+    return "https://docs.sencha.com/extjs/" + extJsApi.getVersion() + "/classic/";
   }
 
   private static String replaceTagSequence(String tagSequence, String replacementSequence, String doc) {
@@ -1032,6 +1037,8 @@ public class ExtAsApiGenerator {
     doc = doc.replace("<pre><code>", "<pre>\n").replace("</code></pre>", "</pre>");
     // replace @example doc tags, as there is no syntax that works in both IDEA and ASDoc:
     doc = doc.replace("<p>@example</p>", "<p><b>Example:</b></p>");
+    // resolve relative URLs in <a href>:
+    doc = resolveRelativeLinks(doc);
     // replace <h1> ... <h4>, since neither IDEA nor asdoc can handle them:
     doc = replaceTagSequence("h1", "p,b", doc);
     doc = replaceTagSequence("h2", "p,b,i", doc);
@@ -1061,6 +1068,29 @@ public class ExtAsApiGenerator {
     // add closing "/" on <img> elements:
     asDoc = asDoc.replaceAll("(<img[^>]*[^/])>", "$1/>");
     return asDoc;
+  }
+
+  private static String resolveRelativeLinks(String doc) {
+    Matcher aHrefMatcher = Pattern.compile("(<a href=\")([^\"]+)").matcher(doc);
+    StringBuffer result = new StringBuffer();
+    String senchaDocsBaseUrl = getSenchaDocsBaseUrl();
+    while (aHrefMatcher.find()) {
+      String replacement = "$1$2";
+      String url = aHrefMatcher.group(2);
+      if (!url.startsWith("http")) {
+        String href;
+        try {
+          href = URI.create(senchaDocsBaseUrl).resolve(url).toString();
+        } catch (IllegalArgumentException e) {
+          // ignore, use naive approach instead:
+          href = senchaDocsBaseUrl + url;
+        }
+        replacement = "$1" + href;
+      }
+      aHrefMatcher.appendReplacement(result, replacement);
+    }
+    aHrefMatcher.appendTail(result);
+    return result.toString();
   }
 
   private static String fixMissingFullStop(String doc) {
