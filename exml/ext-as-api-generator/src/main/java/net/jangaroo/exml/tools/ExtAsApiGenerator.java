@@ -1016,6 +1016,8 @@ public class ExtAsApiGenerator {
   }
 
   private static String toAsDoc(String doc, String thisClassName, String thisJsClassName) {
+    // prevent {@link\n#foo} from being interpreted as a headline:
+    doc = doc.replaceAll("\\{@link\n(#.*})", "{@link $1\n");
     // left-align "@example" (it is not part of the code!):
     doc = doc.replaceAll(" *@example( preview)?\n", "@example\n\n");
     // insert missing semicolon to terminate numeric entity:
