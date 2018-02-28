@@ -1199,6 +1199,8 @@ public class ExtAsApiGenerator {
         // either render as code or as emphasized text:
         replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "i", replacement);
       }
+      // prepend a unicode "right arrow" to indicate this is actually a hyperlink:
+      replacement = "→" + replacement;
       linkMatcher.appendReplacement(newDoc, replacement);
     }
     linkMatcher.appendTail(newDoc);
