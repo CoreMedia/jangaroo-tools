@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -1120,7 +1121,7 @@ public class ExtAsApiGenerator {
   private static String processLinkTags(String doc, String thisClassName, String thisJsClassName) {
     Matcher linkMatcher = INLINE_TAG_OR_LINK_PATTERN.matcher(doc);
     StringBuffer newDoc = new StringBuffer();
-    LinkedHashSet<String> sees = new LinkedHashSet<>();
+    LinkedHashMap<String, LinkedHashSet<String>> sees = new LinkedHashMap<>();
     boolean insideCode = false;
     boolean insideEmphasised = false;
     while (linkMatcher.find()) {
@@ -1172,22 +1173,28 @@ public class ExtAsApiGenerator {
       }
 
       // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
-      if (jsDocReference.equals(jsDocReferenceFromText)) {
-        linkText = "";
-      }
+      String rewrittenLinkText = jsDocReference.rewriteLinkText(linkText);
 
-      boolean renderAsCode = jsDocReferenceFromText.url == null
-              || jsDocReference.memberName.equals(linkText)
-              || jsDocReference.isMethod() && (jsDocReference.memberName + "()").equals(linkText);
+      boolean renderAsCode = rewrittenLinkText != null || linkText.isEmpty();
+      if (rewrittenLinkText != null) {
+        linkText = rewrittenLinkText;
+      }
 
       String rewrittenLink = jsDocReference.toAsString();
       if (rewrittenLink != null) {
         boolean addThisClass = "".equals(jsDocReference.actionScriptClassName) && !"".equals(thisClassName);
-        String see = ("@see" + whitespace
-                + ((addThisClass ? thisClassName : "") + rewrittenLink)
-                + (renderAsCode ? "" : " " + linkText)
-        ).replaceAll("\n", " "); // no newline after @see
-        sees.add(see);
+        String key = (addThisClass ? thisClassName : "") + rewrittenLink;
+        String value = linkText.replaceAll("\n", " "); // no newline after @see
+        // if just the "#" is missing, suppress custom @see text:
+        if (key.equals(value) || key.equals("#" + value)) {
+          value = "";
+        }
+        LinkedHashSet<String> see = sees.get(key);
+        if (see == null) {
+          sees.put(key, new LinkedHashSet<>(value.isEmpty() ? Collections.emptyList() : Collections.singleton(value)));
+        } else if (!value.isEmpty()) {
+          see.add(value);
+        }
       }
 
       String replacement = !linkText.isEmpty() ? linkText : rewrittenLink != null ? rewrittenLink : link;
@@ -1208,8 +1215,16 @@ public class ExtAsApiGenerator {
     if (lastIndex >= 0 && newDoc.charAt(lastIndex) == '\n') {
       newDoc.setLength(lastIndex);
     }
-    for (String see : sees) {
-      newDoc.append('\n').append(see);
+    for (Map.Entry<String, LinkedHashSet<String>> entry : sees.entrySet()) {
+      String jsDocRef = entry.getKey();
+      newDoc.append("\n@see ").append(jsDocRef);
+      LinkedHashSet<String> linkTexts = entry.getValue();
+      if (!linkTexts.isEmpty()) {
+        for (String linkText : linkTexts) {
+          newDoc.append(" →").append(linkText);
+        }
+        newDoc.append(" →").append(jsDocRef);
+      }
     }
     doc = newDoc.toString();
     return doc;
@@ -1566,7 +1581,7 @@ public class ExtAsApiGenerator {
   }
 
   private static class JSDocReference {
-    private static final Pattern JSDOC_REF_PATTERN = Pattern.compile("^([A-Za-z0-9_$.]*)(?:#(?:(method|static-method|cfg|property|static-property|event|var|sass-mixin)[!-])?([a-zA-Z0-9_$-]+)(\\(\\))?)?$");
+    private static final Pattern JSDOC_REF_PATTERN = Pattern.compile("^([A-Z][A-Za-z0-9_$.]*)?(?:#(?:(method|static-method|cfg|property|static-property|event|var|sass-mixin)[!-])?([a-zA-Z0-9_$-]+)(\\(\\))?)?$");
 
     String url = null;
     String actionScriptClassName = "";
@@ -1579,13 +1594,84 @@ public class ExtAsApiGenerator {
       Matcher jsDocRefMatcher = JSDOC_REF_PATTERN.matcher(jsDocReference);
       if (jsDocRefMatcher.matches()) {
         jsClassName = nullToEmptyString(jsDocRefMatcher.group(1));
-        actionScriptClassName = getAsDocClassName(jsClassName);
+        actionScriptClassName = getAsDocClassName(jsClassName, false);
         memberType = nullToEmptyString(jsDocRefMatcher.group(2));
         memberName = nullToEmptyString(jsDocRefMatcher.group(3));
         hasParentheses = jsDocRefMatcher.group(4) != null;
       } else {
         url = jsDocReference;
       }
+    }
+
+    String rewriteLinkText(String linkText) {
+      StringBuilder regExpBuilder = new StringBuilder();
+      String packageName = CompilerUtils.packageName(jsClassName);
+      String className = CompilerUtils.className(jsClassName);
+      String asDocQualifiedClassName = getAsDocClassName(jsClassName, true);
+      if (asDocQualifiedClassName == null) {
+        asDocQualifiedClassName = jsClassName;
+      }
+      String asDocClassName = CompilerUtils.className(asDocQualifiedClassName);
+
+      if (!className.isEmpty()) {
+        regExpBuilder.append("(");
+        if (!packageName.isEmpty()) {
+          regExpBuilder.append("(").append(packageName.replace(".", "\\.")).append("\\.)?");
+        }
+        regExpBuilder.append("(");
+        regExpBuilder.append(className);
+        if (!asDocClassName.equals(className)) {
+          regExpBuilder.append("|").append(asDocClassName); // for some weird cases, also allow AS class name...
+        }
+        regExpBuilder.append(")");
+        if (!memberName.isEmpty()) {
+          regExpBuilder.append("([#.])");
+        }
+        regExpBuilder.append(")?");
+      } else {
+        regExpBuilder.append("(#)?");
+      }
+      if (!memberName.isEmpty()) {
+        regExpBuilder.append(memberName);
+        if (isMethod()) {
+          regExpBuilder.append("(\\(\\))?");
+        }
+      }
+      Matcher matcher = Pattern.compile(regExpBuilder.toString()).matcher(linkText);
+
+      if (!matcher.matches()) {
+        return null; // signal to leave as-is
+      }
+
+      int group = 1;
+      StringBuilder result = new StringBuilder();
+      if (!className.isEmpty()) {
+        String matchedQualifiedName = matcher.group(group++);
+        if (!packageName.isEmpty()) {
+          if (matcher.group(group++) != null) {
+            result.append(CompilerUtils.packageName(actionScriptClassName)).append(".");
+          }
+        }
+        String matchedClassName = matcher.group(group++);// consume matched class name
+        if (matchedQualifiedName != null) {
+          assert matchedClassName != null;
+          result.append(asDocClassName); // use singletons, not their types!
+        }
+      }
+      if (!memberName.isEmpty()) {
+        String memberSeparator = matcher.group(group++); // separator: '#' or '.' (or null)
+        if (memberSeparator != null) {
+          result.append(memberSeparator);
+        }
+        result.append(convertName(this.memberName)); // member name is not optional!
+        if (isMethod()) {
+          String optParentheses = matcher.group(group); // optional '()'
+          if (optParentheses != null) {
+            result.append(optParentheses);
+          }
+        }
+      }
+      return result.toString();
     }
 
     private String nullToEmptyString(String group) {
@@ -1640,7 +1726,7 @@ public class ExtAsApiGenerator {
       return builder.toString();
     }
 
-    private static String getAsDocClassName(String jsClassName) {
+    private static String getAsDocClassName(String jsClassName, boolean keepSingletons) {
       if (jsClassName.isEmpty()) {
         return "";
       }
@@ -1648,7 +1734,7 @@ public class ExtAsApiGenerator {
       if (extClass != null) {
         String actionScriptName = getActionScriptName(extClass);
         if (actionScriptName != null) {
-          if (extClass.singleton) {
+          if (!keepSingletons && extClass.singleton) {
             return CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
                     "S" + CompilerUtils.className(actionScriptName));
           } else {
