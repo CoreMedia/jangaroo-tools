@@ -1138,7 +1138,6 @@ public class ExtAsApiGenerator {
         linkMatcher.appendReplacement(newDoc, linkMatcher.group());
         continue;
       }
-      String whitespace = linkMatcher.group(3);
       String link = linkMatcher.group(4);
       String linkText = linkMatcher.group(5);
       if (linkText == null) {
@@ -1171,19 +1170,8 @@ public class ExtAsApiGenerator {
         }
       }
 
-      // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
-      String rewrittenLinkText = jsDocReference.rewriteLinkText(linkText);
-
-      boolean renderAsCode = rewrittenLinkText != null || linkText.isEmpty();
-      if (rewrittenLinkText != null) {
-        linkText = rewrittenLinkText;
-      }
-
       String rewrittenLink = jsDocReference.toAsString(true);
-      boolean useLinkAsLinkText = false;
       if (rewrittenLink != null) {
-        // if just the "#" is missing, suppress custom @see text:
-        useLinkAsLinkText = linkText.isEmpty() || rewrittenLink.equals(linkText) || rewrittenLink.equals("#" + linkText) || rewrittenLink.equals(linkText + "()") || rewrittenLink.equals("#" + linkText + "()");
         boolean addThisClass = "".equals(jsDocReference.jsClassName) && !"".equals(thisClassName);
         String realLink = jsDocReference.toAsString(false);
         String see = (addThisClass ? thisClassName : "") + realLink;
@@ -1193,17 +1181,14 @@ public class ExtAsApiGenerator {
         sees.add(see);
       }
 
-      String replacement = renderAsCode ? rewrittenLink : !linkText.isEmpty() ? linkText : link;
-      if (!insideCode && !insideEmphasised) {
-        // either render as code or as emphasized text:
-        replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "i", replacement);
-      }
-      if (renderAsCode || useLinkAsLinkText) {
-        // prepend a unicode "right arrow" to indicate this is actually a hyperlink:
-        replacement = "→" + replacement;
-      } else {
-        // add a reference to the actual @see text:
-        replacement = replacement + " (→<code>" + rewrittenLink + "</code>)";
+      // wrap in <code> and prepend a unicode "right arrow" to indicate this is actually a hyperlink:
+      String replacement = "→" + (insideCode ? rewrittenLink : html("code", rewrittenLink));
+
+      // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
+      boolean renderLinkText = !linkText.isEmpty() && (insideEmphasised || !jsDocReference.linkTextRephrasesLink(linkText));
+      if (renderLinkText) {
+        // wrap link text in <i>, add formatted link in parenthesis:
+        replacement = (insideEmphasised || insideCode ? linkText : html("i", linkText)) + " (" + replacement + ")";
       }
       // prevent $ from being interpreted as RegExp group:
       replacement = replacement.replace("$", "\\$");
@@ -1219,6 +1204,10 @@ public class ExtAsApiGenerator {
     }
     doc = newDoc.toString();
     return doc;
+  }
+
+  private static String html(String tag, String text) {
+    return MessageFormat.format("<{0}>{1}</{0}>", tag, text);
   }
 
   private static String markdownToHtml(String doc) {
@@ -1593,7 +1582,7 @@ public class ExtAsApiGenerator {
       }
     }
 
-    String rewriteLinkText(String linkText) {
+    boolean linkTextRephrasesLink(String linkText) {
       StringBuilder regExpBuilder = new StringBuilder();
       String packageName = CompilerUtils.packageName(jsClassName);
       String className = CompilerUtils.className(jsClassName);
@@ -1629,39 +1618,7 @@ public class ExtAsApiGenerator {
       }
       Matcher matcher = Pattern.compile(regExpBuilder.toString()).matcher(linkText);
 
-      if (!matcher.matches()) {
-        return null; // signal to leave as-is
-      }
-
-      int group = 1;
-      StringBuilder result = new StringBuilder();
-      if (!className.isEmpty()) {
-        String matchedQualifiedName = matcher.group(group++);
-        if (!packageName.isEmpty()) {
-          if (matcher.group(group++) != null) {
-            result.append(CompilerUtils.packageName(asDocQualifiedClassName)).append(".");
-          }
-        }
-        String matchedClassName = matcher.group(group++);// consume matched class name
-        if (matchedQualifiedName != null) {
-          assert matchedClassName != null;
-          result.append(asDocClassName); // use singletons, not their types!
-        }
-      }
-      if (!memberName.isEmpty()) {
-        String memberSeparator = matcher.group(group++); // separator: '#' or '.' (or null)
-        if (memberSeparator != null) {
-          result.append(memberSeparator);
-        }
-        result.append(convertName(this.memberName)); // member name is not optional!
-        if (isMethod()) {
-          String optParentheses = matcher.group(group); // optional '()'
-          if (optParentheses != null) {
-            result.append(optParentheses);
-          }
-        }
-      }
-      return result.toString();
+      return matcher.matches();
     }
 
     private String nullToEmptyString(String group) {
