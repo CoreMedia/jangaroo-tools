@@ -1171,22 +1171,24 @@ public class ExtAsApiGenerator {
       }
 
       String rewrittenLink = jsDocReference.toAsString(true);
-      if (rewrittenLink != null) {
-        boolean addThisClass = "".equals(jsDocReference.jsClassName) && !"".equals(thisClassName);
-        String realLink = jsDocReference.toAsString(false);
-        String see = (addThisClass ? thisClassName : "") + realLink;
-        if (!realLink.equals(rewrittenLink)) {
-          see += " " + rewrittenLink;
-        }
-        sees.add(see);
+      boolean addThisClass = "".equals(jsDocReference.jsClassName) && !"".equals(thisClassName);
+      String realLink = jsDocReference.toAsString(false);
+      String see = (addThisClass ? thisClassName : "") + realLink;
+      if (!realLink.equals(rewrittenLink)) {
+        see += " " + rewrittenLink;
       }
+      sees.add(see);
+
+      // in rendered link, replace '#' by '.' and suppress leading '#'/'.':
+      String replacement = prettyPrintLinks(rewrittenLink);
 
       // wrap in <code> and prepend a unicode "right arrow" to indicate this is actually a hyperlink:
-      String replacement = "→" + (insideCode ? rewrittenLink : html("code", rewrittenLink));
+      replacement = "→" + (insideCode ? replacement : html("code", replacement));
 
       // many Ext @link-s contain obsolete link text that matches the link anyway. Get rid of such:
       boolean renderLinkText = !linkText.isEmpty() && (insideEmphasised || !jsDocReference.linkTextRephrasesLink(linkText));
       if (renderLinkText) {
+        linkText = prettyPrintLinks(linkText);
         // wrap link text in <i>, add formatted link in parenthesis:
         replacement = (insideEmphasised || insideCode ? linkText : html("i", linkText)) + " (" + replacement + ")";
       }
@@ -1204,6 +1206,10 @@ public class ExtAsApiGenerator {
     }
     doc = newDoc.toString();
     return doc;
+  }
+
+  private static String prettyPrintLinks(String link) {
+    return link.replaceAll("(\\s|^)#", "$1").replace('#', '.');
   }
 
   private static String html(String tag, String text) {
