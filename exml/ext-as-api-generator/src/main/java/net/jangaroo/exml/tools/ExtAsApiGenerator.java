@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -1121,7 +1120,7 @@ public class ExtAsApiGenerator {
   private static String processLinkTags(String doc, String thisClassName, String thisJsClassName) {
     Matcher linkMatcher = INLINE_TAG_OR_LINK_PATTERN.matcher(doc);
     StringBuffer newDoc = new StringBuffer();
-    LinkedHashMap<String, LinkedHashSet<String>> sees = new LinkedHashMap<>();
+    LinkedHashSet<String> sees = new LinkedHashSet<>();
     boolean insideCode = false;
     boolean insideEmphasised = false;
     while (linkMatcher.find()) {
@@ -1153,7 +1152,7 @@ public class ExtAsApiGenerator {
         if (!jsDocReference.url.startsWith("http")) {
           System.out.println("*** suspicious reference in {@link}: '" + jsDocReference.url + "'");
         }
-      } else if (jsDocReference.actionScriptClassName == null) {
+      } else if (jsDocReference.getAsDocClassName("") == null) {
         // System.err.println("*** JSDoc class reference could not be resolved: " + jsClassName);
         invalidJsDocReferences.add(jsDocReference.jsClassName);
       }
@@ -1180,34 +1179,34 @@ public class ExtAsApiGenerator {
         linkText = rewrittenLinkText;
       }
 
-      String rewrittenLink = jsDocReference.toAsString();
+      String rewrittenLink = jsDocReference.toAsString(true);
+      boolean useLinkAsLinkText = false;
       if (rewrittenLink != null) {
-        boolean addThisClass = "".equals(jsDocReference.actionScriptClassName) && !"".equals(thisClassName);
-        String key = (addThisClass ? thisClassName : "") + rewrittenLink;
-        String value = linkText.replaceAll("\n", " "); // no newline after @see
         // if just the "#" is missing, suppress custom @see text:
-        if (key.equals(value) || key.equals("#" + value)) {
-          value = "";
+        useLinkAsLinkText = linkText.isEmpty() || rewrittenLink.equals(linkText) || rewrittenLink.equals("#" + linkText) || rewrittenLink.equals(linkText + "()") || rewrittenLink.equals("#" + linkText + "()");
+        boolean addThisClass = "".equals(jsDocReference.jsClassName) && !"".equals(thisClassName);
+        String realLink = jsDocReference.toAsString(false);
+        String see = (addThisClass ? thisClassName : "") + realLink;
+        if (!realLink.equals(rewrittenLink)) {
+          see += " " + rewrittenLink;
         }
-        LinkedHashSet<String> see = sees.get(key);
-        if (see == null) {
-          sees.put(key, new LinkedHashSet<>(value.isEmpty() ? Collections.emptyList() : Collections.singleton(value)));
-        } else if (!value.isEmpty()) {
-          see.add(value);
-        }
+        sees.add(see);
       }
 
-      String replacement = !linkText.isEmpty() ? linkText : rewrittenLink != null ? rewrittenLink : link;
-      // suppress hash when leading or after a dot:
-      replacement = replacement.replaceAll("(^|[.])#", "$1");
-      // prevent $ from being interpreted as RegExp group:
-      replacement = replacement.replace("$", "\\$");
+      String replacement = renderAsCode ? rewrittenLink : !linkText.isEmpty() ? linkText : link;
       if (!insideCode && !insideEmphasised) {
         // either render as code or as emphasized text:
         replacement = MessageFormat.format("<{0}>{1}</{0}>", renderAsCode ? "code" : "i", replacement);
       }
-      // prepend a unicode "right arrow" to indicate this is actually a hyperlink:
-      replacement = "→" + replacement;
+      if (renderAsCode || useLinkAsLinkText) {
+        // prepend a unicode "right arrow" to indicate this is actually a hyperlink:
+        replacement = "→" + replacement;
+      } else {
+        // add a reference to the actual @see text:
+        replacement = replacement + " (→<code>" + rewrittenLink + "</code>)";
+      }
+      // prevent $ from being interpreted as RegExp group:
+      replacement = replacement.replace("$", "\\$");
       linkMatcher.appendReplacement(newDoc, replacement);
     }
     linkMatcher.appendTail(newDoc);
@@ -1215,16 +1214,8 @@ public class ExtAsApiGenerator {
     if (lastIndex >= 0 && newDoc.charAt(lastIndex) == '\n') {
       newDoc.setLength(lastIndex);
     }
-    for (Map.Entry<String, LinkedHashSet<String>> entry : sees.entrySet()) {
-      String jsDocRef = entry.getKey();
-      newDoc.append("\n@see ").append(jsDocRef);
-      LinkedHashSet<String> linkTexts = entry.getValue();
-      if (!linkTexts.isEmpty()) {
-        for (String linkText : linkTexts) {
-          newDoc.append(" →").append(linkText);
-        }
-        newDoc.append(" →").append(jsDocRef);
-      }
+    for (String see : sees) {
+      newDoc.append("\n@see ").append(see);
     }
     doc = newDoc.toString();
     return doc;
@@ -1594,7 +1585,6 @@ public class ExtAsApiGenerator {
       Matcher jsDocRefMatcher = JSDOC_REF_PATTERN.matcher(jsDocReference);
       if (jsDocRefMatcher.matches()) {
         jsClassName = nullToEmptyString(jsDocRefMatcher.group(1));
-        actionScriptClassName = getAsDocClassName(jsClassName, false);
         memberType = nullToEmptyString(jsDocRefMatcher.group(2));
         memberName = nullToEmptyString(jsDocRefMatcher.group(3));
         hasParentheses = jsDocRefMatcher.group(4) != null;
@@ -1607,7 +1597,7 @@ public class ExtAsApiGenerator {
       StringBuilder regExpBuilder = new StringBuilder();
       String packageName = CompilerUtils.packageName(jsClassName);
       String className = CompilerUtils.className(jsClassName);
-      String asDocQualifiedClassName = getAsDocClassName(jsClassName, true);
+      String asDocQualifiedClassName = getAsDocClassName("");
       if (asDocQualifiedClassName == null) {
         asDocQualifiedClassName = jsClassName;
       }
@@ -1649,7 +1639,7 @@ public class ExtAsApiGenerator {
         String matchedQualifiedName = matcher.group(group++);
         if (!packageName.isEmpty()) {
           if (matcher.group(group++) != null) {
-            result.append(CompilerUtils.packageName(actionScriptClassName)).append(".");
+            result.append(CompilerUtils.packageName(asDocQualifiedClassName)).append(".");
           }
         }
         String matchedClassName = matcher.group(group++);// consume matched class name
@@ -1700,17 +1690,20 @@ public class ExtAsApiGenerator {
       }
     }
 
-    String toAsString() {
+    String toAsString(boolean asLinkText) {
       if (url != null) {
         return url;
       }
+      ExtClass extClass = extJsApi.getExtClass(jsClassName);
+      boolean singleton = extClass != null && extClass.singleton;
+      String asDocClassName = getAsDocClassName(asLinkText ? "" : memberName.isEmpty() ? "#" : "S");
       if (actionScriptClassName == null) {
         return null;
       }
       StringBuilder builder = new StringBuilder();
-      builder.append(actionScriptClassName);
+      builder.append(asDocClassName);
       if (!memberName.isEmpty()) {
-        builder.append("#");
+        builder.append(asLinkText && singleton ? "." : "#");
         if (isEvent()) {
           String flexEventName = "on" + toCamelCase(memberName);
           builder.append("event:").append(flexEventName);
@@ -1726,7 +1719,7 @@ public class ExtAsApiGenerator {
       return builder.toString();
     }
 
-    private static String getAsDocClassName(String jsClassName, boolean keepSingletons) {
+    private String getAsDocClassName(String singletonPrefix) {
       if (jsClassName.isEmpty()) {
         return "";
       }
@@ -1734,9 +1727,9 @@ public class ExtAsApiGenerator {
       if (extClass != null) {
         String actionScriptName = getActionScriptName(extClass);
         if (actionScriptName != null) {
-          if (!keepSingletons && extClass.singleton) {
+          if (extClass.singleton) {
             return CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
-                    "S" + CompilerUtils.className(actionScriptName));
+                    singletonPrefix + CompilerUtils.className(actionScriptName));
           } else {
             return actionScriptName;
           }
