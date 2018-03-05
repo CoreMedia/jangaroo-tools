@@ -836,7 +836,7 @@ public class ExtAsApiGenerator {
           }
           String paramName = param.name == null ? "param" + (methodItems.indexOf(param) + 1) : convertName(param.name);
           ParamModel paramModel = new ParamModel(paramName, convertType(param.type));
-          paramModel.setAsdoc(toAsDoc(param, param.name, thisClassName, extClass.name));
+          paramModel.setAsdoc(toAsDoc(param, false, thisClassName, extClass.name));
           setDefaultValue(paramModel, param);
           paramModel.setRest(param == params.get(params.size() - 1) && param.type.contains("..."));
           methodModel.addParam(paramModel);
@@ -908,10 +908,10 @@ public class ExtAsApiGenerator {
   }
 
   private static String toAsDoc(Tag tag, String thisClassName, String thisJsClassName) {
-    return toAsDoc(tag, null, thisClassName, thisJsClassName);
+    return toAsDoc(tag, true, thisClassName, thisJsClassName);
   }
 
-  private static String toAsDoc(Tag tag, String paramPrefix, String thisClassName, String thisJsClassName) {
+  private static String toAsDoc(Tag tag, boolean isTopLevelProperty, String thisClassName, String thisJsClassName) {
     StringBuilder asDoc = new StringBuilder();
     if (tag instanceof Method && ((Method) tag).template) {
       asDoc.append("\n<p class=\"template-method\"><i>This is a template method, a hook into the functionality of this class. Feel free to override it in child classes.</i></p>");
@@ -933,24 +933,7 @@ public class ExtAsApiGenerator {
     if (tag instanceof Member && ((Member)tag).since != null) {
       asDoc.append("\n@since ").append(((Member)tag).since);
     }
-    if (paramPrefix != null && !paramPrefix.isEmpty() && tag instanceof Param) {
-      List<Var> subParams = ((Param) tag).items;
-      for (Var property : subParams) {
-        asDoc.append("\n@param ");
-        String propertyType = convertType(property.type);
-        if (propertyType != null && !"*".equals(propertyType)) {
-          asDoc.append("{").append(propertyType).append("} ");
-        }
-        String qualifiedPropertyName = paramPrefix + "." + property.name;
-        if (property instanceof Property && !((Property) property).required) {
-          asDoc.append("[").append(qualifiedPropertyName).append("]");
-        } else {
-          asDoc.append(qualifiedPropertyName);
-        }
-        asDoc.append(" ");
-        asDoc.append(toAsDoc(property, qualifiedPropertyName, thisClassName, thisJsClassName));
-      }
-    } else if (tag instanceof Var && !(tag instanceof Method)) { // methods handle their parameters themselves
+    if (tag instanceof Var && !(tag instanceof Method)) { // methods handle their parameters themselves
       List<Var> subParams = ((Var)tag).items;
       if (!subParams.isEmpty()) {
         asDoc.append("\n<ul>");
@@ -964,7 +947,7 @@ public class ExtAsApiGenerator {
           if (property instanceof Property && !((Property) property).required) {
             asDoc.append(" (optional)");
           }
-          String propertyAsDoc = toAsDoc(property, "", thisClassName, thisJsClassName);
+          String propertyAsDoc = toAsDoc(property, false, thisClassName, thisJsClassName);
           if (!propertyAsDoc.trim().isEmpty()) {
             asDoc.append("\n").append(propertyAsDoc).append("\n");
           }
@@ -974,7 +957,7 @@ public class ExtAsApiGenerator {
       }
     }
 
-    if (tag instanceof ExtClass || (tag instanceof Member && paramPrefix == null)) {
+    if (tag instanceof ExtClass || (tag instanceof Member && isTopLevelProperty)) {
       String jsReference = thisJsClassName + ".html";
       if (tag instanceof Member) {
         jsReference += String.format("#%s%s-%s", ((Member) tag).static_ ? "static-" : "", tag.$type, tag.name);
@@ -990,7 +973,7 @@ public class ExtAsApiGenerator {
     }
     String mainAsDoc = toAsDoc(tag.text, thisClassName, thisJsClassName);
 
-    boolean isSubTag = paramPrefix != null || tag instanceof Param || tag instanceof Return;
+    boolean isSubTag = !isTopLevelProperty || tag instanceof Param || tag instanceof Return;
     // fix missing full-stops for the ASDoc summary table, but not if this is a sub-tag
     if (!isSubTag) {
       mainAsDoc = fixMissingFullStop(mainAsDoc);
