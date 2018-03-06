@@ -188,9 +188,21 @@ public class ActionScriptCodeGeneratingModelVisitor implements ModelVisitor {
     }
     ReturnModel returnModel = methodModel.getReturnModel();
     if (!PARAM_SUPPRESSING_ASDOC_TAGS.contains(asdoc.toString())) {
+      // Collect parameters with empty documentation text in a separate builder
+      // to only append these if one with documentation text follows.
+      // ASDoc tool mixes up parameter-to-text mapping if you leave out intermediate parameters.
+      StringBuilder emptyParamsASDoc = new StringBuilder();
       for (ParamModel paramModel : methodModel.getParams()) {
-        if (!isEmpty(paramModel.getAsdoc())) {
-          asdoc.append("\n@param ").append(paramModel.getName()).append(" ").append(paramModel.getAsdoc());
+        boolean textEmpty = isEmpty(paramModel.getAsdoc());
+        String atParamName = "\n@param " + paramModel.getName();
+        if (textEmpty) {
+          emptyParamsASDoc.append(atParamName);
+        } else {
+          if (emptyParamsASDoc.length() > 0) {
+            asdoc.append(emptyParamsASDoc.toString());
+            emptyParamsASDoc.setLength(0);
+          }
+          asdoc.append(atParamName).append(" ").append(paramModel.getAsdoc());
         }
       }
       if (!"void".equals(returnModel.getType()) && !isEmpty(returnModel.getAsdoc())) {
