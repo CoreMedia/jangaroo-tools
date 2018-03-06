@@ -974,6 +974,7 @@ public class ExtAsApiGenerator {
   private static String getDefaultValue(Var var) {
     String value = var.value;
     if (value != null) {
+      value = value.replaceAll("(^|\\s)`([^`]+)`", "$1$2");
       String defaultValue = AS3Type.getDefaultValue(convertType(var.type));
       // Leave out @default only if it equals the type's default null or undefined.
       // We could leave out all default values that equal the type's default, but that would exclude many 
