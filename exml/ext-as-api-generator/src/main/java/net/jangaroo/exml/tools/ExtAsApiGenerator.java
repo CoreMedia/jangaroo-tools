@@ -907,18 +907,10 @@ public class ExtAsApiGenerator {
     if (tag instanceof Method && ((Method) tag).template) {
       asDoc.append("\n<p class=\"template-method\"><i>This is a template method, a hook into the functionality of this class. Feel free to override it in child classes.</i></p>");
     }
-    if (tag instanceof Var) {
-      Var var = (Var) tag;
-      String value = var.value;
+    if (tag instanceof Param || isTopLevelProperty && tag instanceof Var) {
+      String value = getDefaultValue((Var) tag);
       if (value != null) {
-        String defaultValue = AS3Type.getDefaultValue(convertType(var.type));
-        // Leave out @default only if it equals the type's default null or undefined.
-        // We could leave out all default values that equal the type's default, but that would exclude many 
-        // booleans with @default false, which is redundant but still adds the value that the author definitely
-        // did not just forget to document the default.
-        if (!(("null".equals(defaultValue) || "undefined".equals(defaultValue)) && defaultValue.equals(value))) {
-          asDoc.append("\n@default ").append(value);
-        }
+        asDoc.append("\n@default ").append(value);
       }
     }
     if (tag instanceof Member && ((Member)tag).since != null) {
@@ -935,7 +927,10 @@ public class ExtAsApiGenerator {
           if (propertyType != null && !"*".equals(propertyType)) {
             asDoc.append(" : ").append(propertyType);
           }
-          if (property instanceof Property && !((Property) property).required) {
+          String defaultValue = getDefaultValue(property);
+          if (defaultValue != null) {
+            asDoc.append(" (default ").append(defaultValue).append(")");
+          } else if (property instanceof Property && !((Property) property).required) {
             asDoc.append(" (optional)");
           }
           String propertyAsDoc = toAsDoc(property, false, thisClassName, thisJsClassName);
@@ -974,6 +969,21 @@ public class ExtAsApiGenerator {
       mainAsDoc = REQUIRED_CONFIG_TEXT + mainAsDoc;
     }
     return mainAsDoc + result;
+  }
+
+  private static String getDefaultValue(Var var) {
+    String value = var.value;
+    if (value != null) {
+      String defaultValue = AS3Type.getDefaultValue(convertType(var.type));
+      // Leave out @default only if it equals the type's default null or undefined.
+      // We could leave out all default values that equal the type's default, but that would exclude many 
+      // booleans with @default false, which is redundant but still adds the value that the author definitely
+      // did not just forget to document the default.
+      if (("null".equals(defaultValue) || "undefined".equals(defaultValue)) && defaultValue.equals(value)) {
+        value = null;
+      }
+    }
+    return value;
   }
 
   private static String getSenchaDocsBaseUrl() {
