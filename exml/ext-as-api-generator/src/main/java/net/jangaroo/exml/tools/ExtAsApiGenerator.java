@@ -922,20 +922,21 @@ public class ExtAsApiGenerator {
         asDoc.append("\n<ul>");
         for (Var property : subParams) {
           asDoc.append("\n<li>");
-          asDoc.append("<code>").append(property.name).append("</code>");
+          asDoc.append("<code>").append(property.name);
           String propertyType = convertType(property.type);
           if (propertyType != null && !"*".equals(propertyType)) {
-            asDoc.append(" : ").append(propertyType);
+            asDoc.append(":").append(propertyType);
           }
+          asDoc.append("</code>");
           String defaultValue = getDefaultValue(property);
           if (defaultValue != null) {
-            asDoc.append(" (default ").append(defaultValue).append(")");
+            asDoc.append(" (default = <code>").append(defaultValue).append("</code>)");
           } else if (property instanceof Property && !((Property) property).required) {
             asDoc.append(" (optional)");
           }
           String propertyAsDoc = toAsDoc(property, false, thisClassName, thisJsClassName);
           if (!propertyAsDoc.trim().isEmpty()) {
-            asDoc.append("\n").append(propertyAsDoc).append("\n");
+            asDoc.append(" —\n").append(propertyAsDoc).append("\n");
           }
           asDoc.append("</li>");
         }
