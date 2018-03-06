@@ -67,6 +67,7 @@ public class ExtAsApiGenerator {
   private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
   private static final Pattern TYPED_ARRAY_PATTERN = Pattern.compile("([a-zA-Z0-9._$<>]+)\\[]");
   private static final String REQUIRED_CONFIG_TEXT = "<b>This is a required setting</b>. ";
+  private static final String PRIVATE_CLASS_TEXT = "<b>NOTE: This is a private utility class for internal use by the framework. Don't rely on its existence.</b>\n";
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -382,9 +383,6 @@ public class ExtAsApiGenerator {
     if (extAsInterfaceUnit != null) {
       extAsInterfaceUnit.getClassModel().addAnnotation(new AnnotationModel(Jooc.MIXIN_ANNOTATION_NAME,
               new AnnotationPropertyModel(null, CompilerUtils.quote(extClassName))));
-    }
-    if ("private".equals(extClass.access)) {
-      extAsClass.addAnnotation(new AnnotationModel(Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME));
     }
     extAsClass.setSuperclass(convertType(extClass.extends_));
     if (extAsInterfaceUnit != null) {
@@ -968,6 +966,8 @@ public class ExtAsApiGenerator {
     if (isTopLevelProperty && tag instanceof Property && ((Property) tag).required
             && !mainAsDoc.startsWith(REQUIRED_CONFIG_TEXT)) {
       mainAsDoc = REQUIRED_CONFIG_TEXT + mainAsDoc;
+    } else if (tag instanceof ExtClass && "private".equals(tag.access)) {
+      mainAsDoc = PRIVATE_CLASS_TEXT + mainAsDoc;
     }
     return mainAsDoc + result;
   }
