@@ -67,7 +67,7 @@ public class ExtAsApiGenerator {
   private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
   private static final Pattern TYPED_ARRAY_PATTERN = Pattern.compile("([a-zA-Z0-9._$<>]+)\\[]");
   private static final String REQUIRED_CONFIG_TEXT = "<b>This is a required setting</b>. ";
-  private static final String PRIVATE_CLASS_TEXT = "<b>NOTE: This is a private utility class for internal use by the framework. Don't rely on its existence.</b>\n";
+  private static final String PRIVATE_CLASS_TEXT = "<b>NOTE: This is a private utility class for internal use by the framework. Don't rely on its existence.</b>\n\n";
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -956,18 +956,19 @@ public class ExtAsApiGenerator {
       // suppress multiple new lines in nested ASDoc, or IDEA will treat everything following as top-level ASDoc:
       result = result.replaceAll("\n+", "\n");
     }
-    String mainAsDoc = toAsDoc(tag.text, thisClassName, thisJsClassName);
-
-    boolean isSubTag = !isTopLevelProperty || tag instanceof Param || tag instanceof Return;
-    // fix missing full-stops for the ASDoc summary table, but not if this is a sub-tag
-    if (!isSubTag) {
-      mainAsDoc = fixMissingFullStop(mainAsDoc);
-    }
+    String mainAsDoc = tag.text;
     if (isTopLevelProperty && tag instanceof Property && ((Property) tag).required
             && !mainAsDoc.startsWith(REQUIRED_CONFIG_TEXT)) {
       mainAsDoc = REQUIRED_CONFIG_TEXT + mainAsDoc;
     } else if (tag instanceof ExtClass && "private".equals(tag.access)) {
       mainAsDoc = PRIVATE_CLASS_TEXT + mainAsDoc;
+    }
+    mainAsDoc = toAsDoc(mainAsDoc, thisClassName, thisJsClassName);
+
+    boolean isSubTag = !isTopLevelProperty || tag instanceof Param || tag instanceof Return;
+    // fix missing full-stops for the ASDoc summary table, but not if this is a sub-tag
+    if (!isSubTag) {
+      mainAsDoc = fixMissingFullStop(mainAsDoc);
     }
     return mainAsDoc + result;
   }
