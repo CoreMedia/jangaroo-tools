@@ -54,17 +54,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.jangaroo.exml.tools.ExtJsApi.Event;
-import static net.jangaroo.exml.tools.ExtJsApi.ExtClass;
-import static net.jangaroo.exml.tools.ExtJsApi.Member;
-import static net.jangaroo.exml.tools.ExtJsApi.Method;
-import static net.jangaroo.exml.tools.ExtJsApi.Param;
-import static net.jangaroo.exml.tools.ExtJsApi.Property;
-import static net.jangaroo.exml.tools.ExtJsApi.Return;
-import static net.jangaroo.exml.tools.ExtJsApi.Tag;
-import static net.jangaroo.exml.tools.ExtJsApi.Var;
-import static net.jangaroo.exml.tools.ExtJsApi.isConst;
-import static net.jangaroo.exml.tools.ExtJsApi.isSingleton;
+import static net.jangaroo.exml.tools.ExtJsApi.*;
 
 /**
  * Generate ActionScript 3 APIs from a jsduck JSON export of the Ext JS 4.x API.
@@ -76,6 +66,7 @@ public class ExtAsApiGenerator {
   private static final Pattern LINK_PATTERN = Pattern.compile(LINK_PATTERN_STR);
   private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
   private static final Pattern TYPED_ARRAY_PATTERN = Pattern.compile("([a-zA-Z0-9._$<>]+)\\[]");
+  private static final String REQUIRED_CONFIG_TEXT = "<b>This is a required setting</b>. ";
   private static ExtJsApi extJsApi;
   private static Set<ExtClass> extClasses;
   private static CompilationUnitModelRegistry compilationUnitModelRegistry;
@@ -977,6 +968,10 @@ public class ExtAsApiGenerator {
     // fix missing full-stops for the ASDoc summary table, but not if this is a sub-tag
     if (!isSubTag) {
       mainAsDoc = fixMissingFullStop(mainAsDoc);
+    }
+    if (isTopLevelProperty && tag instanceof Property && ((Property) tag).required
+            && !mainAsDoc.startsWith(REQUIRED_CONFIG_TEXT)) {
+      mainAsDoc = REQUIRED_CONFIG_TEXT + mainAsDoc;
     }
     return mainAsDoc + result;
   }
