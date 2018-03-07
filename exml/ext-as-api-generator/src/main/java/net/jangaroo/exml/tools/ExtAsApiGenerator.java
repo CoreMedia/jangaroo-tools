@@ -62,7 +62,7 @@ import static net.jangaroo.exml.tools.ExtJsApi.*;
 public class ExtAsApiGenerator {
 
   private static final Pattern SINGLETON_CLASS_NAME_PATTERN = Pattern.compile("^S[A-Z]");
-  private static final String LINK_PATTERN_STR = "\\{@link(\\s+)([^\\s}]*)(?: ([^}]*))?\\s*}";
+  private static final String LINK_PATTERN_STR = "\\{@link(\\s+)([^\\s}]*)(?:\\s+([^}]*))?\\s*}";
   private static final Pattern LINK_PATTERN = Pattern.compile(LINK_PATTERN_STR);
   private static final Pattern INLINE_TAG_OR_LINK_PATTERN = Pattern.compile("<(/?)(code|i)>|" + LINK_PATTERN_STR);
   private static final Pattern TYPED_ARRAY_PATTERN = Pattern.compile("([a-zA-Z0-9._$<>]+)\\[]");
