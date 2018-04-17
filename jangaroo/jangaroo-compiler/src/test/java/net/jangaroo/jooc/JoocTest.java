@@ -168,6 +168,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testMixinConfig() throws Exception {
+    assertCompilationResult("package2/TestMixinConfig");
+  }
+
+  @Test
   public void testCustomConfig() throws IOException, URISyntaxException {
     assertCompilationResult("package1/ConfigClass");
   }

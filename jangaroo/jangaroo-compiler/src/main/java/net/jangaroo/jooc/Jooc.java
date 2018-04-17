@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +67,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
   public static final String USES_ANNOTATION_NAME = "Uses";
   public static final String MIXIN_ANNOTATION_NAME = "Mixin";
+  public static final String MIXIN_HOOK_ANNOTATION_NAME = "MixinHook";
+  public static final String MIXIN_HOOK_ANNOTATION_EXTENDED_ATTRIBUTE_NAME = "extended";
+  public static final String MIXIN_HOOK_ANNOTATION_DEFAULT_ATTRIBUTE_NAME = "on";
+  public static final Set<String> MIXIN_HOOK_ANNOTATION_ATTRIBUTE_NAMES = new HashSet<>(Arrays.asList("before", "after",
+          MIXIN_HOOK_ANNOTATION_DEFAULT_ATTRIBUTE_NAME, MIXIN_HOOK_ANNOTATION_EXTENDED_ATTRIBUTE_NAME));
   public static final String BINDABLE_ANNOTATION_NAME = "Bindable";
   public static final String EXT_CONFIG_ANNOTATION_NAME = "ExtConfig";
   public static final String EMBED_ANNOTATION_NAME = "Embed";

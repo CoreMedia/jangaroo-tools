@@ -18,6 +18,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +121,19 @@ public class Annotation extends Directive {
       Object value = valueExpression instanceof LiteralExpr ? valueExpression.getSymbol().getJooValue()
               : valueExpression instanceof Ide ? ((Ide) valueExpression).getQualifiedNameStr()
               : null;
+      if (result.containsKey(key)) {
+        Object oldValue = result.get(key);
+        List<Object> valueList;
+        if (oldValue instanceof List) {
+          //noinspection unchecked
+          valueList = (List) oldValue;
+        } else {
+          valueList = new ArrayList<>();
+          valueList.add(oldValue);
+        }
+        valueList.add(value);
+        value = valueList;
+      }
       result.put(key, value);
       annotationParameters = annotationParameters.getTail();
     }

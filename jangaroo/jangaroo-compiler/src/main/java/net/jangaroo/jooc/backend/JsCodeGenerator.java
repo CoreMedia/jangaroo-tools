@@ -126,7 +126,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
           Jooc.EXT_CONFIG_ANNOTATION_NAME,
           Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
-          Jooc.MIXIN_ANNOTATION_NAME
+          Jooc.MIXIN_ANNOTATION_NAME,
+          Jooc.MIXIN_HOOK_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
@@ -486,6 +487,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private void fillClassDefinition(JsonObject classDefinition, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {
     if (!classDefinitionBuilder.metadata.isEmpty()) {
       classDefinition.set("metadata", classDefinitionBuilder.metadata);
+    }
+    if (!classDefinitionBuilder.mixinConfig.isEmpty()) {
+      classDefinition.set("mixinConfig", classDefinitionBuilder.mixinConfig);
     }
     JsonObject members = convertMembers(classDefinitionBuilder.members);
     JsonObject bindables = convertBindables(classDefinitionBuilder.members);
@@ -1682,6 +1686,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       JooSymbol functionSymbol = functionDeclaration.getIde().getSymbol();
       String functionName = convertIdentifier(functionSymbol.getText());
+      String methodName = functionName;
       List<Metadata> currentMetadata = buildMetadata(functionDeclaration);
       if (!isPrimaryDeclaration && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(functionDeclaration).storeCurrentMetadata(
@@ -1702,7 +1707,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       } else {
         out.endComment();
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
-        String methodName = functionName;
 
         boolean isAccessor = functionDeclaration.isGetterOrSetter();
         if (isAccessor) {
@@ -1778,6 +1782,44 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           members.put(overriddenMethodName, overriddenPropertyDefinition);
         }
         generateFunTailCode(functionDeclaration.getFun());
+      }
+      processMixinAnnotations(functionDeclaration, functionName, methodName);
+    }
+  }
+
+  // See https://docs.sencha.com/extjs/6.5.3/classic/Ext.Mixin.html
+  private void processMixinAnnotations(FunctionDeclaration functionDeclaration, String functionName, String jsMethodName) {
+    for (Annotation annotation : functionDeclaration.getAnnotations(Jooc.MIXIN_HOOK_ANNOTATION_NAME)) {
+      Map<String, Object> propertiesByName = annotation.getPropertiesByName();
+      for (Map.Entry<String, Object> propertyWithValues : propertiesByName.entrySet()) {
+        String mixinHookType = propertyWithValues.getKey();
+        if (mixinHookType == null) {
+          mixinHookType = Jooc.MIXIN_HOOK_ANNOTATION_DEFAULT_ATTRIBUTE_NAME;
+        }
+        if (Jooc.MIXIN_HOOK_ANNOTATION_ATTRIBUTE_NAMES.contains(mixinHookType)) {
+          JsonObject mixinConfig = getClassDefinitionBuilder(functionDeclaration).mixinConfig;
+          if (Jooc.MIXIN_HOOK_ANNOTATION_EXTENDED_ATTRIBUTE_NAME.equals(mixinHookType)) {
+            mixinConfig.set(mixinHookType, JsonObject.code(functionName));
+          } else {
+            JsonObject mixinKeyConfig = (JsonObject) mixinConfig.get(mixinHookType);
+            if (mixinKeyConfig == null) {
+              mixinKeyConfig = new JsonObject();
+              mixinConfig.set(mixinHookType, mixinKeyConfig);
+            }
+            Object value = propertyWithValues.getValue();
+            if (value instanceof String) {
+              mixinKeyConfig.set((String) value, jsMethodName);
+            } else if (value instanceof List) {
+              @SuppressWarnings("unchecked")
+              List<String> values = (List) value;
+              for (String item : values) {
+                mixinKeyConfig.set(item, jsMethodName);
+              }
+            }
+          }
+        } else {
+          throw Jooc.error(annotation, "Invalid [MixinHook] attribute '" + mixinHookType + "'.");
+        }
       }
     }
   }
@@ -2093,6 +2135,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private static class ClassDefinitionBuilder {
     JsonObject metadata = new JsonObject();
+    JsonObject mixinConfig = new JsonObject();
     Map<String,PropertyDefinition> members = new LinkedHashMap<String, PropertyDefinition>();
     Map<String,PropertyDefinition> staticMembers = new LinkedHashMap<String, PropertyDefinition>();
     StringBuilder staticCode = new StringBuilder();
