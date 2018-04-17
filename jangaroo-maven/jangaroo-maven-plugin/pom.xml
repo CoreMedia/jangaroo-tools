@@ -237,11 +237,15 @@
         </configuration>
         <executions>
           <execution>
+            <id>generated-helpmojo</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+          <execution>
             <id>mojo-descriptor</id>
-            <phase>process-classes</phase>
             <goals>
               <goal>descriptor</goal>
-              <goal>helpmojo</goal>
             </goals>
           </execution>
         </executions>
