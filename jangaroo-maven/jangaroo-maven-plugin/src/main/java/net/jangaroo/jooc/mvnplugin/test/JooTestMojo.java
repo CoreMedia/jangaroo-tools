@@ -285,7 +285,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
 
-      File baseDir = session.getRequest().getMultiModuleProjectDirectory();
+      File baseDir = SenchaUtils.baseDir(session);
 
       JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
       Range<Integer> portRange = interactiveJooUnitTests

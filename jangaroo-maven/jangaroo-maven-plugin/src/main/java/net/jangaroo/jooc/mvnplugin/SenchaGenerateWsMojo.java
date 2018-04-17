@@ -86,7 +86,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     SenchaUtils.configureDefaults(configBuilder, "default.workspace.json");
     File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
     File extDirectory = configurePackages(project, workspaceDir, remotePackagesDir, configBuilder);
-    callSenchaGenerateWorkspace(workspaceDir, extDirectory, webRootDir(), remotePackagesDir);
+    callSenchaGenerateWorkspace(workspaceDir, extDirectory, SenchaUtils.baseDir(session), remotePackagesDir);
     writeFile(configBuilder, workspaceDir.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT, getLog());
   }
 
@@ -216,10 +216,6 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   private String relativizeToRemotePackagesPlaceholder(File remotePackagesDir, File pkgDir) {
     String relativePath = FileHelper.relativize(remotePackagesDir, pkgDir);
     return SenchaUtils.absolutizeWithPlaceholder("${remotePackages}", relativePath);
-  }
-
-  private File webRootDir() {
-    return  session.getRequest().getMultiModuleProjectDirectory();
   }
 
   /**

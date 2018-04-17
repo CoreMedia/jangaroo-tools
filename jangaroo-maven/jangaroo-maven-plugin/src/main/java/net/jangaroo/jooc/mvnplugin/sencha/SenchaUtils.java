@@ -409,16 +409,16 @@ public class SenchaUtils {
     }
   }
 
-  public static File remotePackagesDir(MavenSession mavenSession) {
+  public static File baseDir(MavenSession mavenSession) {
     File baseDir = mavenSession.getRequest().getMultiModuleProjectDirectory();
     if (baseDir == null) {
       baseDir = new File(mavenSession.getRequest().getBaseDirectory());
     }
-    return remotePackagesDir(baseDir);
+    return baseDir;
   }
 
-  public static File remotePackagesDir(File baseDir) {
-    File currentBaseDir = baseDir;
+  public static File remotePackagesDir(MavenSession mavenSession) {
+    File currentBaseDir = baseDir(mavenSession);
 
     for (;;) {
       File remotePackagesDir = new File(currentBaseDir, REMOTE_PACKAGES_DIR);
