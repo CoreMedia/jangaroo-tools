@@ -178,6 +178,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testExtPrivate() throws Exception {
+    assertCompilationResult("package2/TestExtPrivate");
+  }
+
+  @Test
   public void testPublicApiApi() throws Exception {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/IncludedClass");

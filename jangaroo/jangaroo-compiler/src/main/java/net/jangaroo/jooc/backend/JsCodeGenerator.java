@@ -127,7 +127,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.EXT_CONFIG_ANNOTATION_NAME,
           Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
           Jooc.MIXIN_ANNOTATION_NAME,
-          Jooc.MIXIN_HOOK_ANNOTATION_NAME
+          Jooc.MIXIN_HOOK_ANNOTATION_NAME,
+          Jooc.EXT_PRIVATE_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
@@ -491,15 +492,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!classDefinitionBuilder.mixinConfig.isEmpty()) {
       classDefinition.set("mixinConfig", classDefinitionBuilder.mixinConfig);
     }
-    JsonObject members = convertMembers(classDefinitionBuilder.members);
+    JsonObject members = convertMembers(classDefinitionBuilder.members, false);
     JsonObject bindables = convertBindables(classDefinitionBuilder.members);
     if (!bindables.isEmpty()) {
       members.set("config", bindables);
     }
+    JsonObject extPrivateMembers = convertMembers(classDefinitionBuilder.members, true);
+    if (!extPrivateMembers.isEmpty()) {
+      members.set("privates", extPrivateMembers);
+    }
     if (!members.isEmpty()) {
       classDefinition.add(members);
     }
-    JsonObject staticMembers = convertMembers(classDefinitionBuilder.staticMembers);
+    JsonObject staticMembers = convertMembers(classDefinitionBuilder.staticMembers, false);
     if (!staticMembers.isEmpty() || classDefinitionBuilder.staticCode.length() > 0) {
       if (classDefinitionBuilder.staticCode.length() > 0) {
         String staticInitializer = String.format("function() {\n%s        }",
@@ -518,10 +523,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private JsonObject convertMembers(Map<String, PropertyDefinition> members) {
+  private JsonObject convertMembers(Map<String, PropertyDefinition> members, boolean extPrivate) {
     JsonObject membersDefinition = new JsonObject();
     for (Map.Entry<String, PropertyDefinition> entry : members.entrySet()) {
-      if (entry.getValue().isValueOnly() && !entry.getValue().bindable) {
+      if (entry.getValue().isValueOnly() && !entry.getValue().bindable && entry.getValue().extPrivate == extPrivate) {
         membersDefinition.set(entry.getKey(), JsonObject.code(entry.getValue().value));
       }
     }
@@ -1772,7 +1777,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           writeSymbolReplacement(functionSymbol, functionName);
           if (!functionDeclaration.isPrimaryDeclaration() && !functionDeclaration.isPrivateStatic()) {
             members.put(functionDeclaration.isConstructor() ? "constructor" : methodName,
-                    new PropertyDefinition(functionName));
+                    new PropertyDefinition(functionName, functionDeclaration.getAnnotation(Jooc.EXT_PRIVATE_ANNOTATION_NAME) != null));
             if (overriddenMethodName != null) {
               overriddenPropertyDefinition = new PropertyDefinition("super$." + methodName);
             }
@@ -2050,12 +2055,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String get;
     String set;
     boolean bindable;
+    boolean extPrivate;
 
     private PropertyDefinition() {
     }
 
     private PropertyDefinition(String value) {
       this.value = value;
+    }
+
+    private PropertyDefinition(String value, boolean extPrivate) {
+      this.value = value;
+      this.extPrivate = extPrivate;
     }
 
     private PropertyDefinition(String value, boolean writable, boolean bindable) {

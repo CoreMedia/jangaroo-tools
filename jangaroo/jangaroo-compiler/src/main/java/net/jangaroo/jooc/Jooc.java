@@ -74,6 +74,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           MIXIN_HOOK_ANNOTATION_DEFAULT_ATTRIBUTE_NAME, MIXIN_HOOK_ANNOTATION_EXTENDED_ATTRIBUTE_NAME));
   public static final String BINDABLE_ANNOTATION_NAME = "Bindable";
   public static final String EXT_CONFIG_ANNOTATION_NAME = "ExtConfig";
+  public static final String EXT_PRIVATE_ANNOTATION_NAME = "ExtPrivate";
   public static final String EMBED_ANNOTATION_NAME = "Embed";
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
