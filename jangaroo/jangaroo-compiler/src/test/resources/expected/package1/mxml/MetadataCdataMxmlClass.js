@@ -7,7 +7,7 @@ import package1.*;
      * /
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]
-public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){this.super$3();if(arguments.length<=0)config=null;
+public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){this.super$3$jH();if(arguments.length<=0)config=null;
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 
@@ -23,7 +23,7 @@ public class MetadataCdataMxmlClass extends ConfigClass{public*/function Metadat
         ]
       ]},
       constructor: MetadataCdataMxmlClass$,
-      super$3: function() {
+      super$3$jH: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       requires: ["package1.ConfigClass"]

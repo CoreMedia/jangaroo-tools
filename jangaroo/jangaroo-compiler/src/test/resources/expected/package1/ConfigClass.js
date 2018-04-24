@@ -5,7 +5,7 @@ import ext.mixin.Observable;
 
 public class ConfigClass extends Observable {
 
-  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {this.super$2();if(arguments.length<=0)config=null;
+  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {this.super$klfp();if(arguments.length<=0)config=null;
   }/*
 
   public var foo:String = "foo";
@@ -27,12 +27,12 @@ public class ConfigClass extends Observable {
 
   [Bindable]
   public*/ function get$title()/*:String*/ {
-    return this._title$2;
+    return this._title$klfp;
   }/*
 
   [Bindable]
   public*/ function set$title(value/*:String*/)/*:void*/ {
-    this._title$2 = value;
+    this._title$klfp = value;
   }/*
 }
 }
@@ -53,12 +53,12 @@ public class ConfigClass extends Observable {
         items: ["DefaultProperty"]
       },
       constructor: ConfigClass$,
-      super$2: function() {
+      super$klfp: function() {
         ext.mixin.Observable.prototype.constructor.apply(this, arguments);
       },
       foo: "foo",
       number: 0,
-      _title$2: "- empty -",
+      _title$klfp: "- empty -",
       getTitle: get$title,
       setTitle: set$title,
       config: {title: undefined},

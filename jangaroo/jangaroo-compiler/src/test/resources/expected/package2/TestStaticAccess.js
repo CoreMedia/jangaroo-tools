@@ -20,7 +20,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
   static public var s1:String = "s1";
   static private*/ var s2$static/*:String*/ = "s2";/*
 
-  public*/ function TestStaticAccess$() {this.super$3();
+  public*/ function TestStaticAccess$() {this.super$YVH6();
     package1.StaticAccessSuperSuperClass.f0();
   }/*
 
@@ -132,7 +132,7 @@ public class TestStaticAccess extends StaticAccessSuperClass {
     return {
       extend: "package2.StaticAccessSuperClass",
       constructor: TestStaticAccess$,
-      super$3: function() {
+      super$YVH6: function() {
         package2.StaticAccessSuperClass.prototype.constructor.apply(this, arguments);
       },
       statics: {

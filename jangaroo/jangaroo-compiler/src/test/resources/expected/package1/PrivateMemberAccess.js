@@ -5,14 +5,14 @@ public class PrivateMemberAccess {
   private var secret:String;
 
   public static*/ function doSomething$static()/*:String*/ {
-    return PrivateMemberAccess.INSTANCE.secret$1;
+    return PrivateMemberAccess.INSTANCE.secret$Z3lU;
   }/*
 }*/function PrivateMemberAccess$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      secret$1: null,
+      secret$Z3lU: null,
       constructor: PrivateMemberAccess$,
       statics: {
         INSTANCE: undefined,

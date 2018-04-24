@@ -48,7 +48,7 @@ public class TestMixinConfig {
     return {
       mixinConfig: {
         before: {
-          foo: "doSomethingBeforeFoo$1",
+          foo: "doSomethingBeforeFoo$jHtF",
           bar: "doSomethingBeforeBar",
           one: "doSomethingOnMany",
           two: "doSomethingOnMany",
@@ -67,7 +67,7 @@ public class TestMixinConfig {
         },
         extended: extendClass$static
       },
-      doSomethingBeforeFoo$1: doSomethingBeforeFoo,
+      doSomethingBeforeFoo$jHtF: doSomethingBeforeFoo,
       doSomethingAfterFoo: doSomethingAfterFoo,
       doSomethingBeforeBar: doSomethingBeforeBar,
       doSomethingOnBar: doSomethingOnBar,

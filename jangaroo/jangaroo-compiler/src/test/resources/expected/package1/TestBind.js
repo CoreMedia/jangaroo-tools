@@ -17,19 +17,19 @@ package package1 {
 
 public class TestBind {
 
-  public var boundField:Function =*/function boundField_(){this.boundField=(AS3.bind( this,"getStatePrivate$1"));}/*;
+  public var boundField:Function =*/function boundField_(){this.boundField=(AS3.bind( this,"getStatePrivate$JrNo"));}/*;
 
   public*/ function TestBind$(state/* : String*/) {boundField_.call(this);
-    this.state$1 = state;
-    var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$1");
+    this.state$JrNo = state;
+    var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$JrNo");
   }/*
 
   public*/ function getState()/* : String*/ {
-    return this.state$1;
+    return this.state$JrNo;
   }/*
 
   private*/ function getStatePrivate()/* : String*/ {
-    return this.state$1;
+    return this.state$JrNo;
   }/*
 
   private var state : String;
@@ -41,7 +41,7 @@ public class TestBind {
     return {
       constructor: TestBind$,
       getState: getState,
-      getStatePrivate$1: getStatePrivate,
-      state$1: null
+      getStatePrivate$JrNo: getStatePrivate,
+      state$JrNo: null
     };
 });

@@ -2,8 +2,8 @@ Ext.define("package1.TestStaticNonStaticConfusion", function(TestStaticNonStatic
 public class TestStaticNonStaticConfusion {
 
   public*/ function TestStaticNonStaticConfusion$() {
-    this.foo$1();
-    this.foo$1();
+    this.foo$8Jhk();
+    this.foo$8Jhk();
     TestStaticNonStaticConfusion.foo();
   }/*
 
@@ -20,7 +20,7 @@ public class TestStaticNonStaticConfusion {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestStaticNonStaticConfusion$,
-      foo$1: foo,
+      foo$8Jhk: foo,
       statics: {foo: foo$static}
     };
 });

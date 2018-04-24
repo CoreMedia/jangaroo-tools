@@ -13,7 +13,7 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
       for (var v/*:Object*/ in values) {
         throw "cannot do it with " + v;
       }
-    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){this.super$3();field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
+    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){this.super$5omj();field2_.call(this);field3_.call(this);if(arguments.length<=0)config=null;
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
     config_$1.foo = "bar";
 }/*}}
@@ -22,10 +22,10 @@ public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.S
     return {
       extend: "package1.ConfigClass",
       mixins: ["package1.mxml.SimpleInterface"],
-      field1$3: null,
+      field1$5omj: null,
       doIt: doIt,
       constructor: ScriptCdataMxmlClass$,
-      super$3: function() {
+      super$5omj: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       requires: [

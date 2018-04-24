@@ -20,8 +20,8 @@ public class SimpleMxmlClass extends ConfigClass{
     AS3.setBindable(defaults_$1,"anotherFlag2" , true);
     AS3.setBindable(defaults_$1,"someFlag3" , false);
     AS3.setBindable(defaults_$1,"anotherFlag3" , true);
-    this.blub$3 = {};
-    this.blub$3.name = "Kuno";
+    this.blub$5_bR = {};
+    this.blub$5_bR.name = "Kuno";
     AS3.setBindable(defaults_$1,"joe" , { name: "Joe" });
     var object_39_7_$1/*:Object*/ = {};
     object_39_7_$1.name = "Joe";
@@ -39,7 +39,7 @@ public class SimpleMxmlClass extends ConfigClass{
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1.foo = "bar";
     config_$1.number = 1 < 2  ? 1 + 1 : 3;
-    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$3"));
+    AS3.addEventListener(config_$1,package1.someOtherPackage.SomeEvent,"CLICK",AS3.bind( this,"$on_config_$1_click$5_bR"));
     var other$ns_SomeOtherClass_50_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_50_5_$1,"bla" , 99);
     other$ns_SomeOtherClass_50_5_$1["known-unknown"] = true;
@@ -50,7 +50,7 @@ public class SimpleMxmlClass extends ConfigClass{
     var other$ns_SomeOtherClass_54_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_54_5_$1,"bla" , 23);
     var other$ns_SomeOtherClass_55_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
-    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$3"));
+    AS3.addEventListener(other$ns_SomeOtherClass_55_5_$1,package1.someOtherPackage.SomeEvent,"CLICK_CLACK",AS3.bind( this,"$on_other$ns_SomeOtherClass_55_5_$1_clickClack$5_bR"));
     AS3.setBindable(other$ns_SomeOtherClass_55_5_$1,"bla" , 1);
     var other$ns_SomeOtherClass_56_5_$1/*: package1.someOtherPackage.SomeOtherClass*/ =AS3.cast(package1.someOtherPackage.SomeOtherClass,{});
     AS3.setBindable(other$ns_SomeOtherClass_56_5_$1,"bla" , 42);
@@ -77,7 +77,7 @@ public class SimpleMxmlClass extends ConfigClass{
     config_$1.items = [new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_54_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_55_5_$1), new package1.someOtherPackage.SomeOtherClass(other$ns_SomeOtherClass_56_5_$1), new package1.ConfigClass(configClass_61_5_$1), new package1.ConfigClass(configClass_67_5_$1)];
     config_$1["items$at"] = net.jangaroo.ext.Exml.APPEND;
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    this.super$3(config_$1);
+    this.super$5_bR(config_$1);
   }/*
 
     private var blub:*;*/function static$0(){
@@ -150,12 +150,12 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
       extend: "package1.ConfigClass",
       alias: "widget.testNamespace.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
-      super$3: function() {
+      super$5_bR: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
-      blub$3: undefined,
-      $on_config_$1_click$3: $on_config_$1_click,
-      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$3: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
+      blub$5_bR: undefined,
+      $on_config_$1_click$5_bR: $on_config_$1_click,
+      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$5_bR: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
       config: {
         list: null,
         bar: null,
