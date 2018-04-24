@@ -9,7 +9,7 @@ public class InterfaceImplementingMxmlClass extends ConfigClass implements packa
     var defaults_$1/*:InterfaceImplementingMxmlClass*/ =AS3.cast(InterfaceImplementingMxmlClass,{});
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    this.super$3(config_$1);
+    this.super$9W1t(config_$1);
   }/*
 
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
@@ -26,7 +26,7 @@ public class InterfaceImplementingMxmlClass extends ConfigClass implements packa
       extend: "package1.ConfigClass",
       mixins: ["package1.mxml.YetAnotherInterface"],
       constructor: InterfaceImplementingMxmlClass$,
-      super$3: function() {
+      super$9W1t: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       requires: [

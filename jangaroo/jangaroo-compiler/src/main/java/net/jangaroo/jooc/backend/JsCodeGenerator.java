@@ -251,7 +251,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     if (memberDeclaration != null) {
       if (memberDeclaration.isPrivate()) {
-        memberName = memberName + "$" + ide.getScope().getClassDeclaration().getInheritanceLevel();
+        memberName = memberName + "$" + ide.getScope().getClassDeclaration().getQualifiedNameHash();
       }
     }
 
@@ -477,7 +477,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
     JsonObject classDefinition = new JsonObject();
-    if (classDeclaration.getInheritanceLevel() > 1) {
+    if (classDeclaration.notExtendsObject()) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
     }
@@ -1477,7 +1477,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if ((variableDeclaration.isClassMember() || variableDeclaration.isPrimaryDeclaration()) && !variableDeclaration.isPrivateStatic()) {
       if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
         getClassDefinitionBuilder(variableDeclaration).storeCurrentMetadata(
-                variableDeclaration.getIde().getName() + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getInheritanceLevel() : ""),
+                variableDeclaration.getIde().getName() + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getQualifiedNameHash() : ""),
                 currentMetadata
         );
       }
@@ -1580,7 +1580,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
       }
       if (variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
-        variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getInheritanceLevel();
+        variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getQualifiedNameHash();
       }
     }
     if (variableDeclaration.isPrimaryDeclaration()) {
@@ -1634,7 +1634,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       initializer.getValue().visit(this);
     } else {
       String target = variableDeclaration.isStatic() ? variableDeclaration.getClassDeclaration().getName() : "this";
-      String slotName = variableName + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getInheritanceLevel() : "");
+      String slotName = variableName + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getQualifiedNameHash() : "");
       if (false /* variableDeclaration.isConst() */) { // keep it compatible, even for constants! 
         out.write("Object.defineProperty(" + target + ",\"" + slotName + "\",{value:");
         initializer.getValue().visit(this);
@@ -1731,7 +1731,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         String overriddenMethodName = null;
         PropertyDefinition overriddenPropertyDefinition = null;
         if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
-          String privateMethodName = methodName + "$" + functionDeclaration.getClassDeclaration().getInheritanceLevel();
+          String privateMethodName = methodName + "$" + functionDeclaration.getClassDeclaration().getQualifiedNameHash();
           if (functionDeclaration.isOverride()) {
             overriddenMethodName = privateMethodName;
             getClassDefinitionBuilder(functionDeclaration).super$Used = true;
@@ -1928,8 +1928,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     @Override
     public void generate(JsWriter out, boolean first) throws IOException {
-      int inheritanceLevel = classDeclaration.getInheritanceLevel();
-      if (inheritanceLevel > 1) { // suppress for classes extending Object
+      if (classDeclaration.notExtendsObject()) { // suppress for classes extending Object
         generateSuperConstructorCallCode(null);
         out.writeToken(";");
       }
@@ -1964,7 +1963,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
-    if (superConstructorCallStatement.getClassDeclaration().getInheritanceLevel() > 1) {
+    if (superConstructorCallStatement.getClassDeclaration().notExtendsObject()) {
       out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
       generateSuperConstructorCallCode(superConstructorCallStatement.getArgs());
       generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true);
@@ -1981,7 +1980,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
     ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
-    String superWithLevel = "super$" + classDeclaration.getInheritanceLevel();
+    String superWithLevel = "super$" + classDeclaration.getQualifiedNameHash();
     out.write("this." + superWithLevel);
     if (args == null) {
       out.writeToken("()");

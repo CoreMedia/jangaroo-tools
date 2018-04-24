@@ -31,18 +31,18 @@ public class AllElements extends panel{
     private var myVar4:Array;
 
     private*/ function __initialize__(config/*:AllElements*/)/*:void*/ {
-      this.myVar$4 = config.myProperty$4 + '_suffix';
-      this.myVar2$4 = {
-        prop: config.myProperty$4
+      this.myVar$6tZL = config.myProperty$6tZL + '_suffix';
+      this.myVar2$6tZL = {
+        prop: config.myProperty$6tZL
       };
     }/*
 
-    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$4(config);
+    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
     var config_$1/*: ext.config.panel*/ =AS3.cast(ext.config.panel,{});
     var defaults_$1/*:AllElements*/ =AS3.cast(AllElements,{});
     var myVar3_54_5_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
     myVar3_54_5_$1.text = "Foo";
-    this.myVar3$4 = new ext.config.button(myVar3_54_5_$1);
+    this.myVar3$6tZL = new ext.config.button(myVar3_54_5_$1);
     var object_58_7_$1/*:Object*/ = {};
     object_58_7_$1.header = "a";
     object_58_7_$1.sortable = false;
@@ -51,10 +51,10 @@ public class AllElements extends panel{
     object_59_7_$1.header = "b";
     object_59_7_$1.sortable = true;
     object_59_7_$1.menuDisabled = false;
-    this.myVar4$4 = [object_58_7_$1, object_59_7_$1];
+    this.myVar4$6tZL = [object_58_7_$1, object_59_7_$1];
     config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
     config_$1.title = "I am a panel";
-    config_$1.layout =net.jangaroo.ext.Exml.asString( config.myProperty$4);
+    config_$1.layout =net.jangaroo.ext.Exml.asString( config.myProperty$6tZL);
     var someMixin_65_7_$1/*: ext.config.someMixin*/ =AS3.cast(ext.config.someMixin,{});
     var button_67_11_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
     button_67_11_$1.text = "click me!";
@@ -92,7 +92,7 @@ public class AllElements extends panel{
     var aplugin_126_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
     config_$1.plugins = [aplugin_125_7_$1, aplugin_126_7_$1];
     net.jangaroo.ext.Exml.apply(config_$1,config);
-    this.super$4(config_$1);
+    this.super$6tZL(config_$1);
   }/*
 
       /*
@@ -109,14 +109,14 @@ public class AllElements extends panel{
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.config.panel",
-      myProperty$4: null,
-      myVar$4: null,
-      myVar2$4: null,
-      myVar3$4: null,
-      myVar4$4: null,
-      __initialize__$4: __initialize__,
+      myProperty$6tZL: null,
+      myVar$6tZL: null,
+      myVar2$6tZL: null,
+      myVar3$6tZL: null,
+      myVar4$6tZL: null,
+      __initialize__$6tZL: __initialize__,
       constructor: AllElements$,
-      super$4: function() {
+      super$6tZL: function() {
         ext.config.panel.prototype.constructor.apply(this, arguments);
       },
       config: {gear: null},

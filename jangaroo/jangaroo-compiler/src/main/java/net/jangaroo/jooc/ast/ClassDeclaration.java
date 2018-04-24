@@ -55,7 +55,7 @@ public class ClassDeclaration extends TypeDeclaration {
   private Type superType;
   private List<VariableDeclaration> fieldsWithInitializer = new ArrayList<>();
   private List<IdeDeclaration> secondaryDeclarations = Collections.emptyList();
-  private int inheritanceLevel = -1;
+  private String qualifiedNameHash;
 
   private List<ClassDeclaration> assignableClasses;
 
@@ -400,27 +400,31 @@ public class ClassDeclaration extends TypeDeclaration {
     }
   }
 
-  public int getInheritanceLevel() {
-    if (inheritanceLevel < 0) {
-      inheritanceLevel = computeInheritanceLevel();
-    }
-    return inheritanceLevel;
+  public boolean notExtendsObject() {
+    return superType != null && !isObject(superType.getIde().getQualifiedNameStr());
   }
 
-  private int computeInheritanceLevel() {
-    if (superType == null) {
-      return 0;
+  public String getQualifiedNameHash() {
+    if (qualifiedNameHash == null) {
+      qualifiedNameHash = computeQualifiedNameHash();
     }
-    if (isObject(superType.getIde().getQualifiedNameStr())) {
-      return 1;
-    }
-    TypeDeclaration superClassDecl = superType.getDeclaration();
-    if (!(superClassDecl instanceof ClassDeclaration)) {
-      throw new CompilerError(getOptExtends().getSuperClass().getSymbol(), "expected class identifier");
-    }
-    return 1 + ((ClassDeclaration) superClassDecl).getInheritanceLevel();
+    return qualifiedNameHash;
   }
 
+  private static final String BASE_64_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
+
+  private static String base64Char(int n) {
+    int i = n & 63;
+    return BASE_64_CHARS.substring(i, i + 1);
+  }
+
+  private String computeQualifiedNameHash() {
+    int hashCode = getQualifiedNameStr().hashCode();
+    return  base64Char(hashCode >>> 18) +
+            base64Char(hashCode >>> 12) +
+            base64Char(hashCode >>> 6) +
+            base64Char(hashCode);
+  }
 
   @Override
   public ClassDeclaration getSuperTypeDeclaration() {

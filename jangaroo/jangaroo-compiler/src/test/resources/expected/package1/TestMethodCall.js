@@ -98,11 +98,11 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
   }/*
 
   public*/ function callPriv(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
-    return t.priv$1(x);
+    return t.priv$OBpK(x);
   }/*
 
   public*/ function callPrivViaThis(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
-    return this.priv$1(x);
+    return this.priv$OBpK(x);
   }/*
 
   public*/ function callPrivViaObject(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
@@ -112,17 +112,17 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
 
   public*/ function callPrivViaVar(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
     var o/*:TestMethodCall*/ = t;
-    return o.priv$1(x);
+    return o.priv$OBpK(x);
   }/*
 
   public*/ function callPrivViaField(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
     this.s = t;
-    return this.s.priv$1(x);
+    return this.s.priv$OBpK(x);
   }/*
 
   public*/ function callPrivViaThisDotField(x/* :int*/, t/*:TestMethodCall*/)/* :int*/ {
     this.s = t;
-    return this.s.priv$1(x);
+    return this.s.priv$OBpK(x);
   }/*
 
 
@@ -135,7 +135,7 @@ public class TestMethodCall /* blub ber * //*extends Object* / {
       s: null,
       m: m,
       prot: prot,
-      priv$1: priv,
+      priv$OBpK: priv,
       callm: callm,
       callmViaThis: callmViaThis,
       callmViaObject: callmViaObject,

@@ -1,7 +1,7 @@
 Ext.define("package1.mxml.SimpleMetadataMxmlClass", function(SimpleMetadataMxmlClass) {/*package package1.mxml{
 import package1.*;
 [ShortVersion]
-public class SimpleMetadataMxmlClass extends ConfigClass{public*/function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){this.super$3();if(arguments.length<=0)config=null;
+public class SimpleMetadataMxmlClass extends ConfigClass{public*/function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){this.super$mXNi();if(arguments.length<=0)config=null;
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 
@@ -10,7 +10,7 @@ public class SimpleMetadataMxmlClass extends ConfigClass{public*/function Simple
       extend: "package1.ConfigClass",
       metadata: {"": ["ShortVersion"]},
       constructor: SimpleMetadataMxmlClass$,
-      super$3: function() {
+      super$mXNi: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       requires: ["package1.ConfigClass"]

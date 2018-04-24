@@ -2,7 +2,7 @@ Ext.define("package1.SuperCallParameters", function(SuperCallParameters) {/*pack
 
 public class SuperCallParameters extends ManyConstructorParameters {
   public*/ function SuperCallParameters$() {
-    this.super$2("bar", -1, -4.2, true, {}, []);
+    this.super$rE5W("bar", -1, -4.2, true, {}, []);
   }/*
 
   override public*/ function isEmpty(str/*:String*/)/*:Boolean*/ {
@@ -15,7 +15,7 @@ public class SuperCallParameters extends ManyConstructorParameters {
     return {
       extend: "package1.ManyConstructorParameters",
       constructor: SuperCallParameters$,
-      super$2: function() {
+      super$rE5W: function() {
         package1.ManyConstructorParameters.prototype.constructor.apply(this, arguments);
       },
       isEmpty: isEmpty,

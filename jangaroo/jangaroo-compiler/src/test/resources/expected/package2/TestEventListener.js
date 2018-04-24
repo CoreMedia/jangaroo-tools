@@ -4,22 +4,22 @@ import ext.events.PanelEvent;
 
 public class TestEventListener {
 
-  private var panel:Panel =*/function panel_(){this.panel$1=( AS3.cast(ext.Panel,{}));}/*;
+  private var panel:Panel =*/function panel_(){this.panel$iwqQ=( AS3.cast(ext.Panel,{}));}/*;
   [ArrayElementType("ext.Panel")]
-  private var panels:Array =*/function panels_(){this.panels$1=( []);}/*;
+  private var panels:Array =*/function panels_(){this.panels$iwqQ=( []);}/*;
 
   [ArrayElementType("ext.Panel")]
   private*/ function getPanels()/*:Array*/ {
-    return this.panels$1;
+    return this.panels$iwqQ;
   }/*
 
   public*/ function TestEventListener$() {var this$=this;panel_.call(this);panels_.call(this);
-    AS3.setBindable(this.panel$1,"title" , "not yet clicked.");
+    AS3.setBindable(this.panel$iwqQ,"title" , "not yet clicked.");
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(this$.getThis().getPanel(),"title" , "clicked!");
-      AS3.setBindable(this$.panel$1.layout.getOwner(),"title" , "clicked!");
-      this$.panels$1.push(this$.panel$1);
-      AS3.setBindable(this$.getPanels$1()[0],"title" , "yes, clicked!");
+      AS3.setBindable(this$.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
+      this$.panels$iwqQ.push(this$.panel$iwqQ);
+      AS3.setBindable(this$.getPanels$iwqQ()[0],"title" , "yes, clicked!");
     } );
   }/*
 
@@ -28,14 +28,14 @@ public class TestEventListener {
   }/*
 
   public*/ function getPanel()/*:Panel*/ {
-    return this.panel$1;
+    return this.panel$iwqQ;
   }/*
 }
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      getPanels$1: getPanels,
+      getPanels$iwqQ: getPanels,
       constructor: TestEventListener$,
       getThis: getThis,
       getPanel: getPanel,

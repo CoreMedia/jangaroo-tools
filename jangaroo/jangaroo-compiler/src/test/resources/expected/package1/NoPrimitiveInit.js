@@ -14,7 +14,7 @@ public class NoPrimitiveInit {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: NoPrimitiveInit$,
-      method$1: method,
+      method$0PBp: method,
       uses: [
         "AS3.int_",
         "package1.someOtherPackage.SomeOtherClass"

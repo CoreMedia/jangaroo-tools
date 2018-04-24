@@ -17,22 +17,22 @@ public class TestHelperClasses {
 class Helper {
 
   internal static const CONST:String = "FOO";
-  private var text:String =*/function text_(){this.text$1=( TestHelperClasses.TEXT);}/*;
+  private var text:String =*/function text_(){this.text$K0sP=( TestHelperClasses.TEXT);}/*;
 
   public*/ function Helper$(text/*:String*/) {text_.call(this);
-    this.text$1 = text;
+    this.text$K0sP = text;
   }/*
 
   public*/ function getText()/*:String*/ {
-    var f/*:Function*/ =AS3.bind( this,"text_getter$1");
-    f =AS3.bind( this,"text_getter$1");
+    var f/*:Function*/ =AS3.bind( this,"text_getter$K0sP");
+    f =AS3.bind( this,"text_getter$K0sP");
     return f();
   }/*
 
   private*/ function text_getter()/*:String*/ {
-    return this.text$1;
+    return this.text$K0sP;
   }/*
-}*/var Helper$static = Ext.define(null, {constructor: Helper$,getText: getText,text_getter$1: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
+}*/var Helper$static = Ext.define(null, {constructor: Helper$,getText: getText,text_getter$K0sP: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/

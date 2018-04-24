@@ -2,7 +2,7 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*package pa
 public class FieldInitializer {
   private const const1:String = "foo";
   private const const2:Object = "foo" + "bar";
-  private const const3:Object =*/function const3_(){this.const3$1=( {"foo": "bar"});}/*;
+  private const const3:Object =*/function const3_(){this.const3$ZOoB=( {"foo": "bar"});}/*;
 
   [Bindable]
   public var myConfigOption:String = "baz";
@@ -11,15 +11,15 @@ public class FieldInitializer {
   public var myConfigOption2:Object =*/function myConfigOption2_(){this.myConfigOption2=( { a: 123 });}/*;
 
   public*/ function foo()/*:String*/ {
-    return this.const1$1 + this.const2$1 + this.const3$1;
+    return this.const1$ZOoB + this.const2$ZOoB + this.const3$ZOoB;
   }/*
 }*/function FieldInitializer$() {const3_.call(this);myConfigOption2_.call(this);}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      const1$1: "foo",
-      const2$1: "foo" + "bar",
+      const1$ZOoB: "foo",
+      const2$ZOoB: "foo" + "bar",
       foo: foo,
       constructor: FieldInitializer$,
       config: {
