@@ -267,7 +267,12 @@ public class JoocTest extends AbstractJoocTest {
   public void testArrayForIn() throws Exception {
     assertCompilationResult("package1/TestArrayForIn");
   }
-  
+
+  @Test
+  public void testStatementStartingWithArrayLiteral() throws Exception {
+    assertCompilationResult("package2/TestStatementStartingWithArrayLiteral");
+  }
+
   @Test
   public void testPackageGlobalVarApi() throws Exception {
     config.setExcludeClassByDefault(true);

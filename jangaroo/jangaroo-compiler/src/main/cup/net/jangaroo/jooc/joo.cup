@@ -103,7 +103,7 @@ terminal JooSymbol SLASH_GT;
 
 // virtual tokens to mark the begin of a function, array or object literal expression
 // inserted by parser if no other action is available
-terminal JooSymbol FUNCTION_EXPR, LBRACK_EXPR, LBRACE_EXPR;
+terminal JooSymbol FUNCTION_EXPR, LBRACE_EXPR;
 
 // virtual token to mark the begin of a regular expression literal
 // inserted by parser if no other action is available
@@ -244,7 +244,7 @@ arguments ::=
   ;
 
 arrayLiteral ::=
-  LBRACK_EXPR:lb arrayLiteralFields:f RBRACK:rb
+  LBRACK:lb arrayLiteralFields:f RBRACK:rb
     {: RESULT = new ArrayLiteral(lb,f,rb); :}
   ;
 

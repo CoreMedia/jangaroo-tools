@@ -120,11 +120,6 @@ public class JooParser extends parser {
       return replaceToken(sym.FUNCTION_EXPR);
     }
 
-    // disambiguate metadata annotations and array literals (both start with '[')
-    if (cur_token.sym == sym.LBRACK && isActionDefinedFor(sym.LBRACK_EXPR)) {
-      return replaceToken(sym.LBRACK_EXPR);
-    }
-
     // try semicolon insertion
     boolean isShiftActionDefinedForNoLineTerminatorHere = isShiftActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE);
     if (isShiftActionDefinedForNoLineTerminatorHere || (isPostfixOp && isActionDefinedFor(sym.NO_LINE_TERMINATOR_HERE_POSTFIX_OP))) {
