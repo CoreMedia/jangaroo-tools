@@ -607,7 +607,7 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
-  public void testIncorrectAssingnmentNumber() throws Exception {
+  public void testIncorrectAssignmentNumber() throws Exception {
 
     int firstLineOfError = 13;
     int columnOfError = 9;
