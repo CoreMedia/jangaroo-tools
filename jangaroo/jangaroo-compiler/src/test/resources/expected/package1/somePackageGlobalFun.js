@@ -17,6 +17,6 @@ public*/ function somePackageGlobalFun(flag/*:Boolean*/)/*:SomeOtherClass*/ {
       __factory__: function() {
         return somePackageGlobalFun;
       },
-      uses: ["package1.someOtherPackage.SomeOtherClass"]
+      requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });

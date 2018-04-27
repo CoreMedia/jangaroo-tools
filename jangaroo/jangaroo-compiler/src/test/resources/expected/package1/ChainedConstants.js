@@ -31,6 +31,6 @@ public class ChainedConstants {
           THE_BLA$static_();
         }
       },
-      requires: ["package1.someOtherPackage.SomeOtherClass"]
+      uses: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });

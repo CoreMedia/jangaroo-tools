@@ -130,11 +130,9 @@ public class AllElements extends panel{
           CODE_CONSTANT$static_();
         }
       },
-      requires: [
-        "exmlparser.config.allElements",
-        "ext.config.panel"
-      ],
+      requires: ["ext.config.panel"],
       uses: [
+        "exmlparser.config.allElements",
         "ext.MessageBox",
         "ext.config.aplugin",
         "ext.config.button",

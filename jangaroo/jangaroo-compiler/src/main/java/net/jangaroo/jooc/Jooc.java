@@ -65,7 +65,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
-  public static final String USES_ANNOTATION_NAME = "Uses";
   public static final String MIXIN_ANNOTATION_NAME = "Mixin";
   public static final String MIXIN_HOOK_ANNOTATION_NAME = "MixinHook";
   public static final String MIXIN_HOOK_ANNOTATION_EXTENDED_ATTRIBUTE_NAME = "extended";
@@ -183,8 +182,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         }
       }
 
-      analyzeDependencies();
-
       for (InputSource source : compileQueue) {
         File sourceFile = ((FileInputSource)source).getFile();
         File outputFile = null;
@@ -255,56 +252,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
                         path));
       }
     }
-  }
-
-  private void analyzeDependencies() throws IOException {
-    DependencyGraph dependencyGraph = makeDependencyGraph();
-    dependencyGraph.analyze();
-
-    File reportOutputDirectory = getConfig().getReportOutputDirectory();
-    if (reportOutputDirectory != null) {
-      File dependencyGraphFile = new File(reportOutputDirectory, "dependencies.graphml");
-      try {
-        dependencyGraph.writeDependencyGraphToFile(dependencyGraphFile);
-      } catch (IOException e) {
-        logCompilerError(e);
-      }
-    }
-
-    if (dependencyGraph.hasErrors()) {
-      if (reportOutputDirectory != null) {
-        File errorGraphFile = new File(reportOutputDirectory, "cycles.graphml");
-        try {
-          dependencyGraph.writeErrorGraphToFile(errorGraphFile);
-          log.error("A dependency graph of classes with dependency errors has been written to " + errorGraphFile.getAbsolutePath() + ".");
-        } catch (IOException e) {
-          logCompilerError(e);
-        }
-      }
-
-      throw error(dependencyGraph.createDependencyError());
-    }
-  }
-
-  private DependencyGraph makeDependencyGraph() throws IOException {
-    // Build a dependency graph from all compilation units.
-    // New compilation unit might be parsed while the graph is build,
-    // so that a double loop must be used to avoid concurrent
-    // modification exceptions.
-    DependencyGraph dependencyGraph = new DependencyGraph();
-    Set<CompilationUnit> processedCompilationUnits = new HashSet<CompilationUnit>();
-    Set<CompilationUnit> unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
-    while (!unprocessedCompilationUnits.isEmpty()) {
-      for (final CompilationUnit compilationUnit : unprocessedCompilationUnits) {
-        if (processedCompilationUnits.add(compilationUnit) && compilationUnit.isInSourcePath()) {
-          dependencyGraph.fillInDependencies(compilationUnit);
-        }
-      }
-
-      unprocessedCompilationUnits = new HashSet<CompilationUnit>(getCompilationUnits());
-      unprocessedCompilationUnits.removeAll(processedCompilationUnits);
-    }
-    return dependencyGraph;
   }
 
   private void setUpMxmlComponentRegistry(InputSource sourcePathInputSource, InputSource classPathInputSource)

@@ -1,8 +1,6 @@
 package package1 {
 import package1.someOtherPackage.SomeOtherClass;
 
-[Uses("Object")]
-[Uses("package1.someOtherPackage.SomeOtherClass")]
 public class ChainedConstants {
   public static const METHOD_TYPE_GET:String = "get";
 

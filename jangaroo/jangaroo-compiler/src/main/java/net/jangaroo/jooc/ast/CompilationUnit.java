@@ -216,12 +216,6 @@ public class CompilationUnit extends NodeImplBase {
       }
       if (inModule) {
         dependenciesInModule.add(qName);
-      } else {
-        for (Annotation annotation : otherUnit.getPrimaryDeclaration().getAnnotations(Jooc.USES_ANNOTATION_NAME)) {
-          for (String value : getAnnotationDefaultParameterStringValues(annotation)) {
-            usesDependencies.put(scope.getCompiler().getCompilationUnit(value).getPrimaryDeclaration().getQualifiedNameStr(), true);
-          }
-        }
       }
     }
   }
@@ -244,10 +238,6 @@ public class CompilationUnit extends NodeImplBase {
       current = current.getTail();
     }
     return values;
-  }
-
-  public void addRequiredDependency(CompilationUnit otherUnit) {
-    addDependency(otherUnit, true);
   }
 
   public void addPublicApiDependency(CompilationUnit otherUnit) {

@@ -20,6 +20,6 @@ public class TestOldPropertyAccessSyntax extends Object{
           BUNDLE$static_();
         }
       },
-      requires: ["testPackage.PropertiesTest_properties"]
+      uses: ["testPackage.PropertiesTest_properties"]
     };
 });

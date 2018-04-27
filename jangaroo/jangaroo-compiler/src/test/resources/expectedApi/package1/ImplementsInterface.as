@@ -1,10 +1,6 @@
 package package1 {
 import ext.Panel;
 
-[Uses("Object")]
-[Uses("package1.Interface")]
-[Uses("Vector$object")]
-[Uses("ext.Panel")]
 public final class ImplementsInterface implements package1.Interface {
   /**
    * Field with ASDoc.

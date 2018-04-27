@@ -339,9 +339,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    String[] dependencies = collectDependencies(compilationUnit, null);
-    String[] requires = collectDependencies(compilationUnit, true);
-    String[] uses = collectDependencies(compilationUnit, false);
+    boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;
+    String[] requires = collectDependencies(compilationUnit, isClassDeclaration ? Boolean.TRUE : null);
+    String[] uses = isClassDeclaration ? collectDependencies(compilationUnit, false) : new String[0];
     String moduleName = CompilerUtils.quote(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr());
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     out.write("Ext.define(");

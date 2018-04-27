@@ -1,6 +1,5 @@
 package package1 {
 
-[Uses("package1.SomeNativeSuperClass")]
 /**
  * This is an example of an API-only class ("native API stub").
  */
