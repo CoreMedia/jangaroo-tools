@@ -133,7 +133,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-    writePackageConfig();
+    writePackageConfig(configBuilder);
     writePackageJson(configBuilder);
     compileJavaScriptSources(getSenchaPackageDirectory());
     writeSenchaCfgFile();
@@ -238,8 +238,12 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-  private void writePackageConfig() throws MojoExecutionException {
+  private void writePackageConfig(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
+    if (globalResourcesMap == null || globalResourcesMap.isEmpty()) {
+      return;
+    }
     getLog().info(String.format("Write %s for module", PACKAGE_CONFIG_FILENAME));
+    configBuilder.js("bundledResources/packageConfig.js", false, true);
     String senchaPackageBuildOutputDirectoryPath = buildDirectoryPath + SenchaUtils.getPackagesPath(project);
     File packageConfigJsFile = new File(senchaPackageBuildOutputDirectoryPath + "/" + SENCHA_BUNDLED_RESOURCES_PATH + "/" + PACKAGE_CONFIG_FILENAME);
     FileHelper.ensureDirectory(packageConfigJsFile.getParentFile());
@@ -252,7 +256,6 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
     try (PrintWriter pw = new PrintWriter(new FileWriter(packageConfigJsFile, true))) {
       pw.println("(function(){");
-      writePackageDependencyOrderJs(pw);
       writeGlobalResourceMapJs(pw);
       pw.println("}());");
     } catch (IOException e) {
@@ -260,39 +263,31 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-  private void writePackageDependencyOrderJs(PrintWriter pw) throws MojoExecutionException {
-      pw.printf("// START - Registering package dependency order%n" +
-                "Ext.manifest.packageDependencyOrder.push('%s');%n" +
-                "// END - Registering package dependency order%n", getSenchaPackageName(project));
-  }
-
   private void writeGlobalResourceMapJs(PrintWriter pw) throws MojoExecutionException {
-    if (globalResourcesMap != null && !globalResourcesMap.isEmpty()) {
-      String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
-      getLog().info("Write global resource map JavaScript for " + PACKAGE_CONFIG_FILENAME);
-      pw.printf("// START - Adding global resources to ext manifest%n");
-      pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
-                "  var resolvedPath = Ext.resolveResource('<@' + packageName + '>' + resourcePath);%n" +
-                "  if (resolvedPath.indexOf('/') !== 0) {%n" +
-                "    var pathname = window.location.pathname;%n" +
-                "    resolvedPath = pathname.substring(0, pathname.lastIndexOf('/') + 1) + resolvedPath;%n" +
-                "  }%n" +
-                "  return resolvedPath;%n" +
-                "};%n" +
-                "Ext.apply(Ext.manifest.globalResources, {%n");
+    String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+    getLog().info("Write global resource map JavaScript for " + PACKAGE_CONFIG_FILENAME);
+    pw.printf("// START - Adding global resources to ext manifest%n");
+    pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
+              "  var resolvedPath = Ext.resolveResource('<@' + packageName + '>' + resourcePath);%n" +
+              "  if (resolvedPath.indexOf('/') !== 0) {%n" +
+              "    var pathname = window.location.pathname;%n" +
+              "    resolvedPath = pathname.substring(0, pathname.lastIndexOf('/') + 1) + resolvedPath;%n" +
+              "  }%n" +
+              "  return resolvedPath;%n" +
+              "};%n" +
+              "Ext.apply(Ext.manifest.globalResources, {%n");
 
-      Iterator<Map.Entry<String, String>> globalResourceIterator = globalResourcesMap.entrySet().iterator();
-      while (globalResourceIterator.hasNext()) {
-        Map.Entry<String, String> globalResource = globalResourceIterator.next();
-        pw.printf(
-                "  '%s': resolveAbsolutePath('%s', '%s')", globalResource.getKey(), senchaPackageName, globalResource.getValue());
-        if (globalResourceIterator.hasNext()) {
-          pw.printf(",%n");
-        }
+    Iterator<Map.Entry<String, String>> globalResourceIterator = globalResourcesMap.entrySet().iterator();
+    while (globalResourceIterator.hasNext()) {
+      Map.Entry<String, String> globalResource = globalResourceIterator.next();
+      pw.printf(
+              "  '%s': resolveAbsolutePath('%s', '%s')", globalResource.getKey(), senchaPackageName, globalResource.getValue());
+      if (globalResourceIterator.hasNext()) {
+        pw.printf(",%n");
       }
-      pw.printf("%n});%n");
-      pw.println("// END - Adding global resources to ext manifest");
     }
+    pw.printf("%n});%n");
+    pw.println("// END - Adding global resources to ext manifest");
   }
 
   public File getSenchaPackageDirectory() {

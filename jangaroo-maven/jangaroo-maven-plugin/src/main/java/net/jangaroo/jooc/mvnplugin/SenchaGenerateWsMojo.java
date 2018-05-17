@@ -283,8 +283,9 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   }
 
   private File relativePathForProject(File workspaceDir, MavenProject project) throws MojoExecutionException {
-    String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) ?
-            SenchaUtils.APP_TARGET_DIRECTORY : SenchaUtils.LOCAL_PACKAGES_PATH;
+    String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())
+            ? SenchaUtils.APP_TARGET_DIRECTORY
+            : SenchaUtils.LOCAL_PACKAGES_PATH + "/" + SenchaUtils.getSenchaPackageName(project);
     return relativePathForProject(workspaceDir, project, localPathToSrc);
   }
 

@@ -196,10 +196,10 @@ public class SenchaUtils {
     return objectMapper;
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeAllDependencies) {
     return isSenchaDependency(dependency)
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
-            && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
+            && (includeAllDependencies || Artifact.SCOPE_COMPILE.equals(dependency.getScope()));
   }
 
   public static boolean isSenchaDependency(@Nonnull Dependency dependency) {

@@ -12,11 +12,7 @@
   "detailedDescription": "",
   "requires": [],
   "css": [],
-  "js": [ {
-    "path" : "bundledResources/packageConfig.js",
-    "bundle" : false,
-    "includeInBundle" : true
-  } ],
+  "js": [],
 
   /**
    * Sass configuration properties.

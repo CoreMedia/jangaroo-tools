@@ -2,9 +2,12 @@ package net.jangaroo.jooc;
 
 import net.jangaroo.jooc.api.Compressor;
 import net.jangaroo.jooc.api.Packager;
+import net.jangaroo.jooc.json.JsonArray;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -41,15 +44,23 @@ public class PackagerImpl implements Packager {
   private void pack(File outputDirectory, String outputFileName, File... sourceDirectories) throws IOException {
     File outputFile = new File(outputDirectory, outputFileName);
     ArrayList<File> sources = new ArrayList<>();
+    ArrayList<String> sourceClasses = new ArrayList<>();
     long timestamp = outputFile.lastModified();
     boolean somethingChanged = false;
     for (File dir : sourceDirectories) {
-      somethingChanged |= scanSources(dir, timestamp, sources);
+      somethingChanged |= scanSources(dir, dir, timestamp, sources, sourceClasses);
     }
+
     final String outputFilePath = outputFile.getAbsolutePath();
     if (somethingChanged && !sources.isEmpty()) {
       System.out.println(String.format("Packing %d js files into %s", sources.size(), outputFilePath));
       pack(sources, outputFile);
+
+      File inventoryFile = new File(outputDirectory, CompilerUtils.removeExtension(outputFileName) + ".json");
+      PrintWriter printWriter = new PrintWriter(inventoryFile);
+      printWriter.println(new JsonArray(sourceClasses.toArray()).toString());
+      printWriter.close();
+
     } else if (sources.isEmpty()) {
       if (outputFile.exists()) {
         // sources have been deleted since the previous build
@@ -65,16 +76,17 @@ public class PackagerImpl implements Packager {
     }
   }
 
-  private boolean scanSources(File dir, long timestamp, ArrayList<File> sources) {
+  private boolean scanSources(File baseDir, File dir, long timestamp, ArrayList<File> sources, ArrayList<String> sourceClasses) {
     // some js file might have been deleted, check directory timestamps as well
     boolean somethingChanged = dir.lastModified() > timestamp;
     File[] children = dir.listFiles();
     if (children != null) {
       for (File child : children) {
         if (child.isDirectory()) {
-          somethingChanged |= scanSources(child, timestamp, sources);
+          somethingChanged |= scanSources(baseDir, child, timestamp, sources, sourceClasses);
         } else if (child.getName().endsWith(".js")) {
           sources.add(child);
+          sourceClasses.add(CompilerUtils.qNameFromFile(baseDir, child));
           somethingChanged |= child.lastModified() > timestamp;
         }
       }
