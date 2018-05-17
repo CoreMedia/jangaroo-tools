@@ -59,6 +59,7 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
