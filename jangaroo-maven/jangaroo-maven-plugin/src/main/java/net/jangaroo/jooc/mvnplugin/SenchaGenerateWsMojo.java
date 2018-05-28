@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -133,9 +134,8 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     //noinspection ResultOfMethodCallIgnored
     packagesDir.mkdirs();
     Path packagesPath = packagesDir.toPath().normalize();
-    Set<String> reactorProjectPackagesIds = new HashSet<>();
-    addReactorProjectPackages(project, packagesPath, reactorProjectPackagesIds);
-    addRemotePackages(project, workspaceDir, packagesPath, remotePackagesDir, reactorProjectPackagesIds);
+    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
+    createSymbolicLinksForPackages(project, workspaceDir, packagesPath, remotePackagesDir, reactorProjectPackagePaths);
   }
 
   private void createSymbolicLinkToPackage(Path packagesPath, String packageName, Path targetPath) throws MojoExecutionException {
@@ -156,17 +156,18 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     }
   }
 
-  private void addReactorProjectPackages(MavenProject project, Path packagesPath, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
+  private Map<Artifact, Path> findReactorProjectPackages(MavenProject project) throws MojoExecutionException {
+    Map<Artifact, Path> reactorProjectPackagePaths = new HashMap<>();
     Set<MavenProject> referencedProjects = new HashSet<>();
     collectReferencedProjects(project, referencedProjects);
     for (MavenProject projectInReactor : referencedProjects) {
       String packageType = projectInReactor.getPackaging();
       if (Type.JANGAROO_SWC_PACKAGING.equals(packageType) || Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
         String senchaPackageName = SenchaUtils.getSenchaPackageName(projectInReactor);
-        createSymbolicLinkToPackage(packagesPath, senchaPackageName, Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaPackageName));
-        reactorProjectPackagesIds.add(reactorProjectId(projectInReactor));
+        reactorProjectPackagePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaPackageName));
       }
     }
+    return reactorProjectPackagePaths;
   }
 
   private String reactorProjectId(MavenProject project) {
@@ -186,7 +187,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     }
   }
 
-  private void addRemotePackages(MavenProject project, File workspaceDir, Path packagesPath, File remotePackagesDir, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
+  private void createSymbolicLinksForPackages(MavenProject project, File workspaceDir, Path packagesPath, File remotePackagesDir, Map<Artifact, Path> reactorProjectPackagePaths) throws MojoExecutionException {
     boolean extFrameworkFound = false;
     Set<Artifact> dependencyArtifacts = project.getArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
@@ -194,18 +195,16 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       boolean isExtFramework = isExtFrameworkArtifact(artifact);
       if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, false)) {
         String reactorProjectId = reactorProjectId(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
-        boolean isReactorProject = reactorProjectPackagesIds.contains(reactorProjectId);
-        if (isReactorProject) {
-          getLog().info(String.format("%s contained in reactor, excluding from remote packages list", reactorProjectId));
+        String senchaPackageName = SenchaUtils.getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
+        Path pkgDir = reactorProjectPackagePaths.get(artifact);
+        if (pkgDir == null) {
+          pkgDir = unpackPkg(artifact, remotePackagesDir).toPath();
+        }
+        if (isExtFramework) {
+          extFrameworkFound = true;
+          createSymbolicLinkToPackage(workspaceDir.toPath(), "ext", pkgDir);
         } else {
-          File pkgDir = unpackPkg(artifact, remotePackagesDir);
-          if (isExtFramework) {
-            extFrameworkFound = true;
-            createSymbolicLinkToPackage(workspaceDir.toPath(), "ext", pkgDir.toPath());
-          } else {
-            String senchaPackageName = SenchaUtils.getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
-            createSymbolicLinkToPackage(packagesPath, senchaPackageName, pkgDir.toPath());
-          }
+          createSymbolicLinkToPackage(packagesPath, senchaPackageName, pkgDir);
         }
       }
     }
