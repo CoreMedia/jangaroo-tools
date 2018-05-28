@@ -14,7 +14,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -30,14 +29,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.writeFile;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 
 /**
@@ -50,6 +48,8 @@ import static org.apache.commons.io.FileUtils.cleanDirectory;
         threadSafe = true)
 public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
+  private static final String EXT_TARGET_DIRECTORY = "ext";
+
   /**
    * Non-null if we have joounit tests in this module
    */
@@ -60,7 +60,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
   private static final Object lock = new Object();
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     String packaging = project.getPackaging();
     if (!Type.JANGAROO_PKG_PACKAGING.equals(packaging) &&
             !Type.JANGAROO_SWC_PACKAGING.equals(packaging) &&
@@ -68,7 +68,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"pkg\", \"swc\" or \"jangaroo-app\"");
     }
     if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging()) || testSuite != null) {
-      File workspaceDir = new File(project.getBuild().getDirectory());
+      File workspaceDir = new File(project.getBuild().getDirectory(), SenchaUtils.APP_DIRECTORY_NAME);
       generateWorkspace(workspaceDir);
     }
   }
@@ -85,12 +85,12 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     SenchaWorkspaceConfigBuilder configBuilder = new SenchaWorkspaceConfigBuilder();
     SenchaUtils.configureDefaults(configBuilder, "default.workspace.json");
     File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
-    File extDirectory = configurePackages(project, workspaceDir, remotePackagesDir, configBuilder);
-    callSenchaGenerateWorkspace(workspaceDir, extDirectory, SenchaUtils.baseDir(session), remotePackagesDir);
+    configurePackages(project, workspaceDir, remotePackagesDir);
+    callSenchaGenerateWorkspace(workspaceDir);
     writeFile(configBuilder, workspaceDir.getPath(), SenchaUtils.SENCHA_WORKSPACE_FILENAME, SenchaUtils.AUTO_CONTENT_COMMENT, getLog());
   }
 
-  private void callSenchaGenerateWorkspace(File workspaceDir, File extDirectory, File webRootDir, File remotePackagesDir)
+  private void callSenchaGenerateWorkspace(File workspaceDir)
           throws MojoExecutionException {
     Path senchaCfg = Paths.get(workspaceDir.getAbsolutePath(), SenchaUtils.SENCHA_WORKSPACE_CONFIG);
     try {
@@ -113,12 +113,10 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
     // sencha.cfg should be recreated
     Map<String, Object> properties = new LinkedHashMap<>();
-    if (extDirectory != null) {
-      properties.put("ext.dir", absolutizeUsingWorkspace(workspaceDir, extDirectory));
-    }
+    properties.put("ext.dir", SenchaUtils.absolutizeToModuleWithPlaceholder(Type.WORKSPACE, EXT_TARGET_DIRECTORY));
     // needed for sencha app watch:
-    properties.put("build.web.root", absolutizeUsingWorkspace(workspaceDir, webRootDir));
-    properties.put("remotePackages", absolutizeUsingWorkspace(workspaceDir, remotePackagesDir));
+    // properties.put("build.web.root", absolutizeUsingWorkspace(workspaceDir, webRootDir));
+    // properties.put("remotePackages", absolutizeUsingWorkspace(workspaceDir, remotePackagesDir));
     SenchaUtils.createSenchaCfg(senchaCfg, senchaCfg, properties);
   }
 
@@ -129,27 +127,43 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     return SenchaUtils.absolutizeToModuleWithPlaceholder(Type.WORKSPACE, relativePath);
   }
 
-  private File configurePackages(MavenProject project, File workspaceDir, File remotePackagesDir, SenchaWorkspaceConfigBuilder configBuilder)
+  private void configurePackages(MavenProject project, File workspaceDir, File remotePackagesDir)
           throws MojoExecutionException {
-    List<String> packagePaths = new ArrayList<>();
-    // first package path indicates the path other packages are generated from, this needs to be the workspace dir
-    packagePaths.add(SenchaUtils.PLACEHOLDERS.get(Type.WORKSPACE));
+    File packagesDir = new File(workspaceDir, SenchaUtils.PACKAGES_DIRECTORY_NAME);
+    //noinspection ResultOfMethodCallIgnored
+    packagesDir.mkdirs();
+    Path packagesPath = packagesDir.toPath().normalize();
     Set<String> reactorProjectPackagesIds = new HashSet<>();
-    addReactorProjectPackages(project, workspaceDir, packagePaths, reactorProjectPackagesIds);
-    File extDir = addRemotePackages(project, packagePaths, remotePackagesDir, reactorProjectPackagesIds);
-    // sort resulting paths deterministically so that it remains the same no matter what OS you are using
-    Collections.sort(packagePaths);
-    configBuilder.packagesDirs(packagePaths);
-    return extDir;
+    addReactorProjectPackages(project, packagesPath, reactorProjectPackagesIds);
+    addRemotePackages(project, workspaceDir, packagesPath, remotePackagesDir, reactorProjectPackagesIds);
   }
 
-  private void addReactorProjectPackages(MavenProject project, File workspaceDir, List<String> packagePaths, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
+  private void createSymbolicLinkToPackage(Path packagesPath, String packageName, Path targetPath) throws MojoExecutionException {
+    Path link = packagesPath.resolve(packageName);
+    if (link.toFile().exists()) {
+      return; // TODO: for now, assume that if something with that name already exists, it is correct.
+    }
+    Path target = packagesPath.relativize(targetPath);
+    if (target.toString().equals(packageName)) {
+      return; // Do not link a package to itself!
+    }
+    getLog().info("Linking " + link + " -> " + target);
+    // TODO: can we convince the security manager to allow LinkPermission("symbolic")?
+    try {
+      Files.createSymbolicLink(link, target);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Creating symbolic link for package " + packageName + " failed.", e);
+    }
+  }
+
+  private void addReactorProjectPackages(MavenProject project, Path packagesPath, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
     Set<MavenProject> referencedProjects = new HashSet<>();
     collectReferencedProjects(project, referencedProjects);
     for (MavenProject projectInReactor : referencedProjects) {
       String packageType = projectInReactor.getPackaging();
       if (Type.JANGAROO_SWC_PACKAGING.equals(packageType) || Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
-        packagePaths.add(absolutizeUsingWorkspace(workspaceDir, relativePathForProject(workspaceDir, projectInReactor)));
+        String senchaPackageName = SenchaUtils.getSenchaPackageName(projectInReactor);
+        createSymbolicLinkToPackage(packagesPath, senchaPackageName, Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaPackageName));
         reactorProjectPackagesIds.add(reactorProjectId(projectInReactor));
       }
     }
@@ -172,13 +186,13 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     }
   }
 
-  private File addRemotePackages(MavenProject project, List<String> packagePaths, File remotePackagesDir, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
-    File extDir = null;
+  private void addRemotePackages(MavenProject project, File workspaceDir, Path packagesPath, File remotePackagesDir, Set<String> reactorProjectPackagesIds) throws MojoExecutionException {
+    boolean extFrameworkFound = false;
     Set<Artifact> dependencyArtifacts = project.getArtifacts();
     for (Artifact artifact : dependencyArtifacts) {
       Dependency dependency = MavenDependencyHelper.fromArtifact(artifact);
       boolean isExtFramework = isExtFrameworkArtifact(artifact);
-      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, true)) {
+      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, false)) {
         String reactorProjectId = reactorProjectId(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
         boolean isReactorProject = reactorProjectPackagesIds.contains(reactorProjectId);
         if (isReactorProject) {
@@ -186,14 +200,16 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
         } else {
           File pkgDir = unpackPkg(artifact, remotePackagesDir);
           if (isExtFramework) {
-            extDir = pkgDir;
+            extFrameworkFound = true;
+            createSymbolicLinkToPackage(workspaceDir.toPath(), "ext", pkgDir.toPath());
           } else {
-            packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, pkgDir));
+            String senchaPackageName = SenchaUtils.getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
+            createSymbolicLinkToPackage(packagesPath, senchaPackageName, pkgDir.toPath());
           }
         }
       }
     }
-    if (extDir == null) {
+    if (!extFrameworkFound) {
       getLog().warn("no Ext framework dependency found");
     }
     String myVersion = project.getPluginArtifactMap().get("net.jangaroo:jangaroo-maven-plugin").getVersion();
@@ -202,15 +218,19 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
 
     Artifact artifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
             repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "pkg");
+    if (artifactFromHelper == null) {
+      throw new MojoExecutionException("Cannot find Sencha App template " + SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID + ":" + SENCHA_APP_TEMPLATE_ARTIFACT_ID);
+    }
     File appTemplate = unpackPkg(artifactFromHelper, remotePackagesDir);
-    packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, appTemplate));
+    createSymbolicLinkToPackage(packagesPath, getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID), appTemplate.toPath());
 
     Artifact testArtifactFromHelper = MavenPluginHelper.getArtifact(localRepository, remoteRepositories, artifactResolver,
             repositorySystem, SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID, myVersion, "runtime", "pkg");
+    if (testArtifactFromHelper == null) {
+      throw new MojoExecutionException("Cannot find Sencha App template " + SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID + ":" + SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID);
+    }
     File testAppTemplate = unpackPkg(testArtifactFromHelper, remotePackagesDir);
-    packagePaths.add(relativizeToRemotePackagesPlaceholder(remotePackagesDir, testAppTemplate));
-
-    return extDir;
+    createSymbolicLinkToPackage(packagesPath, getSenchaPackageName(SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID, SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID), testAppTemplate.toPath());
   }
 
   private String relativizeToRemotePackagesPlaceholder(File remotePackagesDir, File pkgDir) {
@@ -277,15 +297,14 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     return new File(packageTargetDir, fileName);
   }
 
-  private String relativize(MavenProject project, @Nonnull String path)
-          throws MojoExecutionException {
+  private String relativize(MavenProject project, @Nonnull String path) {
     return FileHelper.relativize(project.getBasedir().toPath(), path);
   }
 
   private File relativePathForProject(File workspaceDir, MavenProject project) throws MojoExecutionException {
     String localPathToSrc = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())
             ? SenchaUtils.APP_TARGET_DIRECTORY
-            : SenchaUtils.LOCAL_PACKAGES_PATH + "/" + SenchaUtils.getSenchaPackageName(project);
+            : SenchaUtils.LOCAL_PACKAGES_PATH + SenchaUtils.getSenchaPackageName(project);
     return relativePathForProject(workspaceDir, project, localPathToSrc);
   }
 

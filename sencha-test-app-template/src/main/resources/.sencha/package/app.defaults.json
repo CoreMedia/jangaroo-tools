@@ -185,7 +185,7 @@
   },
 
   "output": {
-    "base": "$\u007bapp.dir}/build/$\u007bbuild.environment}",
+    "base": "$\u007bapp.dir}",
     "manifest": "$\u007bbuild.id}.json",
     "js": "$\u007bbuild.id}.js",
     "appCache": {

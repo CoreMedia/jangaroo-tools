@@ -46,9 +46,13 @@ public class SenchaUtils {
 
   public static final String SEPARATOR = "/";
 
-  public static final String LOCAL_PACKAGES_PATH = "/packages/";
+  public static final String APP_DIRECTORY_NAME = "app";
 
-  public static final String APP_TARGET_DIRECTORY = "/app";
+  public static final String PACKAGES_DIRECTORY_NAME = "packages";
+
+  public static final String LOCAL_PACKAGES_PATH = SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR;
+
+  public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;
 
   /**
    * The name of the folder of the generated module inside the packages folder of the module.
@@ -74,8 +78,8 @@ public class SenchaUtils {
   private static final String SENCHA_CFG = "sencha.cfg";
   public static final String SENCHA_DIRECTORYNAME = ".sencha";
   public static final String SENCHA_WORKSPACE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "workspace" + SEPARATOR + SENCHA_CFG;
-  public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "package" + SEPARATOR + SENCHA_CFG;
-  private static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + "app" + SEPARATOR + SENCHA_CFG;
+  public static final String SENCHA_PACKAGE_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR + SENCHA_CFG;
+  private static final String SENCHA_APP_CONFIG = SENCHA_DIRECTORYNAME + SEPARATOR + APP_DIRECTORY_NAME + SEPARATOR + SENCHA_CFG;
 
   public static final String SENCHA_WORKSPACE_FILENAME = "workspace.json";
   public static final String SENCHA_PACKAGE_FILENAME = "package.json";
@@ -196,10 +200,10 @@ public class SenchaUtils {
     return objectMapper;
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeAllDependencies) {
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
     return isSenchaDependency(dependency)
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
-            && (includeAllDependencies || Artifact.SCOPE_COMPILE.equals(dependency.getScope()));
+            && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
   }
 
   public static boolean isSenchaDependency(@Nonnull Dependency dependency) {

@@ -1,10 +1,10 @@
 {
-  "apps": [],
+  "apps": ["app"],
   "build": {
     "dir": "${workspace.dir}/target/sencha/build"
   },
   "packages": {
-    "dir": [],
-    "extract": "${workspace.dir}/packages/remote"
+    "dir": ["${workspace.dir}/packages"],
+    "extract": "${workspace.dir}/packages"
   }
 }
