@@ -9,18 +9,13 @@ import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.archiver.zip.ZipArchiver;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,30 +35,6 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
 @Mojo(name = "package-pkg", defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyCollection = ResolutionScope.COMPILE, threadSafe = true )
 public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPackageConfigBuilder> {
-
-  /**
-   * Plexus archiver.
-   */
-  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.JAR_EXTENSION)
-  private JarArchiver archiver;
-
-  @Component(role = org.codehaus.plexus.archiver.Archiver.class, hint = Type.ZIP_EXTENSION)
-  private ZipArchiver zipArchiver;
-
-  @Inject
-  private MavenProjectHelper helper;
-
-  /**
-   * Skips the build process of the Sencha package which results in a separate <em>pkg</em>
-   * artifact. The <em>pkg</em> artifact is required if any other non-local Maven module
-   * depends on this project.
-   * <p />
-   * Enabling this option speeds up the build process.
-   *
-   * @since 4.0
-   */
-  @Parameter(property = "skipJangarooApp")
-  private boolean skipJangarooApp;
 
   /**
    * Defines the packageType of the Sencha package that will be generated. Possible values are "code" (default) and "theme".
@@ -157,7 +128,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
               new File(dir, "overrides"),
               new File(dir, "locale"),
               dir,
-              SenchaUtils.getSenchaPackageName(project));
+              getSenchaPackageName(project));
     } catch (IOException e) {
       throw new MojoExecutionException("exception while packaging JavaScript sources", e);
     }
@@ -180,7 +151,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
   @Nonnull
   private static List<String> getRequiredClassesFromConfiguration(@Nullable SenchaProfileConfiguration configuration) {
-    return configuration == null ? Collections.<String>emptyList() : configuration.getRequiredClasses();
+    return configuration == null ? Collections.emptyList() : configuration.getRequiredClasses();
   }
 
   protected void addRequiredClasses(@Nonnull SenchaPackageConfigBuilder configBuilder,
@@ -264,7 +235,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   private void writeGlobalResourceMapJs(PrintWriter pw) throws MojoExecutionException {
-    String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+    String senchaPackageName = getSenchaPackageName(project);
     getLog().info("Write global resource map JavaScript for " + PACKAGE_CONFIG_FILENAME);
     pw.printf("// START - Adding global resources to ext manifest%n");
     pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
