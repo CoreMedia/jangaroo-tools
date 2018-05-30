@@ -16,13 +16,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.jangaroo.jooc.json.JsonObject.isIdentifier;
+
 public class PropertiesClass {
 
-  private static final Pattern AS3_IDENTIFIER_PATTERN = Pattern.compile("(\\p{Alpha}|[$_])(\\p{Alnum}|[$_])*");
   private static final Pattern RESOURCE_REFERENCE_PATTERN = Pattern.compile(
           "^\\s*Resource\\s*\\(\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*,\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*\\)\\s*$"
   );
-  private static final String AS3_ANNOTATION_PATTERN = "(^|\\n)\\s*\\*\\s*(\\[[^]]*\\])";
+  private static final String AS3_ANNOTATION_PATTERN = "(^|\\n)\\s*\\*\\s*(\\[[^]]*])";
   private static final String AS3_ANNOTATION_REPLACEMENT = "$1*/ $2 /*";
 
   private ResourceBundleClass resourceBundle;
@@ -64,7 +65,7 @@ public class PropertiesClass {
 
   private List<Property> getProps(boolean includeStrings, boolean includeReferences) {
     PropertiesConfigurationLayout layout = properties.getLayout();
-    List<Property> props = new ArrayList<Property>();
+    List<Property> props = new ArrayList<>();
     Iterator<String> keys = properties.getKeys();
     while (keys.hasNext()) {
       String key = keys.next();
@@ -104,12 +105,8 @@ public class PropertiesClass {
     return comment.replaceAll("(^|\\n)#", "$1 *").replaceAll("(^|\\n)#", "$1 *");
   }
 
-  private static boolean isIdentifier(String str) {
-    return AS3_IDENTIFIER_PATTERN.matcher(str).matches();
-  }
-
   public Set<String> getImports() {
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
     Iterator keys = properties.getKeys();
     while (keys.hasNext()) {
       String key = (String)keys.next();

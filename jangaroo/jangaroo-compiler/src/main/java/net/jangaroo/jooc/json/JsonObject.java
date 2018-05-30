@@ -7,11 +7,12 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class JsonObject implements Json {
   static final String LINE_SEPARATOR = System.getProperty("line.separator");
   public static final String NET_JANGAROO_EXT_CREATE = "net.jangaroo.ext.create";
-  private Map<String, Object> properties = new LinkedHashMap<String, Object>();
+  private Map<String, Object> properties = new LinkedHashMap<>();
   private String wrapperClass;
   private String configClass;
 
@@ -176,11 +177,17 @@ public class JsonObject implements Json {
     }
   }
 
+  private static final Pattern AS3_IDENTIFIER_PATTERN = Pattern.compile("(\\p{Alpha}|[$_])(\\p{Alnum}|[$_])*");
+
+  public static boolean isIdentifier(String str) {
+    return AS3_IDENTIFIER_PATTERN.matcher(str).matches();
+  }
+
   private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
-    if (key.isEmpty()) { // TODO: if (!key.matches(<JS_IDENTIFIER_PATTERN>)) 
-      sb.append("\"\"");
-    } else {
+    if (isIdentifier(key)) {
       sb.append(key);
+    } else {
+      sb.append(CompilerUtils.quote(key));
     }
     sb.append(": ");
     sb.append(valueToString(this.properties.get(key), indentFactor, indent));
