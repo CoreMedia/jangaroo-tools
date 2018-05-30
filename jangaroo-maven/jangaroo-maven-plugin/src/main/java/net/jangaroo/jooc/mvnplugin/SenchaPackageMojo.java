@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.io.Files;
 import net.jangaroo.jooc.PackagerImpl;
+import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
@@ -21,7 +22,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -104,7 +104,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
   }
 
   public void prepareModule(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
-    writePackageConfig(configBuilder);
+    writePackageConfig();
     writePackageJson(configBuilder);
     compileJavaScriptSources(getSenchaPackageDirectory());
     writeSenchaCfgFile();
@@ -209,14 +209,13 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
   }
 
-  private void writePackageConfig(SenchaPackageConfigBuilder configBuilder) throws MojoExecutionException {
+  private void writePackageConfig() throws MojoExecutionException {
     if (globalResourcesMap == null || globalResourcesMap.isEmpty()) {
       return;
     }
     getLog().info(String.format("Write %s for module", PACKAGE_CONFIG_FILENAME));
-    configBuilder.js("bundledResources/packageConfig.js", false, true);
     String senchaPackageBuildOutputDirectoryPath = buildDirectoryPath + SenchaUtils.getPackagesPath(project);
-    File packageConfigJsFile = new File(senchaPackageBuildOutputDirectoryPath + "/" + SENCHA_BUNDLED_RESOURCES_PATH + "/" + PACKAGE_CONFIG_FILENAME);
+    File packageConfigJsFile = new File(senchaPackageBuildOutputDirectoryPath + "/src/" + PACKAGE_CONFIG_FILENAME);
     FileHelper.ensureDirectory(packageConfigJsFile.getParentFile());
     if (packageConfigJsFile.exists()) {
       getLog().debug(PACKAGE_CONFIG_FILENAME + " for module already exists, deleting...");
@@ -226,9 +225,7 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     }
 
     try (PrintWriter pw = new PrintWriter(new FileWriter(packageConfigJsFile, true))) {
-      pw.println("(function(){");
       writeGlobalResourceMapJs(pw);
-      pw.println("}());");
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + PACKAGE_CONFIG_FILENAME + " resource", e);
     }
@@ -238,26 +235,11 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     String senchaPackageName = getSenchaPackageName(project);
     getLog().info("Write global resource map JavaScript for " + PACKAGE_CONFIG_FILENAME);
     pw.printf("// START - Adding global resources to ext manifest%n");
-    pw.printf("function resolveAbsolutePath(packageName, resourcePath) {%n" +
-              "  var resolvedPath = Ext.resolveResource('<@' + packageName + '>' + resourcePath);%n" +
-              "  if (resolvedPath.indexOf('/') !== 0) {%n" +
-              "    var pathname = window.location.pathname;%n" +
-              "    resolvedPath = pathname.substring(0, pathname.lastIndexOf('/') + 1) + resolvedPath;%n" +
-              "  }%n" +
-              "  return resolvedPath;%n" +
-              "};%n" +
-              "Ext.apply(Ext.manifest.globalResources, {%n");
-
-    Iterator<Map.Entry<String, String>> globalResourceIterator = globalResourcesMap.entrySet().iterator();
-    while (globalResourceIterator.hasNext()) {
-      Map.Entry<String, String> globalResource = globalResourceIterator.next();
-      pw.printf(
-              "  '%s': resolveAbsolutePath('%s', '%s')", globalResource.getKey(), senchaPackageName, globalResource.getValue());
-      if (globalResourceIterator.hasNext()) {
-        pw.printf(",%n");
-      }
+    JsonObject globalResourcesMapAsJson = new JsonObject();
+    for (Map.Entry<String, String> resourceEntry : globalResourcesMap.entrySet()) {
+      globalResourcesMapAsJson.set(resourceEntry.getKey(), "<@" + senchaPackageName + ">" + resourceEntry.getValue());
     }
-    pw.printf("%n});%n");
+    pw.printf("Ext.registerGlobalResources(" + globalResourcesMapAsJson.toString(2) + ");%n");
     pw.println("// END - Adding global resources to ext manifest");
   }
 
