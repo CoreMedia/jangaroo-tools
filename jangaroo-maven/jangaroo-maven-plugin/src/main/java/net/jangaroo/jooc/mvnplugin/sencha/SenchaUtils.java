@@ -48,11 +48,17 @@ public class SenchaUtils {
 
   public static final String APP_DIRECTORY_NAME = "app";
 
+  public static final String TEST_APP_DIRECTORY_NAME = "test-classes"; // for historic reasons...
+
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   public static final String LOCAL_PACKAGES_PATH = SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR;
 
   public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;
+
+  public static final String TEST_APP_TARGET_DIRECTORY = SEPARATOR + TEST_APP_DIRECTORY_NAME;
+
+  public static final String WELCOME_FILE_PATH = "/index.html";
 
   /**
    * The name of the folder of the generated module inside the packages folder of the module.

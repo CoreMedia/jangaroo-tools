@@ -42,7 +42,6 @@ public class JooTestMojoTest extends TestCase {
     Assert.assertTrue(f.delete());
     Assert.assertTrue(f.mkdirs());
 
-    jooTestMojo.setTestSourceDirectory(f);
     jooTestMojo.setTestResources(new ArrayList<Resource>());
     jooTestMojo.execute();
     Assert.assertTrue(f.delete());

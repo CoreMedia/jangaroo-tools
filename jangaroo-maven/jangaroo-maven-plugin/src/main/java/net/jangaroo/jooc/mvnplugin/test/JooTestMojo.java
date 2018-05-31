@@ -12,7 +12,6 @@ import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -21,7 +20,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -29,7 +27,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -83,12 +80,6 @@ public class JooTestMojo extends AbstractSenchaMojo {
   private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
 
   /**
-   * Directory whose META-INF/RESOURCES/joo/classes sub-directory contains compiled classes.
-   */
-  @Parameter(defaultValue = "${project.build.outputDirectory}")
-  private File outputDirectory;
-
-  /**
    * Directory whose joo/classes sub-directory contains compiled test classes.
    */
   @Parameter(defaultValue = "${project.build.testOutputDirectory}")
@@ -132,25 +123,6 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
   @Parameter
   private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
-
-  /**
-   * Used to look up Artifacts in the remote repository.
-   */
-  @Inject
-  protected RepositorySystem repositorySystem;
-
-
-  @Parameter(defaultValue = "${localRepository}", required = true)
-  private ArtifactRepository localRepository;
-
-  @Parameter(defaultValue = "${project.remoteArtifactRepositories}")
-  private List<ArtifactRepository> remoteRepositories;
-
-  /**
-   * Source directory to scan for files to compile.
-   */
-  @Parameter(defaultValue = "${project.build.testSourceDirectory}")
-  private File testSourceDirectory;
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
@@ -285,7 +257,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
       new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
 
-      File baseDir = SenchaUtils.baseDir(session);
+      File baseDir = new File(project.getBuild().getDirectory(), SenchaUtils.TEST_APP_DIRECTORY_NAME);
 
       JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
       Range<Integer> portRange = interactiveJooUnitTests
@@ -490,10 +462,6 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
   public void setSkipTests(boolean b) {
     this.skipTests = b;
-  }
-
-  public void setTestSourceDirectory(File f) {
-    this.testSourceDirectory = f;
   }
 
   public void setTestResources(List<org.apache.maven.model.Resource> resources) {
