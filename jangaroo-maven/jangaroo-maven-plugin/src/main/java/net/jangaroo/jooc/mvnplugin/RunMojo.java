@@ -18,16 +18,20 @@ import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_APP_PACKAGING;
 import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_SWC_PACKAGING;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
 
 /**
- * Starts a Jetty server serving the static resources below the Sencha workspace root (i.e. the parent directory of the
- * {@code .remote-packages} directory).
+ * Starts a Jetty server serving the static resources of the workspace of an app or unit test app.
  * <br>
  * If the parameters {@code jooProxyTargetUri} and {@code jooProxyPathSpec} are provided, all requests matching the
  * {@code jooProxyPathSpec} are proxied to the {@code jooProxyTargetUri}.
+ * This is convenient to proxy-in some HTTP(S)-based service.
  */
 @Mojo(name = "run")
 public class RunMojo extends AbstractMojo {
+
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  protected MavenProject project;
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
@@ -81,7 +85,12 @@ public class RunMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    File baseDir = SenchaUtils.remotePackagesDir(session).getParentFile();
+    List<MavenProject> projects = session.getProjects();
+    boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
+
+    File baseDir = projects.size() == 1
+            ? new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : TEST_APP_DIRECTORY_NAME)
+            : SenchaUtils.remotePackagesDir(session).getParentFile();
 
     JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
 
@@ -103,7 +112,7 @@ public class RunMojo extends AbstractMojo {
 
       getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
 
-      session.getProjects().forEach(project -> logJangarooAppUrl(baseDir, jettyWrapper, project));
+      projects.forEach(project -> logJangarooAppUrl(baseDir, jettyWrapper, project));
 
       jettyWrapper.blockUntilInterrupted();
     } catch (JettyWrapper.JettyWrapperException e) {
@@ -117,14 +126,14 @@ public class RunMojo extends AbstractMojo {
     String packaging = project.getPackaging();
 
     if (JANGAROO_APP_PACKAGING.equals(packaging) || JANGAROO_SWC_PACKAGING.equals(packaging)) {
-      String modulePath = baseDir.toURI().relativize(project.getBasedir().toURI()).getPath();
+      String moduleTargetPath = baseDir.toURI().relativize(new File(project.getBuild().getDirectory()).toURI()).getPath();
       if (JANGAROO_APP_PACKAGING.equals(packaging)) {
-        String appPath = modulePath + "target/app/index.html";
+        String appPath = moduleTargetPath + APP_TARGET_DIRECTORY + WELCOME_FILE_PATH;
         if (new File(baseDir, appPath).exists()) {
           getLog().info("Found Jangaroo app at: " + jettyWrapper.getUri() + appPath);
         }
       } else {
-        String testAppPath = modulePath + "target/test-classes/index.html";
+        String testAppPath = moduleTargetPath + TEST_APP_TARGET_DIRECTORY + WELCOME_FILE_PATH;
         if (new File(baseDir, testAppPath).exists()) {
           getLog().info("Found Jangaroo test app at: " + jettyWrapper.getUri() + testAppPath);
         }
