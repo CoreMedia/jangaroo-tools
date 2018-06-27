@@ -32,5 +32,6 @@
     }
   },
   "toolkit": "classic",
-  "packageDependencyOrder": []
+  "packageDependencyOrder": [],
+  "globalResources": {}
 }

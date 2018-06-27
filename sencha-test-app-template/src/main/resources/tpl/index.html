@@ -7,6 +7,20 @@
 
     <title>Test App Template</title>
 
+    <script type="text/javascript">
+      var Ext = Ext || {};
+      Ext.registerGlobalResources = function(idToPackageResourceUrl) {
+        for (var id in idToPackageResourceUrl) {
+          var packageResourceUrl = idToPackageResourceUrl[id];
+          var resolvedPath = Ext.resolveResource(packageResourceUrl);
+          if (resolvedPath.indexOf('/') !== 0) {
+            var pathname = window.location.pathname;
+            resolvedPath = pathname.substring(0, pathname.lastIndexOf('/') + 1) + resolvedPath;
+          }
+          Ext.manifest.globalResources[id] = resolvedPath;
+        }
+      };
+    </script>
     <!-- The line below must be kept intact for Sencha Cmd to build your application -->
     <script id="microloader" data-app="b93a97da-b4c6-4d46-b56f-9d8eabf6da4a" type="text/javascript" src="bootstrap.js"></script>
 
