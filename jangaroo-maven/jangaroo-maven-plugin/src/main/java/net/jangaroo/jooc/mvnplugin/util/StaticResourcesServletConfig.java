@@ -13,13 +13,17 @@ public final class StaticResourcesServletConfig extends ServletConfigBase {
   public StaticResourcesServletConfig() {
   }
 
+  public StaticResourcesServletConfig(String pathSpec) {
+    super(pathSpec);
+  }
+
   /**
    * Creates a configuration for serving static resources.
    *
-   * @param relativeResourceBase the relative path to the static resources
    * @param pathSpec             the pattern where the static resources should be served
+   * @param relativeResourceBase the relative path to the static resources
    */
-  public StaticResourcesServletConfig(String relativeResourceBase, String pathSpec) {
+  public StaticResourcesServletConfig(String pathSpec, String relativeResourceBase) {
     super(pathSpec);
     this.relativeResourceBase = relativeResourceBase;
   }
