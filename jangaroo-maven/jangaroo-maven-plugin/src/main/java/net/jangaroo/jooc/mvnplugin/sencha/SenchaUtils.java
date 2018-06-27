@@ -92,6 +92,7 @@ public class SenchaUtils {
   public static final String SENCHA_APP_FILENAME = "app.json";
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
+  public static final String DYNAMIC_PACKAGES_FILENAME = "dynamic-packages.json";
 
   public static final String SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID = "sencha-test-app-template";
   public static final String SENCHA_APP_TEMPLATE_ARTIFACT_ID = "sencha-app-template";
@@ -206,10 +207,11 @@ public class SenchaUtils {
     return objectMapper;
   }
 
-  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies, boolean includeRuntimeDependencies) {
     return isSenchaDependency(dependency)
             && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
-            && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
+            && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()))
+            && (includeRuntimeDependencies || !Artifact.SCOPE_RUNTIME.equals(dependency.getScope()));
   }
 
   public static boolean isSenchaDependency(@Nonnull Dependency dependency) {

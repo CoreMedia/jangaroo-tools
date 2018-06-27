@@ -1,10 +1,12 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
+import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -25,7 +27,9 @@ import org.codehaus.plexus.util.StringUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -33,7 +37,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.TEST_APP_DIRECTORY_NAME;
 
 public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAppConfigBuilder>
         extends AbstractSenchaMojo
@@ -145,8 +152,39 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   private void configureRequires(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
-    for (String dependency : getRequiredDependencies()) {
+    String senchaPackageName = getSenchaPackageName(project);
+    getLog().debug("Computing required dependencies for " + senchaPackageName + "...");
+    Set<String> compileDependencies = getRequiredDependencies(false);
+    for (String dependency : compileDependencies) {
       configBuilder.require(dependency);
+      getLog().debug("  adding required dependency " + senchaPackageName + " -> " + dependency);
+    }
+
+    Set<String> runtimeDependencies = getRequiredDependencies(true);
+    runtimeDependencies.removeAll(compileDependencies);
+    writeDynamicPackagesJson(runtimeDependencies);
+  }
+
+  private void writeDynamicPackagesJson(Set<String> runtimeDependencies) throws MojoExecutionException {
+    getLog().info(String.format("Write %s for module %s.", DYNAMIC_PACKAGES_FILENAME, project.getName()));
+    boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
+    File workspaceDir = new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : TEST_APP_DIRECTORY_NAME);
+    File dynamicPackagesFile = new File(workspaceDir, DYNAMIC_PACKAGES_FILENAME);
+    if (!dynamicPackagesFile.exists()) {
+      FileHelper.ensureDirectory(dynamicPackagesFile.getParentFile());
+    } else {
+      getLog().debug(DYNAMIC_PACKAGES_FILENAME+ " for module already exists, deleting...");
+      if (!dynamicPackagesFile.delete()) {
+        throw new MojoExecutionException("Could not delete " + DYNAMIC_PACKAGES_FILENAME + " file for module");
+      }
+    }
+
+    if (!runtimeDependencies.isEmpty()) {
+      try (PrintWriter pw = new PrintWriter(new FileWriter(dynamicPackagesFile))) {
+        pw.write(new JsonArray(runtimeDependencies.toArray()).toString(0, 2));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
+      }
     }
   }
 
@@ -177,7 +215,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     configBuilder.resource(SenchaUtils.absolutizeToModuleWithPlaceholder(getType(), SenchaUtils.SENCHA_RESOURCES_PATH));
   }
 
-  private Set<String> getRequiredDependencies() throws MojoExecutionException {
+  private Set<String> getRequiredDependencies(boolean includeRuntimeDependencies) throws MojoExecutionException {
     Set<String> requiredDependencies = new LinkedHashSet<>();
     Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
     List<Dependency> projectDependencies = resolveRequiredDependencies(project);
@@ -185,7 +223,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
       if (!isExtFrameworkDependency(dependency) &&
               !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency) &&
-              SenchaUtils.isRequiredSenchaDependency(dependency, false)) {
+              SenchaUtils.isRequiredSenchaDependency(dependency, false, includeRuntimeDependencies)) {
         requiredDependencies.add(senchaPackageNameForArtifact);
       }
     }
