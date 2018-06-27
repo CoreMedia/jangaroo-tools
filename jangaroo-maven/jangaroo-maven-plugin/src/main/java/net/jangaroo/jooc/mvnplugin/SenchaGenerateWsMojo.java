@@ -151,11 +151,10 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
       return; // Do not link a package to itself!
     }
     getLog().info("Linking " + link + " -> " + target);
-    // TODO: can we convince the security manager to allow LinkPermission("symbolic")?
     try {
-      Files.createSymbolicLink(link, target);
+      FileHelper.createSymbolicLink(link, target);
     } catch (IOException e) {
-      throw new MojoExecutionException("Creating symbolic link for package " + packageName + " failed.", e);
+      throw new MojoExecutionException("Creating symbolic link for package " + packageName + " failed. Make sure you have sufficient rights to create symbolic links.", e);
     }
   }
 

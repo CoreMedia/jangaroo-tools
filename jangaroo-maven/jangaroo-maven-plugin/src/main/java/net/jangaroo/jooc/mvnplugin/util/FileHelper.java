@@ -1,6 +1,9 @@
 package net.jangaroo.jooc.mvnplugin.util;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 
 import javax.annotation.Nonnull;
@@ -102,4 +105,26 @@ public final class FileHelper {
     return relativize(base.toPath(), path);
   }
 
+  public static void createSymbolicLink(Path link, Path target) throws IOException {
+    try {
+      Files.createSymbolicLink(link, target);
+    } catch (IOException e) {
+      // TODO: can we convince the security manager to allow LinkPermission("symbolic")?
+      if (SystemUtils.IS_OS_WINDOWS) {
+        // fall back to command line execution:
+        // in recent Windows 10 versions, this seems to work even without the user holding the "Create Symbolic Link" right.
+        DefaultExecutor executor = new DefaultExecutor();
+        executor.setWorkingDirectory(link.toFile().getParentFile());
+        CommandLine mkLinkCommand = new CommandLine("CMD");
+        mkLinkCommand.addArgument("/C");
+        mkLinkCommand.addArgument("MKLINK");
+        mkLinkCommand.addArgument("/D");
+        mkLinkCommand.addArgument(link.getFileName().toString());
+        mkLinkCommand.addArgument(target.toString());
+        executor.execute(mkLinkCommand);
+      } else {
+        throw e;
+      }
+    }
+  }
 }
