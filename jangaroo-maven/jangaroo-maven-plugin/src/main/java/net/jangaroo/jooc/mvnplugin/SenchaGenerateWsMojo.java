@@ -72,7 +72,9 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
     if (isAppPackaging || testSuite != null) {
       File workspaceDir = new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : TEST_APP_DIRECTORY_NAME);
-      generateWorkspace(workspaceDir);
+      if (!new File(workspaceDir, SenchaUtils.SENCHA_WORKSPACE_FILENAME).exists()) {
+        generateWorkspace(workspaceDir);
+      }
     }
   }
 
