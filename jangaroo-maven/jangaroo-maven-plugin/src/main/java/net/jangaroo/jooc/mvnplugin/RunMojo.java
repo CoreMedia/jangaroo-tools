@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.mvnplugin.proxy.AddDynamicPackageServlet;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
 import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
@@ -87,24 +88,38 @@ public class RunMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     List<MavenProject> projects = session.getProjects();
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
+    boolean isModuleWithRemoteApp = !isAppPackaging && jooProxyTargetUri != null;
 
     File baseDir = projects.size() == 1
-            ? new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : TEST_APP_DIRECTORY_NAME)
+            ? new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : isModuleWithRemoteApp ? "" : TEST_APP_DIRECTORY_NAME)
             : SenchaUtils.remotePackagesDir(session).getParentFile();
 
     JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
 
-    jettyWrapper.setStaticResourcesServletConfigs(jooStaticResourcesServletConfigs);
+    if (isModuleWithRemoteApp) {
 
-    if (jooProxyServletConfigs != null && !jooProxyServletConfigs.isEmpty()) {
-      jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
-    } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
-      jettyWrapper.setProxyServletConfigs(Collections.singletonList(
-              new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
-    } else if (jooProxyTargetUri != null){
-      getLog().warn("Ignoring 'jooProxyTargetUri' since there is no 'jooProxyPathSpec'.");
-    } else if (jooProxyPathSpec != null){
-      getLog().warn("Ignoring 'jooProxyPathSpec' since there is no 'jooProxyTargetUri'.");
+      String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+      jettyWrapper.setStaticResourcesServletConfigs(Collections.singletonList(
+              new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + senchaPackageName + "/*")
+      ));
+      jettyWrapper.setProxyServletConfigs(Collections.singletonList(new ProxyServletConfig(jooProxyTargetUri, "/*")));
+      jettyWrapper.setAdditionalServlets(Collections.singletonMap("/" + DYNAMIC_PACKAGES_FILENAME,
+              new AddDynamicPackageServlet(jooProxyTargetUri + DYNAMIC_PACKAGES_FILENAME, senchaPackageName)
+      ));
+    } else {
+
+      jettyWrapper.setStaticResourcesServletConfigs(jooStaticResourcesServletConfigs);
+
+      if (jooProxyServletConfigs != null && !jooProxyServletConfigs.isEmpty()) {
+        jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
+      } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
+        jettyWrapper.setProxyServletConfigs(Collections.singletonList(
+                new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
+      } else if (jooProxyTargetUri != null){
+        getLog().warn("Ignoring 'jooProxyTargetUri' since there is no 'jooProxyPathSpec'.");
+      } else if (jooProxyPathSpec != null){
+        getLog().warn("Ignoring 'jooProxyPathSpec' since there is no 'jooProxyTargetUri'.");
+      }
     }
 
     try {
@@ -132,11 +147,13 @@ public class RunMojo extends AbstractMojo {
         if (new File(baseDir, appPath).exists()) {
           getLog().info("Found Jangaroo app at: " + jettyWrapper.getUri() + appPath);
         }
-      } else {
+      } else if (jooProxyTargetUri == null) {
         String testAppPath = moduleTargetPath + TEST_APP_TARGET_DIRECTORY + WELCOME_FILE_PATH;
         if (new File(baseDir, testAppPath).exists()) {
           getLog().info("Found Jangaroo test app at: " + jettyWrapper.getUri() + testAppPath);
         }
+      } else {
+        getLog().info("Found Jangaroo module at: " + jettyWrapper.getUri());
       }
     }
   }
