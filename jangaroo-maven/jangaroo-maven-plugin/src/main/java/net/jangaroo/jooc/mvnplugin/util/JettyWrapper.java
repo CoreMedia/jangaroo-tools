@@ -12,12 +12,14 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 
+import javax.servlet.Servlet;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.eclipse.jetty.util.resource.Resource.newResource;
 
@@ -29,7 +31,7 @@ public class JettyWrapper {
   private static final long WAIT_TIME_MILLIS = 1000L;
 
   private static final StaticResourcesServletConfig DEFAULT_RESOURCES_SERVLET_CONFIG =
-          new StaticResourcesServletConfig("/", "/*");
+          new StaticResourcesServletConfig("/*", "/");
 
   static {
     Resource.setDefaultUseCaches(false);
@@ -40,6 +42,7 @@ public class JettyWrapper {
   private File baseDir;
   private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
   private List<ProxyServletConfig> proxyServletConfigs;
+  private Map<String, Servlet> additionalServlets;
 
   private Server server;
 
@@ -60,6 +63,10 @@ public class JettyWrapper {
 
   public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs) {
     this.proxyServletConfigs = proxyServletConfigs;
+  }
+
+  public void setAdditionalServlets(Map<String, Servlet> additionalServlets) {
+    this.additionalServlets = additionalServlets;
   }
 
   public void start(String host, int port) throws JettyWrapperException {
@@ -172,6 +179,12 @@ public class JettyWrapper {
         }
       }
 
+      if (additionalServlets != null && !additionalServlets.isEmpty()) {
+        for (Map.Entry<String, Servlet> servletEntry : additionalServlets.entrySet()) {
+          handler.addServlet(new ServletHolder(servletEntry.getValue()), servletEntry.getKey());
+        }
+      }
+
       return handler;
     } catch (Exception e) {
       throw new JettyWrapperException(e);
@@ -190,7 +203,8 @@ public class JettyWrapper {
   }
 
   private void addProxyServlet(JettyWebAppContext webAppContext, ProxyServletConfig config) {
-    ServletHolder servletHolder = new ServletHolder("proxy", JangarooProxyServlet.class);
+    String name = config.getPathSpec(); // TODO: Is this really a good servlet name?
+    ServletHolder servletHolder = new ServletHolder(name, JangarooProxyServlet.class);
 
     servletHolder.setInitParameter("targetUri", config.getTargetUri().replaceAll("/$", ""));
     servletHolder.setInitParameter(ProxyServlet.P_FORWARDEDFOR, String.valueOf(config.isForwardedHeaderEnabled()));
