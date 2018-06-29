@@ -179,12 +179,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       }
     }
 
-    if (!runtimeDependencies.isEmpty()) {
-      try (PrintWriter pw = new PrintWriter(new FileWriter(dynamicPackagesFile))) {
-        pw.write(new JsonArray(runtimeDependencies.toArray()).toString(0, 2));
-      } catch (IOException e) {
-        throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
-      }
+    try (PrintWriter pw = new PrintWriter(new FileWriter(dynamicPackagesFile))) {
+      pw.write(new JsonArray(runtimeDependencies.toArray()).toString(0, 2));
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
     }
   }
 
