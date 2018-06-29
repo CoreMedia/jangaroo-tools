@@ -14,7 +14,7 @@ public final class StaticResourcesServletConfig extends ServletConfigBase {
   }
 
   public StaticResourcesServletConfig(String pathSpec) {
-    super(pathSpec);
+    this(pathSpec, "/");
   }
 
   /**
