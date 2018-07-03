@@ -6,6 +6,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AllowSymLinkAliasChecker;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
@@ -197,6 +198,7 @@ public class JettyWrapper {
     servletHolder.setInitParameter("relativeResourceBase", config.getRelativeResourceBase());
     servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
 
+    webAppContext.addAliasCheck(new AllowSymLinkAliasChecker());
     webAppContext.addServlet(servletHolder, config.getPathSpec());
     getLog().info(String.format("Serving static resources: %s -> %s",
             config.getPathSpec(), config.getRelativeResourceBase()));
