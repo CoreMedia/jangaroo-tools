@@ -56,6 +56,10 @@ public class RunMojo extends AbstractMojo {
   @Parameter(property = "jooProxyTargetUri")
   private String jooProxyTargetUri;
 
+  public void setJooProxyTargetUri(String jooProxyTargetUri) {
+    this.jooProxyTargetUri = jooProxyTargetUri.endsWith("/") ? jooProxyTargetUri : jooProxyTargetUri + "/";
+  }
+
   /**
    * The pattern that determines which requests should be proxied.
    */
