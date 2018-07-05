@@ -17,15 +17,25 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.archiver.AbstractArchiver;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 /**
@@ -113,7 +123,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
               PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
               "**/*-timestamp"
       });
-      archiver.addFileSet(fileSet);
+      addFileSet(archiver, fileSet);
     }
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
@@ -131,6 +141,43 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
   }
 
+  /**
+   * Method copied + slightly adapted from AbstractArchiver because of symlink handling (see below).
+   */
+  private static void addFileSet(@Nonnull AbstractArchiver archiver, @Nonnull final FileSet fileSet )
+          throws ArchiverException
+  {
+    final File directory = fileSet.getDirectory();
+
+    // The PlexusIoFileResourceCollection contains platform-specific File.separatorChar which
+    // is an interesting cause of grief, see PLXCOMP-192
+    final PlexusIoFileResourceCollection collection = new PlexusIoFileResourceCollection();
+
+    // ALWAYS follow symlinks
+    collection.setFollowingSymLinks(true);
+
+    collection.setIncludes( fileSet.getIncludes() );
+    collection.setExcludes( fileSet.getExcludes() );
+    collection.setBaseDir( directory );
+    collection.setFileSelectors( fileSet.getFileSelectors() );
+    collection.setIncludingEmptyDirectories( fileSet.isIncludingEmptyDirectories() );
+    collection.setPrefix( fileSet.getPrefix() );
+    collection.setCaseSensitive( fileSet.isCaseSensitive() );
+    collection.setUsingDefaultExcludes( fileSet.isUsingDefaultExcludes() );
+    collection.setStreamTransformer( fileSet.getStreamTransformer() );
+
+    if ( archiver.getOverrideDirectoryMode() > -1 || archiver.getOverrideFileMode() > -1 )
+    {
+      collection.setOverrideAttributes( -1, null, -1, null, archiver.getOverrideFileMode(), archiver.getOverrideDirectoryMode() );
+    }
+
+    if ( archiver.getDefaultDirectoryMode() > -1 || archiver.getDefaultFileMode() > -1 )
+    {
+      collection.setDefaultAttributes( -1, null, -1, null, archiver.getDefaultFileMode(), archiver.getDefaultDirectoryMode() );
+    }
+
+    archiver.addResources( collection );
+  }
 
   private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
