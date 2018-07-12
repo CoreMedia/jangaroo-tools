@@ -5,21 +5,14 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import io.github.bonigarcia.wdm.WebDriverManagerException;
 import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
-import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -48,11 +41,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
-import java.util.List;
 import java.util.function.Function;
-
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isSenchaDependency;
 
 /**
  * Executes JooUnit tests.
@@ -82,25 +71,16 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isSenchaDependency;
  */
 @Mojo(name = "test",
         defaultPhase = LifecyclePhase.TEST,
-        requiresDependencyResolution = ResolutionScope.TEST,
         threadSafe = true)
 public class JooTestMojo extends AbstractSenchaMojo {
 
   private static final int JETTY_START_TIMEOUT_MILLIS = 30000;
-
-  private static final String DEFAULT_TEST_APP_JSON = "default.test.app.json";
 
   /**
    * Directory whose joo/classes sub-directory contains compiled test classes.
    */
   @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   protected File testOutputDirectory;
-
-  /**
-   * the project's test resources
-   */
-  @Parameter(defaultValue = "${project.testResources}")
-  protected List<Resource> testResources;
 
   /**
    * To avoid port clashes when multiple tests are running at the same
@@ -131,9 +111,6 @@ public class JooTestMojo extends AbstractSenchaMojo {
    */
   @Parameter(property = "jooUnitJettyHost")
   private String jooUnitJettyHost = "localhost";
-
-  @Parameter
-  private String toolkit = SenchaUtils.TOOLKIT_CLASSIC;
 
   /**
    * Set this to 'true' to bypass unit tests entirely. Its use is NOT RECOMMENDED, especially if you
@@ -215,7 +192,6 @@ public class JooTestMojo extends AbstractSenchaMojo {
    * If no phantomjs executable (or an outdated one) is found, falls back to Selenium WebDriver with
    * jooUnitWebDriverBrowser "chrome".
    */
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(property = "phantomjs.bin")
   private String phantomBin = "phantomjs";
 
@@ -247,15 +223,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean doSkip = skip || skipTests || skipJooUnitTests;
-    if (doSkip || testSuite == null) {
-      getLog().info("Skipping generation of Jangaroo test app: " + (doSkip ? "tests skipped." : "no tests found."));
-    } else {
-      getLog().info("Creating Jangaroo test app below " + testOutputDirectory);
-      createWebApp(testOutputDirectory);
-
-      // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
-      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
-
+    if (!doSkip && testSuite != null) {
       File baseDir = new File(project.getBuild().getDirectory(), SenchaUtils.TEST_APP_DIRECTORY_NAME);
 
       JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
@@ -315,59 +283,11 @@ public class JooTestMojo extends AbstractSenchaMojo {
     }
   }
 
-  /**
-   * Create the Jangaroo Web app in the given Web app directory.
-   *
-   * @param webappDirectory the directory where to build the Jangaroo Web app.
-   * @throws org.apache.maven.plugin.MojoExecutionException if anything goes wrong
-   */
-  protected void createWebApp(File webappDirectory) throws MojoExecutionException {
-    // only generate app if senchaCfg does not exist
-    if (SenchaUtils.doesSenchaAppExist(webappDirectory)) {
-      getLog().info("Sencha app already exists, skip generating one");
-      return;
-    }
-    getLog().info(String.format("Generating Sencha App %s for unit tests...", webappDirectory));
-    FileHelper.ensureDirectory(webappDirectory);
-    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), getSenchaLogLevel());
-    createAppJson();
-  }
-
-  private boolean isTestDependency(Dependency dependency) {
-    return Artifact.SCOPE_TEST.equals(dependency.getScope()) && isSenchaDependency(dependency)
-            && !isExtFrameworkDependency(dependency);
-  }
-
-  private void createAppJson() throws MojoExecutionException {
-    File appJsonFile = new File(project.getBuild().getTestOutputDirectory(), SenchaUtils.SENCHA_APP_FILENAME);
-    getLog().info(String.format("Generating Sencha App %s for unit tests...", appJsonFile.getPath()));
-
-    SenchaAppConfigBuilder configBuilder = new SenchaAppConfigBuilder();
-    try {
-      configBuilder.destFile(appJsonFile);
-      configBuilder.defaults(DEFAULT_TEST_APP_JSON);
-      configBuilder.destFileComment("Auto-generated test application configuration. DO NOT EDIT!");
-
-      // require the package to test:
-      configBuilder.require(getSenchaPackageName(project));
-      // add test scope dependencies:
-      List<Dependency> projectDependencies = project.getDependencies();
-      for (Dependency dependency : projectDependencies) {
-        if (isTestDependency(dependency)) {
-          configBuilder.require(getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId()));
-        }
-      }
-      configBuilder.buildFile();
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not build test " + SenchaUtils.SENCHA_APP_FILENAME, e);
-    }
-  }
-
-  protected MojoExecutionException wrap(Exception e) {
+  private MojoExecutionException wrap(Exception e) {
     return new MojoExecutionException(e.toString(), e);
   }
 
-  protected String getTestUrl(URI serverUri, File workspaceDir) throws MojoExecutionException {
+  private String getTestUrl(URI serverUri, File workspaceDir) {
     String path = workspaceDir.toURI().relativize(testOutputDirectory.toURI()).getPath();
     String serverUriString = serverUri.toString();
     if (!serverUriString.endsWith("/")) {
@@ -445,13 +365,12 @@ public class JooTestMojo extends AbstractSenchaMojo {
     throw new IllegalArgumentException();
   }
 
-  File writeResultToFile(String testResultXml) throws IOException {
+  private void writeResultToFile(String testResultXml) throws IOException {
     File result = new File(testResultOutputDirectory, getTestResultFileName());
     FileUtils.writeStringToFile(result, testResultXml);
     if (!result.setLastModified(System.currentTimeMillis())) {
       getLog().warn("could not set modification time of file " + result);
     }
-    return result;
   }
 
   private String getTestResultFileName() {
@@ -486,20 +405,16 @@ public class JooTestMojo extends AbstractSenchaMojo {
     }
   }
 
-  public void setSkip(boolean b) {
-    this.skip = b;
+  void skip() {
+    this.skip = true;
   }
 
-  public void setSkipTests(boolean b) {
-    this.skipTests = b;
+  void skipTests() {
+    this.skipTests = true;
   }
 
-  public void setTestResources(List<org.apache.maven.model.Resource> resources) {
-    this.testResources = resources;
-  }
-
-  public void setTestFailureIgnore(boolean b) {
-    this.testFailureIgnore = b;
+  void testFailureIgnore() {
+    this.testFailureIgnore = true;
   }
 
 }

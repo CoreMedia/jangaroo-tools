@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
 import junit.framework.TestCase;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.junit.Assert;
@@ -11,28 +10,35 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 
 /**
  *
  */
 public class JooTestMojoTest extends TestCase {
-  JooTestMojo jooTestMojo;
+  private JooGenerateTestAppMojo jooGenerateTestAppMojo;
+  private JooTestMojo jooTestMojo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    jooGenerateTestAppMojo = new JooGenerateTestAppMojo();
     jooTestMojo = new JooTestMojo();
   }
 
   public void testSkip() throws MojoExecutionException, MojoFailureException {
-    jooTestMojo.setSkip(true);
+    jooGenerateTestAppMojo.skip();
+    // skip skips everything so no error expected
+    jooGenerateTestAppMojo.execute();
+    jooTestMojo.skip();
     // skip skips everything so no error expected
     jooTestMojo.execute();
   }
 
   public void testSkipTests() throws MojoExecutionException, MojoFailureException {
-    jooTestMojo.setSkipTests(true);
+    jooGenerateTestAppMojo.skipTests();
+    // skip skips everything so no error expected
+    jooGenerateTestAppMojo.execute();
+    jooTestMojo.skipTests();
     // skip skips everything so no error expected
     jooTestMojo.execute();
   }
@@ -42,18 +48,17 @@ public class JooTestMojoTest extends TestCase {
     Assert.assertTrue(f.delete());
     Assert.assertTrue(f.mkdirs());
 
-    jooTestMojo.setTestResources(new ArrayList<Resource>());
     jooTestMojo.execute();
     Assert.assertTrue(f.delete());
   }
 
-  public void testEvalTestOutputSuccess() throws MojoExecutionException, MojoFailureException, IOException, SAXException, ParserConfigurationException {
+  public void testEvalTestOutputSuccess() throws MojoFailureException, IOException, SAXException, ParserConfigurationException {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"0\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     jooTestMojo.evalTestOutput(new StringReader(testResult));
   }
 
-  public void testEvalTestOutputFailure() throws MojoExecutionException, MojoFailureException, IOException, SAXException, ParserConfigurationException {
+  public void testEvalTestOutputFailure() throws IOException, SAXException, ParserConfigurationException {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"1\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     try {
@@ -64,11 +69,11 @@ public class JooTestMojoTest extends TestCase {
     fail("Should reach that point (testing for exception)");
   }
 
-  public void testEvalTestOutputFailureIgnoreFail() throws MojoExecutionException, MojoFailureException, IOException, SAXException, ParserConfigurationException {
+  public void testEvalTestOutputFailureIgnoreFail() throws IOException, SAXException, ParserConfigurationException {
     String testResult = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n" +
             "<testsuite errors=\"0\" failures=\"1\" name=\"com.coremedia.ui.data::BeanImplTest\" tests=\"21\" time=\"2814\"></testsuite>";
     try {
-      jooTestMojo.setTestFailureIgnore(true);
+      jooTestMojo.testFailureIgnore();
       jooTestMojo.evalTestOutput(new StringReader(testResult));
     } catch (MojoFailureException e) {
       fail("Shouldn't fail since testFailureIgnore=true");
