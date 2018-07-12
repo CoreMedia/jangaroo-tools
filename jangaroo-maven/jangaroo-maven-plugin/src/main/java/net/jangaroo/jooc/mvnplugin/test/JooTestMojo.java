@@ -24,6 +24,8 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.opera.OperaDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -40,7 +42,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.function.Function;
 
 /**
@@ -175,6 +181,14 @@ public class JooTestMojo extends AbstractSenchaMojo {
   private String jooUnitWebDriverBrowser = "";
 
   /**
+   * Defines the Selenium Remote URI to use, usually the URI of a Selenium Grid.
+   * Setting this property leads to running Selenium instead of PhantomJS.
+   * A jooUnitWebDriverBrowser can be specified, if it is not, "chrome" is used as default.
+   */
+  @Parameter(property = "jooUnitRemoteWebDriverUri")
+  private String jooUnitRemoteWebDriverUri = "";
+
+  /**
    * Defines the class of the test suite for JooUnit tests.
    */
   @Parameter
@@ -224,6 +238,15 @@ public class JooTestMojo extends AbstractSenchaMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     boolean doSkip = skip || skipTests || skipJooUnitTests;
     if (!doSkip && testSuite != null) {
+      // for remote WebDriver (Selenium Grid), we need to specify our real host name, so that the Grid can call back:
+      if (!jooUnitRemoteWebDriverUri.isEmpty()) {
+        try {
+          jooUnitJettyHost = InetAddress.getLocalHost().getCanonicalHostName();
+        } catch (UnknownHostException e) {
+          throw new MojoExecutionException("I just don't know my own hostname ... ", e);
+        }
+      }
+
       File baseDir = new File(project.getBuild().getDirectory(), SenchaUtils.TEST_APP_DIRECTORY_NAME);
 
       JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
@@ -251,7 +274,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
   }
 
   private void runTests(String url) throws MojoFailureException, MojoExecutionException {
-    if (jooUnitWebDriverBrowser.isEmpty()) {
+    if (jooUnitWebDriverBrowser.isEmpty() && jooUnitRemoteWebDriverUri.isEmpty()) {
       try {
         File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
         File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
@@ -342,9 +365,23 @@ public class JooTestMojo extends AbstractSenchaMojo {
   }
 
   private WebDriver createWebDriver() throws IllegalArgumentException, WebDriverManagerException {
-    DriverManagerType driverManagerType = jooUnitWebDriverBrowser.isEmpty() ? DriverManagerType.CHROME
-            : DriverManagerType.valueOf(jooUnitWebDriverBrowser.toUpperCase()); // may throw IllegalArgumentException
-    getLog().info("Setting up WebDriver for " + jooUnitWebDriverBrowser + ".");
+    String webDriverBrowser = jooUnitWebDriverBrowser;
+    if (webDriverBrowser.isEmpty()) {
+      webDriverBrowser = "chrome";
+    }
+
+    if (!jooUnitRemoteWebDriverUri.isEmpty()) {
+      try {
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setBrowserName(webDriverBrowser);
+        return new RemoteWebDriver(new URL(jooUnitRemoteWebDriverUri), capabilities);
+      } catch (MalformedURLException e) {
+        throw new IllegalArgumentException("jooUnitRemoteWebDriverUri contains an invalid URI.", e);
+      }
+    }
+
+    DriverManagerType driverManagerType = DriverManagerType.valueOf(webDriverBrowser.toUpperCase()); // may throw IllegalArgumentException
+    getLog().info("Setting up WebDriver for " + webDriverBrowser + ".");
     WebDriverManager.getInstance(driverManagerType).setup();
     switch (driverManagerType) {
       case CHROME:
