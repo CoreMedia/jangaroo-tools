@@ -1,8 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.test;
 
-import com.thoughtworks.selenium.DefaultSelenium;
-import com.thoughtworks.selenium.Selenium;
-import com.thoughtworks.selenium.SeleniumException;
+import io.github.bonigarcia.wdm.DriverManagerType;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import io.github.bonigarcia.wdm.WebDriverManagerException;
 import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
@@ -21,12 +21,24 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.cli.CommandLineException;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.opera.OperaDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,10 +47,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.List;
+import java.util.function.Function;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isSenchaDependency;
@@ -156,11 +167,9 @@ public class JooTestMojo extends AbstractSenchaMojo {
   /**
    * Output directory for test results.
    */
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(defaultValue = "${project.build.directory}/surefire-reports/")
   private File testResultOutputDirectory;
 
-  @SuppressWarnings({"UnusedDeclaration"})
   @Parameter
   private String testResultFileName;
 
@@ -178,32 +187,21 @@ public class JooTestMojo extends AbstractSenchaMojo {
   private int jooUnitMaxRetriesOnCrashes = 5;
 
   /**
-   * Defines the Selenium RC host. Default is localhost.
-   * If the system property SELENIUM_RC_HOST is set, it is used prior to the
-   * maven parameter.
+   * Defines the Selenium WebDriver browser to use. One of "chrome", "firefox", "opera", "edge", "iexplorer".
+   * The WebDriver implementation for the chosen browser is automatically downloaded via WebDriverManager.
+   * See the <a href="https://github.com/bonigarcia/webdrivermanager#readme">WebDriverManager README</a> for
+   * all available configuration properties if the default configuration do not work for you.
+   * 
+   * <p>Default is to not use WebDriver at all, but use PhantomJS (see {@link #phantomBin}).</p>
    */
-  @Parameter(property = "jooUnitSeleniumRCHost")
-  private String jooUnitSeleniumRCHost = "localhost";
+  @Parameter(property = "jooUnitWebDriverBrowser")
+  private String jooUnitWebDriverBrowser = "";
 
   /**
    * Defines the class of the test suite for JooUnit tests.
    */
   @Parameter
   private String testSuite = null;
-
-  /**
-   * Defines the Selenium RC port. Default is 4444.
-   */
-  @SuppressWarnings({"UnusedDeclaration"})
-  @Parameter(property = "jooUnitSeleniumRCPort")
-  private int jooUnitSeleniumRCPort = 4444;
-
-  /**
-   * Selenium browser start command. Default is *firefox
-   */
-  @SuppressWarnings({"UnusedDeclaration"})
-  @Parameter(property = "jooUnitSeleniumBrowserStartCommand")
-  private String jooUnitSeleniumBrowserStartCommand = "*firefox";
 
   /**
    * Set this to true to ignore a failure during testing. Its use is NOT RECOMMENDED, but quite convenient on
@@ -214,7 +212,8 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
   /**
    * The phantomjs executable. If not specified, it expects the phantomjs binary in the PATH.
-   * If not phantomjs executable (or an outdated one) is found, falls back to Selenium.
+   * If no phantomjs executable (or an outdated one) is found, falls back to Selenium WebDriver with
+   * jooUnitWebDriverBrowser "chrome".
    */
   @SuppressWarnings({"UnusedDeclaration"})
   @Parameter(property = "phantomjs.bin")
@@ -284,19 +283,22 @@ public class JooTestMojo extends AbstractSenchaMojo {
   }
 
   private void runTests(String url) throws MojoFailureException, MojoExecutionException {
-    try {
-      File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
-      File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
-      FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
-      final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, jooUnitResourceTimeout, phantomjsDebug, phantomjsWebSecurity, getLog());
-      if (phantomJsTestRunner.canRun()) {
-        executePhantomJs(testResultOutputFile, phantomJsTestRunner);
-      } else {
-        executeSelenium(url);
+    if (jooUnitWebDriverBrowser.isEmpty()) {
+      try {
+        File testResultOutputFile = new File(testResultOutputDirectory, getTestResultFileName());
+        File phantomTestRunner = new File(testResultOutputDirectory, "phantomjs-joounit-page-runner.js");
+        FileUtils.copyInputStreamToFile(getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/phantomjs-joounit-page-runner.js"), phantomTestRunner);
+        final PhantomJsTestRunner phantomJsTestRunner = new PhantomJsTestRunner(phantomBin, url, testResultOutputFile.getPath(), phantomTestRunner.getPath(), jooUnitTestExecutionTimeout, jooUnitMaxRetriesOnCrashes, jooUnitResourceTimeout, phantomjsDebug, phantomjsWebSecurity, getLog());
+        if (phantomJsTestRunner.canRun()) {
+          executePhantomJs(testResultOutputFile, phantomJsTestRunner);
+          return;
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("Cannot create local copy of phantomjs-joounit-page-runner.js", e);
       }
-    } catch (IOException e) {
-      throw new MojoExecutionException("Cannot create local copy of phantomjs-joounit-page-runner.js", e);
     }
+    // jooUnitWebDriverBrowser configured or no PhantomJS: use Selenium WebDriver
+    executeSelenium(url);
   }
 
   private void executePhantomJs(File testResultOutputFile, PhantomJsTestRunner phantomJsTestRunner) throws MojoFailureException, MojoExecutionException {
@@ -375,31 +377,35 @@ public class JooTestMojo extends AbstractSenchaMojo {
     return serverUriString + path + "?cache";
   }
 
-  void executeSelenium(String testsHtmlUrl) throws MojoExecutionException, MojoFailureException {
-    jooUnitSeleniumRCHost = System.getProperty("SELENIUM_RC_HOST", jooUnitSeleniumRCHost);
-    try {
-      //check wether the host is reachable
-      //noinspection ResultOfMethodCallIgnored
-      InetAddress.getAllByName(jooUnitSeleniumRCHost);
-    } catch (UnknownHostException e) {
-      throw new MojoExecutionException("Cannot resolve host " + jooUnitSeleniumRCHost +
-              ". Please specify a host running the selenium remote control or skip tests" +
-              " by -DskipTests", e);
-    }
+  private void executeSelenium(String testsHtmlUrl) throws MojoExecutionException, MojoFailureException {
     getLog().info("JooTest report directory: " + testResultOutputDirectory.getAbsolutePath());
-    Selenium selenium = new DefaultSelenium(jooUnitSeleniumRCHost, jooUnitSeleniumRCPort, jooUnitSeleniumBrowserStartCommand, testsHtmlUrl);
+    WebDriver driver;
     try {
-      selenium.start();
+      driver = createWebDriver();
+    } catch (IllegalArgumentException e) {
+      throw new MojoExecutionException("Unknown jooUnitWebDriverBrowser configuration value '" + jooUnitWebDriverBrowser + "'.");
+    } catch (WebDriverManagerException e) {
+      throw new MojoExecutionException("Failed to set up WebDriver.", e);
+    }
+    try {
       getLog().debug("Opening " + testsHtmlUrl);
-      selenium.open(testsHtmlUrl);
+      driver.get(testsHtmlUrl);
       getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
-      selenium.waitForCondition("selenium.browserbot.getCurrentWindow().result != null || selenium.browserbot.getCurrentWindow().classLoadingError != null", Integer.toString(jooUnitTestExecutionTimeout));
-      String classLoadingError = selenium.getEval("selenium.browserbot.getCurrentWindow().classLoadingError");
+
+      JavascriptExecutor javascriptExecutor = (JavascriptExecutor) driver;
+      new WebDriverWait(driver, jooUnitTestExecutionTimeout / 1000).until(new Function<WebDriver, Boolean>() {
+        @Nullable
+        @Override
+        public Boolean apply(@Nullable WebDriver webDriver) {
+          return (Boolean) javascriptExecutor.executeScript("return window.result != null || window.classLoadingError != null");
+        }
+      });
+      String classLoadingError = (String) javascriptExecutor.executeScript("return window.classLoadingError");
       if (classLoadingError != null && !classLoadingError.equals("null")) {
         throw new MojoExecutionException(classLoadingError);
       }
 
-      String testResultXml = selenium.getEval("selenium.browserbot.getCurrentWindow().result");
+      String testResultXml = (String) javascriptExecutor.executeScript("return window.result");
       writeResultToFile(testResultXml);
       evalTestOutput(new StringReader(testResultXml));
     } catch (IOException e) {
@@ -408,14 +414,38 @@ public class JooTestMojo extends AbstractSenchaMojo {
       throw new MojoExecutionException("Cannot create a simple XML Builder", e);
     } catch (SAXException e) {
       throw new MojoExecutionException("Cannot parse test result", e);
-    } catch (SeleniumException e) {
-      throw new MojoExecutionException("Selenium setup exception", e);
+    } catch (WebDriverException e) {
+      throw new MojoExecutionException("WebDriver exception during test execution.", e);
     } finally {
-      selenium.stop();
+      driver.quit();
     }
   }
 
-  File writeResultToFile(java.lang.String testResultXml) throws IOException {
+  private WebDriver createWebDriver() throws IllegalArgumentException, WebDriverManagerException {
+    DriverManagerType driverManagerType = jooUnitWebDriverBrowser.isEmpty() ? DriverManagerType.CHROME
+            : DriverManagerType.valueOf(jooUnitWebDriverBrowser.toUpperCase()); // may throw IllegalArgumentException
+    getLog().info("Setting up WebDriver for " + jooUnitWebDriverBrowser + ".");
+    WebDriverManager.getInstance(driverManagerType).setup();
+    switch (driverManagerType) {
+      case CHROME:
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.setHeadless(true);
+        return new ChromeDriver(chromeOptions);
+      case FIREFOX:
+        FirefoxOptions firefoxOptions = new FirefoxOptions();
+        firefoxOptions.setHeadless(true);
+        return new FirefoxDriver(firefoxOptions);
+      case EDGE:
+        return new EdgeDriver(); // no headless mode yet :-(
+      case IEXPLORER:
+        return new InternetExplorerDriver(); // no headless mode :-(
+      case OPERA:
+        return new OperaDriver(); // no headless mode :-(
+    }
+    throw new IllegalArgumentException();
+  }
+
+  File writeResultToFile(String testResultXml) throws IOException {
     File result = new File(testResultOutputDirectory, getTestResultFileName());
     FileUtils.writeStringToFile(result, testResultXml);
     if (!result.setLastModified(System.currentTimeMillis())) {
