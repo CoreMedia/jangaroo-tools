@@ -62,6 +62,7 @@
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+          <process-test-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generateTestApp</process-test-classes>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
@@ -84,6 +85,7 @@
           <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <test-compile>net.jangaroo:jangaroo-maven-plugin:${pom.version}:testCompile</test-compile>
+          <process-test-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generateTestApp</process-test-classes>
           <test>net.jangaroo:jangaroo-maven-plugin:${pom.version}:test</test>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
