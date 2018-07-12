@@ -197,7 +197,7 @@ public class SenchaGenerateWsMojo extends AbstractSenchaMojo {
     for (Artifact artifact : dependencyArtifacts) {
       Dependency dependency = MavenDependencyHelper.fromArtifact(artifact);
       boolean isExtFramework = isExtFrameworkArtifact(artifact);
-      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, !isAppPackaging, true)) {
+      if (isExtFramework || SenchaUtils.isRequiredSenchaDependency(dependency, !isAppPackaging)) {
         String reactorProjectId = reactorProjectId(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
         String senchaPackageName = SenchaUtils.getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
         Path pkgDir = reactorProjectPackagePaths.get(artifact);
