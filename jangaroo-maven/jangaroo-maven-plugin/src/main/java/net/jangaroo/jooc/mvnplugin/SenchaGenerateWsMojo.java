@@ -4,7 +4,6 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaWorkspaceConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
 
@@ -134,8 +132,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
     File packagesDir = new File(workspaceDir, SenchaUtils.PACKAGES_DIRECTORY_NAME);
     FileHelper.ensureDirectory(packagesDir);
     Path packagesPath = packagesDir.toPath().normalize();
-    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
-    createSymbolicLinksForPackages(workspaceDir, packagesPath, remotePackagesDir, reactorProjectPackagePaths, isAppPackaging);
+    createSymbolicLinksForPackages(workspaceDir, packagesPath, remotePackagesDir, isAppPackaging);
   }
 
   private String reactorProjectId(MavenProject project) {
@@ -146,7 +143,8 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
     return groupId + ':' + artifactId + ':' + version;
   }
 
-  private void createSymbolicLinksForPackages(File workspaceDir, Path packagesPath, File remotePackagesDir, Map<Artifact, Path> reactorProjectPackagePaths, boolean isAppPackaging) throws MojoExecutionException {
+  private void createSymbolicLinksForPackages(File workspaceDir, Path packagesPath, File remotePackagesDir, boolean isAppPackaging) throws MojoExecutionException {
+    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
     Set<Artifact> artifacts = project.getArtifacts();
     Optional<Artifact> extFrameworkArtifact = artifacts.stream().filter(this::isExtFrameworkArtifact).findFirst();
     if (extFrameworkArtifact.isPresent()) {
@@ -155,7 +153,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
       getLog().warn("no Ext framework dependency found");
     }
     Set<Artifact> dependencyArtifacts = onlyRequiredSenchaDependencies(artifacts, !isAppPackaging);
-    createSymbolicLinksForArtifacts(dependencyArtifacts, packagesPath, remotePackagesDir, reactorProjectPackagePaths);
+    createSymbolicLinksForArtifacts(dependencyArtifacts, packagesPath, remotePackagesDir);
     if (!isAppPackaging) {
       // add link to package of module with the code to be tested:
       String senchaPackageName = SenchaUtils.getSenchaPackageName(project);

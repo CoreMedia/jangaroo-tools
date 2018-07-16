@@ -36,8 +36,6 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDep
         requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PackageAppOverlayMojo extends AbstractLinkPackagesMojo {
 
-  private static final String OVERLAY_PACKAGES_DIRECTORY_NAME = "dynamic-packages";
-
   @Parameter(defaultValue = "${project.build.outputDirectory}/" + MavenPluginHelper.META_INF_RESOURCES)
   private File webResourcesOutputDirectory;
 
@@ -50,25 +48,20 @@ public class PackageAppOverlayMojo extends AbstractLinkPackagesMojo {
   }
 
   private void packageAppOverlay() throws MojoExecutionException {
-    MavenProject jangarooAppProject = project.getProjectReferences().values().stream().filter(mavenProject ->
-            Type.JANGAROO_APP_PACKAGING.equals(mavenProject.getPackaging())).findFirst()
-            .orElseThrow(() ->
-                    new MojoExecutionException("Module of type jangaroo-app-overlay must have exactly one dependency on a module of type jangaroo.app.")
-            );
+    Dependency jangarooAppDependency = findRequiredJangarooAppDependency(project);
 
-    File overlayPackagesDir = new File(webResourcesOutputDirectory, OVERLAY_PACKAGES_DIRECTORY_NAME);
+    File overlayPackagesDir = new File(webResourcesOutputDirectory, SenchaUtils.PACKAGES_DIRECTORY_NAME);
     FileHelper.ensureDirectory(overlayPackagesDir);
     Path packagesPath = overlayPackagesDir.toPath().normalize();
     File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
-    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
 
     Set<Artifact> applicationArtifacts = new HashSet<>();
-    addSenchaDependencyArtifacts(jangarooAppProject, applicationArtifacts);
+    addSenchaDependencyArtifacts(jangarooAppDependency, applicationArtifacts);
     Set<Artifact> overlayArtifacts = onlyRequiredSenchaDependencies(project.getArtifacts(), false);
 
     overlayArtifacts.removeIf(artifact -> containsSimilarArtifact(applicationArtifacts, artifact));
 
-    createSymbolicLinksForArtifacts(overlayArtifacts, packagesPath, remotePackagesDir, reactorProjectPackagePaths);
+    createSymbolicLinksForArtifacts(overlayArtifacts, packagesPath, remotePackagesDir);
 
     Set<String> overlayPackageNames = overlayArtifacts.stream().map(artifact ->
             SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
@@ -83,13 +76,13 @@ public class PackageAppOverlayMojo extends AbstractLinkPackagesMojo {
             artifact.getType().equals(artifact1.getType()));
   }
 
-  private void addSenchaDependencyArtifacts(MavenProject project, Set<Artifact> artifacts) throws MojoExecutionException {
-    if (artifacts.add(project.getArtifact())) {
-      List<Dependency> dependencies = project.getDependencies();
-      for (Dependency dependency : dependencies) {
-        if (isRequiredSenchaDependency(dependency, false) || Type.POM_PACKAGING.equals(dependency.getType())) {
-          MavenProject projectFromDependency = createProjectFromDependency(dependency);
-          addSenchaDependencyArtifacts(projectFromDependency, artifacts);
+  private void addSenchaDependencyArtifacts(Dependency dependency, Set<Artifact> artifacts) throws MojoExecutionException {
+    MavenProject projectFromDependency = createProjectFromDependency(dependency);
+    if (artifacts.add(projectFromDependency.getArtifact())) {
+      List<Dependency> dependencies = projectFromDependency.getDependencies();
+      for (Dependency transitiveDependency : dependencies) {
+        if (isRequiredSenchaDependency(transitiveDependency, false) || Type.POM_PACKAGING.equals(transitiveDependency.getType())) {
+          addSenchaDependencyArtifacts(transitiveDependency, artifacts);
         }
       }
     }

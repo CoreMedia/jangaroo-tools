@@ -114,4 +114,23 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       throw new MojoExecutionException("Could not resolve required dependencies of POM dependency " + artifactFromDependency, e);
     }
   }
+
+  Dependency findRequiredJangarooAppDependency(MavenProject project) throws MojoExecutionException {
+    return project.getDependencies().stream().filter(dependency -> {
+      if (Type.JAR_EXTENSION.equals(dependency.getType())) {
+        try {
+          MavenProject mavenProject = createProjectFromDependency(dependency);
+          if (Type.JANGAROO_APP_PACKAGING.equals(mavenProject.getPackaging())) {
+            return true;
+          }
+        } catch (MojoExecutionException e) {
+          // ignore
+        }
+      }
+      return false;
+    }).findFirst()
+            .orElseThrow(() ->
+                    new MojoExecutionException("Module of type jangaroo-app-overlay must have exactly one dependency on a module of type jangaroo.app.")
+            );
+  }
 }

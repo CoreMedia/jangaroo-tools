@@ -41,7 +41,7 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     }
   }
 
-  Map<Artifact, Path> findReactorProjectPackages(MavenProject project) {
+  static Map<Artifact, Path> findReactorProjectPackages(MavenProject project) {
     Map<Artifact, Path> reactorProjectPackagePaths = new HashMap<>();
     Set<MavenProject> referencedProjects = new HashSet<>();
     collectReferencedProjects(project, referencedProjects);
@@ -50,14 +50,12 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
       if (Type.JANGAROO_SWC_PACKAGING.equals(packageType) || Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
         String senchaPackageName = SenchaUtils.getSenchaPackageName(projectInReactor);
         reactorProjectPackagePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaPackageName));
-      } else if (Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packageType)) {
-        reactorProjectPackagePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + "/app"));
       }
     }
     return reactorProjectPackagePaths;
   }
 
-  private void collectReferencedProjects(MavenProject project, Set<MavenProject> referencedProjects) {
+  private static void collectReferencedProjects(MavenProject project, Set<MavenProject> referencedProjects) {
     if (!referencedProjects.contains(project)) {
       referencedProjects.add(project);
       for (MavenProject referencedProject : project.getProjectReferences().values()) {
@@ -66,7 +64,8 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     }
   }
 
-  void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path packagesPath, File remotePackagesDir, Map<Artifact, Path> reactorProjectPackagePaths) throws MojoExecutionException {
+  void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path packagesPath, File remotePackagesDir) throws MojoExecutionException {
+    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
     for (Artifact artifact : artifacts) {
       String senchaPackageName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
       Path pkgDir = getPkgDir(artifact, remotePackagesDir, reactorProjectPackagePaths);
@@ -137,7 +136,7 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     return new File(packageTargetDir, fileName);
   }
 
-  protected Set<Artifact> onlyRequiredSenchaDependencies(Set<Artifact> artifacts, boolean includeTestDependencies) {
+  Set<Artifact> onlyRequiredSenchaDependencies(Set<Artifact> artifacts, boolean includeTestDependencies) {
     return artifacts.stream().filter(artifact ->
             !isExtFrameworkArtifact(artifact) &&
             isRequiredSenchaDependency(MavenDependencyHelper.fromArtifact(artifact), includeTestDependencies))

@@ -1,24 +1,28 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.proxy.AddDynamicPackageServlet;
+import net.jangaroo.jooc.mvnplugin.proxy.AddDynamicPackagesServlet;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
 import net.jangaroo.jooc.mvnplugin.util.StaticResourcesServletConfig;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.ArtifactUtils;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_APP_PACKAGING;
-import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_SWC_PACKAGING;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
 
 /**
@@ -28,14 +32,11 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
  * {@code jooProxyPathSpec} are proxied to the {@code jooProxyTargetUri}.
  * This is convenient to proxy-in some HTTP(S)-based service.
  */
-@Mojo(name = "run")
-public class RunMojo extends AbstractMojo {
-
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  protected MavenProject project;
-
-  @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  private MavenSession session;
+@Mojo(
+        name = "run",
+        requiresDependencyResolution = ResolutionScope.TEST
+)
+public class RunMojo extends AbstractSenchaMojo {
 
   /**
    * The host name of the started server. Defaults to 'localhost'.
@@ -76,7 +77,7 @@ public class RunMojo extends AbstractMojo {
    * </p>
    */
   @Parameter
-  private List<StaticResourcesServletConfig> jooStaticResourcesServletConfigs;
+  private List<StaticResourcesServletConfig> jooStaticResourcesServletConfigs = Collections.emptyList();
 
   /**
    * The configurations for a proxy servlet.
@@ -90,40 +91,75 @@ public class RunMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    List<MavenProject> projects = session.getProjects();
+    boolean isSwcPackaging = Type.JANGAROO_SWC_PACKAGING.equals(project.getPackaging());
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
-    boolean isModuleWithRemoteApp = !isAppPackaging && jooProxyTargetUri != null;
+    boolean isAppOverlayPackaging = Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging());
 
-    File baseDir = projects.size() == 1
-            ? new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : isModuleWithRemoteApp ? "" : TEST_APP_DIRECTORY_NAME)
-            : SenchaUtils.remotePackagesDir(session).getParentFile();
+    File baseDir = isAppPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
+            : isAppOverlayPackaging ? new File(project.getBuild().getOutputDirectory(), MavenPluginHelper.META_INF_RESOURCES) 
+            : isSwcPackaging ? new File(project.getBuild().getTestOutputDirectory())
+            : null;
+
+    if (baseDir == null) {
+      getLog().info(String.format("jangaroo:run does not support packaging '%s' (module %s:%s).", project.getPackaging(), project.getGroupId(), project.getArtifactId()));
+      return;
+    }
 
     JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
 
-    if (isModuleWithRemoteApp) {
-
+    List<StaticResourcesServletConfig> staticResourcesServletConfigs = new ArrayList<>(jooStaticResourcesServletConfigs);
+    if (isSwcPackaging) {
       String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
-      jettyWrapper.setStaticResourcesServletConfigs(Collections.singletonList(
-              new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + senchaPackageName + "/*")
-      ));
-      jettyWrapper.setProxyServletConfigs(Collections.singletonList(new ProxyServletConfig(jooProxyTargetUri, "/*")));
-      jettyWrapper.setAdditionalServlets(Collections.singletonMap("/" + DYNAMIC_PACKAGES_FILENAME,
-              new AddDynamicPackageServlet(jooProxyTargetUri + DYNAMIC_PACKAGES_FILENAME, senchaPackageName)
-      ));
-    } else {
-
-      jettyWrapper.setStaticResourcesServletConfigs(jooStaticResourcesServletConfigs);
-
-      if (jooProxyServletConfigs != null && !jooProxyServletConfigs.isEmpty()) {
-        jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
-      } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
-        jettyWrapper.setProxyServletConfigs(Collections.singletonList(
-                new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
-      } else if (jooProxyTargetUri != null){
-        getLog().warn("Ignoring 'jooProxyTargetUri' since there is no 'jooProxyPathSpec'.");
-      } else if (jooProxyPathSpec != null){
-        getLog().warn("Ignoring 'jooProxyPathSpec' since there is no 'jooProxyTargetUri'.");
+      staticResourcesServletConfigs.add(new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + senchaPackageName + SEPARATOR + "*"));
+    } else if (isAppOverlayPackaging) {
+      if ("/*".equals(jooProxyPathSpec)) {
+        // If root path, the developer wants to proxy-in the base app, so all static resources are already there.
+        // We just need to add all overlay packages as static resource folders:
+        File[] packageDirs = new File(baseDir, PACKAGES_DIRECTORY_NAME).listFiles(File::isDirectory);
+        if (packageDirs != null) {
+          List<String> packageNames = Arrays.stream(packageDirs).map(File::getName).collect(Collectors.toList());
+          for (String packageName : packageNames) {
+            staticResourcesServletConfigs.add(new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + packageName + SEPARATOR + "*", SEPARATOR));
+          }
+          jettyWrapper.setAdditionalServlets(Collections.singletonMap(SEPARATOR + DYNAMIC_PACKAGES_FILENAME,
+                  new AddDynamicPackagesServlet(jooProxyTargetUri + DYNAMIC_PACKAGES_FILENAME, packageNames)
+          ));
+        }
+      } else {
+        // if any other or no proxy path spec, we have to set up the static resources of the base app.
+        Dependency baseAppDependency = findRequiredJangarooAppDependency(project);
+        String baseAppVersionKey = ArtifactUtils.key(baseAppDependency.getGroupId(), baseAppDependency.getArtifactId(), baseAppDependency.getVersion());
+        MavenProject baseAppProject = project.getProjectReferences().get(baseAppVersionKey);
+        if (baseAppProject != null) {
+          // base app is part of our Reactor, so we can determine its output directory:
+          File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
+          jettyWrapper.addBaseDir(appResourceDir);
+          getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
+        } else {
+          String baseAppVersionlessKey = ArtifactUtils.versionlessKey(baseAppDependency.getGroupId(), baseAppDependency.getArtifactId());
+          // base app is referenced externally, so we have to use the JAR artifact:
+          Artifact baseAppArtifact = project.getArtifactMap().get(baseAppVersionlessKey);
+          // TODO: null?
+          File baseAppResourceJar = baseAppArtifact.getFile();
+          // TODO: null?
+          getLog().info("Adding base app JAR " + baseAppResourceJar.getAbsolutePath());
+          jettyWrapper.setResourceJars(Collections.singletonList(baseAppResourceJar));
+        }
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig("/*", "/"));
       }
+    }
+
+    jettyWrapper.setStaticResourcesServletConfigs(staticResourcesServletConfigs);
+
+    if (jooProxyServletConfigs != null && !jooProxyServletConfigs.isEmpty()) {
+      jettyWrapper.setProxyServletConfigs(jooProxyServletConfigs);
+    } else if (jooProxyTargetUri != null && jooProxyPathSpec != null) {
+      jettyWrapper.setProxyServletConfigs(Collections.singletonList(
+              new ProxyServletConfig(jooProxyTargetUri, jooProxyPathSpec)));
+    } else if (jooProxyTargetUri != null){
+      getLog().warn("Ignoring 'jooProxyTargetUri' since there is no 'jooProxyPathSpec'.");
+    } else if (jooProxyPathSpec != null){
+      getLog().warn("Ignoring 'jooProxyPathSpec' since there is no 'jooProxyTargetUri'.");
     }
 
     try {
@@ -131,7 +167,7 @@ public class RunMojo extends AbstractMojo {
 
       getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
 
-      projects.forEach(project -> logJangarooAppUrl(baseDir, jettyWrapper, project));
+      logJangarooAppUrl(baseDir, jettyWrapper, project);
 
       jettyWrapper.blockUntilInterrupted();
     } catch (JettyWrapper.JettyWrapperException e) {
@@ -142,23 +178,8 @@ public class RunMojo extends AbstractMojo {
   }
 
   private void logJangarooAppUrl(File baseDir, JettyWrapper jettyWrapper, MavenProject project) {
-    String packaging = project.getPackaging();
-
-    if (JANGAROO_APP_PACKAGING.equals(packaging) || JANGAROO_SWC_PACKAGING.equals(packaging)) {
-      String moduleTargetPath = baseDir.toURI().relativize(new File(project.getBuild().getDirectory()).toURI()).getPath();
-      if (JANGAROO_APP_PACKAGING.equals(packaging)) {
-        String appPath = moduleTargetPath + APP_TARGET_DIRECTORY + WELCOME_FILE_PATH;
-        if (new File(baseDir, appPath).exists()) {
-          getLog().info("Found Jangaroo app at: " + jettyWrapper.getUri() + appPath);
-        }
-      } else if (jooProxyTargetUri == null) {
-        String testAppPath = moduleTargetPath + TEST_APP_TARGET_DIRECTORY + WELCOME_FILE_PATH;
-        if (new File(baseDir, testAppPath).exists()) {
-          getLog().info("Found Jangaroo test app at: " + jettyWrapper.getUri() + testAppPath);
-        }
-      } else {
-        getLog().info("Found Jangaroo module at: " + jettyWrapper.getUri());
-      }
+    if (baseDir.exists()) {
+      getLog().info("Found " + project.getPackaging() + " at: " + jettyWrapper.getUri());
     }
   }
 }
