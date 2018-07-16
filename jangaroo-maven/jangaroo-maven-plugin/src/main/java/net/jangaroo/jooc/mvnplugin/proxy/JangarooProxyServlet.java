@@ -2,44 +2,18 @@ package net.jangaroo.jooc.mvnplugin.proxy;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClients;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.HttpCookie;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
  * Add support for matrix parameters and SSL.
  */
 public class JangarooProxyServlet extends ProxyServlet {
-
-  private static final X509TrustManager TRUST_MANAGER = new X509TrustManager() {
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
-    }
-
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-      return null;
-    }
-  };
 
   @Override
   protected String rewriteUrlFromRequest(HttpServletRequest servletRequest) {
@@ -85,17 +59,7 @@ public class JangarooProxyServlet extends ProxyServlet {
    */
   @Override
   protected HttpClient createHttpClient(final RequestConfig requestConfig) {
-    SSLContext ctx;
-    try {
-      ctx = SSLContext.getInstance("TLS");
-      ctx.init(null, new TrustManager[]{TRUST_MANAGER}, null);
-    } catch (NoSuchAlgorithmException | KeyManagementException e) {
-      throw new IllegalStateException(e);
-    }
-
-    return HttpClients.custom()
-            .useSystemProperties()
-            .setSSLSocketFactory(new SSLConnectionSocketFactory(ctx))
+    return HttpClientUtil.createHttpsAwareHttpClientBuilder()
             .setDefaultRequestConfig(requestConfig)
             .build();
   }
