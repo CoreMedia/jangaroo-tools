@@ -37,6 +37,7 @@ public final class Type {
   public static final String JANGAROO_PKG_PACKAGING = "pkg";
   public static final String JANGAROO_SWC_PACKAGING = "swc";
   public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
+  public static final String JANGAROO_APP_OVERLAY_PACKAGING = "jangaroo-app-overlay";
 
   public static final String META_INF_PATH = "META-INF/";
   public static final String SWC_PKG_PATH = META_INF_PATH + "pkg/";

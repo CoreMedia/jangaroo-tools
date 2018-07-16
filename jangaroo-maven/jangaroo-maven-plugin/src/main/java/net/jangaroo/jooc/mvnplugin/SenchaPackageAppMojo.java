@@ -116,7 +116,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
     if (SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       // add the Jangaroo compiler resources to the resulting JAR
-      DefaultFileSet fileSet = fileSet(appProductionBuildDir).prefixed("META-INF/resources/");
+      DefaultFileSet fileSet = fileSet(appProductionBuildDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
       fileSet.setExcludes(new String[]{
               "**/build/temp/**",
               "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",

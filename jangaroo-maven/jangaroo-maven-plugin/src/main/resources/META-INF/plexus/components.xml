@@ -49,6 +49,19 @@
         <packaging>jangaroo-app</packaging>
       </configuration>
     </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>jangaroo-app-overlay</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>jangaroo-app-overlay</type>
+        <extension>jar</extension>
+        <language>jangaroo</language>
+        <addedToClasspath>false</addedToClasspath>
+        <includesDependencies>true</includesDependencies>
+        <packaging>jangaroo-app-overlay</packaging>
+      </configuration>
+    </component>
 
     <!--
     A custom lifecycle for javascript packaging
@@ -110,6 +123,21 @@
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app</package>
           <verify>org.apache.maven.plugins:maven-source-plugin:jar-no-fork</verify>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jangaroo-app-overlay</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app-overlay</prepare-package>
+          <package>org.apache.maven.plugins:maven-jar-plugin:jar</package>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>

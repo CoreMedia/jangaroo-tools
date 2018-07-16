@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 public class MavenPluginHelper {
+  public static final String META_INF_RESOURCES = "META-INF/resources/";
   private MavenProject project;
   private Log log;
 

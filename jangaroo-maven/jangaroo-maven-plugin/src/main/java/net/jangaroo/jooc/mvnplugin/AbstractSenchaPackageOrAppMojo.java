@@ -1,35 +1,21 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableList;
-import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaProfileConfiguration;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
-import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.DefaultProjectBuildingRequest;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectBuilder;
-import org.apache.maven.project.ProjectBuildingException;
-import org.apache.maven.project.ProjectBuildingRequest;
-import org.apache.maven.project.ProjectBuildingResult;
 import org.codehaus.plexus.util.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -37,10 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.TEST_APP_DIRECTORY_NAME;
 
 public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAppConfigBuilder>
         extends AbstractSenchaMojo
@@ -50,12 +33,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
-
-  @Component
-  private ProjectBuilder projectBuilder;
-
-  @Component
-  protected ArtifactHandlerManager artifactHandlerManager;
 
   @Parameter
   private MavenSenchaProfileConfiguration production;
@@ -110,8 +87,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  private void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder)
-          throws MojoExecutionException {
+  private void configureMetadata(SenchaPackageOrAppConfigBuilder configBuilder) {
     String version = SenchaUtils.getSenchaVersionForMavenVersion(project.getVersion());
     if (version == null) {
       version = SENCHA_FALLBACK_VERSION;
@@ -127,7 +103,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   private void configureProfile(SenchaPackageOrAppConfigBuilder configBuilder,
                                 String profileName,
-                                SenchaProfileConfiguration senchaProfileConfiguration) throws MojoExecutionException {
+                                SenchaProfileConfiguration senchaProfileConfiguration) {
     if (null == profileName) {
       configureProfile(senchaProfileConfiguration, configBuilder);
     } else {
@@ -139,7 +115,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   }
 
   private static void configureProfile(SenchaProfileConfiguration senchaProfileConfiguration,
-                                       SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
+                                       SenchaPackageOrAppConfigBuilder configBuilder) {
     addAdditionalResources(configBuilder,
             SenchaPackageOrAppConfigBuilder.CSS,
             senchaProfileConfiguration == null ? Collections.emptyList() : senchaProfileConfiguration.getAdditionalCssNonBundle(),
@@ -157,28 +133,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     }
   }
 
-  private void writeDynamicPackagesJson(Set<String> runtimeDependencies) throws MojoExecutionException {
-    getLog().info(String.format("Write %s for module %s.", DYNAMIC_PACKAGES_FILENAME, project.getName()));
-    boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
-    File workspaceDir = new File(project.getBuild().getDirectory(), isAppPackaging ? APP_DIRECTORY_NAME : TEST_APP_DIRECTORY_NAME);
-    File dynamicPackagesFile = new File(workspaceDir, DYNAMIC_PACKAGES_FILENAME);
-    if (!dynamicPackagesFile.exists()) {
-      FileHelper.ensureDirectory(dynamicPackagesFile.getParentFile());
-    } else {
-      getLog().debug(DYNAMIC_PACKAGES_FILENAME + " for module already exists, deleting...");
-      if (!dynamicPackagesFile.delete()) {
-        throw new MojoExecutionException("Could not delete " + DYNAMIC_PACKAGES_FILENAME + " file for module");
-      }
-    }
-
-    try (PrintWriter pw = new PrintWriter(new FileWriter(dynamicPackagesFile))) {
-      pw.write(new JsonArray(runtimeDependencies.toArray()).toString(0, 2));
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
-    }
-  }
-
-  private void configureModule(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
+  private void configureModule(SenchaPackageOrAppConfigBuilder configBuilder) {
     boolean useExtend = false;
     if (Type.CODE.equals(getType())) {
       configBuilder.toolkit(getToolkit());
@@ -227,7 +182,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     for (Dependency dependency : project.getDependencies()) {
       // only resolve POM packages that are not the remote packages artifact
       if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())) {
-        MavenProject projectFromPom = createProjectFromPomDependency(dependency);
+        MavenProject projectFromPom = createProjectFromDependency(dependency);
         List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom);
         if (!fromPomDependencies.isEmpty()) {
           resolvedDependencies.addAll(fromPomDependencies);
@@ -237,25 +192,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       }
     }
     return resolvedDependencies;
-  }
-
-  @Nonnull
-  private MavenProject createProjectFromPomDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
-    Artifact artifactFromDependency = new DefaultArtifact(
-            dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
-            dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
-    );
-
-    ProjectBuildingRequest request = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
-    request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
-    request.setProcessPlugins(false);
-    request.setResolveDependencies(false);
-    try {
-      ProjectBuildingResult result = projectBuilder.build(artifactFromDependency, request);
-      return result.getProject();
-    } catch (ProjectBuildingException e) {
-      throw new MojoExecutionException("Could not resolve required dependencies of POM dependency " + artifactFromDependency, e);
-    }
   }
 
   private static void addAdditionalResources(SenchaPackageOrAppConfigBuilder configBuilder,
@@ -314,6 +250,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     return requiredClasses == null ? Collections.emptyList() : requiredClasses;
   }
 
+  @SuppressWarnings("WeakerAccess")
   public String getTheme() {
     return theme;
   }
