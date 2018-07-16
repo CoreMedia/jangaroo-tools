@@ -21,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.eclipse.jetty.util.resource.Resource.newResource;
+import java.util.stream.Collectors;
 
 /**
  * Wrapper class for controlling a Jetty server.
@@ -40,12 +39,13 @@ public class JettyWrapper {
 
   private final Log log;
 
-  private File baseDir;
+  private List<File> baseDirs = new ArrayList<>();
   private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
   private List<ProxyServletConfig> proxyServletConfigs;
   private Map<String, Servlet> additionalServlets;
 
   private Server server;
+  private List<File> resourceJars;
 
   /**
    * Creates a Wrapper for controlling a Jetty server.
@@ -55,11 +55,19 @@ public class JettyWrapper {
    */
   public JettyWrapper(Log log, File baseDir) {
     this.log = log;
-    this.baseDir = baseDir;
+    baseDirs.add(baseDir);
+  }
+
+  public void addBaseDir(File baseDir) {
+    baseDirs.add(baseDir);
   }
 
   public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs) {
     this.staticResourcesServletConfigs = staticResourcesServletConfigs;
+  }
+
+  public void setResourceJars(List<File> resourceJars) {
+    this.resourceJars = resourceJars;
   }
 
   public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs) {
@@ -161,9 +169,14 @@ public class JettyWrapper {
 
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
 
-      List<Resource> baseResources = new ArrayList<>();
-      baseResources.add(newResource(baseDir));
-      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[baseResources.size()])));
+      List<Resource> baseResources = baseDirs.stream().map(Resource::newResource).collect(Collectors.toList());
+      baseResources = new ArrayList<>(baseResources);
+      if (resourceJars != null && !resourceJars.isEmpty()) {
+        for (File webInfLibJar : resourceJars) {
+          baseResources.add(Resource.newResource("jar:"+Resource.toURL(webInfLibJar).toString()+"!/META-INF/resources"));
+        }
+      }
+      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[0])));
       getLog().info("Using base resources " + baseResources);
 
       if (staticResourcesServletConfigs != null && !staticResourcesServletConfigs.isEmpty()) {
