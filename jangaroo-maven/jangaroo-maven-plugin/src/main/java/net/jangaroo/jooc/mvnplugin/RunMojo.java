@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.jooc.mvnplugin.proxy.AddDynamicPackagesServlet;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
 import net.jangaroo.jooc.mvnplugin.util.StaticResourcesServletConfig;
 import org.apache.maven.artifact.Artifact;
@@ -23,7 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.LOCAL_PACKAGES_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 
 /**
  * Starts a Jetty server serving the static resources of the workspace of an app or unit test app.
@@ -95,8 +98,7 @@ public class RunMojo extends AbstractSenchaMojo {
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
     boolean isAppOverlayPackaging = Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging());
 
-    File baseDir = isAppPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
-            : isAppOverlayPackaging ? new File(project.getBuild().getOutputDirectory(), MavenPluginHelper.META_INF_RESOURCES) 
+    File baseDir = isAppPackaging || isAppOverlayPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
             : isSwcPackaging ? new File(project.getBuild().getTestOutputDirectory())
             : null;
 

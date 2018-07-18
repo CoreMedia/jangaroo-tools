@@ -136,8 +136,8 @@
       <configuration>
         <phases>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
-          <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app-overlay</prepare-package>
-          <package>org.apache.maven.plugins:maven-jar-plugin:jar</package>
+          <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:prepare-package-app-overlay</prepare-package>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app-overlay</package>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>

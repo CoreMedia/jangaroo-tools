@@ -4,11 +4,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
-import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.archiver.MavenArchiveConfiguration;
-import org.apache.maven.archiver.MavenArchiver;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -17,26 +13,14 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.archiver.AbstractArchiver;
-import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.archiver.util.DefaultFileSet;
-import org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
-import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 /**
  * Generates and packages Sencha app module.
@@ -108,75 +92,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     prepareModule();
     packageModule();
-    createJar();
-  }
-
-  private void createJar() throws MojoExecutionException {
-    File appProductionBuildDir = senchaAppDirectory;
-    File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
-    if (SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
-      // add the Jangaroo compiler resources to the resulting JAR
-      DefaultFileSet fileSet = fileSet(appProductionBuildDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
-      fileSet.setExcludes(new String[]{
-              "**/build/temp/**",
-              "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",
-              PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
-              "**/*-timestamp"
-      });
-      addFileSet(archiver, fileSet);
-    }
-    MavenArchiver mavenArchiver = new MavenArchiver();
-    mavenArchiver.setArchiver(archiver);
-    mavenArchiver.setOutputFile(jarFile);
-    try {
-      MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
-      archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
-      mavenArchiver.createArchive(session, project, archive);
-    } catch (Exception e) { // NOSONAR
-      throw new MojoExecutionException("Failed to create the javascript archive", e);
-    }
-    Artifact mainArtifact = project.getArtifact();
-    mainArtifact.setFile(jarFile);
-    // workaround for MNG-1682: force maven to install artifact using the "jar" handler
-    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
-  }
-
-  /**
-   * Method copied + slightly adapted from AbstractArchiver because of symlink handling (see below).
-   */
-  private static void addFileSet(@Nonnull AbstractArchiver archiver, @Nonnull final FileSet fileSet )
-          throws ArchiverException
-  {
-    final File directory = fileSet.getDirectory();
-
-    // The PlexusIoFileResourceCollection contains platform-specific File.separatorChar which
-    // is an interesting cause of grief, see PLXCOMP-192
-    final PlexusIoFileResourceCollection collection = new PlexusIoFileResourceCollection();
-
-    // ALWAYS follow symlinks
-    collection.setFollowingSymLinks(true);
-
-    collection.setIncludes( fileSet.getIncludes() );
-    collection.setExcludes( fileSet.getExcludes() );
-    collection.setBaseDir( directory );
-    collection.setFileSelectors( fileSet.getFileSelectors() );
-    collection.setIncludingEmptyDirectories( fileSet.isIncludingEmptyDirectories() );
-    collection.setPrefix( fileSet.getPrefix() );
-    collection.setCaseSensitive( fileSet.isCaseSensitive() );
-    collection.setUsingDefaultExcludes( fileSet.isUsingDefaultExcludes() );
-    collection.setStreamTransformer( fileSet.getStreamTransformer() );
-
-    if ( archiver.getOverrideDirectoryMode() > -1 || archiver.getOverrideFileMode() > -1 )
-    {
-      collection.setOverrideAttributes( -1, null, -1, null, archiver.getOverrideFileMode(), archiver.getOverrideDirectoryMode() );
-    }
-
-    if ( archiver.getDefaultDirectoryMode() > -1 || archiver.getDefaultFileMode() > -1 )
-    {
-      collection.setDefaultAttributes( -1, null, -1, null, archiver.getDefaultFileMode(), archiver.getDefaultDirectoryMode() );
-    }
-
-    archiver.addResources( collection );
+    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, senchaAppBuild);
   }
 
   private void prepareModule() throws MojoExecutionException {
