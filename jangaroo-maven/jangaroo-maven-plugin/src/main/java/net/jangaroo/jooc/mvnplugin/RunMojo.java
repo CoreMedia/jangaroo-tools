@@ -130,17 +130,15 @@ public class RunMojo extends AbstractSenchaMojo {
       } else {
         // if any other or no proxy path spec, we have to set up the static resources of the base app.
         Dependency baseAppDependency = findRequiredJangarooAppDependency(project);
-        String baseAppVersionKey = ArtifactUtils.key(baseAppDependency.getGroupId(), baseAppDependency.getArtifactId(), baseAppDependency.getVersion());
-        MavenProject baseAppProject = project.getProjectReferences().get(baseAppVersionKey);
+        MavenProject baseAppProject = getReferencedMavenProject(baseAppDependency);
         if (baseAppProject != null) {
           // base app is part of our Reactor, so we can determine its output directory:
           File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
           jettyWrapper.addBaseDir(appResourceDir);
           getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
         } else {
-          String baseAppVersionlessKey = ArtifactUtils.versionlessKey(baseAppDependency.getGroupId(), baseAppDependency.getArtifactId());
           // base app is referenced externally, so we have to use the JAR artifact:
-          Artifact baseAppArtifact = project.getArtifactMap().get(baseAppVersionlessKey);
+          Artifact baseAppArtifact = getArtifact(baseAppDependency);
           // TODO: null?
           File baseAppResourceJar = baseAppArtifact.getFile();
           // TODO: null?
@@ -177,6 +175,17 @@ public class RunMojo extends AbstractSenchaMojo {
     } finally {
       jettyWrapper.stop();
     }
+  }
+
+
+  private Artifact getArtifact(Dependency dependency) {
+    String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
+    return project.getArtifactMap().get(versionlessKey);
+  }
+
+  private MavenProject getReferencedMavenProject(Dependency dependency) {
+    String versionKey = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+    return project.getProjectReferences().get(versionKey);
   }
 
   private void logJangarooAppUrl(File baseDir, JettyWrapper jettyWrapper, MavenProject project) {
