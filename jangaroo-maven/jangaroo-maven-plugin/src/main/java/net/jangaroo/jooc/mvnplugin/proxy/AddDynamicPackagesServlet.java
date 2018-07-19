@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.proxy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import net.jangaroo.jooc.mvnplugin.util.DynamicPackagesDeSerializer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
@@ -8,15 +8,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AddDynamicPackagesServlet extends HttpServlet {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
   private final String url;
   private final List<String> senchaPackageNames;
 
@@ -25,30 +22,19 @@ public class AddDynamicPackagesServlet extends HttpServlet {
     this.senchaPackageNames = senchaPackageNames;
   }
 
-  private List<String> readDynamicPackages() throws IOException {
-    HttpResponse httpResponse = HttpClientUtil.createHttpsAwareHttpClientBuilder().build().execute(new HttpGet(url));
-    InputStream inputStream = httpResponse.getEntity().getContent();
-    //noinspection unchecked
-    return (List<String>) objectMapper.readValue(inputStream, List.class);
-  }
-
-  private void serializeDynamicPackages(List<String> dynamicPackages, OutputStream outputStream) throws IOException {
-    objectMapper.writeValue(outputStream, dynamicPackages);
-  }
-
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    LinkedHashSet<String> dynamicPackages = new LinkedHashSet<>();
+    Set<String> dynamicPackages;
     try {
-      dynamicPackages.addAll(readDynamicPackages());
+      HttpResponse httpResponse = HttpClientUtil.createHttpsAwareHttpClientBuilder().build().execute(new HttpGet(url));
+      dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(httpResponse.getEntity().getContent()));
+      dynamicPackages.addAll(senchaPackageNames);
     } catch (IOException e) {
-      // ignore, probably no dynamic-packages.json on server
-      
+      // probably no dynamic-packages.json on server: just use the local dynamic packages.
+      dynamicPackages = new LinkedHashSet<>(senchaPackageNames);
     }
-    dynamicPackages.addAll(senchaPackageNames);
-
     resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     resp.setHeader("Content-Type", "application/json");
-    serializeDynamicPackages(new ArrayList<>(dynamicPackages), resp.getOutputStream());
+    DynamicPackagesDeSerializer.writeDynamicPackages(resp.getOutputStream(), dynamicPackages);
   }
 }

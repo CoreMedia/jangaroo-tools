@@ -177,12 +177,6 @@ public class RunMojo extends AbstractSenchaMojo {
     }
   }
 
-
-  private Artifact getArtifact(Dependency dependency) {
-    String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
-    return project.getArtifactMap().get(versionlessKey);
-  }
-
   private MavenProject getReferencedMavenProject(Dependency dependency) {
     String versionKey = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
     return project.getProjectReferences().get(versionKey);

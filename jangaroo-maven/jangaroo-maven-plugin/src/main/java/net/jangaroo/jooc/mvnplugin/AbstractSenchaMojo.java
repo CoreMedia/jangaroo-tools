@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
@@ -131,7 +132,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       if (Type.JAR_EXTENSION.equals(dependency.getType())) {
         try {
           MavenProject mavenProject = createProjectFromDependency(dependency);
-          if (Type.JANGAROO_APP_PACKAGING.equals(mavenProject.getPackaging())) {
+          String packaging = mavenProject.getPackaging();
+          if (Type.JANGAROO_APP_PACKAGING.equals(packaging) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packaging)) {
             return true;
           }
         } catch (MojoExecutionException e) {
@@ -143,5 +145,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
             .orElseThrow(() ->
                     new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have exactly one dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + ".")
             );
+  }
+
+  Artifact getArtifact(Dependency dependency) {
+    String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
+    return project.getArtifactMap().get(versionlessKey);
   }
 }

@@ -1,7 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.DynamicPackagesDeSerializer;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -13,17 +13,19 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 /**
  * Generates and prepares packaging of Sencha app modules.
@@ -64,7 +66,7 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     Set<String> overlayPackageNames = overlayArtifacts.stream().map(artifact ->
             SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
             .collect(Collectors.toSet());
-    writeDynamicPackagesJson(overlayPackageNames);
+    writeDynamicPackagesJson(jangarooAppDependency, overlayPackageNames);
   }
 
   private boolean containsSimilarArtifact(Set<Artifact> artifacts, Artifact artifact) {
@@ -79,15 +81,16 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     if (artifacts.add(projectFromDependency.getArtifact())) {
       List<Dependency> dependencies = projectFromDependency.getDependencies();
       for (Dependency transitiveDependency : dependencies) {
-        if (isRequiredSenchaDependency(transitiveDependency, false) || Type.POM_PACKAGING.equals(transitiveDependency.getType())) {
+        if (isRequiredSenchaDependency(transitiveDependency, false) || Type.POM_PACKAGING.equals(transitiveDependency.getType())
+                || (Type.JAR_EXTENSION.equals(transitiveDependency.getType()) && Artifact.SCOPE_RUNTIME.equals(transitiveDependency.getScope()))) {
           addSenchaDependencyArtifacts(transitiveDependency, artifacts);
         }
       }
     }
   }
 
-  private void writeDynamicPackagesJson(Set<String> overlayPackageNames) throws MojoExecutionException {
-    getLog().info(String.format("Write %s for module %s.", DYNAMIC_PACKAGES_FILENAME, project.getName()));
+  private void writeDynamicPackagesJson(Dependency jangarooAppDependency, Set<String> overlayPackageNames) throws MojoExecutionException {
+    getLog().info(String.format("Writing %s for module %s.", DYNAMIC_PACKAGES_FILENAME, project.getName()));
     File dynamicPackagesFile = new File(webResourcesOutputDirectory, DYNAMIC_PACKAGES_FILENAME);
     if (!dynamicPackagesFile.exists()) {
       FileHelper.ensureDirectory(dynamicPackagesFile.getParentFile());
@@ -98,8 +101,25 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       }
     }
 
-    try (PrintWriter pw = new PrintWriter(new FileWriter(dynamicPackagesFile))) {
-      pw.write(new JsonArray(overlayPackageNames.toArray()).toString(0, 2));
+    try {
+      Set<String> dynamicPackages;
+      MavenProject jangarooAppProject = createProjectFromDependency(jangarooAppDependency);
+      if (Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(jangarooAppProject.getPackaging())) {
+        // Attention: createProjectFromDependency() returns a project with a null artifact file :-(
+        File overlayArtifactFile = getArtifact(jangarooAppDependency).getFile();
+        if (overlayArtifactFile == null) {
+          throw new MojoExecutionException("Overlay artifact " + jangarooAppDependency + " does not exist.");
+        } else if (!overlayArtifactFile.exists()) {
+          throw new MojoExecutionException("Overlay artifact " + overlayArtifactFile.getAbsolutePath() + " does not exist.");
+        }
+        // TODO: if overlay app is a "referenced project", we should use the dynamic-packages.json from its target directory
+        JarFile overlayAppJarFile = new JarFile(overlayArtifactFile);
+        dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(overlayAppJarFile.getInputStream(overlayAppJarFile.getEntry(META_INF_RESOURCES + DYNAMIC_PACKAGES_FILENAME))));
+        dynamicPackages.addAll(overlayPackageNames);
+      } else {
+        dynamicPackages = overlayPackageNames;
+      }
+      DynamicPackagesDeSerializer.writeDynamicPackages(new FileOutputStream(dynamicPackagesFile), dynamicPackages);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
     }
