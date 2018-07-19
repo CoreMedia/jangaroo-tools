@@ -177,11 +177,6 @@ public class RunMojo extends AbstractSenchaMojo {
     }
   }
 
-  private MavenProject getReferencedMavenProject(Dependency dependency) {
-    String versionKey = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
-    return project.getProjectReferences().get(versionKey);
-  }
-
   private void logJangarooAppUrl(File baseDir, JettyWrapper jettyWrapper, MavenProject project) {
     if (baseDir.exists()) {
       getLog().info("Found " + project.getPackaging() + " at: " + jettyWrapper.getUri());

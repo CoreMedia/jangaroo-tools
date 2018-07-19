@@ -13,6 +13,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
@@ -105,16 +107,24 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       Set<String> dynamicPackages;
       MavenProject jangarooAppProject = createProjectFromDependency(jangarooAppDependency);
       if (Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(jangarooAppProject.getPackaging())) {
-        // Attention: createProjectFromDependency() returns a project with a null artifact file :-(
-        File overlayArtifactFile = getArtifact(jangarooAppDependency).getFile();
-        if (overlayArtifactFile == null) {
-          throw new MojoExecutionException("Overlay artifact " + jangarooAppDependency + " does not exist.");
-        } else if (!overlayArtifactFile.exists()) {
-          throw new MojoExecutionException("Overlay artifact " + overlayArtifactFile.getAbsolutePath() + " does not exist.");
+        MavenProject baseAppProject = getReferencedMavenProject(jangarooAppDependency);
+        if (baseAppProject != null) {
+          // base app is part of our Reactor, so we can determine its output directory:
+          File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
+          File overlayDynamicPackagesFile = new File(appResourceDir.getPath(), DYNAMIC_PACKAGES_FILENAME);
+          dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(new FileInputStream(overlayDynamicPackagesFile)));
+        } else {
+          // base app is referenced externally, so we have to use the JAR artifact:
+          // Attention: createProjectFromDependency() returns a project with a null artifact file :-(
+          File overlayArtifactFile = getArtifact(jangarooAppDependency).getFile();
+          if (overlayArtifactFile == null) {
+            throw new MojoExecutionException("Overlay artifact " + jangarooAppDependency + " does not exist.");
+          } else if (!overlayArtifactFile.exists()) {
+            throw new MojoExecutionException("Overlay artifact " + overlayArtifactFile.getAbsolutePath() + " does not exist.");
+          }
+          JarFile overlayAppJarFile = new JarFile(overlayArtifactFile);
+          dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(overlayAppJarFile.getInputStream(overlayAppJarFile.getEntry(META_INF_RESOURCES + DYNAMIC_PACKAGES_FILENAME))));
         }
-        // TODO: if overlay app is a "referenced project", we should use the dynamic-packages.json from its target directory
-        JarFile overlayAppJarFile = new JarFile(overlayArtifactFile);
-        dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(overlayAppJarFile.getInputStream(overlayAppJarFile.getEntry(META_INF_RESOURCES + DYNAMIC_PACKAGES_FILENAME))));
         dynamicPackages.addAll(overlayPackageNames);
       } else {
         dynamicPackages = overlayPackageNames;

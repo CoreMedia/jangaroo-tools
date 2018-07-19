@@ -21,8 +21,10 @@ import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
@@ -127,6 +129,23 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     }
   }
 
+  List<Dependency> findRequiredJangarooAppDependencies(MavenProject project) throws MojoExecutionException {
+    return project.getDependencies().stream().filter(dependency -> {
+      if (Type.JAR_EXTENSION.equals(dependency.getType())) {
+        try {
+          MavenProject mavenProject = createProjectFromDependency(dependency);
+          String packaging = mavenProject.getPackaging();
+          if (Type.JANGAROO_APP_PACKAGING.equals(packaging) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packaging)) {
+            return true;
+          }
+        } catch (MojoExecutionException e) {
+          // ignore
+        }
+      }
+      return false;
+    }).collect(Collectors.toList());
+  }
+
   Dependency findRequiredJangarooAppDependency(MavenProject project) throws MojoExecutionException {
     return project.getDependencies().stream().filter(dependency -> {
       if (Type.JAR_EXTENSION.equals(dependency.getType())) {
@@ -150,5 +169,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   Artifact getArtifact(Dependency dependency) {
     String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
     return project.getArtifactMap().get(versionlessKey);
+  }
+
+  protected MavenProject getReferencedMavenProject(Dependency dependency) {
+    String versionKey = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+    return project.getProjectReferences().get(versionKey);
   }
 }
