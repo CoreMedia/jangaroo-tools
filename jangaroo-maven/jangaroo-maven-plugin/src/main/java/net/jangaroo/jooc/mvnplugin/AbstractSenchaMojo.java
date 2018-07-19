@@ -19,6 +19,8 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 
@@ -55,6 +57,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   private String senchaLogLevel;
 
   private volatile Pattern extFrameworkArtifactPattern;
+
+  private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
 
   // ***********************************************************************
   // ************************* GETTERS *************************************
@@ -98,6 +102,11 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   @Nonnull
   MavenProject createProjectFromDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
+    String dependencyKey = dependency.toString();
+    if (mavenProjectByDependencyCache.containsKey(dependencyKey)) {
+      return mavenProjectByDependencyCache.get(dependencyKey);
+    }
+    getLog().debug("createProjectFromDependency(" + dependency + ")");
     Artifact artifactFromDependency = new DefaultArtifact(
             dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
             dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
@@ -109,7 +118,9 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     request.setResolveDependencies(false);
     try {
       ProjectBuildingResult result = projectBuilder.build(artifactFromDependency, request);
-      return result.getProject();
+      MavenProject project = result.getProject();
+      mavenProjectByDependencyCache.put(dependencyKey, project);
+      return project;
     } catch (ProjectBuildingException e) {
       throw new MojoExecutionException("Could not resolve required dependencies of POM dependency " + artifactFromDependency, e);
     }
