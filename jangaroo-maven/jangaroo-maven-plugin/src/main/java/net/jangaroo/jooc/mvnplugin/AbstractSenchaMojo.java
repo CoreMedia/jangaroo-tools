@@ -97,7 +97,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   @Nonnull
-  protected MavenProject createProjectFromDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
+  MavenProject createProjectFromDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
     Artifact artifactFromDependency = new DefaultArtifact(
             dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
             dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
@@ -130,7 +130,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       return false;
     }).findFirst()
             .orElseThrow(() ->
-                    new MojoExecutionException("Module of type jangaroo-app-overlay must have exactly one dependency on a module of type jangaroo.app.")
+                    new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have exactly one dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + ".")
             );
   }
 }
