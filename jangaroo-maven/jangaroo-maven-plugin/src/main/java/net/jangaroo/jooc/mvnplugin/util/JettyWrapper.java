@@ -45,7 +45,7 @@ public class JettyWrapper {
   private Map<String, Servlet> additionalServlets;
 
   private Server server;
-  private List<File> resourceJars;
+  private List<File> resourceJars = new ArrayList<>();
 
   /**
    * Creates a Wrapper for controlling a Jetty server.
@@ -66,8 +66,8 @@ public class JettyWrapper {
     this.staticResourcesServletConfigs = staticResourcesServletConfigs;
   }
 
-  public void setResourceJars(List<File> resourceJars) {
-    this.resourceJars = resourceJars;
+  public void addResourceJar(File resourceJar) {
+    resourceJars.add(resourceJar);
   }
 
   public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs) {
