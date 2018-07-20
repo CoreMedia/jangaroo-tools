@@ -73,6 +73,7 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
 
   private boolean containsSimilarArtifact(Set<Artifact> artifacts, Artifact artifact) {
     return artifacts.stream().anyMatch(artifact1 ->
+            !project.getDependencyArtifacts().contains(artifact) && // keep direct dependency artifacts
             artifact.getGroupId().equals(artifact1.getGroupId()) &&
             artifact.getArtifactId().equals(artifact1.getArtifactId()) &&
             artifact.getType().equals(artifact1.getType()));
