@@ -183,6 +183,7 @@ public final class FileHelper {
               PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
               "**/*-timestamp"
       });
+      fileSet.setIncludingEmptyDirectories(false);
       addFileSetFollowingSymLinks(archiver, fileSet);
     }
     MavenArchiver mavenArchiver = new MavenArchiver();
