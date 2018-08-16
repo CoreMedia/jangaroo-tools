@@ -136,8 +136,10 @@ public class RunMojo extends AbstractSenchaMojo {
         // Secondly, if the first one was an app overlay, also add required base app
         MavenProject baseAppOrOverlayProject = getReferencedMavenProject(baseAppOrOverlayDependency);
         baseAppOrOverlayProject = baseAppOrOverlayProject != null ? baseAppOrOverlayProject : createProjectFromDependency(baseAppOrOverlayDependency);
-        Dependency baseAppDependency = findRequiredJangarooAppDependency(baseAppOrOverlayProject);
-        addAppToResources(jettyWrapper, baseAppDependency);
+        if (baseAppOrOverlayProject.getPackaging().equals(Type.JANGAROO_APP_OVERLAY_PACKAGING)) {
+          Dependency baseAppDependency = findRequiredJangarooAppDependency(baseAppOrOverlayProject);
+          addAppToResources(jettyWrapper, baseAppDependency);
+        }
 
         staticResourcesServletConfigs.add(new StaticResourcesServletConfig("/*", "/"));
       }

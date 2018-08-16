@@ -143,7 +143,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       return false;
     }).findFirst()
             .orElseThrow(() ->
-                    new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have exactly one dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + ".")
+                    new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have exactly one dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".")
             );
   }
 
