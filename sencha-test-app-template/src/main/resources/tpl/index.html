@@ -9,6 +9,12 @@
 
     <script type="text/javascript">
       var Ext = Ext || {};
+      // hard-override Ext.getResourcePath():
+      Object.defineProperty(Ext, "getResourcePath", {value: function (path, poolName, packageName) {
+        // always use simple resource path for all packages in tests:
+        return "packages/" + packageName + "/resources/" + path;
+      }});
+      // copied from before-ext-load.js:
       Ext.registerGlobalResources = function(idToPackageResourceUrl) {
         for (var id in idToPackageResourceUrl) {
           var packageResourceUrl = idToPackageResourceUrl[id];
