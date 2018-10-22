@@ -105,9 +105,13 @@ public class CompressorImpl implements Compressor {
       while ((line = in.readLine()) != null) {
         String filename = line.trim();
         if (!filename.isEmpty()) {
-          Path path = Paths.get(baseDirPath, filename);
-          path = path.normalize();
-          files.add(path.toFile());
+          try {
+            Path path = Paths.get(baseDirPath, filename);
+            path = path.normalize();
+            files.add(path.toFile());
+          } catch (Exception ignored) {
+            // ignore the wonky Boot.js path Sencha Cmd returns!
+          }
         }
       }
       compress(files, output);
