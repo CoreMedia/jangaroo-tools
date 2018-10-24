@@ -114,6 +114,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     );
 
     ProjectBuildingRequest request = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+    request.setRemoteRepositories(project.getRemoteArtifactRepositories()); // The artifacts are available repositories defined in the projects - this also covers configured mirrors.
     request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
     request.setProcessPlugins(false);
     request.setResolveDependencies(false);
