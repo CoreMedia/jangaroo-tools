@@ -4,17 +4,19 @@ import net.jangaroo.jooc.CompressorImpl;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProjectHelper;
 
-import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Packages the Ext JS framework with source maps
@@ -24,16 +26,14 @@ public class PackageExtMojo extends AbstractMojo {
 
   private static final String FILE_LIST_FILE_NAME = "filenames.txt";
 
-  @Inject
-  private MavenProjectHelper helper;
-
   @Parameter(defaultValue = "${project.build.directory}/unzip", readonly = true)
   private File extFrameworkDir;
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     getLog().info("Execute sencha package Ext mojo");
     packageExtAll();
+    packagePackage("charts");
     packageTheme("theme-neptune");
     packageTheme("theme-triton");
   }
@@ -56,23 +56,82 @@ public class PackageExtMojo extends AbstractMojo {
     compressJsFiles(fileList, extPackageFile);
   }
 
+  private void packagePackage(String pkg) throws MojoExecutionException {
+    File packageDir = new File(extFrameworkDir, "packages/" + pkg);
+    File classicDir = new File(packageDir, "classic");
+    File packageFile = new File(classicDir, "src/ext-" + pkg + "-sourcemap.js");
+    File sourceMapDir = new File(packageDir, "sourcemap");
+    try {
+      moveToSourceMapDir(packageDir, sourceMapDir);
+      moveToSourceMapDir(classicDir, new File(sourceMapDir, "classic"));
+    } catch (IOException e) {
+      throw new MojoExecutionException("cannot move Ext source files to " + sourceMapDir, e);
+    }
+    List<File> sources = new ArrayList<>();
+    scanSources(sourceMapDir, sources);
+    packageFile.getParentFile().mkdirs();
+    getLog().info(String.format("Compressing %s to %s", sourceMapDir.getPath(), packageFile.getPath()));
+    try {
+      new CompressorImpl().compress(sources, packageFile);
+      addDefines(packageFile.toPath(), sources);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Exception while packaging JavaScript sources.", e);
+    }
+  }
+
+  private void moveToSourceMapDir(File srcRootDir, File sourceMapDir) throws IOException {
+    sourceMapDir.mkdirs();
+    moveSubDir(srcRootDir, sourceMapDir, "src");
+    moveSubDir(srcRootDir, sourceMapDir, "overrides");
+  }
+
+  private void moveSubDir(File srcRootDir, File sourceMapDir, String src) throws IOException {
+    File srcDir = new File(srcRootDir, src);
+    if (srcDir.exists()) {
+      Files.move(srcDir.toPath(), new File(sourceMapDir, src).toPath());
+    }
+  }
+
+  private void addDefines(Path packageFilePath, List<File> sources) throws MojoExecutionException {
+    List<String> defines = new ArrayList<>();
+    for (File srcFile : sources) {
+      try (BufferedReader reader = new BufferedReader(new FileReader(srcFile))) {
+        List<String> fileDefines = reader.lines().filter(line -> line.startsWith("// @define")).collect(Collectors.toList());
+        defines.addAll(fileDefines);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Exception while scanning source file " + srcFile.getPath() + " for @define.", e);
+      }
+    }
+    if (!defines.isEmpty()) {
+      try {
+        // insert defines before last line to keep //#sourceMappingURL
+        List<String> lines = Files.lines(packageFilePath).collect(Collectors.toCollection(ArrayList::new));
+        lines.addAll(lines.size() - 1, defines);
+        Files.write(packageFilePath, lines);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Exception while adding @defines to minified package file.", e);
+      }
+    }
+  }
+
   /**
    * Renames the overrides directory to overrides-src and concatenates all files therin to overrides/<theme>.js
    */
   private void packageTheme(String theme) throws MojoExecutionException {
     File themeDir = new File(extFrameworkDir, "classic/" + theme);
     File overridesDir = new File(themeDir, "overrides");
-    File overridesSrcDir = new File(themeDir, "overrides-src");
     File packageFile = new File(overridesDir, theme + "-overrides.js");
-    if (!overridesDir.renameTo(overridesSrcDir)) {
-      throw new MojoExecutionException("cannot rename " + overridesDir + " to " + overridesSrcDir);
-    }
-    if (!overridesDir.mkdir()) {
-      throw new MojoExecutionException("cannot create directory " + overridesDir);
+    File sourceMapDir = new File(themeDir, "sourcemap");
+    try {
+      sourceMapDir.mkdir();
+      Files.move(overridesDir.toPath(), new File(sourceMapDir, "overrides").toPath());
+    } catch (IOException e) {
+      throw new MojoExecutionException("cannot move " + overridesDir + " to " + sourceMapDir, e);
     }
     List<File> sources = new ArrayList<>();
-    scanSources(overridesSrcDir, sources);
-    getLog().info(String.format("Compressing %s to %s", overridesSrcDir.getPath(), packageFile.getPath()));
+    scanSources(sourceMapDir, sources);
+    packageFile.getParentFile().mkdirs();
+    getLog().info(String.format("Compressing %s to %s", sourceMapDir.getPath(), packageFile.getPath()));
     try {
       new CompressorImpl().compress(sources, packageFile);
     } catch (IOException e) {
