@@ -31,9 +31,6 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   private static final String SENCHA_FALLBACK_VERSION = "0.0.1";
 
-  @Parameter(defaultValue = "${project}", required = true, readonly = true)
-  protected MavenProject project;
-
   @Parameter
   private MavenSenchaProfileConfiguration production;
 
