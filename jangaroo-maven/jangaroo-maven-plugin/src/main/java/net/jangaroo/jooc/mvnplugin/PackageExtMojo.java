@@ -67,16 +67,21 @@ public class PackageExtMojo extends AbstractMojo {
     } catch (IOException e) {
       throw new MojoExecutionException("cannot move Ext source files to " + sourceMapDir, e);
     }
+    List<File> sources = findAndCompressSources(sourceMapDir, packageFile);
+    addDefines(packageFile.toPath(), sources);
+  }
+
+  private List<File> findAndCompressSources(File sourceMapDir, File packageFile) throws MojoExecutionException {
     List<File> sources = new ArrayList<>();
     scanSources(sourceMapDir, sources);
     packageFile.getParentFile().mkdirs();
     getLog().info(String.format("Compressing %s to %s", sourceMapDir.getPath(), packageFile.getPath()));
     try {
       new CompressorImpl().compress(sources, packageFile);
-      addDefines(packageFile.toPath(), sources);
     } catch (IOException e) {
       throw new MojoExecutionException("Exception while packaging JavaScript sources.", e);
     }
+    return sources;
   }
 
   private void moveToSourceMapDir(File srcRootDir, File sourceMapDir) throws IOException {
@@ -123,20 +128,11 @@ public class PackageExtMojo extends AbstractMojo {
     File packageFile = new File(overridesDir, theme + "-overrides.js");
     File sourceMapDir = new File(themeDir, "sourcemap");
     try {
-      sourceMapDir.mkdir();
-      Files.move(overridesDir.toPath(), new File(sourceMapDir, "overrides").toPath());
+      moveToSourceMapDir(themeDir, sourceMapDir);
     } catch (IOException e) {
-      throw new MojoExecutionException("cannot move " + overridesDir + " to " + sourceMapDir, e);
+      throw new MojoExecutionException("cannot move Ext theme sources " + themeDir + " to " + sourceMapDir, e);
     }
-    List<File> sources = new ArrayList<>();
-    scanSources(sourceMapDir, sources);
-    packageFile.getParentFile().mkdirs();
-    getLog().info(String.format("Compressing %s to %s", sourceMapDir.getPath(), packageFile.getPath()));
-    try {
-      new CompressorImpl().compress(sources, packageFile);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Exception while packaging JavaScript sources", e);
-    }
+    findAndCompressSources(sourceMapDir, packageFile);
   }
 
   private void compressJsFiles(File fileList, File packageFile) throws MojoExecutionException {
