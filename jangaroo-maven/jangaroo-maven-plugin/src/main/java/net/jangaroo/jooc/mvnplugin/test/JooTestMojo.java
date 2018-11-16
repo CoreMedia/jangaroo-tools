@@ -381,8 +381,27 @@ public class JooTestMojo extends AbstractSenchaMojo {
     }
 
     DriverManagerType driverManagerType = DriverManagerType.valueOf(webDriverBrowser.toUpperCase()); // may throw IllegalArgumentException
+    setUpWebDriver(driverManagerType);
+    return createWebDriver(driverManagerType);
+  }
+
+  private void setUpWebDriver(DriverManagerType driverManagerType) {
+    String webDriverBrowser = driverManagerType.toString().toLowerCase();
     getLog().info("Setting up WebDriver for " + webDriverBrowser + ".");
-    WebDriverManager.getInstance(driverManagerType).setup();
+    String webDriverSystemPropertyName = getWebDriverSystemPropertyName(driverManagerType);
+    String webDriverBinaryPath = System.getProperty(webDriverSystemPropertyName);
+    if (webDriverBinaryPath == null) {
+      getLog().info("No " + webDriverBrowser + " WebDriver environment property " + webDriverSystemPropertyName + ", using WebDriverManager for set up.");
+      WebDriverManager webDriverManager = WebDriverManager.getInstance(driverManagerType);
+      webDriverManager.setup();
+      webDriverBinaryPath = webDriverManager.getBinaryPath();
+    } else {
+      getLog().info("Found " + webDriverBrowser + " WebDriver environment property " + webDriverSystemPropertyName + ".");
+    }
+    getLog().info("Using WebDriver " + webDriverBinaryPath + " for browser " + webDriverBrowser + " .");
+  }
+
+  private WebDriver createWebDriver(DriverManagerType driverManagerType) throws IllegalArgumentException, WebDriverManagerException {
     switch (driverManagerType) {
       case CHROME:
         ChromeOptions chromeOptions = new ChromeOptions();
@@ -398,6 +417,21 @@ public class JooTestMojo extends AbstractSenchaMojo {
         return new InternetExplorerDriver(); // no headless mode :-(
       case OPERA:
         return new OperaDriver(); // no headless mode :-(
+    }
+    throw new IllegalArgumentException();
+  }
+
+  /*
+   * While WebDriverManager already knows about the system property name for each driver manager type,
+   * unfortunately, there is no API to access this information. So we have to repeat it here.
+   */
+  private static String getWebDriverSystemPropertyName(DriverManagerType driverManagerType) {
+    switch (driverManagerType) {
+      case CHROME: return "webdriver.chrome.driver";
+      case FIREFOX: return "webdriver.gecko.driver";
+      case EDGE: return "webdriver.edge.driver";
+      case IEXPLORER: return "webdriver.ie.driver";
+      case OPERA: return "webdriver.opera.driver";
     }
     throw new IllegalArgumentException();
   }
