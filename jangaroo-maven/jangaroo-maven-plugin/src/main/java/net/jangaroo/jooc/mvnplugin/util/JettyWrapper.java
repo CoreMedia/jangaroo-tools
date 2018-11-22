@@ -30,8 +30,9 @@ public class JettyWrapper {
 
   private static final long WAIT_TIME_MILLIS = 1000L;
 
+  public static final String ROOT_PATH_SPEC = "/*";
   private static final StaticResourcesServletConfig DEFAULT_RESOURCES_SERVLET_CONFIG =
-          new StaticResourcesServletConfig("/*", "/");
+          new StaticResourcesServletConfig(ROOT_PATH_SPEC, "/");
 
   static {
     Resource.setDefaultUseCaches(false);
@@ -46,6 +47,8 @@ public class JettyWrapper {
 
   private Server server;
   private List<File> resourceJars = new ArrayList<>();
+
+  private boolean hasRootPathServlet = false;
 
   /**
    * Creates a Wrapper for controlling a Jetty server.
@@ -183,8 +186,6 @@ public class JettyWrapper {
         for (StaticResourcesServletConfig config : staticResourcesServletConfigs) {
           addDefaultServlet(handler, config);
         }
-      } else {
-        addDefaultServlet(handler, DEFAULT_RESOURCES_SERVLET_CONFIG);
       }
 
       if (proxyServletConfigs != null && !proxyServletConfigs.isEmpty()) {
@@ -195,8 +196,12 @@ public class JettyWrapper {
 
       if (additionalServlets != null && !additionalServlets.isEmpty()) {
         for (Map.Entry<String, Servlet> servletEntry : additionalServlets.entrySet()) {
-          handler.addServlet(new ServletHolder(servletEntry.getValue()), servletEntry.getKey());
+          addServlet(handler, new ServletHolder(servletEntry.getValue()), servletEntry.getKey());
         }
+      }
+
+      if (!hasRootPathServlet) {
+        addDefaultServlet(handler, DEFAULT_RESOURCES_SERVLET_CONFIG);
       }
 
       return handler;
@@ -212,23 +217,30 @@ public class JettyWrapper {
     servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
 
     webAppContext.addAliasCheck(new AllowSymLinkAliasChecker());
-    webAppContext.addServlet(servletHolder, config.getPathSpec());
+    addServlet(webAppContext, servletHolder, config.getPathSpec());
     getLog().info(String.format("Serving static resources: %s -> %s",
             config.getPathSpec(), config.getRelativeResourceBase()));
   }
 
   private void addProxyServlet(JettyWebAppContext webAppContext, ProxyServletConfig config) {
-    String name = config.getPathSpec(); // TODO: Is this really a good servlet name?
-    ServletHolder servletHolder = new ServletHolder(name, JangarooProxyServlet.class);
+    String pathSpec = config.getPathSpec();
+    ServletHolder servletHolder = new ServletHolder(pathSpec, JangarooProxyServlet.class); // TODO: Is this really a good servlet name?
 
     servletHolder.setInitParameter("targetUri", config.getTargetUri().replaceAll("/$", ""));
     servletHolder.setInitParameter(ProxyServlet.P_FORWARDEDFOR, String.valueOf(config.isForwardedHeaderEnabled()));
     servletHolder.setInitParameter(ProxyServlet.P_LOG, String.valueOf(config.isLoggingEnabled()));
     servletHolder.setInitParameter(ProxyServlet.P_PRESERVECOOKIES, "true");
 
-    webAppContext.addServlet(servletHolder, config.getPathSpec());
+    addServlet(webAppContext, servletHolder, pathSpec);
     getLog().info(String.format("Proxy requests: %s -> %s",
-            config.getPathSpec(), config.getTargetUri()));
+            pathSpec, config.getTargetUri()));
+  }
+
+  private void addServlet(JettyWebAppContext webAppContext, ServletHolder servletHolder, String pathSpec) {
+    webAppContext.addServlet(servletHolder, pathSpec);
+    if (ROOT_PATH_SPEC.equals(pathSpec)) {
+      hasRootPathServlet = true;
+    }
   }
 
   private List<Integer> shufflePortRange(Range<Integer> portRange) {

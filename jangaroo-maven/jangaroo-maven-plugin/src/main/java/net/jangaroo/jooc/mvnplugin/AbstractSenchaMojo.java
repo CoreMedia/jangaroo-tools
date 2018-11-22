@@ -21,7 +21,10 @@ import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -128,33 +131,75 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     }
   }
 
-  Dependency findRequiredJangarooAppDependency(MavenProject project) throws MojoExecutionException {
-    return project.getDependencies().stream().filter(dependency -> {
-      if (Type.JAR_EXTENSION.equals(dependency.getType())) {
-        try {
-          MavenProject mavenProject = createProjectFromDependency(dependency);
-          String packaging = mavenProject.getPackaging();
-          if (Type.JANGAROO_APP_PACKAGING.equals(packaging) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packaging)) {
-            return true;
-          }
-        } catch (MojoExecutionException e) {
-          // ignore
-        }
-      }
-      return false;
-    }).findFirst()
-            .orElseThrow(() ->
-                    new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have exactly one dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".")
-            );
-  }
-
   Artifact getArtifact(Dependency dependency) {
     String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
     return project.getArtifactMap().get(versionlessKey);
   }
 
-  MavenProject getReferencedMavenProject(Dependency dependency) {
-    String versionKey = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
-    return project.getProjectReferences().get(versionKey);
+  JangarooApp createJangarooApp(MavenProject project) throws MojoExecutionException {
+    String packaging = project.getPackaging();
+    if (Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
+      return new JangarooApp(project);
+    } else if (Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packaging)) {
+      return createJangarooAppOverlay(project);
+    }
+    return null;
+  }
+
+  JangarooAppOverlay createJangarooAppOverlay(MavenProject project) throws MojoExecutionException {
+    List<Dependency> dependencies = project.getDependencies();
+    for (Dependency dependency : dependencies) {
+      if (Type.JAR_EXTENSION.equals(dependency.getType())) {
+        try {
+          MavenProject dependentProject = createProjectFromDependency(dependency);
+          JangarooApp baseApp = createJangarooApp(dependentProject);
+          if (baseApp != null) {
+            return new JangarooAppOverlay(project, baseApp);
+          }
+        } catch (MojoExecutionException e) {
+          // ignore
+        }
+      }
+    }
+    throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
+  }
+
+  static class JangarooApp {
+    MavenProject mavenProject;
+    Set<Artifact> packages = new LinkedHashSet<>();
+
+    JangarooApp(MavenProject mavenProject) {
+      this.mavenProject = mavenProject;
+    }
+    
+    JangarooApp getRootBaseApp() {
+      return this;
+    }
+  }
+
+  static class JangarooAppOverlay extends JangarooApp {
+    JangarooApp baseApp;
+
+    JangarooAppOverlay(MavenProject mavenProject, JangarooApp baseApp) {
+      super(mavenProject);
+      this.baseApp = baseApp;
+    }
+
+    @Override
+    JangarooApp getRootBaseApp() {
+      return baseApp.getRootBaseApp();
+    }
+
+    Set<Artifact> getOwnDynamicPackages() {
+      LinkedHashSet<Artifact> ownDynamicPackages = new LinkedHashSet<>(packages);
+      ownDynamicPackages.removeAll(baseApp.packages);
+      return ownDynamicPackages;
+    }
+
+    Set<Artifact> getAllDynamicPackages() {
+      LinkedHashSet<Artifact> allDynamicPackages = new LinkedHashSet<>(packages);
+      allDynamicPackages.removeAll(getRootBaseApp().packages);
+      return allDynamicPackages;
+    }
   }
 }

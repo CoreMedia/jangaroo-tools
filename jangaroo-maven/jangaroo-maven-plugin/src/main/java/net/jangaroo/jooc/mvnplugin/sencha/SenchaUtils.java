@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +54,6 @@ public class SenchaUtils {
   public static final String LOCAL_PACKAGES_PATH = SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR;
 
   public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;
-
-  public static final String TEST_APP_TARGET_DIRECTORY = SEPARATOR + TEST_APP_DIRECTORY_NAME;
-
-  public static final String WELCOME_FILE_PATH = "/index.html";
 
   /**
    * The name of the folder of the generated module inside the packages folder of the module.
@@ -157,24 +152,6 @@ public class SenchaUtils {
     return null;
   }
 
-  public static File findClosestSenchaWorkspaceDir(File dir) {
-    File result;
-    try {
-      result = dir.getCanonicalFile();
-    } catch (IOException e) {
-      return null; //NOSONAR
-    }
-    while (null != result) {
-      String[] list = result.list((dir1, name) -> SenchaUtils.SENCHA_WORKSPACE_FILENAME.equals(name));
-      if (null != list
-              && list.length > 0) {
-        break;
-      }
-      result = result.getParentFile();
-    }
-    return result;
-  }
-
   /**
    * Generates an absolute path to the module dir for the given relative path using a placeholder.
    *
@@ -214,7 +191,11 @@ public class SenchaUtils {
   }
 
   public static boolean isSenchaDependency(@Nonnull Dependency dependency) {
-    return Type.SWC_EXTENSION.equals(dependency.getType()) || Type.PKG_EXTENSION.equals(dependency.getType());
+    return isSenchaDependency(dependency.getType());
+  }
+
+  public static boolean isSenchaDependency(@Nonnull String type) {
+    return Type.SWC_EXTENSION.equals(type) || Type.PKG_EXTENSION.equals(type);
   }
 
   public static boolean doesSenchaAppExist(File directory) {
@@ -300,16 +281,6 @@ public class SenchaUtils {
     } catch (IOException ioe) {
       throw new MojoExecutionException("Could not run 'sencha'. Please install Sencha Cmd >= 6.2.1 or check your PATH environment variable.", ioe);
     }
-  }
-
-  public static void refreshApp(File dir, Log log, String logLevel) throws MojoExecutionException {
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(dir, "app refresh", log, logLevel);
-    senchaCmdExecutor.execute();
-  }
-
-  public static void createSenchaCfgWithExtDirectory(Path senchaCfgSource, Path senchaCfgTarget, File extDirectory)
-          throws MojoExecutionException {
-    createSenchaCfg(senchaCfgSource, senchaCfgTarget, Collections.singletonMap("ext.dir", extDirectory));
   }
 
   public static void createSenchaCfg(Path senchaCfgSource, Path senchaCfgTarget, Map<String, Object> properties)

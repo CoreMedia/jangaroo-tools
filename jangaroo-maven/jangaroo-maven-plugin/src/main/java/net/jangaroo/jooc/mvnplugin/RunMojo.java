@@ -6,7 +6,6 @@ import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
 import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
 import net.jangaroo.jooc.mvnplugin.util.StaticResourcesServletConfig;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -113,7 +112,7 @@ public class RunMojo extends AbstractSenchaMojo {
       String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
       staticResourcesServletConfigs.add(new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + senchaPackageName + SEPARATOR + "*"));
     } else if (isAppOverlayPackaging) {
-      if ("/*".equals(jooProxyPathSpec)) {
+      if (JettyWrapper.ROOT_PATH_SPEC.equals(jooProxyPathSpec)) {
         // If root path, the developer wants to proxy-in the base app, so all static resources are already there.
         // We just need to add all overlay packages as static resource folders:
         File[] packageDirs = new File(baseDir, PACKAGES_DIRECTORY_NAME).listFiles(File::isDirectory);
@@ -129,19 +128,14 @@ public class RunMojo extends AbstractSenchaMojo {
       } else {
         // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
 
-        // Firstly, add required base app or app overlay
-        Dependency baseAppOrOverlayDependency = findRequiredJangarooAppDependency(project);
-        addAppToResources(jettyWrapper, baseAppOrOverlayDependency);
-
-        // Secondly, if the first one was an app overlay, also add required base app
-        MavenProject baseAppOrOverlayProject = getReferencedMavenProject(baseAppOrOverlayDependency);
-        baseAppOrOverlayProject = baseAppOrOverlayProject != null ? baseAppOrOverlayProject : createProjectFromDependency(baseAppOrOverlayDependency);
-        if (baseAppOrOverlayProject.getPackaging().equals(Type.JANGAROO_APP_OVERLAY_PACKAGING)) {
-          Dependency baseAppDependency = findRequiredJangarooAppDependency(baseAppOrOverlayProject);
-          addAppToResources(jettyWrapper, baseAppDependency);
+        // Add base app and all app overlays
+        JangarooApp jangarooApp = createJangarooApp(project);
+        while (jangarooApp instanceof JangarooAppOverlay) {
+          jangarooApp = ((JangarooAppOverlay) jangarooApp).baseApp;
+          addAppToResources(jettyWrapper, jangarooApp.mavenProject);
         }
 
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig("/*", "/"));
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, "/"));
       }
     }
 
@@ -173,16 +167,15 @@ public class RunMojo extends AbstractSenchaMojo {
     }
   }
 
-  private void addAppToResources(JettyWrapper jettyWrapper, Dependency baseAppDependency) {
-    MavenProject baseAppProject = getReferencedMavenProject(baseAppDependency);
-    if (baseAppProject != null) {
+  private void addAppToResources(JettyWrapper jettyWrapper, MavenProject baseAppProject) {
+    if (project.getProjectReferences().containsValue(baseAppProject)) {
       // base app is part of our Reactor, so we can determine its output directory:
       File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
       jettyWrapper.addBaseDir(appResourceDir);
       getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
     } else {
       // base app is referenced externally, so we have to use the JAR artifact:
-      Artifact baseAppArtifact = getArtifact(baseAppDependency);
+      Artifact baseAppArtifact = baseAppProject.getArtifact();
       // TODO: null?
       File baseAppResourceJar = baseAppArtifact.getFile();
       // TODO: null?
