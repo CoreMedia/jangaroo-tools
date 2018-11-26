@@ -406,6 +406,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
       case CHROME:
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.setHeadless(true);
+        chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--disable-dev-shm-usage");
         return new ChromeDriver(chromeOptions);
       case FIREFOX:
