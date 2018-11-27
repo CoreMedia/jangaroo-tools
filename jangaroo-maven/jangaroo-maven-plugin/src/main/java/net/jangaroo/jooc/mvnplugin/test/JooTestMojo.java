@@ -47,6 +47,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -179,6 +181,20 @@ public class JooTestMojo extends AbstractSenchaMojo {
    */
   @Parameter(property = "jooUnitWebDriverBrowser")
   private String jooUnitWebDriverBrowser = "";
+
+  /**
+   * Defines an optional list of arguments to hand through to the browser started by Selenium WebDriver.
+   * Conveniently, Maven automatically converts a string with commas into a list of strings, so you can set this
+   * property from the commandline like so:
+   * <code>-DjooUnitWebDriverBrowserArguments=--no-sandbox,--disable-dev-shm-usage</code>
+   * Take care to use arguments appropriate for the browser chosen in <code>jooUnitWebDriverBrowser</code>.
+   * Note that WebDriver currently only supports this feature for Chrome and Firefox.
+   * 
+   * <p>Default is the empty list (no additional arguments), but <code>headless</code> mode is activated where
+   * possible (again only Chrome and Firefox).</p>
+   */
+  @Parameter(property = "jooUnitWebDriverBrowserArguments")
+  private List<String> jooUnitWebDriverBrowserArguments = Collections.emptyList();
 
   /**
    * Defines the Selenium Remote URI to use, usually the URI of a Selenium Grid.
@@ -333,7 +349,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
     try {
       getLog().debug("Opening " + testsHtmlUrl);
       driver.get(testsHtmlUrl);
-      getLog().debug("Waiting for test results for " + jooUnitTestExecutionTimeout + "ms ...");
+      getLog().info("Waiting for test results for max. " + (jooUnitTestExecutionTimeout / 1000) + " seconds...");
 
       JavascriptExecutor javascriptExecutor = (JavascriptExecutor) driver;
       new WebDriverWait(driver, jooUnitTestExecutionTimeout / 1000).until(new Function<WebDriver, Boolean>() {
@@ -406,19 +422,21 @@ public class JooTestMojo extends AbstractSenchaMojo {
       case CHROME:
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.setHeadless(true);
-        chromeOptions.addArguments("--no-sandbox");
-        chromeOptions.addArguments("--disable-dev-shm-usage");
+        chromeOptions.addArguments(jooUnitWebDriverBrowserArguments);
+        getLog().info("Starting Chrome with " + jooUnitWebDriverBrowserArguments.size() + " arguments: " + String.join(" ", jooUnitWebDriverBrowserArguments));
         return new ChromeDriver(chromeOptions);
       case FIREFOX:
         FirefoxOptions firefoxOptions = new FirefoxOptions();
         firefoxOptions.setHeadless(true);
+        firefoxOptions.addArguments(jooUnitWebDriverBrowserArguments);
+        getLog().info("Starting Firefox with " + jooUnitWebDriverBrowserArguments.size() + " arguments: " + String.join(" ", jooUnitWebDriverBrowserArguments));
         return new FirefoxDriver(firefoxOptions);
       case EDGE:
-        return new EdgeDriver(); // no headless mode yet :-(
+        return new EdgeDriver(); // no headless mode and no arguments yet :-(
       case IEXPLORER:
-        return new InternetExplorerDriver(); // no headless mode :-(
+        return new InternetExplorerDriver(); // no headless mode and no arguments yet :-(
       case OPERA:
-        return new OperaDriver(); // no headless mode :-(
+        return new OperaDriver(); // no headless mode and no arguments yet :-(
     }
     throw new IllegalArgumentException();
   }
