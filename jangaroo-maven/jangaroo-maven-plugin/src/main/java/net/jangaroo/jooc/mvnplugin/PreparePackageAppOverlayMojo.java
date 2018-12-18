@@ -68,7 +68,7 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     for (Dependency dependency : dependencies) {
       if (isRequiredSenchaDependency(dependency, false) || Type.POM_PACKAGING.equals(dependency.getType())
               || (Type.JAR_EXTENSION.equals(dependency.getType()) && Artifact.SCOPE_RUNTIME.equals(dependency.getScope()))) {
-        MavenProject mavenProject = createProjectFromDependency(dependency);
+        MavenProject mavenProject = getProjectFromDependency(project, dependency);
         if (jangarooAppOverlay != null && jangarooAppOverlay.baseApp.mavenProject.equals(mavenProject)) {
           populatePackages(jangarooAppOverlay.baseApp, mavenProject);
         } else {

@@ -179,7 +179,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
     for (Dependency dependency : project.getDependencies()) {
       // only resolve POM packages that are not the remote packages artifact
       if (Type.POM_PACKAGING.equalsIgnoreCase(dependency.getType())) {
-        MavenProject projectFromPom = createProjectFromDependency(dependency);
+        MavenProject projectFromPom = getProjectFromDependency(project, dependency);
         List<Dependency> fromPomDependencies = resolveRequiredDependencies(projectFromPom);
         if (!fromPomDependencies.isEmpty()) {
           resolvedDependencies.addAll(fromPomDependencies);

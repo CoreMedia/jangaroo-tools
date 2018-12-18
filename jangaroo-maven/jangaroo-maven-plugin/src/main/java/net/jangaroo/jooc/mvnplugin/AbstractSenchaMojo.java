@@ -105,7 +105,18 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   @Nonnull
-  MavenProject createProjectFromDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
+  MavenProject getProjectFromDependency(MavenProject project, Dependency dependency) throws MojoExecutionException {
+    // fast path: look for dependent project in project's references:
+    String key = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+    if (project.getProjectReferences().containsKey(key)) {
+      return project.getProjectReferences().get(key);
+    }
+    // expensive path: retrieve MavenProject via Maven's ProjectBuildingRequest:
+    return createProjectFromDependency(dependency);
+  }
+
+  @Nonnull
+  private MavenProject createProjectFromDependency(@Nonnull Dependency dependency) throws MojoExecutionException {
     String dependencyKey = dependency.toString();
     if (mavenProjectByDependencyCache.containsKey(dependencyKey)) {
       return mavenProjectByDependencyCache.get(dependencyKey);
@@ -146,11 +157,6 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return project.getArtifactMap().get(versionlessKey);
   }
 
-  private MavenProject getDependentProjectFromReferences(MavenProject project, Dependency dependency) {
-    String key = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
-    return project.getProjectReferences().get(key);
-  }
-
   JangarooApp createJangarooApp(MavenProject project) throws MojoExecutionException {
     String packaging = project.getPackaging();
     if (Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
@@ -166,10 +172,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     for (Dependency dependency : dependencies) {
       if (Type.JAR_EXTENSION.equals(dependency.getType())) {
         // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
-        MavenProject dependentProject = getDependentProjectFromReferences(project, dependency);
-        if (dependentProject == null) {
-          dependentProject = createProjectFromDependency(dependency);
-        }
+        MavenProject dependentProject = getProjectFromDependency(project, dependency);
         JangarooApp baseApp = createJangarooApp(dependentProject);
         if (baseApp != null) {
           return new JangarooAppOverlay(project, baseApp);
