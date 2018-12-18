@@ -111,11 +111,13 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       return mavenProjectByDependencyCache.get(dependencyKey);
     }
     getLog().debug("createProjectFromDependency(" + dependency + ")");
-    Artifact artifactFromDependency = new DefaultArtifact(
-            dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
-            dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
-    );
-
+    Artifact artifactFromDependency = getArtifact(dependency);
+    if (artifactFromDependency == null) {
+      artifactFromDependency = new DefaultArtifact(
+              dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), dependency.getScope(),
+              dependency.getType(), dependency.getClassifier(), artifactHandlerManager.getArtifactHandler(dependency.getType())
+      );
+    }
     ProjectBuildingRequest request = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
     request.setRemoteRepositories(project.getRemoteArtifactRepositories()); // The artifacts are available repositories defined in the projects - this also covers configured mirrors.
     request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
@@ -132,8 +134,21 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   Artifact getArtifact(Dependency dependency) {
-    String versionlessKey = ArtifactUtils.versionlessKey(dependency.getGroupId(), dependency.getArtifactId());
+    return getArtifact(dependency.getGroupId(), dependency.getArtifactId());
+  }
+
+  Artifact getArtifact(MavenProject mavenProject) {
+    return getArtifact(mavenProject.getGroupId(), mavenProject.getArtifactId());
+  }
+
+  private Artifact getArtifact(String groupId, String artifactId) {
+    String versionlessKey = ArtifactUtils.versionlessKey(groupId, artifactId);
     return project.getArtifactMap().get(versionlessKey);
+  }
+
+  private MavenProject getDependentProjectFromReferences(MavenProject project, Dependency dependency) {
+    String key = ArtifactUtils.key(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+    return project.getProjectReferences().get(key);
   }
 
   JangarooApp createJangarooApp(MavenProject project) throws MojoExecutionException {
@@ -150,14 +165,14 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     List<Dependency> dependencies = project.getDependencies();
     for (Dependency dependency : dependencies) {
       if (Type.JAR_EXTENSION.equals(dependency.getType())) {
-        try {
-          MavenProject dependentProject = createProjectFromDependency(dependency);
-          JangarooApp baseApp = createJangarooApp(dependentProject);
-          if (baseApp != null) {
-            return new JangarooAppOverlay(project, baseApp);
-          }
-        } catch (MojoExecutionException e) {
-          // ignore
+        // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
+        MavenProject dependentProject = getDependentProjectFromReferences(project, dependency);
+        if (dependentProject == null) {
+          dependentProject = createProjectFromDependency(dependency);
+        }
+        JangarooApp baseApp = createJangarooApp(dependentProject);
+        if (baseApp != null) {
+          return new JangarooAppOverlay(project, baseApp);
         }
       }
     }
@@ -165,7 +180,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   static class JangarooApp {
-    MavenProject mavenProject;
+    final MavenProject mavenProject;
     Set<Artifact> packages = new LinkedHashSet<>();
 
     JangarooApp(MavenProject mavenProject) {
@@ -178,7 +193,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   }
 
   static class JangarooAppOverlay extends JangarooApp {
-    JangarooApp baseApp;
+    final JangarooApp baseApp;
 
     JangarooAppOverlay(MavenProject mavenProject, JangarooApp baseApp) {
       super(mavenProject);

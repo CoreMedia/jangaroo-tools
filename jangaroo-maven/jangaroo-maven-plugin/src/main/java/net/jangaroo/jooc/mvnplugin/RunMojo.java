@@ -7,7 +7,6 @@ import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
 import net.jangaroo.jooc.mvnplugin.util.StaticResourcesServletConfig;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -91,7 +90,7 @@ public class RunMojo extends AbstractSenchaMojo {
   private List<ProxyServletConfig> jooProxyServletConfigs;
 
   @Override
-  public void execute() throws MojoExecutionException, MojoFailureException {
+  public void execute() throws MojoExecutionException {
     boolean isSwcPackaging = Type.JANGAROO_SWC_PACKAGING.equals(project.getPackaging());
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
     boolean isAppOverlayPackaging = Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging());
@@ -167,18 +166,23 @@ public class RunMojo extends AbstractSenchaMojo {
     }
   }
 
-  private void addAppToResources(JettyWrapper jettyWrapper, MavenProject baseAppProject) {
-    if (project.getProjectReferences().containsValue(baseAppProject)) {
+  private void addAppToResources(JettyWrapper jettyWrapper, MavenProject baseAppProject) throws MojoExecutionException {
+    if (baseAppProject.getBuild().getDirectory() != null &&
+            new File(baseAppProject.getBuild().getDirectory()).isDirectory()) {
       // base app is part of our Reactor, so we can determine its output directory:
       File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
       jettyWrapper.addBaseDir(appResourceDir);
       getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
     } else {
       // base app is referenced externally, so we have to use the JAR artifact:
-      Artifact baseAppArtifact = baseAppProject.getArtifact();
-      // TODO: null?
+      Artifact baseAppArtifact = getArtifact(baseAppProject);
+      if (baseAppArtifact == null) {
+        throw new MojoExecutionException("Artifact of base app " + baseAppProject + " not found in project dependencies.");
+      }
       File baseAppResourceJar = baseAppArtifact.getFile();
-      // TODO: null?
+      if (baseAppResourceJar == null) {
+        throw new MojoExecutionException("Artifact of base app " + baseAppProject + " has null file, cannot determine JAR location.");
+      }
       getLog().info("Adding base app JAR " + baseAppResourceJar.getAbsolutePath());
       jettyWrapper.addResourceJar(baseAppResourceJar);
     }
