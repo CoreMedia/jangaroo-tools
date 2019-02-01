@@ -33,11 +33,11 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     if (target.toString().equals(packageName)) {
       return; // Do not link a package to itself!
     }
-    getLog().info("Linking " + link + " -> " + target);
+    getLog().debug("Linking " + link + " -> " + target);
     try {
       FileHelper.createSymbolicLink(link, target);
     } catch (IOException e) {
-      throw new MojoExecutionException("Creating symbolic link for package " + packageName + " failed. Make sure you have sufficient rights to create symbolic links.", e);
+      throw new MojoExecutionException("Creating directory link for package " + packageName + " failed.", e);
     }
   }
 
@@ -65,6 +65,7 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
   }
 
   void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path packagesPath, File remotePackagesDir) throws MojoExecutionException {
+    getLog().info(String.format("Linking package directories for %d artifacts into package path %s", artifacts.size(), packagesPath));
     Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
     for (Artifact artifact : artifacts) {
       String senchaPackageName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
@@ -99,11 +100,11 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
       long artifactLastModified = pkgFile.lastModified();
       if (mavenStampFile.exists() && mavenStampFile.lastModified() == artifactLastModified) {
         // already unpacked
-        getLog().info(String.format("Already unpacked %s to %s, skipping", artifact, targetDir.getName()));
+        getLog().debug(String.format("Already unpacked %s to %s, skipping", artifact, targetDir.getName()));
         return;
       }
       if (targetDir.exists()) {
-        getLog().info(String.format("Cleaning %s", targetDir));
+        getLog().debug(String.format("Cleaning %s", targetDir));
         clean(targetDir);
       }
       getLog().info(String.format("Extracting %s to %s", artifact, targetDir));

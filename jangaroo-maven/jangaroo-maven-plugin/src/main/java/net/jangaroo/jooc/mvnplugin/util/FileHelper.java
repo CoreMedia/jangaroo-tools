@@ -4,6 +4,7 @@ import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -66,7 +67,7 @@ public final class FileHelper {
   }
 
   public static void ensureDirectory(File dir) throws MojoExecutionException {
-    if (!dir.exists() && !dir.mkdirs()) {
+    if (!dir.exists() && !dir.mkdirs() && !dir.exists()) {
       throw new MojoExecutionException("could not create folder for directory " + dir);
     }
   }
@@ -128,24 +129,30 @@ public final class FileHelper {
   }
 
   public static void createSymbolicLink(Path link, Path target) throws IOException {
-    try {
+    if (!SystemUtils.IS_OS_WINDOWS) {
       Files.createSymbolicLink(link, target);
-    } catch (IOException e) {
-      // TODO: can we convince the security manager to allow LinkPermission("symbolic")?
-      if (SystemUtils.IS_OS_WINDOWS) {
-        // fall back to command line execution:
-        // in recent Windows 10 versions, this seems to work even without the user holding the "Create Symbolic Link" right.
-        DefaultExecutor executor = new DefaultExecutor();
-        executor.setWorkingDirectory(link.toFile().getParentFile());
-        CommandLine mkLinkCommand = new CommandLine("CMD");
-        mkLinkCommand.addArgument("/C");
-        mkLinkCommand.addArgument("MKLINK");
-        mkLinkCommand.addArgument("/D");
-        mkLinkCommand.addArgument(link.getFileName().toString());
-        mkLinkCommand.addArgument(target.toString());
+    } else {
+      // In Windows, users need special privileges to create symlinks. But there are less general symlinks that
+      // only work within one volume (which is fine for our purpose) called junctions (for directories).
+      // Creating directory junctions works without additional privileges. Unfortunately, the current implementation
+      // of Files.createSymbolicLink() under Windows uses symlinks.
+      // Thus, for windows, we always use mklink to create directory junctions (/J) in favor of symlinks (/D).
+      // fall back to command line execution:
+      DefaultExecutor executor = new DefaultExecutor();
+      executor.setWorkingDirectory(link.toFile().getParentFile());
+      // prevent command line tool output from appearing in Maven log:
+      executor.setStreamHandler(new PumpStreamHandler(null)); 
+
+      CommandLine mkLinkCommand = new CommandLine("CMD");
+      mkLinkCommand.addArgument("/C");
+      mkLinkCommand.addArgument("MKLINK");
+      mkLinkCommand.addArgument("/J");
+      mkLinkCommand.addArgument(link.getFileName().toString());
+      mkLinkCommand.addArgument(target.toString());
+      try {
         executor.execute(mkLinkCommand);
-      } else {
-        throw e;
+      } catch (IOException e) {
+        throw new IOException("Error while invoking " + mkLinkCommand.toString(), e);
       }
     }
   }

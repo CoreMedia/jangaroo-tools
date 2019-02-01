@@ -72,6 +72,7 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
+          <pre-clean>net.jangaroo:jangaroo-maven-plugin:${pom.version}:pre-clean</pre-clean>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <process-classes>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-pkg</process-classes>
           <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
@@ -91,6 +92,7 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
+          <pre-clean>net.jangaroo:jangaroo-maven-plugin:${pom.version}:pre-clean</pre-clean>
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties</generate-sources>
           <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-ws,
             org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
@@ -114,6 +116,7 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
+          <pre-clean>net.jangaroo:jangaroo-maven-plugin:${pom.version}:pre-clean</pre-clean>
           <generate-sources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:properties
           </generate-sources>
           <process-resources>net.jangaroo:jangaroo-maven-plugin:${pom.version}:generate-ws,
@@ -135,6 +138,7 @@
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
       <configuration>
         <phases>
+          <pre-clean>net.jangaroo:jangaroo-maven-plugin:${pom.version}:pre-clean</pre-clean>
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:prepare-package-app-overlay</prepare-package>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app-overlay</package>
