@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mxml.ast;
 
 import com.google.common.collect.Iterables;
-import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
@@ -45,6 +44,8 @@ import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.APPLY;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
 final class MxmlToModelParser {
+
+  private static final String EXML_NAMESPACE_URI = "http://www.jangaroo.net/exml/0.8";
 
   private static final String EXT_CONFIG_CREATE_FLAG = "create";
   private static final String EXT_CONFIG_EXTRACT_XTYPE_PARAMETER = "extractXType";
@@ -213,7 +214,7 @@ final class MxmlToModelParser {
 
   private static String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
     if ("Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName())) {
-      String configMode = element.getAttributeNS(Exmlc.EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
+      String configMode = element.getAttributeNS(EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
       if (!configMode.isEmpty()) {
         return configMode;
       }
