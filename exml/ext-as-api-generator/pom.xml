@@ -11,6 +11,11 @@
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
+      <artifactId>exml-compiler-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -19,10 +24,10 @@
       <artifactId>jangaroo-utils</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>args4j</groupId>-->
-      <!--<artifactId>args4j</artifactId>-->
-    <!--</dependency>-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
@@ -39,6 +44,11 @@
     <dependency>
       <groupId>com.vladsch.flexmark</groupId>
       <artifactId>flexmark-ext-tables</artifactId>
+      <version>0.28.32</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-util</artifactId>
       <version>0.28.32</version>
     </dependency>
     <dependency>
@@ -86,6 +96,14 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <usedDependencies>
+            <usedDependency>${project.groupId}:exml-compiler-api</usedDependency>
+          </usedDependencies>
         </configuration>
       </plugin>
     </plugins>
