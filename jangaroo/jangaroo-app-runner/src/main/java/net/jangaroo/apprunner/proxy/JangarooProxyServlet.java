@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mvnplugin.proxy;
+package net.jangaroo.apprunner.proxy;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;

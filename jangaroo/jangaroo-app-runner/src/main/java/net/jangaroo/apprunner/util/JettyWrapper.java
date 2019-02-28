@@ -1,17 +1,18 @@
-package net.jangaroo.jooc.mvnplugin.util;
+package net.jangaroo.apprunner.util;
 
-import net.jangaroo.jooc.mvnplugin.proxy.JangarooProxyServlet;
+import net.jangaroo.apprunner.proxy.JangarooProxyServlet;
 import org.apache.commons.lang3.Range;
-import org.apache.maven.plugin.logging.Log;
-import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AllowSymLinkAliasChecker;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
+import org.slf4j.Logger;
 
 import javax.servlet.Servlet;
 import java.io.File;
@@ -22,6 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.lang.invoke.MethodHandles.lookup;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Wrapper class for controlling a Jetty server.
@@ -38,7 +42,7 @@ public class JettyWrapper {
     Resource.setDefaultUseCaches(false);
   }
 
-  private final Log log;
+  private static final Logger LOG = getLogger(lookup().lookupClass());
 
   private List<File> baseDirs = new ArrayList<>();
   private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
@@ -50,19 +54,23 @@ public class JettyWrapper {
 
   private boolean hasRootPathServlet = false;
 
+  private Class<? extends WebAppContext> webAppContextClass = WebAppContext.class;
+
   /**
    * Creates a Wrapper for controlling a Jetty server.
    *
-   * @param log     the log used by this wrapper
    * @param baseDir the base directory for serving static resources
    */
-  public JettyWrapper(Log log, File baseDir) {
-    this.log = log;
-    baseDirs.add(baseDir);
+  public JettyWrapper(File baseDir) {
+    addBaseDir(baseDir);
   }
 
   public void addBaseDir(File baseDir) {
     baseDirs.add(baseDir);
+  }
+
+  public void setWebAppContextClass(Class<? extends WebAppContext> webAppContextClass) {
+    this.webAppContextClass = webAppContextClass;
   }
 
   public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs) {
@@ -166,9 +174,9 @@ public class JettyWrapper {
     return server;
   }
 
-  private JettyWebAppContext createHandler() throws JettyWrapperException {
+  private WebAppContext createHandler() throws JettyWrapperException {
     try {
-      JettyWebAppContext handler = new JettyWebAppContext();
+      WebAppContext handler = webAppContextClass.newInstance();
 
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
 
@@ -210,7 +218,7 @@ public class JettyWrapper {
     }
   }
 
-  private void addDefaultServlet(JettyWebAppContext webAppContext, StaticResourcesServletConfig config) {
+  private void addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {
     ServletHolder servletHolder = new ServletHolder(DefaultServlet.class);
 
     servletHolder.setInitParameter("relativeResourceBase", config.getRelativeResourceBase());
@@ -222,7 +230,7 @@ public class JettyWrapper {
             config.getPathSpec(), config.getRelativeResourceBase()));
   }
 
-  private void addProxyServlet(JettyWebAppContext webAppContext, ProxyServletConfig config) {
+  private void addProxyServlet(ServletContextHandler webAppContext, ProxyServletConfig config) {
     String pathSpec = config.getPathSpec();
     ServletHolder servletHolder = new ServletHolder(pathSpec, JangarooProxyServlet.class); // TODO: Is this really a good servlet name?
 
@@ -236,7 +244,7 @@ public class JettyWrapper {
             pathSpec, config.getTargetUri()));
   }
 
-  private void addServlet(JettyWebAppContext webAppContext, ServletHolder servletHolder, String pathSpec) {
+  private void addServlet(ServletContextHandler webAppContext, ServletHolder servletHolder, String pathSpec) {
     webAppContext.addServlet(servletHolder, pathSpec);
     if (ROOT_PATH_SPEC.equals(pathSpec)) {
       hasRootPathServlet = true;
@@ -252,8 +260,8 @@ public class JettyWrapper {
     return shuffledPorts;
   }
 
-  protected Log getLog() {
-    return log;
+  protected Logger getLog() {
+    return LOG;
   }
 
   public static final class JettyWrapperException extends Exception {

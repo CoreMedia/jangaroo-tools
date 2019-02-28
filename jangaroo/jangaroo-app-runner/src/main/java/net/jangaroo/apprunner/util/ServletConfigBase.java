@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mvnplugin.util;
+package net.jangaroo.apprunner.util;
 
 public class ServletConfigBase {
   private String pathSpec;

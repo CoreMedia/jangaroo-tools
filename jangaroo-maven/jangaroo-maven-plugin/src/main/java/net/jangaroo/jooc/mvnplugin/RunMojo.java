@@ -1,16 +1,18 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.proxy.AddDynamicPackagesServlet;
+import net.jangaroo.apprunner.proxy.AddDynamicPackagesServlet;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
-import net.jangaroo.jooc.mvnplugin.util.ProxyServletConfig;
-import net.jangaroo.jooc.mvnplugin.util.StaticResourcesServletConfig;
+import net.jangaroo.apprunner.util.JettyWrapper;
+import net.jangaroo.apprunner.util.ProxyServletConfig;
+import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
+import org.slf4j.impl.StaticLoggerBinder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -104,7 +106,9 @@ public class RunMojo extends AbstractSenchaMojo {
       return;
     }
 
-    JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
+    StaticLoggerBinder.getSingleton().setLog(getLog());
+    JettyWrapper jettyWrapper = new JettyWrapper(baseDir);
+    jettyWrapper.setWebAppContextClass(JettyWebAppContext.class);
 
     List<StaticResourcesServletConfig> staticResourcesServletConfigs = new ArrayList<>(jooStaticResourcesServletConfigs);
     if (isSwcPackaging) {
@@ -159,7 +163,7 @@ public class RunMojo extends AbstractSenchaMojo {
       logJangarooAppUrl(baseDir, jettyWrapper, project);
 
       jettyWrapper.blockUntilInterrupted();
-    } catch (JettyWrapper.JettyWrapperException e) {
+    } catch (Exception e) {
       throw new MojoExecutionException("Could not start Jetty", e);
     } finally {
       jettyWrapper.stop();

@@ -1,4 +1,4 @@
-package net.jangaroo.jooc.mvnplugin.proxy;
+package net.jangaroo.apprunner.proxy;
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;

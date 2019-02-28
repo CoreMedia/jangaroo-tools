@@ -1,6 +1,6 @@
-package net.jangaroo.jooc.mvnplugin.proxy;
+package net.jangaroo.apprunner.proxy;
 
-import net.jangaroo.jooc.mvnplugin.util.DynamicPackagesDeSerializer;
+import net.jangaroo.apprunner.util.DynamicPackagesDeSerializer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 

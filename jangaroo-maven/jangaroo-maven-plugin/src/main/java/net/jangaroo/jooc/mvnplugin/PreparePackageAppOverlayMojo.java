@@ -1,7 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.DynamicPackagesDeSerializer;
+import net.jangaroo.apprunner.util.DynamicPackagesDeSerializer;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;

@@ -11,6 +11,7 @@
   </parent>
   <modules>
     <module>jangaroo-compiler</module>
+    <module>jangaroo-app-runner</module>
   </modules>
   <build>
     <plugins>

@@ -5,7 +5,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import io.github.bonigarcia.wdm.WebDriverManagerException;
 import net.jangaroo.jooc.mvnplugin.AbstractSenchaMojo;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.JettyWrapper;
+import net.jangaroo.apprunner.util.JettyWrapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Range;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -14,6 +14,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.cli.CommandLineException;
+import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -27,6 +28,7 @@ import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -265,7 +267,9 @@ public class JooTestMojo extends AbstractSenchaMojo {
 
       File baseDir = new File(project.getBuild().getDirectory(), SenchaUtils.TEST_APP_DIRECTORY_NAME);
 
-      JettyWrapper jettyWrapper = new JettyWrapper(getLog(), baseDir);
+      StaticLoggerBinder.getSingleton().setLog(getLog());
+      JettyWrapper jettyWrapper = new JettyWrapper(baseDir);
+      jettyWrapper.setWebAppContextClass(JettyWebAppContext.class);
       Range<Integer> portRange = interactiveJooUnitTests
               ? Range.is(jooUnitJettyPortLowerBound)
               : Range.between(jooUnitJettyPortLowerBound, jooUnitJettyPortUpperBound);
@@ -281,7 +285,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
           jettyWrapper.waitUntilStarted(JETTY_START_TIMEOUT_MILLIS);
           runTests(url);
         }
-      } catch (JettyWrapper.JettyWrapperException e) {
+      } catch (Exception e) {
         throw new MojoExecutionException("Could not start Jetty", e);
       } finally {
         jettyWrapper.stop();

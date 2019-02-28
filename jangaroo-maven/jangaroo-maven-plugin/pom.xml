@@ -26,6 +26,15 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.googlecode.slf4j-maven-plugin-log</groupId>
+      <artifactId>slf4j-maven-plugin-log</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.jangaroo</groupId>
+      <artifactId>jangaroo-app-runner</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
     </dependency>
@@ -147,22 +156,6 @@
       <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
       <scope>runtime</scope>
@@ -223,20 +216,6 @@
       <type>pkg</type>
       <scope>runtime</scope>
     </dependency>
-
-    <!-- proxy -->
-    <dependency>
-      <groupId>org.mitre.dsmiley.httpproxy</groupId>
-      <artifactId>smiley-http-proxy-servlet</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-    </dependency>
   </dependencies>
   <parent>
     <groupId>net.jangaroo</groupId>
@@ -263,8 +242,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
         <configuration>
-          <!-- see http://jira.codehaus.org/browse/MNG-5346 -->
-          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
           <goalPrefix>jangaroo</goalPrefix>
         </configuration>
         <executions>
