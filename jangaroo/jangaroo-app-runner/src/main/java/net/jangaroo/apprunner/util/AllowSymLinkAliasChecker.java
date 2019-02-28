@@ -28,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.lang.invoke.MethodHandles.lookup;
-import static java.nio.file.Files.isSymbolicLink;
+import static net.jangaroo.apprunner.util.Junctions.isSymbolicLink;
 import static org.slf4j.LoggerFactory.getLogger;
 
 

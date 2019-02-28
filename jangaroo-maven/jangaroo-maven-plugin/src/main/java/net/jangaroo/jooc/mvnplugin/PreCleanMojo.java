@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.apprunner.util.Junctions;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
@@ -11,9 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -38,11 +37,8 @@ public class PreCleanMojo extends AbstractMojo {
       while (!toScan.isEmpty()) {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(toScan.poll())) {
           for (Path path : directoryStream) {
-            BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-            if (attributes.isDirectory()) { // why is this path returned by directory stream, anyway?!
-              // Using isOther() seems to be the only way to tell a junction from a normal directory:
-              boolean isJunction = attributes.isOther();
-              (isJunction ? toRemove : toScan).add(path);
+            if (Files.isDirectory(path)) {
+              (Junctions.isJunction(path) ? toRemove : toScan).add(path);
             }
           }
         } catch (IOException ex) {
