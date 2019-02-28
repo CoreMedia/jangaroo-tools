@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.lang.invoke.MethodHandles.lookup;
+import static java.nio.file.Files.isSymbolicLink;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -77,7 +78,7 @@ public class AllowSymLinkAliasChecker implements AliasCheck {
 
   private boolean hasSymbolicLink(Path path) {
     // Is file itself a symlink?
-    if (Files.isSymbolicLink(path)) {
+    if (isSymbolicLink(path)) {
       return true;
     }
 
@@ -85,7 +86,7 @@ public class AllowSymLinkAliasChecker implements AliasCheck {
     Path base = path.getRoot();
     for (Path segment : path) {
       base = base.resolve(segment);
-      if (Files.isSymbolicLink(base)) {
+      if (isSymbolicLink(base)) {
         return true;
       }
     }
