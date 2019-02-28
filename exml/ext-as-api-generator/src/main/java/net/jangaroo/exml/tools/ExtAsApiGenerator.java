@@ -525,7 +525,7 @@ public class ExtAsApiGenerator {
         if (replacementMatcher.find()) {
           name = "replacement";
           String reference = replacementMatcher.group(2);
-          String[] parts = reference.split("[#-]");
+          String[] parts = reference.split("[#!-]");
           if (parts.length > 1) {
             value = parts[parts.length - 1]; // TODO: check whether part 1 contains the current class, otherwise mention it!
           } else {
@@ -1608,6 +1608,9 @@ public class ExtAsApiGenerator {
         regExpBuilder.append("(#)?");
       }
       if (!memberName.isEmpty()) {
+        if (!memberType.isEmpty()) {
+          regExpBuilder.append("(").append(memberType).append("[-!])?");
+        }
         regExpBuilder.append(memberName);
         if (isMethod()) {
           regExpBuilder.append("(\\(\\))?");
