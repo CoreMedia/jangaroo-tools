@@ -107,7 +107,7 @@ public class RunMojo extends AbstractSenchaMojo {
     }
 
     StaticLoggerBinder.getSingleton().setLog(getLog());
-    JettyWrapper jettyWrapper = new JettyWrapper(baseDir);
+    JettyWrapper jettyWrapper = new JettyWrapper(baseDir.toPath());
     jettyWrapper.setWebAppContextClass(JettyWebAppContext.class);
 
     List<StaticResourcesServletConfig> staticResourcesServletConfigs = new ArrayList<>(jooStaticResourcesServletConfigs);
@@ -175,7 +175,7 @@ public class RunMojo extends AbstractSenchaMojo {
             new File(baseAppProject.getBuild().getDirectory()).isDirectory()) {
       // base app is part of our Reactor, so we can determine its output directory:
       File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
-      jettyWrapper.addBaseDir(appResourceDir);
+      jettyWrapper.addBaseDir(appResourceDir.toPath());
       getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
     } else {
       // base app is referenced externally, so we have to use the JAR artifact:

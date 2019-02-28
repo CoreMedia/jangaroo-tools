@@ -268,7 +268,7 @@ public class JooTestMojo extends AbstractSenchaMojo {
       File baseDir = new File(project.getBuild().getDirectory(), SenchaUtils.TEST_APP_DIRECTORY_NAME);
 
       StaticLoggerBinder.getSingleton().setLog(getLog());
-      JettyWrapper jettyWrapper = new JettyWrapper(baseDir);
+      JettyWrapper jettyWrapper = new JettyWrapper(baseDir.toPath());
       jettyWrapper.setWebAppContextClass(JettyWebAppContext.class);
       Range<Integer> portRange = interactiveJooUnitTests
               ? Range.is(jooUnitJettyPortLowerBound)

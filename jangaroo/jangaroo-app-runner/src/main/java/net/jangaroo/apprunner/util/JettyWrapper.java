@@ -17,6 +17,7 @@ import javax.servlet.Servlet;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.invoke.MethodHandles.lookup;
+import static java.util.Collections.addAll;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -43,7 +45,7 @@ public class JettyWrapper {
 
   private static final Logger LOG = getLogger(lookup().lookupClass());
 
-  private List<File> baseDirs = new ArrayList<>();
+  private List<Path> baseDirs = new ArrayList<>();
   private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
   private List<ProxyServletConfig> proxyServletConfigs;
   private Map<String, Servlet> additionalServlets;
@@ -58,14 +60,19 @@ public class JettyWrapper {
   /**
    * Creates a Wrapper for controlling a Jetty server.
    *
-   * @param baseDir the base directory for serving static resources
+   * @param baseDirs the base directories for serving static resources
    */
-  public JettyWrapper(File baseDir) {
-    addBaseDir(baseDir);
+  public JettyWrapper(Path... baseDirs) {
+    addBaseDirs(baseDirs);
   }
 
-  public void addBaseDir(File baseDir) {
+  public void addBaseDir(Path baseDir) {
     baseDirs.add(baseDir);
+  }
+
+  @SuppressWarnings("WeakerAccess")
+  public void addBaseDirs(Path... baseDirs) {
+    addAll(this.baseDirs, baseDirs);
   }
 
   public void setWebAppContextClass(Class<? extends WebAppContext> webAppContextClass) {
