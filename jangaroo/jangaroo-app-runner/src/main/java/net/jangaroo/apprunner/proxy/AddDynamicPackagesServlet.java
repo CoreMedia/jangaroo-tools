@@ -3,6 +3,7 @@ package net.jangaroo.apprunner.proxy;
 import net.jangaroo.apprunner.util.DynamicPackagesDeSerializer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class AddDynamicPackagesServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     Set<String> dynamicPackages;
     try {
-      HttpResponse httpResponse = HttpClientUtil.createHttpsAwareHttpClientBuilder().build().execute(new HttpGet(url));
+      HttpResponse httpResponse = HttpClientBuilder.create().setSSLSocketFactory(HttpClientUtil.createSSLSocketFactory()).build().execute(new HttpGet(url));
       dynamicPackages = new LinkedHashSet<>(DynamicPackagesDeSerializer.readDynamicPackages(httpResponse.getEntity().getContent()));
       dynamicPackages.addAll(senchaPackageNames);
     } catch (IOException e) {

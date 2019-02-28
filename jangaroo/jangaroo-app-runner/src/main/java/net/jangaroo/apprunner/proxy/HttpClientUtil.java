@@ -1,8 +1,6 @@
 package net.jangaroo.apprunner.proxy;
 
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -27,7 +25,7 @@ class HttpClientUtil {
     }
   };
 
-  static HttpClientBuilder createHttpsAwareHttpClientBuilder() {
+  static SSLConnectionSocketFactory createSSLSocketFactory() {
     SSLContext ctx;
     try {
       ctx = SSLContext.getInstance("TLS");
@@ -36,8 +34,6 @@ class HttpClientUtil {
       throw new IllegalStateException(e);
     }
 
-    return HttpClients.custom()
-            .useSystemProperties()
-            .setSSLSocketFactory(new SSLConnectionSocketFactory(ctx));
+    return new SSLConnectionSocketFactory(ctx);
   }
 }
