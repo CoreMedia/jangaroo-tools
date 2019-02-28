@@ -421,6 +421,7 @@ public class ExtJsApi {
     public boolean optional;
     public boolean controllable;
     public boolean dynamic;
+    public boolean bindable;
   }
 
   public static class Param extends Var {
