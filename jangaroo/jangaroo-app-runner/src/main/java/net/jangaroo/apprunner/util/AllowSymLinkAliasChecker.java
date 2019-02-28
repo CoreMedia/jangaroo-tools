@@ -20,13 +20,15 @@ package net.jangaroo.apprunner.util;
 
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.resource.PathResource;
 import org.eclipse.jetty.util.resource.Resource;
+import org.slf4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static java.lang.invoke.MethodHandles.lookup;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /* ------------------------------------------------------------ */
@@ -39,7 +41,7 @@ import java.nio.file.Path;
  * APIs to check if a file is aliased with symbolic links.</p>
  */
 public class AllowSymLinkAliasChecker implements AliasCheck {
-  private static final Logger LOG = Log.getLogger(AllowSymLinkAliasChecker.class);
+  private static final Logger LOG = getLogger(lookup().lookupClass());
 
   @Override
   public boolean check(String uri, Resource resource) {
@@ -65,7 +67,9 @@ public class AllowSymLinkAliasChecker implements AliasCheck {
         return true;
       }
     } catch (Exception e) {
-      LOG.ignore(e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Symlink check for " + uri + " failed.", e);
+      }
     }
 
     return false;
