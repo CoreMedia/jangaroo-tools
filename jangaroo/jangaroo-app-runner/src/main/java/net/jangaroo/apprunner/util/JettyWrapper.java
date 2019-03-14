@@ -39,7 +39,7 @@ public class JettyWrapper {
    * to get a new random port, in case other services already blocked
    * that port meanwhile.
    */
-  private static final int RANDOM_PORT_RETRY_LIMIT = 100;
+  private static final int RANDOM_PORT_RETRY_LIMIT = 20;
   private static final Integer RANDOM_PORT_IDENTIFIER = 0;
 
   public static final String ROOT_PATH_SPEC = "/*";
