@@ -908,7 +908,8 @@ public class ExtAsApiGenerator {
     if (tag instanceof Param || isTopLevelProperty && tag instanceof Var) {
       String value = getDefaultValue((Var) tag);
       if (value != null) {
-        asDoc.append("\n@default ").append(value);
+        asDoc.append("\n@default ")
+                .append(value.replace("*", "&#42;"));    // escape '*' to not break ASDoc
       }
     }
     if (tag instanceof Member && ((Member)tag).since != null) {
