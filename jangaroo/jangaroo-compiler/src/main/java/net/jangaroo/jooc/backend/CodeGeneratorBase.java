@@ -1,29 +1,89 @@
 package net.jangaroo.jooc.backend;
 
+import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.ast.AbstractBlock;
+import net.jangaroo.jooc.ast.Annotation;
+import net.jangaroo.jooc.ast.AnnotationParameter;
+import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
+import net.jangaroo.jooc.ast.AsExpr;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitor;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
+import net.jangaroo.jooc.ast.BlockStatement;
+import net.jangaroo.jooc.ast.BreakStatement;
+import net.jangaroo.jooc.ast.CaseStatement;
+import net.jangaroo.jooc.ast.Catch;
+import net.jangaroo.jooc.ast.ClassBody;
+import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
+import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.ConditionalExpr;
+import net.jangaroo.jooc.ast.ContinueStatement;
 import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.DefaultStatement;
+import net.jangaroo.jooc.ast.DoStatement;
 import net.jangaroo.jooc.ast.DotExpr;
+import net.jangaroo.jooc.ast.EmptyDeclaration;
+import net.jangaroo.jooc.ast.EmptyStatement;
+import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.Extends;
+import net.jangaroo.jooc.ast.ForInStatement;
+import net.jangaroo.jooc.ast.ForInitializer;
+import net.jangaroo.jooc.ast.ForStatement;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
+import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeExpr;
+import net.jangaroo.jooc.ast.IdeWithTypeParam;
+import net.jangaroo.jooc.ast.IfStatement;
+import net.jangaroo.jooc.ast.Implements;
+import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.InfixOpExpr;
+import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.IsExpr;
+import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NamespaceDeclaration;
+import net.jangaroo.jooc.ast.NamespacedIde;
+import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectLiteral;
+import net.jangaroo.jooc.ast.PackageDeclaration;
+import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
+import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.PostfixOpExpr;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.PrefixOpExpr;
+import net.jangaroo.jooc.ast.QualifiedIde;
+import net.jangaroo.jooc.ast.ReturnStatement;
+import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
+import net.jangaroo.jooc.ast.SwitchStatement;
+import net.jangaroo.jooc.ast.ThrowStatement;
+import net.jangaroo.jooc.ast.TryStatement;
+import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.UseNamespaceDirective;
+import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.ast.WhileStatement;
 
 import java.io.IOException;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
+  protected final CompilationUnitResolver compilationUnitModelResolver;
   protected JsWriter out;
 
-  public CodeGeneratorBase(JsWriter out) {
+  public CodeGeneratorBase(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     this.out = out;
+    this.compilationUnitModelResolver = compilationUnitModelResolver;
   }
 
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
@@ -101,6 +161,12 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
+  protected void writeOptSymbolWhitespace(JooSymbol symbol) throws IOException {
+    if (symbol != null) {
+      out.writeSymbolWhitespace(symbol);
+    }
+  }
+
   protected void writeOptSymbol(JooSymbol optSymbol, String defaultToken) throws IOException {
     if (optSymbol != null) {
       out.writeSymbol(optSymbol);
@@ -133,6 +199,440 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   protected void visitAll(Iterable<? extends AstNode> nodes) throws IOException {
     for (AstNode node : nodes) {
       node.visit(this);
+    }
+  }
+
+  @Override
+  public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
+    out.writeSymbol(typeRelation.getSymbol());
+    typeRelation.getType().visit(this);
+  }
+
+  @Override
+  public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
+    visitIfNotNull(annotationParameter.getOptName());
+    writeOptSymbol(annotationParameter.getOptSymEq());
+    visitIfNotNull(annotationParameter.getValue());
+  }
+
+  @Override
+  public void visitExtends(Extends anExtends) throws IOException {
+    out.writeSymbol(anExtends.getSymExtends());
+    anExtends.getSuperClass().visit(this);
+  }
+
+  @Override
+  public void visitInitializer(Initializer initializer) throws IOException {
+    out.writeSymbol(initializer.getSymEq());
+    initializer.getValue().visit(this);
+  }
+
+  @Override
+  public void visitObjectField(ObjectField objectField) throws IOException {
+    objectField.getLabel().visit(this);
+    out.writeSymbol(objectField.getSymColon());
+    objectField.getValue().visit(this);
+  }
+
+  @Override
+  public void visitForInitializer(ForInitializer forInitializer) throws IOException {
+    if (forInitializer.getDecl() != null) {
+      forInitializer.getDecl().visit(this);
+    } else {
+      visitIfNotNull(forInitializer.getExpr());
+    }
+  }
+
+  @Override
+  public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
+    compilationUnit.getPackageDeclaration().visit(this);
+    out.writeSymbol(compilationUnit.getLBrace());
+    visitAll(compilationUnit.getDirectives());
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    primaryDeclaration.visit(this);
+    out.writeSymbol(compilationUnit.getRBrace());
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      visitAll(((ClassDeclaration) primaryDeclaration).getSecondaryDeclarations());
+    }
+  }
+
+  @Override
+  public void visitIde(Ide ide) throws IOException {
+    out.writeSymbol(ide.getIde());
+  }
+
+  @Override
+  public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
+    qualifiedIde.getQualifier().visit(this);
+    out.writeSymbol(qualifiedIde.getSymDot());
+    out.writeSymbol(qualifiedIde.getIde());
+  }
+
+  @Override
+  public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
+    out.writeSymbol(ideWithTypeParam.getIde());
+    out.writeSymbol(ideWithTypeParam.getSymDotLt());
+    ideWithTypeParam.getType().visit(this);
+    out.writeSymbol(ideWithTypeParam.getSymGt());
+  }
+
+  @Override
+  public void visitNamespacedIde(NamespacedIde namespacedIde) throws IOException {
+    namespacedIde.getNamespace().visit(this);
+    out.writeSymbol(namespacedIde.getSymNamespaceSep());
+    out.writeSymbol(namespacedIde.getIde());
+  }
+
+  @Override
+  public void visitImplements(Implements anImplements) throws IOException {
+    out.writeSymbol(anImplements.getSymImplements());
+    anImplements.getSuperTypes().visit(this);
+  }
+
+  @Override
+  public void visitType(Type type) throws IOException {
+    type.getIde().visit(this);
+  }
+
+  @Override
+  public void visitObjectLiteral(ObjectLiteral objectLiteral) throws IOException {
+    out.writeSymbol(objectLiteral.getLBrace());
+    visitIfNotNull(objectLiteral.getFields());
+    writeOptSymbol(objectLiteral.getOptComma());
+    out.writeSymbol(objectLiteral.getRBrace());
+  }
+
+  @Override
+  public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
+    ideExpr.getIde().visit(this);
+  }
+
+  @Override
+  public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
+    out.writeSymbol(parenthesizedExpr.getLParen());
+    visitIfNotNull(parenthesizedExpr.getExpr());
+    out.writeSymbol(parenthesizedExpr.getRParen());
+  }
+
+  @Override
+  public void visitArrayLiteral(ArrayLiteral arrayLiteral) throws IOException {
+    visitParenthesizedExpr(arrayLiteral);
+  }
+
+  @Override
+  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+    visitBinaryOpExpr(assignmentOpExpr);
+  }
+
+  @Override
+  public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
+    visitBinaryOpExpr(infixOpExpr);
+  }
+
+  @Override
+  public void visitAsExpr(AsExpr asExpr) throws IOException {
+    visitInfixOpExpr(asExpr);
+  }
+
+  @Override
+  public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
+    arrayIndexExpr.getArray().visit(this);
+    arrayIndexExpr.getIndexExpr().visit(this);
+  }
+
+  @Override
+  public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
+    out.writeSymbol(functionExpr.getSymFunction());
+    visitIfNotNull(functionExpr.getIde());
+    visitFunctionExprBase(functionExpr);
+  }
+
+  @Override
+  public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
+    out.writeSymbol(vectorLiteral.getSymNew());
+    out.writeSymbol(vectorLiteral.getSymLt());
+    vectorLiteral.getVectorType().visit(this);
+    out.writeSymbol(vectorLiteral.getSymGt());
+    vectorLiteral.getArrayLiteral().visit(this);
+  }
+
+  @Override
+  public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
+    applyExpr.getFun().visit(this);
+    applyExpr.getArgs().visit(this);
+  }
+
+  @Override
+  public void visitNewExpr(NewExpr newExpr) throws IOException {
+    out.writeSymbol(newExpr.getSymNew());
+    newExpr.getApplyConstructor().visit(this);
+  }
+
+  @Override
+  public void visitClassBody(ClassBody classBody) throws IOException {
+    visitAbstractBlock(classBody);
+  }
+
+  @Override
+  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
+    visitAbstractBlock(blockStatement);
+  }
+
+  private void visitAbstractBlock(AbstractBlock block) throws IOException {
+    out.writeSymbol(block.getLBrace());
+    visitAll(block.getDirectives());
+    out.writeSymbol(block.getRBrace());
+  }
+
+  @Override
+  public void visitDefaultStatement(DefaultStatement defaultStatement) throws IOException {
+    out.writeSymbol(defaultStatement.getSymDefault());
+    out.writeSymbol(defaultStatement.getSymColon());
+  }
+
+  @Override
+  public void visitLabeledStatement(LabeledStatement labeledStatement) throws IOException {
+    labeledStatement.getIde().visit(this);
+    out.writeSymbol(labeledStatement.getSymColon());
+    labeledStatement.getStatement().visit(this);
+  }
+
+  @Override
+  public void visitIfStatement(IfStatement ifStatement) throws IOException {
+    out.writeSymbol(ifStatement.getSymKeyword());
+    ifStatement.getCond().visit(this);
+    ifStatement.getIfTrue().visit(this);
+    if (ifStatement.getSymElse() != null) {
+      out.writeSymbol(ifStatement.getSymElse());
+      ifStatement.getIfFalse().visit(this);
+    }
+  }
+
+  @Override
+  public void visitCaseStatement(CaseStatement caseStatement) throws IOException {
+    out.writeSymbol(caseStatement.getSymKeyword());
+    caseStatement.getExpr().visit(this);
+    out.writeSymbol(caseStatement.getSymColon());
+  }
+
+  @Override
+  public void visitTryStatement(TryStatement tryStatement) throws IOException {
+    out.writeSymbol(tryStatement.getSymKeyword());
+    tryStatement.getBlock().visit(this);
+    visitAll(tryStatement.getCatches());
+    if (tryStatement.getSymFinally() != null) {
+      out.writeSymbol(tryStatement.getSymFinally());
+      tryStatement.getFinallyBlock().visit(this);
+    }
+  }
+
+  @Override
+  public void visitCatch(Catch aCatch) throws IOException {
+    out.writeSymbol(aCatch.getSymKeyword());
+    out.writeSymbol(aCatch.getLParen());
+    aCatch.getParam().visit(this);
+    out.writeSymbol(aCatch.getRParen());
+    aCatch.getBlock().visit(this);
+  }
+
+  @Override
+  public void visitForInStatement(ForInStatement forInStatement) throws IOException {
+    out.writeSymbol(forInStatement.getSymKeyword());
+    writeOptSymbol(forInStatement.getSymEach());
+    out.writeSymbol(forInStatement.getLParen());
+    visitIfNotNull(forInStatement.getDecl());
+    visitIfNotNull(forInStatement.getLValue());
+    out.writeSymbol(forInStatement.getSymIn());
+    forInStatement.getExpr().visit(this);
+    out.writeSymbol(forInStatement.getRParen());
+    forInStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitWhileStatement(WhileStatement whileStatement) throws IOException {
+    out.writeSymbol(whileStatement.getSymKeyword());
+    visitIfNotNull(whileStatement.getOptCond());
+    whileStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitForStatement(ForStatement forStatement) throws IOException {
+    out.writeSymbol(forStatement.getSymKeyword());
+    out.writeSymbol(forStatement.getLParen());
+    visitIfNotNull(forStatement.getForInit());
+    out.writeSymbol(forStatement.getSymSemicolon1());
+    visitIfNotNull(forStatement.getOptCond());
+    out.writeSymbol(forStatement.getSymSemicolon2());
+    visitIfNotNull(forStatement.getOptStep());
+    out.writeSymbol(forStatement.getRParen());
+    forStatement.getBody().visit(this);
+  }
+
+  @Override
+  public void visitDoStatement(DoStatement doStatement) throws IOException {
+    out.writeSymbol(doStatement.getSymKeyword());
+    doStatement.getBody().visit(this);
+    out.writeSymbol(doStatement.getSymWhile());
+    doStatement.getOptCond().visit(this);
+    out.writeSymbol(doStatement.getSymSemicolon());
+  }
+
+  @Override
+  public void visitSwitchStatement(SwitchStatement switchStatement) throws IOException {
+    out.writeSymbol(switchStatement.getSymKeyword());
+    switchStatement.getCond().visit(this);
+    switchStatement.getBlock().visit(this);
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void visitBreakStatement(BreakStatement breakStatement) throws IOException {
+    out.writeSymbol(breakStatement.getSymKeyword());
+    visitIfNotNull(breakStatement.getOptStatement());
+    visitIfNotNull(breakStatement.getOptLabel());
+    writeOptSymbol(breakStatement.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitEmptyStatement(EmptyStatement emptyStatement) throws IOException {
+    visitSemicolonTerminatedStatement(emptyStatement);
+  }
+
+  @Override
+  public void visitEmptyDeclaration(EmptyDeclaration emptyDeclaration) throws IOException {
+    out.writeSymbolWhitespace(emptyDeclaration.getSymSemicolon());
+  }
+
+  @Override
+  public void visitSemicolonTerminatedStatement(SemicolonTerminatedStatement semicolonTerminatedStatement) throws IOException {
+    visitIfNotNull(semicolonTerminatedStatement.getOptStatement());
+    writeOptSymbol(semicolonTerminatedStatement.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitContinueStatement(ContinueStatement continueStatement) throws IOException {
+    out.writeSymbol(continueStatement.getSymKeyword());
+    visitIfNotNull(continueStatement.getOptStatement());
+    visitIfNotNull(continueStatement.getOptLabel());
+    writeOptSymbol(continueStatement.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitThrowStatement(ThrowStatement throwStatement) throws IOException {
+    out.writeSymbol(throwStatement.getSymKeyword());
+    visitIfNotNull(throwStatement.getOptStatement());
+    writeOptSymbol(throwStatement.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
+    out.writeSymbol(returnStatement.getSymKeyword());
+    visitIfNotNull(returnStatement.getOptStatement());
+    writeOptSymbol(returnStatement.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitParameter(Parameter parameter) throws IOException {
+    writeOptSymbol(parameter.getOptSymRest());
+    parameter.getIde().visit(this);
+    visitIfNotNull(parameter.getOptTypeRelation());
+    visitIfNotNull(parameter.getOptInitializer());
+  }
+
+  void visitDeclarationAnnotationsAndModifiers(Declaration declaration) throws IOException {
+    visitAll(declaration.getAnnotations());
+    writeModifiers(out, declaration);
+  }
+
+  @Override
+  public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+    writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+    visitVariableDeclarationBase(variableDeclaration);
+    visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+    writeOptSymbol(variableDeclaration.getOptSymSemicolon());
+  }
+
+  void visitVariableDeclarationBase(VariableDeclaration variableDeclaration) throws IOException {
+    variableDeclaration.getIde().visit(this);
+    visitIfNotNull(variableDeclaration.getOptTypeRelation());
+    visitIfNotNull(variableDeclaration.getOptInitializer());
+  }
+
+  @Override
+  public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+    out.writeSymbol(functionDeclaration.getSymbol());
+    writeOptSymbol(functionDeclaration.getSymGetOrSet());
+    functionDeclaration.getIde().visit(this);
+    visitFunctionExprBase(functionDeclaration.getFun());
+    writeOptSymbol(functionDeclaration.getOptSymSemicolon());
+  }
+
+  void visitFunctionExprBase(FunctionExpr functionExpr) throws IOException {
+    out.writeSymbol(functionExpr.getLParen());
+    visitIfNotNull(functionExpr.getParams());
+    out.writeSymbol(functionExpr.getRParen());
+    visitIfNotNull(functionExpr.getOptTypeRelation());
+    visitIfNotNull(functionExpr.getBody());
+  }
+
+  @Override
+  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    visitDeclarationAnnotationsAndModifiers(classDeclaration);
+    out.writeSymbol(classDeclaration.getSymClass());
+    classDeclaration.getIde().visit(this);
+    visitIfNotNull(classDeclaration.getOptExtends());
+    visitIfNotNull(classDeclaration.getOptImplements());
+    classDeclaration.getBody().visit(this);
+  }
+
+  @Override
+  public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
+    visitDeclarationAnnotationsAndModifiers(namespaceDeclaration);
+    out.writeSymbol(namespaceDeclaration.getSymNamespace());
+    visitIfNotNull(namespaceDeclaration.getOptInitializer());
+    writeOptSymbol(namespaceDeclaration.getOptSymSemicolon());
+  }
+
+  @Override
+  public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
+    out.writeSymbol(packageDeclaration.getSymPackage());
+    visitIfNotNull(packageDeclaration.getIde());
+  }
+
+  @Override
+  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    out.writeSymbol(superConstructorCallStatement.getSymbol());
+    superConstructorCallStatement.getArgs().visit(this);
+    writeOptSymbol(superConstructorCallStatement.getSymSemicolon());
+
+  }
+
+  @Override
+  public void visitAnnotation(Annotation annotation) throws IOException {
+    out.writeSymbol(annotation.getLeftBracket());
+    annotation.getIde().visit(this);
+    writeOptSymbol(annotation.getOptLeftParen());
+    visitIfNotNull(annotation.getOptAnnotationParameters());
+    writeOptSymbol(annotation.getOptRightParen());
+    out.writeSymbol(annotation.getRightBracket());
+  }
+
+  @Override
+  public void visitUseNamespaceDirective(UseNamespaceDirective useNamespaceDirective) throws IOException {
+    out.writeSymbol(useNamespaceDirective.getUseKeyword());
+    out.writeSymbol(useNamespaceDirective.getNamespaceKeyword());
+    useNamespaceDirective.getNamespace().visit(this);
+    out.writeSymbol(useNamespaceDirective.getSymSemicolon());
+  }
+
+  @Override
+  public void visitImportDirective(ImportDirective importDirective) throws IOException {
+    if (importDirective.isExplicit()) {
+      out.writeSymbol(importDirective.getImportKeyword());
+      importDirective.getIde().visit(this);
+      out.writeSymbol(importDirective.getSymSemicolon());
     }
   }
 

@@ -70,7 +70,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             try {
               out.setOptions(getOptions());
               compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
-              compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
+              compilationUnit.visit(new TypeScriptCodeGenerator(out, compilationUnitModelResolver));
               if (options.isGenerateSourceMaps()) {
                 codeSuffix = generateSourceMap(out, outFile);
               }

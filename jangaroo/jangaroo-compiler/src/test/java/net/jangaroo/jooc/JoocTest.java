@@ -160,7 +160,7 @@ public class JoocTest extends AbstractJoocTest {
   public void testMixin() throws Exception {
     final String relativeClassFileName = "package2/ITestMixin";
     compile(relativeClassFileName);
-    File compileResult = outputFile(outputFolder, relativeClassFileName, ".js");
+    File compileResult = outputFile(outputFolder, relativeClassFileName, Jooc.OUTPUT_FILE_SUFFIX);
 
     assertFalse("[Mixin] interfaces must not have compile output.", compileResult.exists());
     assertCompilationResult("package2/TestMixinClient");
@@ -288,7 +288,7 @@ public class JoocTest extends AbstractJoocTest {
   public void testNativeApi() throws Exception {
     String relativeClassFileName = "package1/SomeNativeClass";
     compile(relativeClassFileName);
-    File compileResult = outputFile(outputFolder, relativeClassFileName, ".js");
+    File compileResult = outputFile(outputFolder, relativeClassFileName, Jooc.OUTPUT_FILE_SUFFIX);
     assertFalse("[Native] classes must not have compile output.", compileResult.exists());
     assertApiCompilationResult(relativeClassFileName);
   }

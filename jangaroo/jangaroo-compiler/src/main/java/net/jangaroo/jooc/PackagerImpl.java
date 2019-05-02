@@ -54,7 +54,7 @@ public class PackagerImpl implements Packager {
     final String outputFilePath = outputFile.getAbsolutePath();
     if (somethingChanged && !sources.isEmpty()) {
       System.out.println(String.format("Packing %d js files into %s", sources.size(), outputFilePath));
-      pack(sources, outputFile);
+      //pack(sources, outputFile);
 
       File inventoryFile = new File(outputDirectory, CompilerUtils.removeExtension(outputFileName) + ".json");
       PrintWriter printWriter = new PrintWriter(inventoryFile);
@@ -84,7 +84,7 @@ public class PackagerImpl implements Packager {
       for (File child : children) {
         if (child.isDirectory()) {
           somethingChanged |= scanSources(baseDir, child, timestamp, sources, sourceClasses);
-        } else if (child.getName().endsWith(".js")) {
+        } else if (child.getName().endsWith(Jooc.OUTPUT_FILE_SUFFIX)) {
           sources.add(child);
           sourceClasses.add(CompilerUtils.qNameFromFile(baseDir, child));
           somethingChanged |= child.lastModified() > timestamp;

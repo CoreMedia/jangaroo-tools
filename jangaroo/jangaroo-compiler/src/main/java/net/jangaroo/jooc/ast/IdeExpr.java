@@ -77,18 +77,16 @@ public class IdeExpr extends Expr {
             setThisDeclaration(thisIde);
           }
           dotExpr = new DotExpr(new IdeExpr(thisIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
-        } else if (!ideDeclaration.isPrivate()) {
-          // non-private static class member: synthesize "<Class>."
+        } else {
+          // static class member: synthesize "<Class>."
           JooSymbol ideSymbol = ide.getSymbol();
           ClassDeclaration classDeclaration = ideDeclaration.getClassDeclaration();
           Ide classIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.IDE, classDeclaration.getName(), null));
           classIde.setDeclaration(classDeclaration); // must not be resolved again, as implicit imports through super class chain are not found in scope!
           dotExpr = new DotExpr(new IdeExpr(classIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
         }
-        if (dotExpr != null) {
-          dotExpr.setOriginal(this);
-          normalizedExpr = dotExpr;
-        }
+        dotExpr.setOriginal(this);
+        normalizedExpr = dotExpr;
       }
     }
     return normalizedExpr;

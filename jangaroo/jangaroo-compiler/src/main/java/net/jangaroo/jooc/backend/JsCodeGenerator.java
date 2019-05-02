@@ -19,26 +19,21 @@ import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
-import net.jangaroo.jooc.ast.BreakStatement;
 import net.jangaroo.jooc.ast.CaseStatement;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.ContinueStatement;
 import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DefaultStatement;
 import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.DoStatement;
 import net.jangaroo.jooc.ast.DotExpr;
-import net.jangaroo.jooc.ast.EmptyDeclaration;
 import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
 import net.jangaroo.jooc.ast.ForInitializer;
-import net.jangaroo.jooc.ast.ForStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
@@ -63,12 +58,9 @@ import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
-import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
-import net.jangaroo.jooc.ast.SwitchStatement;
-import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
@@ -78,7 +70,6 @@ import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
-import net.jangaroo.jooc.ast.WhileStatement;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.json.JsonArray;
@@ -150,8 +141,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("XML");
   }
 
-  private final CompilationUnitResolver compilationUnitModelResolver;
-
   private boolean expressionMode = false;
   private Map<String,String> imports = new HashMap<String,String>();
   private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
@@ -179,8 +168,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   };
 
   public JsCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
-    super(out);
-    this.compilationUnitModelResolver = compilationUnitModelResolver;
+    super(out, compilationUnitModelResolver);
   }
 
   private Map<String,PropertyDefinition> membersOrStaticMembers(Declaration memberDeclaration) {
@@ -299,41 +287,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
     typeRelation.getType().getIde().visit(this);
     out.endComment();
-  }
-
-  @Override
-  public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
-    visitIfNotNull(annotationParameter.getOptName());
-    writeOptSymbol(annotationParameter.getOptSymEq());
-    visitIfNotNull(annotationParameter.getValue());
-  }
-
-  @Override
-  public void visitExtends(Extends anExtends) throws IOException {
-    out.writeSymbol(anExtends.getSymExtends());
-    out.writeSymbol(anExtends.getSuperClass().getIde());
-  }
-
-  @Override
-  public void visitInitializer(Initializer initializer) throws IOException {
-    out.writeSymbol(initializer.getSymEq());
-    initializer.getValue().visit(this);
-  }
-
-  @Override
-  public void visitObjectField(ObjectField objectField) throws IOException {
-    objectField.getLabel().visit(this);
-    out.writeSymbol(objectField.getSymColon());
-    objectField.getValue().visit(this);
-  }
-
-  @Override
-  public void visitForInitializer(ForInitializer forInitializer) throws IOException {
-    if (forInitializer.getDecl() != null) {
-      forInitializer.getDecl().visit(this);
-    } else {
-      visitIfNotNull(forInitializer.getExpr());
-    }
   }
 
   @Override
@@ -655,19 +608,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitType(Type type) throws IOException {
-    type.getIde().visit(this);
-  }
-
-  @Override
-  public void visitObjectLiteral(ObjectLiteral objectLiteral) throws IOException {
-    out.writeSymbol(objectLiteral.getLBrace());
-    visitIfNotNull(objectLiteral.getFields());
-    writeOptSymbol(objectLiteral.getOptComma());
-    out.writeSymbol(objectLiteral.getRBrace());
-  }
-
-  @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
     visitInExpressionMode(ideExpr.getIde());
   }
@@ -680,18 +620,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } finally {
       expressionMode = oldExpressionMode;
     }
-  }
-
-  @Override
-  public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
-    out.writeSymbol(parenthesizedExpr.getLParen());
-    visitIfNotNull(parenthesizedExpr.getExpr());
-    out.writeSymbol(parenthesizedExpr.getRParen());
-  }
-
-  @Override
-  public void visitArrayLiteral(ArrayLiteral arrayLiteral) throws IOException {
-    visitParenthesizedExpr(arrayLiteral);
   }
 
   @Override
@@ -844,17 +772,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbolWhitespace(infixOpExpr.getOp());
     infixOpExpr.getArg2().visit(this);
     out.write(')');
-  }
-
-  @Override
-  public void visitAsExpr(AsExpr asExpr) throws IOException {
-    visitInfixOpExpr(asExpr);
-  }
-
-  @Override
-  public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
-    arrayIndexExpr.getArray().visit(this);
-    arrayIndexExpr.getIndexExpr().visit(this);
   }
 
   @Override
@@ -1085,12 +1002,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitNewExpr(NewExpr newExpr) throws IOException {
-    out.writeSymbol(newExpr.getSymNew());
-    newExpr.getApplyConstructor().visit(this);
-  }
-
-  @Override
   public void visitClassBody(ClassBody classBody) throws IOException {
     out.beginComment();
     out.writeSymbol(classBody.getLBrace());
@@ -1142,49 +1053,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     visitAll(blockStatement.getDirectives());
     out.writeSymbol(blockStatement.getRBrace());
-  }
-
-  @Override
-  public void visitDefaultStatement(DefaultStatement defaultStatement) throws IOException {
-    out.writeSymbol(defaultStatement.getSymDefault());
-    out.writeSymbol(defaultStatement.getSymColon());
-  }
-
-  @Override
-  public void visitLabeledStatement(LabeledStatement labeledStatement) throws IOException {
-    labeledStatement.getIde().visit(this);
-    out.writeSymbol(labeledStatement.getSymColon());
-    labeledStatement.getStatement().visit(this);
-  }
-
-  @Override
-  public void visitIfStatement(IfStatement ifStatement) throws IOException {
-    out.writeSymbol(ifStatement.getSymKeyword());
-    ifStatement.getCond().visit(this);
-    ifStatement.getIfTrue().visit(this);
-    if (ifStatement.getSymElse() != null) {
-      out.writeSymbol(ifStatement.getSymElse());
-      ifStatement.getIfFalse().visit(this);
-    }
-  }
-
-  @Override
-  public void visitCaseStatement(CaseStatement caseStatement) throws IOException {
-    out.writeSymbol(caseStatement.getSymKeyword());
-    caseStatement.getExpr().visit(this);
-    out.writeSymbol(caseStatement.getSymColon());
-  }
-
-  @Override
-  public void visitTryStatement(TryStatement tryStatement) throws IOException {
-    out.writeSymbol(tryStatement.getSymKeyword());
-    tryStatement.getBlock().visit(this);
-    visitAll(tryStatement.getCatches());
-    if (tryStatement.getSymFinally() != null) {
-      out.writeSymbol(tryStatement.getSymFinally());
-      tryStatement.getFinallyBlock().visit(this);
-    }
-    //To change body of implemented methods use File | Settings | File Templates.
   }
 
   @Override
@@ -1362,100 +1230,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitWhileStatement(WhileStatement whileStatement) throws IOException {
-    out.writeSymbol(whileStatement.getSymKeyword());
-    visitIfNotNull(whileStatement.getOptCond());
-    whileStatement.getBody().visit(this);
-  }
-
-  @Override
-  public void visitForStatement(ForStatement forStatement) throws IOException {
-    out.writeSymbol(forStatement.getSymKeyword());
-    out.writeSymbol(forStatement.getLParen());
-    visitIfNotNull(forStatement.getForInit());
-    out.writeSymbol(forStatement.getSymSemicolon1());
-    visitIfNotNull(forStatement.getOptCond());
-    out.writeSymbol(forStatement.getSymSemicolon2());
-    visitIfNotNull(forStatement.getOptStep());
-    out.writeSymbol(forStatement.getRParen());
-    forStatement.getBody().visit(this);
-  }
-
-  @Override
-  public void visitDoStatement(DoStatement doStatement) throws IOException {
-    out.writeSymbol(doStatement.getSymKeyword());
-    doStatement.getBody().visit(this);
-    out.writeSymbol(doStatement.getSymWhile());
-    doStatement.getOptCond().visit(this);
-    out.writeSymbol(doStatement.getSymSemicolon());
-  }
-
-  @Override
-  public void visitSwitchStatement(SwitchStatement switchStatement) throws IOException {
-    out.writeSymbol(switchStatement.getSymKeyword());
-    switchStatement.getCond().visit(this);
-    switchStatement.getBlock().visit(this);
-    //To change body of implemented methods use File | Settings | File Templates.
-  }
-
-  @Override
-  public void visitSemicolonTerminatedStatement(SemicolonTerminatedStatement semicolonTerminatedStatement) throws IOException {
-    visitIfNotNull(semicolonTerminatedStatement.getOptStatement());
-    writeOptSymbol(semicolonTerminatedStatement.getOptSymSemicolon());
-  }
-
-  @Override
-  public void visitContinueStatement(ContinueStatement continueStatement) throws IOException {
-    out.writeSymbol(continueStatement.getSymKeyword());
-    visitIfNotNull(continueStatement.getOptStatement());
-    visitIfNotNull(continueStatement.getOptLabel());
-    writeOptSymbol(continueStatement.getOptSymSemicolon());
-  }
-
-  @Override
-  public void visitBreakStatement(BreakStatement breakStatement) throws IOException {
-    out.writeSymbol(breakStatement.getSymKeyword());
-    visitIfNotNull(breakStatement.getOptStatement());
-    visitIfNotNull(breakStatement.getOptLabel());
-    writeOptSymbol(breakStatement.getOptSymSemicolon());
-  }
-
-  @Override
-  public void visitThrowStatement(ThrowStatement throwStatement) throws IOException {
-    out.writeSymbol(throwStatement.getSymKeyword());
-    visitIfNotNull(throwStatement.getOptStatement());
-    writeOptSymbol(throwStatement.getOptSymSemicolon());
-  }
-
-  @Override
-  public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
-    out.writeSymbol(returnStatement.getSymKeyword());
-    visitIfNotNull(returnStatement.getOptStatement());
-    writeOptSymbol(returnStatement.getOptSymSemicolon());
-  }
-
-  @Override
-  public void visitEmptyStatement(EmptyStatement emptyStatement) throws IOException {
-    visitSemicolonTerminatedStatement(emptyStatement);
-  }
-
-  @Override
-  public void visitEmptyDeclaration(EmptyDeclaration emptyDeclaration) throws IOException {
-    out.writeSymbolWhitespace(emptyDeclaration.getSymSemicolon());
-  }
-
-  @Override
   public void visitParameter(Parameter parameter) throws IOException {
     Debug.assertTrue(parameter.getModifiers() == 0, "Parameters must not have any modifiers");
-    boolean isRest = parameter.isRest();
     if (parameter.isRest()) {
       out.beginCommentWriteSymbol(parameter.getOptSymRest());
-      if (isRest) {
-        parameter.getIde().visit(this);
-      }
+      parameter.getIde().visit(this);
       out.endComment();
-    }
-    if (!isRest) {
+    } else {
       parameter.getIde().visit(this);
     }
     visitIfNotNull(parameter.getOptTypeRelation());
@@ -2017,34 +1798,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
     out.beginComment();
-    out.writeSymbol(annotation.getLeftBracket());
-    annotation.getIde().visit(this);
-    writeOptSymbol(annotation.getOptLeftParen());
-    visitIfNotNull(annotation.getOptAnnotationParameters());
-    writeOptSymbol(annotation.getOptRightParen());
-    out.writeSymbol(annotation.getRightBracket());
+    super.visitAnnotation(annotation);
     out.endComment();
   }
 
   @Override
   public void visitUseNamespaceDirective(UseNamespaceDirective useNamespaceDirective) throws IOException {
     out.beginComment();
-    out.writeSymbol(useNamespaceDirective.getUseKeyword());
-    out.writeSymbol(useNamespaceDirective.getNamespaceKeyword());
-    useNamespaceDirective.getNamespace().visit(this);
-    out.writeSymbol(useNamespaceDirective.getSymSemicolon());
+    super.visitUseNamespaceDirective(useNamespaceDirective);
     out.endComment();
   }
 
   @Override
   public void visitImportDirective(ImportDirective importDirective) throws IOException {
-    if (importDirective.isExplicit()) {
-      out.beginComment();
-      out.writeSymbol(importDirective.getImportKeyword());
-      importDirective.getIde().visit(this);
-      out.writeSymbol(importDirective.getSymSemicolon());
-      out.endComment();
-    }
+    out.beginComment();
+    super.visitImportDirective(importDirective);
+    out.endComment();
   }
 
   private static class PropertyDefinition {
