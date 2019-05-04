@@ -2,12 +2,12 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -19,6 +19,7 @@ import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.VariableDeclaration;
@@ -28,6 +29,7 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
@@ -61,7 +63,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
     out.endComment();
-    visitAll(compilationUnit.getDirectives());
+    for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
+      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+      IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
+      List<Annotation> nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotations.isEmpty()) {
+        visitImportDirective(new ImportDirective(dependentCompilationUnitModel.getPackageDeclaration().getIde(),
+                dependentCompilationUnitModel.getPrimaryDeclaration().getName()));
+      }
+    }
+
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     primaryDeclaration.visit(this);
   }
@@ -124,6 +135,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
+    if (infixOpExpr.getOp().sym == sym.IS) {
+      infixOpExpr.getArg1().visit(this);
+      out.writeSymbol(new JooSymbol(infixOpExpr.getOp().sym, "instanceof"));
+      infixOpExpr.getArg2().visit(this);
+    } else {
+      super.visitInfixOpExpr(infixOpExpr);
+    }
+  }
+
+  @Override
   public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
     vectorLiteral.getArrayLiteral().visit(this);
   }
@@ -139,7 +161,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write("} from '");
       out.write(qualifiedName.replace('.', '/'));
       out.write("'");
-      writeOptSymbolWhitespace(importDirective.getSymSemicolon());
+      if (importDirective.isExplicit()) {
+        writeOptSymbol(importDirective.getSymSemicolon());
+      } else {
+        out.write(";");
+        writeOptSymbolWhitespace(importDirective.getSymSemicolon());
+      }
     }
   }
 
