@@ -64,9 +64,11 @@ public class Type extends NodeImplBase {
     if (ide instanceof IdeWithTypeParam) {
       ((IdeWithTypeParam) ide).getType().analyze(this);
     } else {
-      if (!(ide.getDeclaration() instanceof TypeDeclaration)) {
+      IdeDeclaration declaration = ide.getDeclaration();
+      if (!(declaration instanceof TypeDeclaration)) {
         ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
       }
+      ide.addExternalUsage(false);
     }
   }
 

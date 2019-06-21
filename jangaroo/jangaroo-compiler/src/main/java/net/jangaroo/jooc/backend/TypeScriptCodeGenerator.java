@@ -42,18 +42,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
     boolean isPrimaryDeclaration = declaration instanceof IdeDeclaration && ((IdeDeclaration) declaration).isPrimaryDeclaration();
+    boolean isFirst = true;
     for (JooSymbol modifier : declaration.getSymModifiers()) {
-      if (isPrimaryDeclaration
+      out.writeSymbolWhitespace(modifier);
+      if (isFirst) {
+        isFirst = false;
+        if (declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
+          out.writeToken("declare");
+        }
+        if (isPrimaryDeclaration) {
+          out.writeToken("export");
+        }
+      }
+      if (!(isPrimaryDeclaration
               || modifier.sym == sym.INTERNAL
               || SyntacticKeywords.OVERRIDE.equals(modifier.getText())
-              || SyntacticKeywords.NATIVE.equals(modifier.getText())) {
-        out.writeSymbolWhitespace(modifier);
-      } else {
-        out.writeSymbol(modifier);
+              || SyntacticKeywords.NATIVE.equals(modifier.getText()))) {
+        out.writeSymbol(modifier, false);
       }
-    }
-    if (isPrimaryDeclaration) {
-      out.writeToken("export");
     }
   }
 
@@ -110,7 +116,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // TODO: maybe also case OBJECT:
         return as3Type.name.toLowerCase();
       case VECTOR:
-        return "Array<" + getTypeScriptTypeForActionScriptType(((IdeWithTypeParam)type.getIde()).getType()) + ">";
+        return "Array" + (type.getIde() instanceof IdeWithTypeParam
+                ? "<" + getTypeScriptTypeForActionScriptType(((IdeWithTypeParam)type.getIde()).getType()) + ">"
+                : "");
     }
     return as3Type.name;
   }
@@ -138,7 +146,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
     if (infixOpExpr.getOp().sym == sym.IS) {
       infixOpExpr.getArg1().visit(this);
-      out.writeSymbol(new JooSymbol(infixOpExpr.getOp().sym, "instanceof"));
+      writeSymbolReplacement(infixOpExpr.getOp(), "instanceof");
       infixOpExpr.getArg2().visit(this);
     } else {
       super.visitInfixOpExpr(infixOpExpr);
@@ -172,6 +180,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
+    if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
+      return;
+    }
     writeSymbolReplacement(annotation.getLeftBracket(), "@");
     annotation.getIde().visit(this);
     writeOptSymbol(annotation.getOptLeftParen());
@@ -188,7 +199,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
     visitIfNotNull(annotationParameter.getOptName(), "\"_\"");
-    writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
+    if (annotationParameter.getOptSymEq() != null) {
+      writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
+    }
     visitIfNotNull(annotationParameter.getValue(), "true");
   }
 

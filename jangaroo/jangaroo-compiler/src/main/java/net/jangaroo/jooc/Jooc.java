@@ -161,6 +161,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
+      CompilationUnitSinkFactory dTsSinkFactory = new MergedOutputCompilationUnitSinkFactory(getConfig(),
+              getConfig().getOutputFile(), this, this);
       CompilationUnitSinkFactory apiSinkFactory = null;
       if (getConfig().isGenerateApi()) {
         apiSinkFactory = createSinkFactory(getConfig(), true);
@@ -198,6 +200,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             if (primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !primaryDeclaration.isNative()
                     && primaryDeclaration.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
               outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+            } else {
+              outputFile = writeOutput(sourceFile, unit, dTsSinkFactory, getConfig().isVerbose());
             }
             if (getConfig().isGenerateApi()) {
               writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());

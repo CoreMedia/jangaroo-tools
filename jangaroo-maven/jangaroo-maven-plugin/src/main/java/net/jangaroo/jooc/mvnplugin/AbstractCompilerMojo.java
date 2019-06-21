@@ -138,6 +138,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     return new File(getOutputDirectory(), Type.JANGAROO_APP_PACKAGING.equals(getProject().getPackaging()) ? "app" : "src");
   }
 
+  protected String getOutputFilename() {
+    return getClassesOutputDirectory().getPath() + File.separator + getProject().getArtifactId() + "_native.d.ts";
+  }
+
   /**
    * TODO: make this configurable via POM!
    * Output directory into which compiled property file classes are generated.
@@ -263,6 +267,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
     configuration.setClassPath(getActionScriptClassPath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
+    configuration.setOutputFileName(getOutputFilename());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
 

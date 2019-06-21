@@ -46,7 +46,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
               out.setOptions(getOptions());
 
               compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
-              compilationUnit.visit(new JsCodeGenerator(out, compilationUnitModelResolver));
+              compilationUnit.visit(new TypeScriptCodeGenerator(out, compilationUnitModelResolver));
             } finally {
               out.close();
             }
