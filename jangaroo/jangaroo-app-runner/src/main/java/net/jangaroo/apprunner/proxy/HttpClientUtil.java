@@ -1,5 +1,6 @@
 package net.jangaroo.apprunner.proxy;
 
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 import javax.net.ssl.SSLContext;
@@ -34,6 +35,6 @@ class HttpClientUtil {
       throw new IllegalStateException(e);
     }
 
-    return new SSLConnectionSocketFactory(ctx);
+    return new SSLConnectionSocketFactory(ctx, new DefaultHostnameVerifier());
   }
 }
