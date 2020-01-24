@@ -13,45 +13,33 @@ import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.ArrayIndexExpr;
-import net.jangaroo.jooc.ast.ArrayLiteral;
-import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
-import net.jangaroo.jooc.ast.CaseStatement;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassBody;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
-import net.jangaroo.jooc.ast.DefaultStatement;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
-import net.jangaroo.jooc.ast.ForInitializer;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
-import net.jangaroo.jooc.ast.IfStatement;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
-import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespaceDeclaration;
 import net.jangaroo.jooc.ast.NamespacedIde;
-import net.jangaroo.jooc.ast.NewExpr;
-import net.jangaroo.jooc.ast.ObjectField;
-import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
@@ -61,8 +49,6 @@ import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
-import net.jangaroo.jooc.ast.TryStatement;
-import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
@@ -96,7 +82,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -408,24 +393,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return requires.toArray(new String[requires.size()]);
   }
 
-  private String getNativeAnnotationValue(Annotation nativeAnnotation) {
-    return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
-  }
-
-  private String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+  private static String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
-  }
-
-  private static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
-                                                    Object defaultValue) {
-    Map<String, Object> propertiesByName = nativeAnnotation.getPropertiesByName();
-    for (Map.Entry<String, Object> entry : propertiesByName.entrySet()) {
-      if (Objects.equals(entry.getKey(), name)) {
-        String stringValue = (String) entry.getValue();
-        return stringValue == null ? defaultValue : stringValue;
-      }
-    }
-    return null;
   }
 
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
@@ -1737,8 +1706,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitPackageDeclaration(PackageDeclaration packageDeclaration) throws IOException {
     out.beginComment();
-    out.writeSymbol(packageDeclaration.getSymPackage());
-    visitIfNotNull(packageDeclaration.getIde());
+    super.visitPackageDeclaration(packageDeclaration);
     out.endComment();
   }
 

@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,6 +79,11 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
   public static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
+  private static final Collection<String> TYPESCRIPT_BUILT_IN_TYPES = Arrays.asList(
+          "Object",
+          "Array",
+          "Vector$object"
+  );
 
   private List<FileInputSource> compileQueue = new ArrayList<>();
 
@@ -161,8 +167,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
-      CompilationUnitSinkFactory dTsSinkFactory = new MergedOutputCompilationUnitSinkFactory(getConfig(),
-              getConfig().getOutputFile(), this, this);
       CompilationUnitSinkFactory apiSinkFactory = null;
       if (getConfig().isGenerateApi()) {
         apiSinkFactory = createSinkFactory(getConfig(), true);
@@ -197,11 +201,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           if (unit != null) {
             // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
             final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
-            if (primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) == null && !primaryDeclaration.isNative()
-                    && primaryDeclaration.getAnnotation(MIXIN_ANNOTATION_NAME) == null) {
+            if (!TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())) {
               outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
-            } else {
-              outputFile = writeOutput(sourceFile, unit, dTsSinkFactory, getConfig().isVerbose());
             }
             if (getConfig().isGenerateApi()) {
               writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());

@@ -33,6 +33,11 @@ public class ExpressionType {
     this.typeParameter = typeParameter;
   }
 
+  @Nullable
+  public Type getType() {
+    return type;
+  }
+
   @Nonnull
   public AS3Type getAS3Type() {
     if (as3Type == null) {

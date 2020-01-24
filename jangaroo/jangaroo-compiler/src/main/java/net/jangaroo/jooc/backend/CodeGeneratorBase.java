@@ -76,6 +76,8 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected final CompilationUnitResolver compilationUnitModelResolver;
@@ -256,6 +258,22 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
+  protected static String getNativeAnnotationValue(Annotation nativeAnnotation) {
+    return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
+  }
+
+  protected static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
+                                                      Object defaultValue) {
+    Map<String, Object> propertiesByName = nativeAnnotation.getPropertiesByName();
+    for (Map.Entry<String, Object> entry : propertiesByName.entrySet()) {
+      if (Objects.equals(entry.getKey(), name)) {
+        String stringValue = (String) entry.getValue();
+        return stringValue == null ? defaultValue : stringValue;
+      }
+    }
+    return null;
+  }
+
   @Override
   public void visitIde(Ide ide) throws IOException {
     out.writeSymbol(ide.getIde());
@@ -263,8 +281,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
-    qualifiedIde.getQualifier().visit(this);
-    out.writeSymbol(qualifiedIde.getSymDot());
     out.writeSymbol(qualifiedIde.getIde());
   }
 

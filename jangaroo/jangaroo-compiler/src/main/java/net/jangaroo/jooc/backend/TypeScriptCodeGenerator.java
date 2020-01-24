@@ -8,23 +8,27 @@ import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
+import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -47,12 +51,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbolWhitespace(modifier);
       if (isFirst) {
         isFirst = false;
-        if (declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
-          out.writeToken("declare");
-        }
         if (isPrimaryDeclaration) {
-          out.writeToken("export");
+          out.writeToken("export default ");
         }
+        //if (declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
+        //  out.writeToken("declare");
+        //}
       }
       if (!(isPrimaryDeclaration
               || modifier.sym == sym.INTERNAL
@@ -71,11 +75,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.endComment();
     for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+      if (isCompilationUnitAmbient() && dependentCompilationUnitModel.isInSourcePath() && isAmbient(dependentCompilationUnitModel)) {
+        continue;
+      }
       IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       List<Annotation> nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotations.isEmpty()) {
         visitImportDirective(new ImportDirective(dependentCompilationUnitModel.getPackageDeclaration().getIde(),
                 dependentCompilationUnitModel.getPrimaryDeclaration().getName()));
+      } else {
+        String nativeCode = compilationUnitAccessCode(dependentCompilationUnitModel.getPrimaryDeclaration());
+        if (nativeCode.contains(".")) {
+          out.write("  import ");
+          out.write(dependentCompilationUnitModel.getPrimaryDeclaration().getName());
+          out.write(" from '");
+          out.write(nativeCode.replace('.', '/'));
+          out.write("';\n");
+        }
       }
     }
 
@@ -85,8 +101,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    super.visitClassDeclaration(classDeclaration);
+    visitDeclarationAnnotationsAndModifiers(classDeclaration);
+    out.writeSymbol(classDeclaration.getSymClass());
+    classDeclaration.getIde().visit(this);
+    visitIfNotNull(classDeclaration.getOptExtends());
+    visitIfNotNull(classDeclaration.getOptImplements());
+    classDeclaration.getBody().visit(this);
     visitAll(classDeclaration.getSecondaryDeclarations());
+  }
+
+  @Override
+  public void visitExtends(Extends anExtends) throws IOException {
+    out.writeSymbol(anExtends.getSymExtends());
+    out.writeToken(anExtends.getSuperClass().getName());
   }
 
   @Override
@@ -96,8 +123,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private static String getTypeScriptTypeForActionScriptType(Type type) {
-    JooSymbol symbol = type.getSymbol();
-    String as3TypeName = symbol.getText();
+    IdeDeclaration declaration = type.getDeclaration();
+    String as3TypeName = declaration.getIde().getName();
     AS3Type as3Type = AS3Type.typeByName(as3TypeName);
     if (as3Type == null) {
       return as3TypeName;
@@ -108,19 +135,33 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       case UINT:
       case INT:
         return "number";
+      case VECTOR:
       case ARRAY:
-        return "Array<any>";
+        String arrayElementType = "any";
+        if (type.getParentNode() instanceof TypeRelation) {
+          ExpressionType expressionType = type.getIde().getScope().getExpressionType((TypeRelation) type.getParentNode());
+          ExpressionType typeParameter = expressionType.getTypeParameter();
+          if (typeParameter != null && typeParameter.getType() != null) {
+            arrayElementType = getTypeScriptTypeForActionScriptType(typeParameter.getType());
+          }
+        }
+        return "Array<" + arrayElementType + ">";
       case BOOLEAN:
       case NUMBER:
       case STRING:
       // TODO: maybe also case OBJECT:
         return as3Type.name.toLowerCase();
-      case VECTOR:
-        return "Array" + (type.getIde() instanceof IdeWithTypeParam
-                ? "<" + getTypeScriptTypeForActionScriptType(((IdeWithTypeParam)type.getIde()).getType()) + ">"
-                : "");
     }
     return as3Type.name;
+  }
+
+  private static String compilationUnitAccessCode(IdeDeclaration declaration) {
+    Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    if (nativeAnnotation != null) {
+      String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
+      return nativeAnnotationValue == null ? declaration.getQualifiedNameStr() : nativeAnnotationValue;
+    }
+    return declaration.getIde().getName();
   }
 
   @Override
@@ -128,18 +169,39 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(parameter.getOptSymRest());
     parameter.getIde().visit(this);
     boolean hasInitializer = parameter.getOptInitializer() != null;
-    if (hasInitializer && isInterface()) {
+    if (hasInitializer && isCompilationUnitAmbient()) {
       out.write("?");
     }
     visitIfNotNull(parameter.getOptTypeRelation());
-    if (hasInitializer && !isInterface()) {
+    if (hasInitializer && !isCompilationUnitAmbient()) {
       parameter.getOptInitializer().visit(this);
     }
   }
 
-  boolean isInterface() {
-    return compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
-            && ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).isInterface();
+  private boolean isCompilationUnitAmbient() {
+    return isAmbient(compilationUnit);
+  }
+
+  private static boolean isAmbientOrInterface(CompilationUnit compilationUnit) {
+    return isAmbient(compilationUnit)
+            || isInterface(compilationUnit.getPrimaryDeclaration());
+  }
+
+  private static boolean isAmbient(CompilationUnit compilationUnit) {
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    return primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null
+            || primaryDeclaration.isNative();
+  }
+
+  private static boolean isInterface(IdeDeclaration primaryDeclaration) {
+    return primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).isInterface();
+  }
+
+  @Override
+  public void visitInitializer(Initializer initializer) throws IOException {
+    if (!isAmbientOrInterface(compilationUnit)) {
+      super.visitInitializer(initializer);
+    }
   }
 
   @Override
@@ -164,9 +226,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (!qualifiedName.endsWith("*")) {
       out.writeSymbol(importDirective.getImportKeyword());
       out.writeSymbolWhitespace(importDirective.getIde().getSymbol());
-      out.write("{");
-      out.write(CompilerUtils.className(qualifiedName));
-      out.write("} from '");
+      out.writeToken(CompilerUtils.className(qualifiedName));
+      out.write(" from '");
       out.write(qualifiedName.replace('.', '/'));
       out.write("'");
       if (importDirective.isExplicit()) {
@@ -180,9 +241,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
+    if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
+            Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
       return;
     }
+    out.beginComment();
     writeSymbolReplacement(annotation.getLeftBracket(), "@");
     annotation.getIde().visit(this);
     writeOptSymbol(annotation.getOptLeftParen());
@@ -193,6 +256,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write("}");
     }
     writeOptSymbol(annotation.getOptRightParen());
+    out.endComment();
     out.writeSymbolWhitespace(annotation.getRightBracket());
   }
 
@@ -212,7 +276,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
         visitDeclarationAnnotationsAndModifiers(variableDeclaration);
-        // leave out "var" or "const" symbol for class members!
+        // for class members, leave out "var", replace "const" by "readonly":
+        if (variableDeclaration.isConst()) {
+          out.writeToken("readonly");
+        }
         visitVariableDeclarationBase(currentVariableDeclaration);
         writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
       }
@@ -222,10 +289,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
+    if (!isCompilationUnitAmbient()) {
+      super.visitBlockStatement(blockStatement);
+    }
+  }
+
+  @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     if (functionDeclaration.isClassMember()) {
       boolean isNativeGetter = false;
-      if (functionDeclaration.isNative() || isInterface()) {
+      if (functionDeclaration.isNative() || isAmbientOrInterface(compilationUnit)) {
         if (functionDeclaration.isSetter()) {
           return; // completely suppress native setter class members!
         }
