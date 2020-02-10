@@ -14,14 +14,17 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
+import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
@@ -31,13 +34,16 @@ import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.tools.ant.util.LinkedHashtable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private CompilationUnit compilationUnit;
+  private Map<String, VariableDeclaration> configs;
 
   TypeScriptCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -46,18 +52,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
     boolean isPrimaryDeclaration = declaration instanceof IdeDeclaration && ((IdeDeclaration) declaration).isPrimaryDeclaration();
-    boolean isFirst = true;
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbolWhitespace(modifier);
-      if (isFirst) {
-        isFirst = false;
-        if (isPrimaryDeclaration) {
-          out.writeToken("export default ");
-        }
-        //if (declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
-        //  out.writeToken("declare");
-        //}
-      }
       if (!(isPrimaryDeclaration
               || modifier.sym == sym.INTERNAL
               || SyntacticKeywords.OVERRIDE.equals(modifier.getText())
@@ -70,6 +66,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     this.compilationUnit = compilationUnit;
+    this.configs = new LinkedHashtable();
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
     out.endComment();
@@ -97,6 +94,26 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     primaryDeclaration.visit(this);
+    String primaryDeclarationName = primaryDeclaration.getName();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      ClassDeclaration superTypeDeclaration = ((ClassDeclaration) primaryDeclaration).getSuperTypeDeclaration();
+      if (superTypeDeclaration != null && !"Object".equals(superTypeDeclaration.getName())) {
+        out.write("namespace ");
+        out.write(primaryDeclarationName);
+        out.write(" {\n");
+        out.write("  export abstract class Config extends "  + superTypeDeclaration.getName() + ".Config {\n");
+        for (VariableDeclaration configDeclaration : configs.values()) {
+          out.write("    " + configDeclaration.getName() + "?");
+          visitIfNotNull(configDeclaration.getOptTypeRelation());
+          out.write(";\n");
+        }
+        out.write("  }\n");
+        out.write("}\n\n");
+
+        out.write("export function " + primaryDeclarationName + "_(config?: " + primaryDeclarationName + ".Config): " + primaryDeclarationName + ".Config { return config; }\n");
+      }
+    }
+    out.write("\nexport default " + primaryDeclarationName + ";\n");
   }
 
   @Override
@@ -272,6 +289,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
     if (variableDeclaration.isClassMember()) {
+      if (variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null) {
+        configs.put(variableDeclaration.getName(), variableDeclaration);
+      }
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
@@ -285,6 +305,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } else {
       super.visitVariableDeclaration(variableDeclaration);
+    }
+  }
+
+  @Override
+  void visitVariableDeclarationBase(VariableDeclaration variableDeclaration) throws IOException {
+    if (variableDeclaration.getOptTypeRelation() != null
+            && variableDeclaration.getOptInitializer() != null
+            && variableDeclaration.getOptInitializer().getValue() instanceof ApplyExpr
+            && ((ApplyExpr) variableDeclaration.getOptInitializer().getValue()).isTypeCast()
+            && isConfigFactory((ApplyExpr) variableDeclaration.getOptInitializer().getValue())) {
+      variableDeclaration.getIde().visit(this);
+      variableDeclaration.getOptTypeRelation().visit(this);
+      // now, the difference: use Config type instead of Class type:
+      out.write(".Config");
+      // this will render as a Config factory invocation:
+      visitIfNotNull(variableDeclaration.getOptInitializer());
+    } else {
+      super.visitVariableDeclarationBase(variableDeclaration);
     }
   }
 
@@ -335,14 +373,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
     if (applyExpr.isTypeCast()) {
-      out.writeSymbol(applyExpr.getArgs().getLParen());
-      applyExpr.getArgs().getExpr().visit(this);
-      out.writeToken(" as");
-      applyExpr.getFun().visit(this);
-      out.writeSymbol(applyExpr.getArgs().getRParen());
+      if (isConfigFactory(applyExpr)) {
+        out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
+        out.write("_"); // use config factory function instead of the class itself!
+        applyExpr.getArgs().visit(this);
+      } else {
+        out.writeSymbol(applyExpr.getArgs().getLParen());
+        applyExpr.getArgs().getExpr().visit(this);
+        out.writeToken(" as");
+        applyExpr.getFun().visit(this);
+        out.writeSymbol(applyExpr.getArgs().getRParen());
+      }
     } else {
       super.visitApplyExpr(applyExpr);
     }
+  }
+
+  static boolean isConfigFactory(ApplyExpr applyExpr) {
+    Expr arg1 = applyExpr.getArgs().getExpr().getHead();
+    return arg1 instanceof ObjectLiteral && applyExpr.getFun() instanceof IdeExpr;
   }
 
   @Override
