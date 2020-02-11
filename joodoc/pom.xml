@@ -34,7 +34,7 @@
     <repository>
       <id>cap</id>
       <name>CAP repository</name>
-      <url>http://woschod.coremedia.com/share-3rdp</url>
+      <url>https://woschod.coremedia.com/share-3rdp</url>
     </repository>
   </repositories>
   <build>
