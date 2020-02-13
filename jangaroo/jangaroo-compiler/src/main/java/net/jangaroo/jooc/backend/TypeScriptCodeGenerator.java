@@ -14,11 +14,13 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
+import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.ImportDirective;
@@ -425,4 +427,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     aCatch.getBlock().visit(this);
   }
 
+  @Override
+  public void visitDotExpr(DotExpr dotExpr) throws IOException {
+    Ide ide = dotExpr.getIde();
+    if (ide.isBound()) {
+      // found access to a method without applying it immediately: bind!
+      out.writeToken("AS3.bind(");
+      dotExpr.getArg().visit(this);
+      writeSymbolReplacement(dotExpr.getOp(), ",");
+      writeSymbolReplacement(ide.getIde(), CompilerUtils.quote(ide.getName()));
+      out.writeToken(")");
+    } else {
+      super.visitDotExpr(dotExpr);
+    }
+  }
 }
