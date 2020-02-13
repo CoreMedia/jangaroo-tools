@@ -1,7 +1,5 @@
 package net.jangaroo.jooc.backend;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.Debug;
@@ -135,8 +133,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private String factory;
   private final MessageFormat $NAME_EQUALS_ARGUMENTS_SLICE_$INDEX =
     new MessageFormat("{0}=Array.prototype.slice.call(arguments{1,choice,0#|0<,{1}});");
-  private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
-          ArrayListMultimap.create();
 
   private void generateToArrayCode(String paramName, int paramIndex) throws IOException {
     if (!FunctionExpr.ARGUMENTS.equals(paramName)) {
@@ -771,11 +767,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     Parameters params = functionExpr.getParams();
     if (functionExpr.hasBody()) {
       if (functionExpr.isArgumentsUsedAsArray()) {
-        blockStartCodeGenerators.put(functionExpr.getBody(), ARGUMENT_TO_ARRAY_CODE_GENERATOR);
+        setBlockStartCodeGenerator(functionExpr.getBody(), ARGUMENT_TO_ARRAY_CODE_GENERATOR);
       }
       if (params != null) {
         // inject into body for generating initializers later:
-        blockStartCodeGenerators.put(functionExpr.getBody(), getParameterInitializerCodeGenerator(params));
+        setBlockStartCodeGenerator(functionExpr.getBody(), getParameterInitializerCodeGenerator(params));
       }
     }
     generateSignatureJsCode(functionExpr);
@@ -1010,21 +1006,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
-    out.writeSymbol(blockStatement.getLBrace());
-    boolean first = true;
-    List<CodeGenerator> codeGenerators = blockStartCodeGenerators.get(blockStatement);
-    if (codeGenerators != null) {
-      for (CodeGenerator codeGenerator : codeGenerators) {
-        codeGenerator.generate(out, first);
-        first = false;
-      }
-    }
-    visitAll(blockStatement.getDirectives());
-    out.writeSymbol(blockStatement.getRBrace());
-  }
-
-  @Override
   public void visitCatch(Catch aCatch) throws IOException {
     List<Catch> catches = aCatch.getParentTryStatement().getCatches();
     Catch firstCatch = catches.get(0);
@@ -1071,7 +1052,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.writeToken(")");
     }
     if (!localErrorVar.getText().equals(errorVar.getText())) {
-      blockStartCodeGenerators.put(aCatch.getBlock(), new VarCodeGenerator(localErrorVar, errorVar));
+      setBlockStartCodeGenerator(aCatch.getBlock(), new VarCodeGenerator(localErrorVar, errorVar));
     }
     aCatch.getBlock().visit(this);
     if (isLast) {
@@ -1171,7 +1152,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (!(forInStatement.getBody() instanceof BlockStatement)) {
         forInStatement.setBody(new BlockStatement(SYM_LBRACE, Arrays.<Directive>asList(forInStatement.getBody()), SYM_RBRACE));
       }
-      blockStartCodeGenerators.put((BlockStatement) forInStatement.getBody(), new CodeGenerator() {
+      setBlockStartCodeGenerator((BlockStatement) forInStatement.getBody(), new CodeGenerator() {
         @Override
         public void generate(JsWriter out, boolean first) throws IOException {
           // synthesize assigning the correct index to the variable given in the original for each statement:
@@ -1415,13 +1396,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = new CodeGenerator() {
-    @Override
-    public void generate(JsWriter out, boolean first) throws IOException {
-      out.write("var this$=this;");
-    }
-  };
-
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     visitAll(functionDeclaration.getAnnotations());
@@ -1431,10 +1405,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
     if (functionDeclaration.isThisAliased()) {
-      blockStartCodeGenerators.put(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
+      setBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
-      blockStartCodeGenerators.put(functionDeclaration.getBody(), new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
+      setBlockStartCodeGenerator(functionDeclaration.getBody(), new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
     }
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
       functionDeclaration.getFun().visit(this);

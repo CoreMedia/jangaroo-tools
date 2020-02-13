@@ -365,6 +365,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!functionDeclaration.isSetter()) { // in TypeScript, setters may not declare a return type, not even "void"!
         visitIfNotNull(functionExpr.getOptTypeRelation());
       }
+      if (functionDeclaration.isThisAliased()) {
+        setBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
+      }
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
@@ -439,6 +442,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken(")");
     } else {
       super.visitDotExpr(dotExpr);
+    }
+  }
+
+  @Override
+  public void visitIde(Ide ide) throws IOException {
+    if (!out.isWritingComment() && "this".equals(ide.getIde().getText()) && ide.isRewriteThis()) {
+      writeSymbolReplacement(ide.getIde(), "this$");
+    } else {
+      super.visitIde(ide);
     }
   }
 }

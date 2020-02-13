@@ -1,5 +1,8 @@
 package net.jangaroo.jooc.backend;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
@@ -76,16 +79,40 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected final CompilationUnitResolver compilationUnitModelResolver;
   protected JsWriter out;
+  private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
+          ArrayListMultimap.create();
+  protected static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("var this$=this;");
+
 
   public CodeGeneratorBase(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     this.out = out;
     this.compilationUnitModelResolver = compilationUnitModelResolver;
+  }
+
+  protected void setBlockStartCodeGenerator(BlockStatement block, CodeGenerator codeGenerator) {
+    blockStartCodeGenerators.put(block, codeGenerator);
+  }
+
+  @Override
+  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
+    out.writeSymbol(blockStatement.getLBrace());
+    boolean first = true;
+    List<CodeGenerator> codeGenerators = blockStartCodeGenerators.get(blockStatement);
+    if (codeGenerators != null) {
+      for (CodeGenerator codeGenerator : codeGenerators) {
+        codeGenerator.generate(out, first);
+        first = false;
+      }
+    }
+    visitAll(blockStatement.getDirectives());
+    out.writeSymbol(blockStatement.getRBrace());
   }
 
   protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
@@ -387,11 +414,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitClassBody(ClassBody classBody) throws IOException {
     visitAbstractBlock(classBody);
-  }
-
-  @Override
-  public void visitBlockStatement(BlockStatement blockStatement) throws IOException {
-    visitAbstractBlock(blockStatement);
   }
 
   private void visitAbstractBlock(AbstractBlock block) throws IOException {
