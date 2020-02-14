@@ -386,7 +386,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
     out.writeSymbol(functionExpr.getSymFunction());
     visitIfNotNull(functionExpr.getIde());
-    visitFunctionExprBase(functionExpr);
+    generateFunctionExprSignature(functionExpr);
+    visitIfNotNull(functionExpr.getBody());
   }
 
   @Override
@@ -602,16 +603,16 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(functionDeclaration.getSymbol());
     writeOptSymbol(functionDeclaration.getSymGetOrSet());
     functionDeclaration.getIde().visit(this);
-    visitFunctionExprBase(functionDeclaration.getFun());
+    generateFunctionExprSignature(functionDeclaration.getFun());
+    visitIfNotNull(functionDeclaration.getFun().getBody());
     writeOptSymbol(functionDeclaration.getOptSymSemicolon());
   }
 
-  void visitFunctionExprBase(FunctionExpr functionExpr) throws IOException {
+  void generateFunctionExprSignature(FunctionExpr functionExpr) throws IOException {
     out.writeSymbol(functionExpr.getLParen());
     visitIfNotNull(functionExpr.getParams());
     out.writeSymbol(functionExpr.getRParen());
     visitIfNotNull(functionExpr.getOptTypeRelation());
-    visitIfNotNull(functionExpr.getBody());
   }
 
   @Override

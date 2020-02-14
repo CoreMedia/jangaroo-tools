@@ -238,6 +238,10 @@ public final class JsWriter extends FilterWriter {
     this.suppressWhitespace = suppressWhitespace;
   }
 
+  public void suppressWhitespace(JooSymbol symbol) {
+    isWhitespaceWritten.add(symbol);
+  }
+
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {
     if (suppressWhitespace || isWhitespaceWritten.contains(symbol)) {
       return;

@@ -16,6 +16,7 @@ import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
+import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
@@ -30,6 +31,7 @@ import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
@@ -342,6 +344,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
+    FunctionExpr functionExpr = functionDeclaration.getFun();
     if (functionDeclaration.isClassMember()) {
       boolean isNativeGetter = false;
       if (functionDeclaration.isNative() || isAmbientOrInterface(compilationUnit)) {
@@ -361,7 +364,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         functionDeclaration.getIde().visit(this);
       }
-      FunctionExpr functionExpr = functionDeclaration.getFun();
       if (!isNativeGetter) {
         out.writeSymbol(functionExpr.getLParen());
         visitIfNotNull(functionExpr.getParams());
@@ -386,7 +388,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
-      super.visitFunctionDeclaration(functionDeclaration);
+      // rewrite named function declaration function foo to const foo = function() {} or const foo = () => {}:
+      writeSymbolReplacement(functionDeclaration.getSymbol(), "const");
+      functionDeclaration.getIde().visit(this);
+      out.write(" = ");
+      functionExpr.visit(this);
+      writeOptSymbol(functionDeclaration.getOptSymSemicolon(), ";");
     }
   }
 
@@ -412,6 +419,35 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } while (parent != null);
     return null;
+  }
+
+  @Override
+  public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
+    if (functionExpr.mayRewriteToArrowFunction()) {
+      out.writeSymbolWhitespace(functionExpr.getFunSymbol());
+      out.suppressWhitespace(functionExpr.getLParen());
+      // rewrite anonymous function expression that does *not* use "this" to arrow function:
+      generateFunctionExprSignature(functionExpr);
+      out.write(" =>");
+      // special case: function body consists of exactly one statement, a return <expr>
+      // then just render this expression:
+      List<Directive> statements = functionExpr.getBody().getDirectives();
+      if (statements.size() == 1) {
+        Directive firstStatement = statements.get(0);
+        if (firstStatement instanceof ReturnStatement) {
+          Expr expr = ((ReturnStatement) firstStatement).getOptExpr();
+          if (expr != null) {
+            expr.visit(this);
+            return;
+          }
+        }
+      }
+    } else {
+      out.writeSymbol(functionExpr.getSymFunction());
+      visitIfNotNull(functionExpr.getIde());
+      generateFunctionExprSignature(functionExpr);
+    }
+    visitIfNotNull(functionExpr.getBody());
   }
 
   @Override
@@ -486,11 +522,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIde(Ide ide) throws IOException {
-    if (!out.isWritingComment() && "this".equals(ide.getIde().getText()) && ide.isRewriteThis()) {
+    if (!out.isWritingComment() && rewriteThis(ide)) {
       writeSymbolReplacement(ide.getIde(), "this$");
     } else {
       super.visitIde(ide);
     }
+  }
+
+  private static boolean rewriteThis(Ide ide) {
+    return ide.isThis() && ide.isRewriteThis() && !ide.getScope().getFunctionExpr().mayRewriteToArrowFunction();
   }
 
 }

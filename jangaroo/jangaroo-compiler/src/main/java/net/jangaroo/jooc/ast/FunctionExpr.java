@@ -47,6 +47,7 @@ public class FunctionExpr extends Expr {
   private List<Parameter> implicitParams = new LinkedList<Parameter>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
+  private boolean explicitThisUsed = false;
   private final Parameter argumentsParameter;
   private boolean argumentsUsedAsArray = false;
   private IdeDeclaration classDeclaration;
@@ -203,6 +204,20 @@ public class FunctionExpr extends Expr {
       }
     }
     return false;
+  }
+
+  void notifyExplicitThisUsed() {
+    explicitThisUsed = true;
+  }
+
+  public boolean isExplicitThisUsed() {
+    return explicitThisUsed;
+  }
+
+  public boolean mayRewriteToArrowFunction() {
+    return !isExplicitThisUsed() && getBody() != null
+            && (getIde() == null && getFunctionDeclaration() == null
+            || getIde() != null && getFunctionDeclaration() != null && !getFunctionDeclaration().isClassMember());
   }
 
   void notifyArgumentsUsed(IdeDeclaration argumentsIdeDeclaration) {
