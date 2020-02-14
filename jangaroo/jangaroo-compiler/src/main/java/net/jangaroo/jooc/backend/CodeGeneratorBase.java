@@ -88,7 +88,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   protected JsWriter out;
   private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
           ArrayListMultimap.create();
-  protected static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("var this$=this;");
 
 
   public CodeGeneratorBase(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
@@ -96,7 +95,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     this.compilationUnitModelResolver = compilationUnitModelResolver;
   }
 
-  protected void setBlockStartCodeGenerator(BlockStatement block, CodeGenerator codeGenerator) {
+  protected void addBlockStartCodeGenerator(BlockStatement block, CodeGenerator codeGenerator) {
     blockStartCodeGenerators.put(block, codeGenerator);
   }
 

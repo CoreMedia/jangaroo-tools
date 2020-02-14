@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.backend;
 
+import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -8,6 +9,7 @@ import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassDeclaration;
@@ -28,6 +30,7 @@ import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.VariableDeclaration;
@@ -335,6 +338,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("const this$=this;");
+
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     if (functionDeclaration.isClassMember()) {
@@ -365,14 +370,48 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!functionDeclaration.isSetter()) { // in TypeScript, setters may not declare a return type, not even "void"!
         visitIfNotNull(functionExpr.getOptTypeRelation());
       }
-      if (functionDeclaration.isThisAliased()) {
-        setBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
+      if (functionDeclaration.isConstructor()
+              && !functionDeclaration.containsSuperConstructorCall()
+              && functionDeclaration.getClassDeclaration().notExtendsObject()) {
+        addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("super();"));
       }
+      if (functionDeclaration.isThisAliased()
+              && (!functionDeclaration.containsSuperConstructorCall()
+              || !functionDeclaration.getClassDeclaration().notExtendsObject())) {
+        addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
+      } // else:
+      // The super() call takes care of adding the this-alias, because TypeScript does not allow access
+      // to "this" before super constructor call.
+
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
       super.visitFunctionDeclaration(functionDeclaration);
     }
+  }
+
+  @Override
+  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+    FunctionDeclaration functionDeclaration = findFunctionDeclaration(superConstructorCallStatement);
+    // TypeScript does not allow super() constructor call when inheriting from Object, but ActionScript does,
+    // so leave out the ActionScript call:
+    if (functionDeclaration == null || functionDeclaration.getClassDeclaration().notExtendsObject()) {
+      super.visitSuperConstructorCallStatement(superConstructorCallStatement);
+      if (functionDeclaration != null && functionDeclaration.isThisAliased()) {
+        ALIAS_THIS_CODE_GENERATOR.generate(out, false);
+      }
+    }
+  }
+
+  private static FunctionDeclaration findFunctionDeclaration(AstNode node) {
+    AstNode parent = node;
+    do {
+      parent = parent.getParentNode();
+      if (parent instanceof FunctionDeclaration) {
+        return (FunctionDeclaration) parent;
+      }
+    } while (parent != null);
+    return null;
   }
 
   @Override
@@ -453,4 +492,5 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       super.visitIde(ide);
     }
   }
+
 }
