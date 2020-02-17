@@ -543,7 +543,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Directive firstDirective = directives.get(0);
     out.writeSymbolWhitespace(firstDirective.getSymbol());
     out.writeToken("// noinspection JSUnusedLocalSymbols");
-    out.writeToken(String.format("\n  private static static$%s = (() =>", staticCodeCounter++));
+    String uniqueName = ((ClassDeclaration)firstDirective.getParentNode().getParentNode()).getQualifiedNameHash();
+    if (staticCodeCounter > 0) {
+      uniqueName += "$" + staticCodeCounter;
+    }
+    ++staticCodeCounter;
+    out.writeToken(String.format("\n  private static static$%s = (() =>", uniqueName));
 
     // is static code already wrapped in a block?
     if (directives.size() == 1 && firstDirective instanceof BlockStatement) {
