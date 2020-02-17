@@ -533,4 +533,30 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return ide.isThis() && ide.isRewriteThis() && !ide.getScope().getFunctionExpr().mayRewriteToArrowFunction();
   }
 
+  private int staticCodeCounter = 0;
+
+  @Override
+  void generateStaticInitializer(List<Directive> directives) throws IOException {
+    if (directives.isEmpty()) {
+      return;
+    }
+    Directive firstDirective = directives.get(0);
+    out.writeSymbolWhitespace(firstDirective.getSymbol());
+    out.writeToken("// noinspection JSUnusedLocalSymbols");
+    out.writeToken(String.format("\n  private static static$%s = (() =>", staticCodeCounter++));
+
+    // is static code already wrapped in a block?
+    if (directives.size() == 1 && firstDirective instanceof BlockStatement) {
+      // static block already has curly braces: reuse these!
+      firstDirective.visit(this);
+    } else {
+      // surround statements by curly braces:
+      out.writeToken(" {\n    ");
+      for (Directive directive : directives) {
+        directive.visit(this);
+      }
+      out.writeToken("\n  }");
+    }
+    out.writeToken(")();");
+  }
 }
