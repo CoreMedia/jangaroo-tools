@@ -6,7 +6,6 @@ import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.JsWriter;
-import net.jangaroo.jooc.ast.AbstractBlock;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -29,6 +28,7 @@ import net.jangaroo.jooc.ast.ConditionalExpr;
 import net.jangaroo.jooc.ast.ContinueStatement;
 import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.DefaultStatement;
+import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DoStatement;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyDeclaration;
@@ -67,6 +67,7 @@ import net.jangaroo.jooc.ast.PrefixOpExpr;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.SwitchStatement;
 import net.jangaroo.jooc.ast.ThrowStatement;
@@ -79,6 +80,7 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -179,7 +181,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public final void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) throws IOException {
+  public final void visitPredefinedTypeDeclaration(PredefinedTypeDeclaration predefinedTypeDeclaration) {
     throw new IllegalStateException("there should be no code generation for predefined types");
   }
 
@@ -413,14 +415,42 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitClassBody(ClassBody classBody) throws IOException {
-    visitAbstractBlock(classBody);
+    out.writeSymbol(classBody.getLBrace());
+    visitClassBodyDirectives(classBody.getDirectives());
+    out.writeSymbol(classBody.getRBrace());
   }
 
-  private void visitAbstractBlock(AbstractBlock block) throws IOException {
-    out.writeSymbol(block.getLBrace());
-    visitAll(block.getDirectives());
-    out.writeSymbol(block.getRBrace());
+  public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
+    List<Directive> staticInitializerDirectives = null;
+    for (Directive directive : classBodyDirectives) {
+      final boolean isStaticInitializer = directive instanceof EmptyStatement
+          // if EmptyStatement, stay in current mode:
+          ? staticInitializerDirectives != null
+          // else, determine mode depending on whether directive is statement, but not declaration:
+          : directive instanceof Statement && !(directive instanceof Declaration);
+      if (isStaticInitializer) {
+        if (staticInitializerDirectives == null) {
+          // first static initializer statement, start with empty list:
+          staticInitializerDirectives = new ArrayList<>();
+        }
+        // collect static initializer statement, will be visited when block is complete:
+        staticInitializerDirectives.add(directive);
+      } else {
+        if (staticInitializerDirectives != null) {
+          // back in non-static-initializer mode, generate collected statements:
+          generateStaticInitializer(staticInitializerDirectives);
+          staticInitializerDirectives = null;
+        }
+        directive.visit(this);
+      }
+    }
+    if (staticInitializerDirectives != null) {
+      // generate remaining collected statements:
+      generateStaticInitializer(staticInitializerDirectives);
+    }
   }
+
+  abstract void generateStaticInitializer(List<Directive> directives) throws IOException;
 
   @Override
   public void visitDefaultStatement(DefaultStatement defaultStatement) throws IOException {

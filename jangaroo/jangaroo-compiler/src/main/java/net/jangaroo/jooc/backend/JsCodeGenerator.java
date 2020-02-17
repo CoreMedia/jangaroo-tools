@@ -971,38 +971,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.beginComment();
     out.writeSymbol(classBody.getLBrace());
     out.endComment();
-    boolean inStaticInitializerBlock = false;
-    for (Directive directive : classBody.getDirectives()) {
-      if (!(directive instanceof EmptyStatement)) {
-        final boolean isStaticInitializer = directive instanceof Statement && !(directive instanceof Declaration);
-        if (isStaticInitializer) {
-          inStaticInitializerBlock = beginStaticInitializer(out, inStaticInitializerBlock);
-        } else {
-          inStaticInitializerBlock = endStaticInitializer(out, inStaticInitializerBlock);
-        }
-      }
-      directive.visit(this);
-    }
-    endStaticInitializer(out, inStaticInitializerBlock);
+    visitClassBodyDirectives(classBody.getDirectives());
     out.beginComment();
     out.writeSymbol(classBody.getRBrace());
     out.endComment();
   }
 
-  private boolean beginStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
-    if (!inStaticInitializerBlock) {
-      String staticFunctionName = "static$" + staticCodeCounter++;
-      out.writeToken(String.format("function %s(){", staticFunctionName));
-      primaryClassDefinitionBuilder.staticCode.append("          ").append(staticFunctionName).append("();\n");
-    }
-    return true;
-  }
+  void generateStaticInitializer(List<Directive> directives) throws IOException {
+    String staticFunctionName = "static$" + staticCodeCounter++;
 
-  private boolean endStaticInitializer(JsWriter out, boolean inStaticInitializerBlock) throws IOException {
-    if (inStaticInitializerBlock) {
-      out.writeToken("}");
+    out.writeToken(String.format("function %s(){", staticFunctionName));
+    for (Directive directive : directives) {
+      directive.visit(this);
     }
-    return false;
+    out.writeToken("}");
+
+    primaryClassDefinitionBuilder.staticCode.append("          ").append(staticFunctionName).append("();\n");
   }
 
   @Override
