@@ -35,7 +35,7 @@ public abstract class AbstractBlock extends Statement {
   }
 
   public JooSymbol getSymbol() {
-    return getRBrace();
+    return getLBrace();
   }
 
   public JooSymbol getLBrace() {

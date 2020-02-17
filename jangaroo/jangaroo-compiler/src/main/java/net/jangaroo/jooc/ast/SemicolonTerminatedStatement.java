@@ -74,7 +74,7 @@ public class SemicolonTerminatedStatement extends Statement {
   }
 
   public JooSymbol getSymbol() {
-    return getOptSymSemicolon() == null ? getOptStatement().getSymbol() : getOptSymSemicolon();
+    return getOptStatement() != null ? getOptStatement().getSymbol() : getOptSymSemicolon();
   }
 
   public AstNode getOptStatement() {
