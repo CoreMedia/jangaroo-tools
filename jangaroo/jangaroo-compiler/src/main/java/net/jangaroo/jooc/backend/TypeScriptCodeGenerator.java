@@ -126,7 +126,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
-    out.writeSymbol(classDeclaration.getSymClass());
+    if (classDeclaration.isInterface()) {
+      writeSymbolReplacement(classDeclaration.getSymClass(), "abstract class");
+    } else {
+      out.writeSymbol(classDeclaration.getSymClass());
+    }
     classDeclaration.getIde().visit(this);
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
@@ -354,6 +358,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         isNativeGetter = functionDeclaration.isGetter();
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+      if (functionDeclaration.getClassDeclaration().isInterface()) {
+        out.writeSymbolWhitespace(functionDeclaration.getSymbol());
+        out.writeToken("abstract");
+      }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
       if (!isNativeGetter) {
