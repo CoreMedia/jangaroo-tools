@@ -113,7 +113,7 @@ public class ExtAsApiGenerator {
       Set<ExtClass> mixins = extJsApi.getMixins();
       for (ExtClass mixin : mixins) {
         String mixinName = getActionScriptName(mixin);
-        if (mixinName != null) {
+        if (mixinName != null && !mixinName.isEmpty()) {
           interfaces.add(mixinName);
         }
       }
@@ -339,7 +339,7 @@ public class ExtAsApiGenerator {
 
   private static void generateClassModel(ExtClass extClass) {
     String extClassName = getActionScriptName(extClass);
-    if (extClassName == null) {
+    if (extClassName == null || extClassName.isEmpty()) {
       return;
     }
     CompilationUnitModel extAsClassUnit = createClassModel(convertType(extClass.name));
@@ -1272,7 +1272,7 @@ public class ExtAsApiGenerator {
   }
 
   private static String convertToInterface(String className) {
-    if (className == null || !interfaces.contains(className)) {
+    if (className == null || className.isEmpty() || !interfaces.contains(className)) {
       return null;
     }
     String interfaceName = "I" + CompilerUtils.className(className);
@@ -1323,7 +1323,7 @@ public class ExtAsApiGenerator {
       return "Object";
     }
     String qName = getActionScriptName(extClass);
-    if (qName == null) {
+    if (qName == null || qName.isEmpty()) {
       // try with super class:
       return convertType(extClass.extends_);
     }
@@ -1359,7 +1359,8 @@ public class ExtAsApiGenerator {
       replaceMixinByExtends(extClass, "Ext.dom.Element");
 
       // all classes that are mapped explicitly must remain part of the API:
-      if (getActionScriptName(extClass) != null) {
+      String actionScriptName = getActionScriptName(extClass);
+      if (actionScriptName != null && !actionScriptName.isEmpty()) {
         continue;
       }
 
@@ -1384,7 +1385,7 @@ public class ExtAsApiGenerator {
     List<String> missingMappings = new ArrayList<>();
     for (ExtClass extClass : extClasses) {
       if (getActionScriptName(extClass) == null) {
-        missingMappings.add(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1));
+        missingMappings.add(extClass.name + " = " + extClass.name.substring(0, 1).toLowerCase() + extClass.name.substring(1) + (extClass.deprecated ? " DEPRECATED" : "") +  ("private".equals(extClass.access) ? " (private)" : "") + (extClass.alias != null ? " // " + extClass.alias : ""));
       }
     }
     Collections.sort(missingMappings);
@@ -1684,7 +1685,7 @@ public class ExtAsApiGenerator {
       ExtClass extClass = extJsApi.getExtClass(jsClassName);
       if (extClass != null) {
         String actionScriptName = getActionScriptName(extClass);
-        if (actionScriptName != null) {
+        if (actionScriptName != null && !actionScriptName.isEmpty()) {
           if (extClass.singleton) {
             return CompilerUtils.qName(CompilerUtils.packageName(actionScriptName),
                     singletonPrefix + CompilerUtils.className(actionScriptName));
