@@ -167,6 +167,12 @@ public class RunMojo extends AbstractSenchaMojo {
       getLog().info("Could not start Jetty. Try starting with a random port next");
       try {
         jettyWrapper.start(jooJettyHost, 0);
+
+          getLog().info("Started Jetty server at: " + jettyWrapper.getUri());
+
+          logJangarooAppUrl(baseDir, jettyWrapper, project);
+
+          jettyWrapper.blockUntilInterrupted();
       } catch (Exception ex) {
         throw new MojoExecutionException("Could not start Jetty", e);
       }
