@@ -263,6 +263,10 @@ public class JettyWrapper {
       shuffledPorts.add(i);
     }
     Collections.shuffle(shuffledPorts);
+
+    if (!shuffledPorts.contains(0))
+      shuffledPorts.add(0);
+
     return shuffledPorts;
   }
 
