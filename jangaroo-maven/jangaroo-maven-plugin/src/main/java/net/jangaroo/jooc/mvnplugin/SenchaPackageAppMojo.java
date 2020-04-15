@@ -137,18 +137,20 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   private void buildSenchaApp(File senchaAppDirectory, String buildEnvironment) throws MojoExecutionException {
     getLog().info("Building Sencha app module for build environment '" + buildEnvironment + "'.");
+    buildSenchaApp(senchaAppDirectory, buildEnvironment, DEFAULT_LOCALE);
+    for (String locale : additionalLocales) {
+      buildSenchaApp(senchaAppDirectory, buildEnvironment, locale);
+    }
+  }
+
+  private void buildSenchaApp(File senchaAppDirectory, String buildEnvironment, String locale) throws MojoExecutionException {
     StringBuilder args = new StringBuilder();
+    if (!locale.equals(DEFAULT_LOCALE)) {
+      args.append("config -prop skip.sass=1 -prop skip.resources=1 then ");
+    }
     args.append("app build")
             .append(" --").append(buildEnvironment)
-            .append(" --locale " + DEFAULT_LOCALE);
-    if (!additionalLocales.isEmpty()) {
-      args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
-      for (String locale : additionalLocales) {
-        args.append(" then app build")
-                .append(" --").append(buildEnvironment)
-                .append(" --locale ").append(locale);
-      }
-    }
+            .append(" --locale ").append(locale);
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getSenchaJvmArgs(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
