@@ -48,7 +48,7 @@ public class SenchaGenerateAppMojo extends AbstractSenchaMojo {
       return;
     }
     String senchaAppName = getSenchaPackageName(project);
-    SenchaUtils.generateSenchaAppFromTemplate(appDir, senchaAppName, applicationClass, getToolkit(), getLog(), getSenchaLogLevel());
+    SenchaUtils.generateSenchaAppFromTemplate(appDir, senchaAppName, applicationClass, getToolkit(), getLog(), getSenchaLogLevel(), getSenchaJvmArgs());
   }
 
 }

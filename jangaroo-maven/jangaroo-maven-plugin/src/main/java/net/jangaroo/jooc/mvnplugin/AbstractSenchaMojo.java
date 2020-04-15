@@ -60,6 +60,14 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(property = "senchaLogLevel")
   private String senchaLogLevel;
 
+  /**
+   * Space-separated command line options for the JVM started by Sencha Cmd.
+   * Typically, memory settings like <code>-Xms512m -Xmx4096m</code> are added to adapt to JVM memory requirements.
+   * This corresponds to running <code>sencha -J-Xms512m -J-Xmx4096m ...</code>
+   */
+  @Parameter(property = "senchaJvmArgs")
+  private String senchaJvmArgs;
+
   private volatile Pattern extFrameworkArtifactPattern;
 
   private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
@@ -89,6 +97,10 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   public String getSenchaLogLevel() {
     return senchaLogLevel;
+  }
+
+  protected String getSenchaJvmArgs() {
+    return senchaJvmArgs;
   }
 
   protected boolean isExtFrameworkArtifact(Artifact artifact) {

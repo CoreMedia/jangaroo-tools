@@ -100,7 +100,7 @@ public class JooGenerateTestAppMojo extends AbstractSenchaMojo {
       createWebApp(testOutputDirectory);
 
       // sencha -cw target\test-classes config -prop skip.sass=1 -prop skip.resources=1 then app refresh
-      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getLog(), getSenchaLogLevel()).execute();
+      new SenchaCmdExecutor(testOutputDirectory, "config -prop skip.sass=1 -prop skip.resources=1 then app refresh", getSenchaJvmArgs(), getLog(), getSenchaLogLevel()).execute();
     }
   }
 
@@ -118,7 +118,7 @@ public class JooGenerateTestAppMojo extends AbstractSenchaMojo {
     }
     getLog().info(String.format("Generating Sencha App %s for unit tests...", webappDirectory));
     FileHelper.ensureDirectory(webappDirectory);
-    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), getSenchaLogLevel());
+    SenchaUtils.generateSenchaTestAppFromTemplate(webappDirectory, project, getSenchaPackageName(project), testSuite, toolkit, getLog(), getSenchaLogLevel(), getSenchaJvmArgs());
     createAppJson();
   }
 

@@ -208,15 +208,15 @@ public class SenchaUtils {
   }
 
   public static void generateSenchaAppFromTemplate(File workingDirectory,
-                                                        String appName,
-                                                        String applicationClass,
-                                                        String toolkit,
-                                                        Log log,
-                                                        String logLevel
-  ) throws MojoExecutionException {
+                                                   String appName,
+                                                   String applicationClass,
+                                                   String toolkit,
+                                                   Log log,
+                                                   String logLevel,
+                                                   String senchaJvmArgs) throws MojoExecutionException {
     String templateName = getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/tpl";
     ImmutableMap<String, String> properties = ImmutableMap.of("appName", appName, "applicationClass", applicationClass);
-    generateSenchaAppFromTemplate(workingDirectory, appName, toolkit, templateName, properties, log, logLevel);
+    generateSenchaAppFromTemplate(workingDirectory, appName, toolkit, templateName, properties, log, logLevel, senchaJvmArgs);
   }
 
   public static void generateSenchaTestAppFromTemplate(File workingDirectory,
@@ -225,11 +225,11 @@ public class SenchaUtils {
                                                        String testSuite,
                                                        String toolkit,
                                                        Log log,
-                                                       String logLevel
-  ) throws MojoExecutionException {
+                                                       String logLevel,
+                                                       String senchaJvmArgs) throws MojoExecutionException {
     String templateName = getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/tpl";
     ImmutableMap<String, String> properties = ImmutableMap.of("moduleName", getSenchaPackageName(project), "testSuite", testSuite);
-    generateSenchaAppFromTemplate(workingDirectory, appName, toolkit, templateName, properties, log, logLevel);
+    generateSenchaAppFromTemplate(workingDirectory, appName, toolkit, templateName, properties, log, logLevel, senchaJvmArgs);
   }
 
   private static void generateSenchaAppFromTemplate(File workingDirectory,
@@ -238,8 +238,8 @@ public class SenchaUtils {
                                                     String templateName,
                                                     Map<String, String> properties,
                                                     Log log,
-                                                    String logLevel
-  ) throws MojoExecutionException {
+                                                    String logLevel,
+                                                    String senchaJvmArgs) throws MojoExecutionException {
     List<String> arguments = new ArrayList<>();
     arguments.add("generate app");
     arguments.add("-ext " + toolkit);
@@ -256,7 +256,7 @@ public class SenchaUtils {
     }
     arguments.add(appName);
 
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, StringUtils.join(arguments, ' '), log, logLevel);
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workingDirectory, StringUtils.join(arguments, ' '), senchaJvmArgs, log, logLevel);
     senchaCmdExecutor.execute();
   }
 

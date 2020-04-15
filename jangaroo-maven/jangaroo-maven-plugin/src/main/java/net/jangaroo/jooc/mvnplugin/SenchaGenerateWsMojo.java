@@ -108,7 +108,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
 
     arguments.add(".");
     SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(workspaceDir,
-            StringUtils.join(arguments, ' '), getLog(), getSenchaLogLevel());
+            StringUtils.join(arguments, ' '), getSenchaJvmArgs(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
 
     // sencha.cfg should be recreated
