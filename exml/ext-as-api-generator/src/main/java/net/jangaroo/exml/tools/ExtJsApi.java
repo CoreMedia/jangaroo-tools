@@ -174,9 +174,15 @@ public class ExtJsApi {
     }
     // mark classes as mixins:
     Set<ExtClass> collectMixins = new HashSet<ExtClass>();
+    ExtClass extMixinClass = getExtClass("Ext.Mixin");
     for (Tag global : doxi.global.items) {
       if (global instanceof ExtClass) {
         ExtClass extClass = (ExtClass) global;
+        // AbstractPlugin must be a mixin for backwards-compatibility.
+        // Inheriting from Ext.Mixin also makes a class a mixin. TODO: transitive inheritance?
+        if ("Ext.plugin.Abstract".equals(extClass.name) || extMixinClass.equals(getSuperClass(extClass))) {
+          collectMixins.add(extClass);
+        }
         for (String mixin : extClass.mixins) {
           final ExtClass mixinClass = getExtClass(mixin);
           if (mixinClass != null) {

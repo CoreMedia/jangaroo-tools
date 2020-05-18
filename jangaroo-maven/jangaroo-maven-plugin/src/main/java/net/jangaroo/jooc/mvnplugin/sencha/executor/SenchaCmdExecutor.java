@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SenchaCmdExecutor {
 
@@ -71,11 +72,21 @@ public class SenchaCmdExecutor {
   private final Log log;
   private String senchaLogLevel;
 
-  public SenchaCmdExecutor(File workingDirectory, String arguments, Log log, String senchaLogLevel) {
+  public SenchaCmdExecutor(File workingDirectory, String arguments, String jvmArgs, Log log, String senchaLogLevel) {
     this.workingDirectory = workingDirectory;
-    this.arguments = arguments;
+    this.arguments = convertJvmArgs(jvmArgs) + arguments;
     this.log = log;
     this.senchaLogLevel = senchaLogLevel;
+  }
+
+  private static String convertJvmArgs(String jvmArgs) {
+    if (jvmArgs == null || jvmArgs.trim().isEmpty()) {
+      return "";
+    }
+    return Arrays.stream(jvmArgs.split("\\s+"))
+            .map(arg -> "-J" + arg)
+            .collect(Collectors.joining(" "))
+            + " ";
   }
 
   public void execute() throws MojoExecutionException {

@@ -7,7 +7,9 @@ import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpCookie;
+import java.net.URLDecoder;
 
 /**
  * Add support for matrix parameters and SSL.
@@ -17,8 +19,21 @@ public class JangarooProxyServlet extends ProxyServlet {
   @Override
   protected String rewritePathInfoFromRequest(HttpServletRequest servletRequest) {
     // Patched: use getRequestURI instead of getPathInfo to preserve matrix parameters
+
+    // RequestURI still contains matrix parameters, so let's start with this:
+    String requestURI = servletRequest.getRequestURI();
+    // JOO-145: while getPathInfo() is decoded, getRequestURI() needs to be decoded!
+    try {
+      requestURI = URLDecoder.decode(requestURI, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException("Missing UTF-8 encoding.", e);
+    }
+    // subtract servletPath prefix:
     String servletPath = servletRequest.getServletPath();
-    return servletRequest.getRequestURI().replaceFirst(servletPath, "");
+    assert requestURI.startsWith(servletPath):
+            "Unexpected state: request Uri " + servletRequest.getRequestURI() 
+                    + " does not start with servlet path " + servletRequest.getServletPath();
+    return requestURI.substring(servletPath.length());
   }
 
   /**

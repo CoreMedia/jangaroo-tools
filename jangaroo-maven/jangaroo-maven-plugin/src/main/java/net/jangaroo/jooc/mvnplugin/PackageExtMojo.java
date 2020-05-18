@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * Packages the Ext JS framework with source maps
  */
 @Mojo(name = "package-ext", defaultPhase = LifecyclePhase.PROCESS_RESOURCES, threadSafe = true )
-public class PackageExtMojo extends AbstractMojo {
+public class PackageExtMojo extends AbstractSenchaMojo {
 
   private static final String FILE_LIST_FILE_NAME = "filenames.txt";
 
@@ -49,7 +49,7 @@ public class PackageExtMojo extends AbstractMojo {
             + " -tpl \"{0}\" "
             + " -out " + FILE_LIST_FILE_NAME;
     getLog().info("Generating Ext classic file list");
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(classicPackageDir, arguments, getLog(), null);
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(classicPackageDir, arguments, getSenchaJvmArgs(), getLog(), null);
     senchaCmdExecutor.execute();
 
     getLog().info(String.format("Compressing Ext to %s", extPackageFile.getPath()));

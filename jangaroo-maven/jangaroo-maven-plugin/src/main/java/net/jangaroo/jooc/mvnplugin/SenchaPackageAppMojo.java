@@ -149,7 +149,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
                 .append(" --locale ").append(locale);
       }
     }
-    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getLog(), getSenchaLogLevel());
+    SenchaCmdExecutor senchaCmdExecutor = new SenchaCmdExecutor(senchaAppDirectory, args.toString(), getSenchaJvmArgs(), getLog(), getSenchaLogLevel());
     senchaCmdExecutor.execute();
   }
 
