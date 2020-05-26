@@ -126,14 +126,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
-    if (classDeclaration.isInterface()) {
-      writeSymbolReplacement(classDeclaration.getSymClass(), "abstract class");
-    } else {
-      out.writeSymbol(classDeclaration.getSymClass());
-    }
+    out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
+    if (classDeclaration.isInterface()) {
+      out.write("{}\n");
+      out.write("abstract class ");
+      classDeclaration.getIde().visit(this);
+      if (classDeclaration.getOptImplements() != null) {
+        out.write(" implements ");
+        classDeclaration.getOptImplements().getSuperTypes().visit(this);
+      }
+    }
     classDeclaration.getBody().visit(this);
     visitAll(classDeclaration.getSecondaryDeclarations());
   }

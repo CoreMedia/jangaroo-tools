@@ -329,7 +329,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitImplements(Implements anImplements) throws IOException {
-    writeSymbolReplacement(anImplements.getSymImplements(), "implements");
+    out.writeSymbol(anImplements.getSymImplements());
     anImplements.getSuperTypes().visit(this);
   }
 
