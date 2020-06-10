@@ -389,10 +389,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return requires.toArray(new String[requires.size()]);
   }
 
-  private static String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
-    return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
-  }
-
   private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
     JsonObject classDefinition = new JsonObject();
     if (classDeclaration.notExtendsObject()) {
@@ -514,9 +510,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
     if (out.isWritingComment()) {
-      qualifiedIde.getQualifier().visit(this);
-      out.writeSymbol(qualifiedIde.getSymDot());
-      visitIde(qualifiedIde);
+      super.visitQualifiedIde(qualifiedIde);
     } else {
 //      out.beginComment();
 //      qualifiedIde.getQualifier().visit(this);

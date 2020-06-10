@@ -5,6 +5,7 @@ import com.google.common.collect.ListMultimap;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
@@ -286,6 +287,10 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
+  protected static String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+    return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
+  }
+
   protected static String getNativeAnnotationValue(Annotation nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
   }
@@ -309,7 +314,9 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
-    out.writeSymbol(qualifiedIde.getIde());
+    qualifiedIde.getQualifier().visit(this);
+    out.writeSymbol(qualifiedIde.getSymDot());
+    visitIde(qualifiedIde);
   }
 
   @Override

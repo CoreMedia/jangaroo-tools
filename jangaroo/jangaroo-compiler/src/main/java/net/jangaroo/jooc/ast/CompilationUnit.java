@@ -181,23 +181,31 @@ public class CompilationUnit extends NodeImplBase {
     return packageDeclaration.getSymbol();
   }
 
-  public CompilationUnit mapMixinInterface(CompilationUnit compilationUnit) {
+  public static CompilationUnit mapMixinInterface(CompilationUnit compilationUnit) {
     if (compilationUnit != null && compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
             && ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).isInterface()) {
-      Annotation mixinAnnotation = compilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
-      if (mixinAnnotation != null) {
-        Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
-        if (mixinClassNames.hasNext()) {
-          String mixinClassName = mixinClassNames.next();
-          CompilationUnit mixinCompilationUnit = scope.getCompiler().getCompilationUnit(mixinClassName);
-          if (mixinCompilationUnit == null) {
-            throw Jooc.error(compilationUnit, "Mixin annotation refers to unresolvable class '" + mixinClassName + "'.");
-          }
-          return mixinCompilationUnit;
-        }
+      CompilationUnit mixinCompilationUnit = getMixinCompilationUnit(compilationUnit.getPrimaryDeclaration());
+      if (mixinCompilationUnit != null) {
+        return mixinCompilationUnit;
       }
     }
     return compilationUnit;
+  }
+
+  public static CompilationUnit getMixinCompilationUnit(Declaration declaration) {
+    Annotation mixinAnnotation = declaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
+    if (mixinAnnotation != null) {
+      Iterator<String> mixinClassNames = getAnnotationDefaultParameterStringValues(mixinAnnotation).iterator();
+      if (mixinClassNames.hasNext()) {
+        String mixinClassName = mixinClassNames.next();
+        CompilationUnit mixinCompilationUnit = mixinAnnotation.getIde().getScope().getCompiler().getCompilationUnit(mixinClassName);
+        if (mixinCompilationUnit == null) {
+          throw Jooc.error(declaration, "Mixin annotation refers to unresolvable class '" + mixinClassName + "'.");
+        }
+        return mixinCompilationUnit;
+      }
+    }
+    return null;
   }
 
   public void addDependency(CompilationUnit otherUnit, boolean required) {
@@ -220,7 +228,7 @@ public class CompilationUnit extends NodeImplBase {
     }
   }
 
-  private List<String> getAnnotationDefaultParameterStringValues(Annotation annotation) {
+  private static List<String> getAnnotationDefaultParameterStringValues(Annotation annotation) {
     List<String> values = new ArrayList<>();
     CommaSeparatedList<AnnotationParameter> current = annotation.getOptAnnotationParameters();
     while (current != null) {
