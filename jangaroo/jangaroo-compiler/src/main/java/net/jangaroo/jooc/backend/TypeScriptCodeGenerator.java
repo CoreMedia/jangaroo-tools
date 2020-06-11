@@ -682,6 +682,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private String getLocalName(IdeDeclaration declaration, boolean useQualifiedName) {
     String localName = null;
     if (declaration.isPrimaryDeclaration()) {
+      declaration = CompilationUnit.mapMixinInterface(declaration.getCompilationUnit()).getPrimaryDeclaration();
       localName = imports.get(declaration.getQualifiedNameStr());
       if (localName == null) {
         System.err.println("*** not found in imports: " + declaration.getQualifiedNameStr());
