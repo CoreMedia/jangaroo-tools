@@ -322,25 +322,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitImportDirective(ImportDirective importDirective) throws IOException {
-    String qualifiedName = importDirective.getQualifiedName();
-    if (!qualifiedName.endsWith("*")) {
-      out.writeSymbol(importDirective.getImportKeyword());
-      out.writeSymbolWhitespace(importDirective.getIde().getSymbol());
-      out.writeToken(CompilerUtils.className(qualifiedName));
-      out.write(" from '");
-      out.write(qualifiedName.replace('.', '/'));
-      out.write("'");
-      if (importDirective.isExplicit()) {
-        writeOptSymbol(importDirective.getSymSemicolon());
-      } else {
-        out.write(";");
-        writeOptSymbolWhitespace(importDirective.getSymSemicolon());
-      }
-    }
-  }
-
-  @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
     if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
             Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
