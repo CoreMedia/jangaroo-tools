@@ -287,7 +287,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
-  protected static String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+  protected String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
     return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
   }
 

@@ -240,7 +240,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return as3Type.name;
   }
 
-  private static String getRequireModuleName(IdeDeclaration declaration) {
+  protected String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
+    // exception: Ext.Base does not need to be "required", but for TypeScript, it needs to be imported!
+    if ("Ext.Base".equals(getNativeAnnotationValue(nativeAnnotation))) {
+      return "";
+    }
+    return super.getNativeAnnotationRequireValue(nativeAnnotation);
+  }
+
+  private String getRequireModuleName(IdeDeclaration declaration) {
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeAnnotation == null) {
       return String.join("/", declaration.getQualifiedName());
@@ -249,7 +257,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (nativeAnnotationValue == null) {
         nativeAnnotationValue = declaration.getQualifiedNameStr();
       }
-      if ("Ext.Base".equals(nativeAnnotationValue) || getNativeAnnotationRequireValue(nativeAnnotation) != null) {
+      if (getNativeAnnotationRequireValue(nativeAnnotation) != null) {
         return nativeAnnotationValue.replace('.', '/');
       }
       return null;
