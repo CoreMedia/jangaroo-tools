@@ -45,9 +45,9 @@ import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -123,11 +123,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       imports.put(primaryDeclaration.getQualifiedNameStr(), localName);
       if (requireModuleName != null) {
-        out.write(String.format("  import %s from '%s';\n", localName, requireModuleName));
+        out.write(String.format("import %s from '%s';\n", localName, requireModuleName));
       }
     }
 
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      for (TypedIdeDeclaration member : ((ClassDeclaration) primaryDeclaration).getMembers()) {
+        if (member.isPrivate() && !member.isStatic()) {
+          out.write(MessageFormat.format("const {0}$ = Symbol(\"{0}\");\n", member.getName()));
+        }
+      }
+    }
+
     primaryDeclaration.visit(this);
     String primaryDeclarationName = primaryDeclaration.getName();
     if (primaryDeclaration instanceof ClassDeclaration) {
@@ -387,6 +395,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write(".Config");
       // this will render as a Config factory invocation:
       visitIfNotNull(variableDeclaration.getOptInitializer());
+    } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
+      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), "[" + variableDeclaration.getIde().getName() + "$" + "]");
+      visitIfNotNull(variableDeclaration.getOptTypeRelation());
+      visitIfNotNull(variableDeclaration.getOptInitializer());
     } else {
       super.visitVariableDeclarationBase(variableDeclaration);
     }
@@ -430,7 +442,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (functionDeclaration.isConstructor()) {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
       } else {
-        functionDeclaration.getIde().visit(this);
+        if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),"[" + functionDeclaration.getIde().getName() + "$" + "]");
+        } else {
+          functionDeclaration.getIde().visit(this);
+        }
       }
       if (!isNativeGetter) {
         out.writeSymbol(functionExpr.getLParen());
@@ -586,11 +602,32 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       dotExpr.getArg().visit(this);
       writeSymbolReplacement(dotExpr.getOp(), ",");
       //writeSymbolReplacement(ide.getIde(), CompilerUtils.quote(ide.getName()));
-      super.visitDotExpr(dotExpr);
+      internalVisitDotExpr(dotExpr);
       out.writeToken(")");
     } else {
-      super.visitDotExpr(dotExpr);
+      internalVisitDotExpr(dotExpr);
     }
+  }
+
+  private void internalVisitDotExpr(DotExpr dotExpr) throws IOException {
+    Expr arg = dotExpr.getArg();
+    if (arg instanceof IdeExpr) {
+      arg = ((IdeExpr)arg).getNormalizedExpr();
+    }
+    ExpressionType type = arg.getType();
+    if (type != null) {
+      Ide ide = dotExpr.getIde();
+      IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
+      if (memberDeclaration != null && memberDeclaration.isPrivate() && !memberDeclaration.isStatic()) {
+        arg.visit(this);
+        writeSymbolReplacement(dotExpr.getOp(), "[");
+        writeSymbolReplacement(ide.getSymbol(), ide.getName() + "$");
+        out.write("]");
+        return;
+      }
+    }
+
+    super.visitDotExpr(dotExpr);
   }
 
   @Override
