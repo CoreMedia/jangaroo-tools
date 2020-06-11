@@ -79,6 +79,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(modifier, false);
       }
     }
+    if (isPrimaryDeclaration && declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
+      out.write("declare");
+    }
   }
 
   @Override
