@@ -573,10 +573,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (forInStatement.getSymEach() != null) {
         // In ECMAScript 6, "for each (... in ...)" is replaced by "for (... of ...)":
         writeSymbolReplacement(forInStatement.getSymIn(), "of");
+        ExpressionType exprType = forInStatement.getExpr().getType();
+        if (exprType != null && exprType.isArrayLike()) {
+          forInStatement.getExpr().visit(this);
+        } else {
+          // If the expression is not iterable, Object.values() must be used.
+          // Note that it must be polyfilled in IE, even IE11!
+          out.writeSymbolWhitespace(forInStatement.getExpr().getSymbol());
+          out.write("Object.values(");
+          forInStatement.getExpr().visit(this);
+          out.write(")");
+        }
       } else {
         out.writeSymbol(forInStatement.getSymIn());
+        forInStatement.getExpr().visit(this);
       }
-      forInStatement.getExpr().visit(this);
       out.writeSymbol(forInStatement.getRParen());
       forInStatement.getBody().visit(this);
     } else {
