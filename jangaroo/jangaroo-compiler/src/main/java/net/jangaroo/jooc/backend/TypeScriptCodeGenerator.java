@@ -11,7 +11,6 @@ import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
-import net.jangaroo.jooc.ast.Catch;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -596,15 +595,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitCatch(Catch aCatch) throws IOException {
-    out.writeSymbol(aCatch.getSymKeyword());
-    out.writeSymbol(aCatch.getLParen());
-    aCatch.getParam().getIde().visit(this); // suppress type annotation in catch clause
-    out.writeSymbol(aCatch.getRParen());
-    aCatch.getBlock().visit(this);
-  }
-
-  @Override
   public void visitDotExpr(DotExpr dotExpr) throws IOException {
     Ide ide = dotExpr.getIde();
     if (ide.isBound()) {
@@ -688,6 +678,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     return useQualifiedName ? toLocalName(ide.getQualifiedName()) : ide.getName();
+  }
+
+  @Override
+  String compilationUnitAccessCode(IdeDeclaration declaration) {
+    return getLocalName(declaration, false);
   }
 
   private String getLocalName(IdeDeclaration declaration, boolean useQualifiedName) {

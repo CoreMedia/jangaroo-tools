@@ -178,7 +178,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return false;
   }
 
-  private String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
+  String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
     CompilationUnit otherUnit = primaryDeclaration.getCompilationUnit();
     if (otherUnit == compilationUnit) {
       return primaryDeclaration.getName();
@@ -981,88 +981,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeToken("}");
 
     primaryClassDefinitionBuilder.staticCode.append("          ").append(staticFunctionName).append("();\n");
-  }
-
-  @Override
-  public void visitCatch(Catch aCatch) throws IOException {
-    List<Catch> catches = aCatch.getParentTryStatement().getCatches();
-    Catch firstCatch = catches.get(0);
-    boolean isFirst = aCatch.equals(firstCatch);
-    boolean isLast = aCatch.equals(catches.get(catches.size() - 1));
-    TypeRelation typeRelation = aCatch.getParam().getOptTypeRelation();
-    boolean hasCondition = aCatch.hasCondition();
-    if (!hasCondition && !isLast) {
-      throw JangarooParser.error(aCatch.getRParen(), "Only last catch clause may be untyped.");
-    }
-    final JooSymbol errorVar = firstCatch.getParam().getIde().getIde();
-    final JooSymbol localErrorVar = aCatch.getParam().getIde().getIde();
-    // in the following, always take care to write whitespace only once!
-    out.writeSymbolWhitespace(aCatch.getSymKeyword());
-    if (isFirst) {
-      out.writeSymbolToken(aCatch.getSymKeyword()); // "catch"
-      // "(localErrorVar)":
-      out.writeSymbol(aCatch.getLParen(), !hasCondition);
-      out.writeSymbol(errorVar, !hasCondition);
-      if (!hasCondition && typeRelation != null) {
-        // can only be ": *", add as comment:
-        typeRelation.visit(this);
-      }
-      out.writeSymbol(aCatch.getRParen(), !hasCondition);
-      if (hasCondition || !isLast) {
-        // a catch block always needs a brace, so generate one for conditions:
-        out.writeToken("{");
-      }
-    } else {
-      // transform catch(ide:Type){...} into else if is(e,Type)){var ide=e;...}
-      out.writeToken("else");
-    }
-    if (hasCondition) {
-      out.writeToken("if(AS3.is");
-      out.writeSymbol(aCatch.getLParen());
-      out.writeSymbolWhitespace(localErrorVar);
-      out.writeSymbolToken(errorVar);
-      out.writeSymbolWhitespace(typeRelation.getSymRelation());
-      out.writeToken(",");
-      Ide typeIde = typeRelation.getType().getIde();
-      out.writeSymbolWhitespace(typeIde.getIde());
-      out.writeToken(compilationUnitAccessCode(typeIde.getDeclaration()));
-      out.writeSymbol(aCatch.getRParen());
-      out.writeToken(")");
-    }
-    if (!localErrorVar.getText().equals(errorVar.getText())) {
-      addBlockStartCodeGenerator(aCatch.getBlock(), new VarCodeGenerator(localErrorVar, errorVar));
-    }
-    aCatch.getBlock().visit(this);
-    if (isLast) {
-      if (hasCondition) {
-        out.writeToken("else throw");
-        out.writeSymbolToken(errorVar);
-        out.writeToken(";");
-      }
-      if (!(isFirst && !hasCondition)) {
-        // last catch clause closes the JS catch block:
-        out.writeToken("}");
-      }
-    }
-  }
-
-  private static class VarCodeGenerator implements CodeGenerator {
-    private final JooSymbol localErrorVar;
-    private final JooSymbol errorVar;
-
-    public VarCodeGenerator(JooSymbol localErrorVar, JooSymbol errorVar) {
-      this.localErrorVar = localErrorVar;
-      this.errorVar = errorVar;
-    }
-
-    @Override
-    public void generate(JsWriter out, boolean first) throws IOException {
-      out.writeToken("var");
-      out.writeSymbolToken(localErrorVar);
-      out.writeToken("=");
-      out.writeSymbolToken(errorVar);
-      out.writeToken(";");
-    }
   }
 
   @Override
