@@ -131,7 +131,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (primaryDeclaration instanceof ClassDeclaration) {
       for (TypedIdeDeclaration member : ((ClassDeclaration) primaryDeclaration).getMembers()) {
         if (member.isPrivate() && !member.isStatic()) {
-          out.write(MessageFormat.format("const {0}$ = Symbol(\"{0}\");\n", member.getName()));
+          out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
         }
       }
     }
@@ -410,7 +410,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // this will render as a Config factory invocation:
       visitIfNotNull(variableDeclaration.getOptInitializer());
     } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
-      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), "[" + variableDeclaration.getIde().getName() + "$" + "]");
+      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), "[" + "$" + variableDeclaration.getIde().getName() + "]");
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
       visitIfNotNull(variableDeclaration.getOptInitializer());
     } else {
@@ -457,7 +457,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
       } else {
         if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
-          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),"[" + functionDeclaration.getIde().getName() + "$" + "]");
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),"[" + "$" + functionDeclaration.getIde().getName() + "]");
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -651,7 +651,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (memberDeclaration != null && memberDeclaration.isPrivate() && !memberDeclaration.isStatic()) {
         arg.visit(this);
         writeSymbolReplacement(dotExpr.getOp(), "[");
-        writeSymbolReplacement(ide.getSymbol(), ide.getName() + "$");
+        writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
         out.write("]");
         return;
       }
