@@ -17,6 +17,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
+import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
@@ -326,6 +327,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
     vectorLiteral.getArrayLiteral().visit(this);
+  }
+
+  @Override
+  public void visitImportDirective(ImportDirective importDirective) throws IOException {
+    // ignore all explicit imports. They already have been rendered as transitive dependencies.
+  }
+
+  @Override
+  public void visitEmptyStatement(EmptyStatement emptyStatement) throws IOException {
+    // suppress empty statements inside ECMAScript classes:
+    if (!emptyStatement.isClassMember()) {
+      super.visitEmptyStatement(emptyStatement);
+    }
   }
 
   @Override
