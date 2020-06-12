@@ -223,6 +223,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     switch (as3Type) {
       case ANY:
+      case OBJECT:
         return "any";
       case UINT:
       case INT:
@@ -242,8 +243,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       case NUMBER:
       case STRING:
         return as3Type.name.toLowerCase();
-      case OBJECT:
-        return "AnyObject";
+      case FUNCTION:
+        return "AnyFunction";
     }
     return as3Type.name;
   }
