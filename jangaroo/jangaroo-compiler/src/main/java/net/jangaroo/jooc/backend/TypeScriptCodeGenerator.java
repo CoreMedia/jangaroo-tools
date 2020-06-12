@@ -130,15 +130,43 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
 
     primaryDeclaration.visit(this);
-    String primaryDeclarationName = primaryDeclaration.getName();
-    if (primaryDeclaration instanceof ClassDeclaration) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
+
+    out.write("\nexport default " + primaryDeclaration.getName() + ";\n");
+  }
+
+  @Override
+  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
+      if (member.isPrivate() && !member.isStatic()) {
+        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
+      }
+    }
+
+    visitDeclarationAnnotationsAndModifiers(classDeclaration);
+    out.writeSymbol(classDeclaration.getSymClass());
+    classDeclaration.getIde().visit(this);
+    visitIfNotNull(classDeclaration.getOptExtends());
+    visitIfNotNull(classDeclaration.getOptImplements());
+    if (classDeclaration.isInterface()) {
+      out.write("{}\n");
+      out.write("abstract class ");
+      classDeclaration.getIde().visit(this);
+      if (classDeclaration.getOptImplements() != null) {
+        out.write(" implements ");
+        classDeclaration.getOptImplements().getSuperTypes().visit(this);
+      }
+    }
+    classDeclaration.getBody().visit(this);
+    visitAll(classDeclaration.getSecondaryDeclarations());
+
+    if (classDeclaration.isPrimaryDeclaration()) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       if (superTypeDeclaration != null && !"Object".equals(superTypeDeclaration.getName())) {
+        String primaryDeclarationName = classDeclaration.getName();
         out.write("namespace ");
         out.write(primaryDeclarationName);
         out.write(" {\n");
-        out.write("  export abstract class Config extends "  + superTypeDeclaration.getName() + ".Config");
+        out.write("  export abstract class Config extends " + superTypeDeclaration.getName() + ".Config");
         if (classDeclaration.getOptImplements() != null) {
           CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
           List<String> mixins = new ArrayList<>();
@@ -166,33 +194,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("export function " + primaryDeclarationName + "_(config?: " + primaryDeclarationName + ".Config): " + primaryDeclarationName + ".Config { return config; }\n");
       }
     }
-    out.write("\nexport default " + primaryDeclarationName + ";\n");
-  }
-
-  @Override
-  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
-      if (member.isPrivate() && !member.isStatic()) {
-        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
-      }
-    }
-
-    visitDeclarationAnnotationsAndModifiers(classDeclaration);
-    out.writeSymbol(classDeclaration.getSymClass());
-    classDeclaration.getIde().visit(this);
-    visitIfNotNull(classDeclaration.getOptExtends());
-    visitIfNotNull(classDeclaration.getOptImplements());
-    if (classDeclaration.isInterface()) {
-      out.write("{}\n");
-      out.write("abstract class ");
-      classDeclaration.getIde().visit(this);
-      if (classDeclaration.getOptImplements() != null) {
-        out.write(" implements ");
-        classDeclaration.getOptImplements().getSuperTypes().visit(this);
-      }
-    }
-    classDeclaration.getBody().visit(this);
-    visitAll(classDeclaration.getSecondaryDeclarations());
   }
 
   @Override
