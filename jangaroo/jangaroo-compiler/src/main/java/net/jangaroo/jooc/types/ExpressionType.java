@@ -78,6 +78,13 @@ public class ExpressionType {
     }
   }
 
+  /**
+   * Return whether the given expression type is more general than this expression type,
+   * so that anything of this expression type could be assigned to a variable of the
+   * given expression type.
+   * @param toCheck the expression type of the variable to assign
+   * @return whether the assignment to an expression of this type is valid
+   */
   public boolean isAssignableTo(@Nonnull ExpressionType toCheck) {
 
     if (AS3Type.ANY.equals(getAS3Type()) ||  AS3Type.BOOLEAN.equals(getAS3Type())) {
