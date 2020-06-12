@@ -579,34 +579,48 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitForInStatement(ForInStatement forInStatement) throws IOException {
     VariableDeclaration decl = forInStatement.getDecl();
-    if (decl != null && decl.getOptTypeRelation() != null) {
-      out.writeSymbol(forInStatement.getSymKeyword());
-      out.writeSymbol(forInStatement.getLParen());
+    ExpressionType exprType = forInStatement.getExpr().getType();
+    out.writeSymbol(forInStatement.getSymKeyword());
+    out.writeSymbol(forInStatement.getLParen());
+    if (decl != null) {
+      // suppress declaration type: no type allowed in TypeScript here!
       writeOptSymbol(decl.getOptSymConstOrVar());
       decl.getIde().visit(this);
-      if (forInStatement.getSymEach() != null) {
-        // In ECMAScript 6, "for each (... in ...)" is replaced by "for (... of ...)":
-        writeSymbolReplacement(forInStatement.getSymIn(), "of");
-        ExpressionType exprType = forInStatement.getExpr().getType();
-        if (exprType != null && exprType.isArrayLike()) {
-          forInStatement.getExpr().visit(this);
-        } else {
-          // If the expression is not iterable, Object.values() must be used.
-          // Note that it must be polyfilled in IE, even IE11!
-          out.writeSymbolWhitespace(forInStatement.getExpr().getSymbol());
-          out.write("Object.values(");
-          forInStatement.getExpr().visit(this);
-          out.write(")");
+    } else if (forInStatement.getLValue() != null) {
+      forInStatement.getLValue().visit(this);
+    }
+    if (forInStatement.getSymEach() != null) {
+      // In ECMAScript 6, "for each (... in ...)" is replaced by "for (... of ...)":
+      writeSymbolReplacement(forInStatement.getSymIn(), "of");
+      Type declType = decl == null ? null : decl.getOptTypeRelation().getType();
+      if (exprType != null && exprType.isArrayLike()) {
+        forInStatement.getExpr().visit(this);
+        // as decl cannot have a type, cast to specific Array, but only if the array's element type is not the exact declared type:
+        if (declType != null && !new ExpressionType(declType).equals(exprType.getTypeParameter())) {
+          out.write(" as Array<");
+          declType.visit(this);
+          out.write(">");
         }
       } else {
-        out.writeSymbol(forInStatement.getSymIn());
+        // If the expression is not iterable, Object.values() must be used.
+        // Note that it must be polyfilled in IE, even IE11!
+        out.writeSymbolWhitespace(forInStatement.getExpr().getSymbol());
+        out.write("Object.values");
+        if (declType != null) {
+          out.write("<");
+          declType.visit(this);
+          out.write(">");
+        }
+        out.write("(");
         forInStatement.getExpr().visit(this);
+        out.write(")");
       }
-      out.writeSymbol(forInStatement.getRParen());
-      forInStatement.getBody().visit(this);
     } else {
-      super.visitForInStatement(forInStatement);
+      out.writeSymbol(forInStatement.getSymIn());
+      forInStatement.getExpr().visit(this);
     }
+    out.writeSymbol(forInStatement.getRParen());
+    forInStatement.getBody().visit(this);
   }
 
   @Override
