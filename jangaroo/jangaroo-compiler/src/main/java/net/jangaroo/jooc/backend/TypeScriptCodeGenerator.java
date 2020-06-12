@@ -128,13 +128,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-    if (primaryDeclaration instanceof ClassDeclaration) {
-      for (TypedIdeDeclaration member : ((ClassDeclaration) primaryDeclaration).getMembers()) {
-        if (member.isPrivate() && !member.isStatic()) {
-          out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
-        }
-      }
-    }
 
     primaryDeclaration.visit(this);
     String primaryDeclarationName = primaryDeclaration.getName();
@@ -178,6 +171,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
+      if (member.isPrivate() && !member.isStatic()) {
+        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
+      }
+    }
+
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
