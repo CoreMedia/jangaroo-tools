@@ -73,7 +73,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbolWhitespace(modifier);
       if (!isPrimaryDeclaration && (modifier.sym == sym.PUBLIC
               || modifier.sym == sym.PROTECTED
-              || modifier.sym == sym.PRIVATE
               || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())
       )) {
         out.writeSymbol(modifier, false);
@@ -136,8 +135,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
-      if (member.isPrivate() && !member.isStatic()) {
+    for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
+      if (member.isPrivate()) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
       }
     }
@@ -409,13 +408,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write(".Config");
       // this will render as a Config factory invocation:
       visitIfNotNull(variableDeclaration.getOptInitializer());
-    } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
-      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), "[" + "$" + variableDeclaration.getIde().getName() + "]");
+    } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate()) {
+      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), getDefinitionName(variableDeclaration));
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
       visitIfNotNull(variableDeclaration.getOptInitializer());
     } else {
       super.visitVariableDeclarationBase(variableDeclaration);
     }
+  }
+
+  private String getDefinitionName(IdeDeclaration variableDeclaration) {
+    return String.format(variableDeclaration.isStatic() ? "[$%s]" : "#%s", variableDeclaration.getIde().getName());
   }
 
   @Override
@@ -456,8 +459,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (functionDeclaration.isConstructor()) {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
       } else {
-        if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
-          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),"[" + "$" + functionDeclaration.getIde().getName() + "]");
+        if (functionDeclaration.isPrivate()) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getDefinitionName(functionDeclaration));
+          if (!functionDeclaration.isStatic()) {
+            out.writeToken("=");
+          }
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -483,6 +489,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // The super() call takes care of adding the this-alias, because TypeScript does not allow access
       // to "this" before super constructor call.
 
+      if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+        out.writeToken("=>");
+      }
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
@@ -648,11 +657,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (type != null) {
       Ide ide = dotExpr.getIde();
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
-      if (memberDeclaration != null && memberDeclaration.isPrivate() && !memberDeclaration.isStatic()) {
+      if (memberDeclaration != null && memberDeclaration.isPrivate()) {
         arg.visit(this);
-        writeSymbolReplacement(dotExpr.getOp(), "[");
-        writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
-        out.write("]");
+        if (memberDeclaration.isStatic()) {
+          writeSymbolReplacement(dotExpr.getOp(), "[");
+          writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
+          out.write("]");
+        } else {
+          out.writeSymbol(dotExpr.getOp());
+          writeSymbolReplacement(ide.getSymbol(), "#" + ide.getName());
+        }
         return;
       }
     }
