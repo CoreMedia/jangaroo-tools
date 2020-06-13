@@ -473,7 +473,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         visitIfNotNull(functionExpr.getParams());
         out.writeSymbol(functionExpr.getRParen());
       }
-      if (!functionDeclaration.isSetter()) { // in TypeScript, setters may not declare a return type, not even "void"!
+      // in TypeScript, constructors and setters may not declare a return type, not even "void":
+      if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter()) {
         visitIfNotNull(functionExpr.getOptTypeRelation());
       }
       if (functionDeclaration.isConstructor()
