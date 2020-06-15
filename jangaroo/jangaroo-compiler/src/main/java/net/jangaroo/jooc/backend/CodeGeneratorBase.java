@@ -118,7 +118,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(blockStatement.getRBrace());
   }
 
-  protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
+  protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbol(modifier);
     }
@@ -692,7 +692,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     visitIfNotNull(parameter.getOptInitializer());
   }
 
-  void visitDeclarationAnnotationsAndModifiers(Declaration declaration) throws IOException {
+  void visitDeclarationAnnotationsAndModifiers(IdeDeclaration declaration) throws IOException {
     visitAll(declaration.getAnnotations());
     writeModifiers(out, declaration);
   }

@@ -14,7 +14,6 @@ import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyStatement;
@@ -67,8 +66,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  protected void writeModifiers(JsWriter out, Declaration declaration) throws IOException {
-    boolean isPrimaryDeclaration = declaration instanceof IdeDeclaration && ((IdeDeclaration) declaration).isPrimaryDeclaration();
+  protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {
+    boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbolWhitespace(modifier);
       if (!isPrimaryDeclaration && (modifier.sym == sym.PUBLIC
