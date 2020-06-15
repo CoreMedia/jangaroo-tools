@@ -87,17 +87,36 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     this.compilationUnit = compilationUnit;
     this.configs = new LinkedHashMap<>();
     this.imports = new HashMap<>();
+
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+
+    // initialize with name of current compilation unit:
+    String primaryLocalName = primaryDeclaration.getName();
+    imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
+
+    // is it [Native] without "require"?
+    if (getRequireModuleName(primaryDeclaration) == null) {
+      Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
+      if (packageIde == null) {
+        // global namespace, simply leave it out
+        primaryDeclaration.visit(this);
+      } else {
+        writeSymbolReplacement(compilationUnit.getPackageDeclaration().getSymbol(), "namespace");
+        packageIde.visit(this);
+        out.writeSymbol(compilationUnit.getLBrace());
+        primaryDeclaration.visit(this);
+        out.writeSymbol(compilationUnit.getRBrace());
+      }
+      return;
+    }
+
     out.beginComment();
     compilationUnit.getPackageDeclaration().visit(this);
     out.endComment();
     out.write("import * as AS3 from 'AS3';");
 
     Set<String> localNames = new HashSet<>();
-
-    // initialize with name of current compilation unit:
-    String primaryLocalName = compilationUnit.getPrimaryDeclaration().getName();
     localNames.add(primaryLocalName);
-    imports.put(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr(), primaryLocalName);
 
     // generate imports
     // first pass: detect import local name clashes:
@@ -113,19 +132,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // second pass: generate imports, using fully-qualified names for local name clashes:
     for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
-      IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
-      String requireModuleName = getRequireModuleName(primaryDeclaration);
-      String localName = getDefaultImportName(primaryDeclaration);
+      IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
+      String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
+      String localName = getDefaultImportName(dependentPrimaryDeclaration);
       if (requireModuleName != null && localNameClashes.contains(localName)) {
-        localName = toLocalName(primaryDeclaration.getQualifiedName());
+        localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
       }
-      imports.put(primaryDeclaration.getQualifiedNameStr(), localName);
+      imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
       if (requireModuleName != null) {
         out.write(String.format("import %s from '%s';\n", localName, requireModuleName));
       }
     }
-
-    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
 
     primaryDeclaration.visit(this);
 
@@ -756,6 +773,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       localName = imports.get(declaration.getQualifiedNameStr());
       if (localName == null) {
         System.err.println("*** not found in imports: " + declaration.getQualifiedNameStr());
+      } else {
+        if (declaration instanceof VariableDeclaration && !((VariableDeclaration) declaration).isConst()
+                && getRequireModuleName(declaration) != null) {
+          localName += "._";
+        }
       }
     }
     if (localName == null) {
