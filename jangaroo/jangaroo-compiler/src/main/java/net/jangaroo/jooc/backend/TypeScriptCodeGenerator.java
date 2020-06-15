@@ -498,12 +498,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
-      // rewrite named function declaration function foo to const foo = function() {} or const foo = () => {}:
-      writeSymbolReplacement(functionDeclaration.getSymbol(), "const");
-      functionDeclaration.getIde().visit(this);
-      out.write(" = ");
-      functionExpr.visit(this);
-      writeOptSymbol(functionDeclaration.getOptSymSemicolon(), ";");
+      if (functionDeclaration.isPrimaryDeclaration()) {
+        visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+      }
+      if (functionExpr.rewriteToArrowFunction()) {
+        // rewrite named function declaration function foo to var foo = () => {}:
+        // (We could use const, but only if there are no forward references.)
+        writeSymbolReplacement(functionDeclaration.getSymbol(), "var");
+        functionDeclaration.getIde().visit(this);
+        out.write(" = ");
+        functionExpr.visit(this);
+        writeOptSymbol(functionDeclaration.getOptSymSemicolon(), ";");
+      } else {
+        // if there is no implicit outer this access, don't bother to rewrite to an arrow function:
+        functionExpr.visit(this);
+        writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
+      }
     }
   }
 
@@ -533,7 +543,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
-    if (functionExpr.mayRewriteToArrowFunction()) {
+    if (functionExpr.rewriteToArrowFunction()) {
       out.writeSymbolWhitespace(functionExpr.getFunSymbol());
       out.suppressWhitespace(functionExpr.getLParen());
       // rewrite anonymous function expression that does *not* use "this" to arrow function:
@@ -751,7 +761,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private static boolean rewriteThis(Ide ide) {
-    return ide.isThis() && ide.isRewriteThis() && !ide.getScope().getFunctionExpr().mayRewriteToArrowFunction();
+    return ide.isThis() && ide.isRewriteThis() && !ide.getScope().getFunctionExpr().rewriteToArrowFunction();
   }
 
   private int staticCodeCounter = 0;

@@ -196,6 +196,9 @@ public class FunctionExpr extends Expr {
 
   boolean notifyThisUsed(Scope scope) {
     if (functionDeclaration == null || !functionDeclaration.isClassMember()) {
+      if (functionDeclaration != null) {
+        functionDeclaration.aliasThis();
+      }
       FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
       // if "this" is used inside non-static method, remember that:
       if (methodDeclaration != null && !methodDeclaration.isStatic()) {
@@ -214,10 +217,11 @@ public class FunctionExpr extends Expr {
     return explicitThisUsed;
   }
 
-  public boolean mayRewriteToArrowFunction() {
+  public boolean rewriteToArrowFunction() {
     return !isExplicitThisUsed() && getBody() != null
             && (getIde() == null && getFunctionDeclaration() == null
-            || getIde() != null && getFunctionDeclaration() != null && !getFunctionDeclaration().isClassMember());
+            || getIde() != null && getFunctionDeclaration() != null
+            && getFunctionDeclaration().isThisAliased() && !getFunctionDeclaration().isClassMember());
   }
 
   void notifyArgumentsUsed(IdeDeclaration argumentsIdeDeclaration) {
