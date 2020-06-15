@@ -162,19 +162,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     classDeclaration.getIde().visit(this);
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
-    if (classDeclaration.isInterface()) {
-      out.write("{}\n");
-      out.write("abstract class ");
-      classDeclaration.getIde().visit(this);
-      if (classDeclaration.getOptImplements() != null) {
-        out.write(" implements ");
-        classDeclaration.getOptImplements().getSuperTypes().visit(this);
-      }
-    }
     classDeclaration.getBody().visit(this);
     visitAll(classDeclaration.getSecondaryDeclarations());
 
     if (classDeclaration.isPrimaryDeclaration()) {
+      if (classDeclaration.isInterface() || classDeclaration.getOptImplements() != null) {
+        out.write(MessageFormat.format(classDeclaration.isInterface()
+                ? "\nconst {0} = AS3.createInterface<{0}>(\"{0}\""
+                : "\nAS3.implementsInterfaces({0}", classDeclaration.getName()));
+        if (classDeclaration.getOptImplements() != null) {
+          out.write(", ");
+          classDeclaration.getOptImplements().getSuperTypes().visit(this);
+        }
+        out.write(");\n");
+      }
       if (classDeclaration.hasAnyExtConfig()) {
         String primaryDeclarationName = classDeclaration.getName();
         out.write("\nnamespace ");
@@ -474,10 +475,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         isNativeGetter = functionDeclaration.isGetter();
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
-      if (functionDeclaration.getClassDeclaration().isInterface()) {
-        out.writeSymbolWhitespace(functionDeclaration.getSymbol());
-        out.writeToken("abstract");
-      }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
       if (!isNativeGetter) {
