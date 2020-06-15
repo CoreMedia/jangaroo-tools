@@ -286,16 +286,26 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   public boolean hasAnyExtConfig() {
-    String qualifiedName = getQualifiedNameStr();
-    if ("ext.Base".equals(qualifiedName) || "ext.mixin.Observable".equals(qualifiedName)) {
-      // Ext.Base declares an ExtConfig "__mixins__", which is just a trick to use mixin configs in MXML.
-      // Since every Ext class inherits from Base, this would lead to *any* class having ExtConfigs.
-      // Similar case for "Ext.mixin.Observable", which defines "listeners" as an [ExtConfig].
-      // Prevent this:
-      return false;
-    }
-    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig)
-            || getSuperTypeDeclaration() != null && getSuperTypeDeclaration().hasAnyExtConfig();
+    boolean hasAnyExtConfig = false;
+    ClassDeclaration current = this;
+    do {
+      String qualifiedName = current.getQualifiedNameStr();
+      if ("ext.Base".equals(qualifiedName)) {
+        // having ExtConfigs only counts if you explicitly inherit from ext.Base!
+        return hasAnyExtConfig;
+      }
+      if (!hasAnyExtConfig) {
+        if ("ext.mixin.Observable".equals(qualifiedName)) {
+          // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
+          // but do not define any other [ExtConfig]s, must not be treated as using the config system.
+          // No other [ExtConfig]s appear in Observable's superclasses, so we can bail out here:
+          return false;
+        }
+        hasAnyExtConfig = current.getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig);
+      }
+      current = current.getSuperTypeDeclaration();
+    } while (current != null);
+    return false;
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
