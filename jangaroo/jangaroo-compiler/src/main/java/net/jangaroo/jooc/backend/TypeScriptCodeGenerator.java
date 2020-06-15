@@ -381,10 +381,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (variableDeclaration.isExtConfig()) {
         configs.put(variableDeclaration.getName(), variableDeclaration);
       }
+      visitDeclarationAnnotationsAndModifiers(variableDeclaration);
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
-        visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+        if (currentVariableDeclaration != variableDeclaration) {
+          // re-render annotations:
+          visitAll(variableDeclaration.getAnnotations());
+          // pull ide's white-space before the modifiers, as declarations are white-space sensitive:
+          out.writeSymbolWhitespace(currentVariableDeclaration.getIde().getSymbol());
+          // re-render modifiers:
+          writeModifiers(out, variableDeclaration);
+        }
         // for class members, leave out "var", replace "const" by "readonly":
         if (variableDeclaration.isConst()) {
           out.writeToken("readonly");
