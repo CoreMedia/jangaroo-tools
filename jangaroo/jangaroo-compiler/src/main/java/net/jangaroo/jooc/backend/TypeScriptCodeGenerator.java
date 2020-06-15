@@ -160,24 +160,29 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (classDeclaration.isPrimaryDeclaration()) {
       if (classDeclaration.hasAnyExtConfig()) {
         String primaryDeclarationName = classDeclaration.getName();
-        out.write("namespace ");
+        out.write("\nnamespace ");
         out.write(primaryDeclarationName);
         out.write(" {\n");
-        out.write("  export abstract class Config extends " + superTypeDeclaration.getName() + ".Config");
         if (classDeclaration.getOptImplements() != null) {
           CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
           List<String> mixins = new ArrayList<>();
           do {
             IdeDeclaration interfaceIdeDeclaration = superTypes.getHead().getDeclaration(false);
             CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(interfaceIdeDeclaration);
-            if (mixinCompilationUnit != null) {
+            if (mixinCompilationUnit != null
+                    && ((ClassDeclaration) mixinCompilationUnit.getPrimaryDeclaration()).hasAnyExtConfig()) {
               mixins.add(mixinCompilationUnit.getPrimaryDeclaration().getName() + ".Config");
             }
             superTypes = superTypes.getTail();
           } while (superTypes != null);
           if (!mixins.isEmpty()) {
-            out.write(" implements " + String.join(", ", mixins));
+            out.write(String.format("  export interface Config extends %s {}\n", String.join(", ", mixins)));
           }
+        }
+        out.write("  export class Config ");
+        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+        if (superTypeDeclaration.hasAnyExtConfig()) {
+          out.write("extends " + superTypeDeclaration.getName() + ".Config");
         }
         out.write(" {\n");
         for (TypedIdeDeclaration configDeclaration : configs.values()) {
