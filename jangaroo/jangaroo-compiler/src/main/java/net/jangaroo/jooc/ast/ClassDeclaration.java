@@ -285,6 +285,19 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
+  public boolean hasAnyExtConfig() {
+    String qualifiedName = getQualifiedNameStr();
+    if ("ext.Base".equals(qualifiedName) || "ext.mixin.Observable".equals(qualifiedName)) {
+      // Ext.Base declares an ExtConfig "__mixins__", which is just a trick to use mixin configs in MXML.
+      // Since every Ext class inherits from Base, this would lead to *any* class having ExtConfigs.
+      // Similar case for "Ext.mixin.Observable", which defines "listeners" as an [ExtConfig].
+      // Prevent this:
+      return false;
+    }
+    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig)
+            || getSuperTypeDeclaration() != null && getSuperTypeDeclaration().hasAnyExtConfig();
+  }
+
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
     ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
     return superTypeDeclaration != null &&

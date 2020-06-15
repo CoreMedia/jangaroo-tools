@@ -159,8 +159,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     visitAll(classDeclaration.getSecondaryDeclarations());
 
     if (classDeclaration.isPrimaryDeclaration()) {
-      ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (superTypeDeclaration != null && !"Object".equals(superTypeDeclaration.getName())) {
+      if (classDeclaration.hasAnyExtConfig()) {
         String primaryDeclarationName = classDeclaration.getName();
         out.write("namespace ");
         out.write(primaryDeclarationName);
@@ -375,8 +374,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null
-              || variableDeclaration.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null) {
+      if (variableDeclaration.isExtConfig()) {
         configs.put(variableDeclaration.getName(), variableDeclaration);
       }
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;

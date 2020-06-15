@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.util.List;
@@ -109,6 +110,11 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   public TypeRelation getOptTypeRelation() {
     return optTypeRelation;
+  }
+
+  public boolean isExtConfig() {
+    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null
+            || getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
   }
 
 }
