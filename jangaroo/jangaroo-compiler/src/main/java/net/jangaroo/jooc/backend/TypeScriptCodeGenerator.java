@@ -414,6 +414,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // for class members, leave out "var", replace "const" by "readonly":
         if (variableDeclaration.isConst()) {
           out.writeToken("readonly");
+          // take care to not render new-lines after 'readonly', or TypeScript will interpret
+          // it as the variable name and start a new variable declaration on the next line,
+          // missing all modifiers!
+          out.write(" ");
+          out.suppressWhitespace(currentVariableDeclaration.getSymbol());
         }
         visitVariableDeclarationBase(currentVariableDeclaration);
         writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
