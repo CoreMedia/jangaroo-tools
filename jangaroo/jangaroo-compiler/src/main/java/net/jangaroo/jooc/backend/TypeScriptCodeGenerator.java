@@ -274,42 +274,48 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
+    super.visitTypeRelation(typeRelation);
+    AstNode maybeIdeDeclaration = typeRelation.getParentNode();
+    if (maybeIdeDeclaration instanceof IdeDeclaration) {
+      String name = ((IdeDeclaration) maybeIdeDeclaration).getName();
+      if ("config".equals(name)) {
+        TypeDeclaration maybeExtConfigClassDeclaration = typeRelation.getType().getDeclaration(false);
+        if (maybeExtConfigClassDeclaration instanceof ClassDeclaration
+                && ((ClassDeclaration) maybeExtConfigClassDeclaration).hasAnyExtConfig()) {
+          out.write(".Config");
+        }
+      }
+    }
+  }
+
+  @Override
   public void visitType(Type type) throws IOException {
     String tsType = getTypeScriptTypeForActionScriptType(type);
     writeSymbolReplacement(type.getSymbol(), tsType);
   }
 
   private String getTypeScriptTypeForActionScriptType(Type type) {
-    TypeDeclaration declaration = type.getDeclaration();
-    String as3TypeName = declaration.getIde().getName();
-    AS3Type as3Type = AS3Type.typeByName(as3TypeName);
-    if (as3Type == null) {
-      String localName = getLocalName(declaration, true);
-      if (type.getParentNode() instanceof TypeRelation
-              && type.getParentNode().getParentNode() instanceof Parameter
-              && "config".equals(((Parameter) type.getParentNode().getParentNode()).getName())) {
-        localName += ".Config";
-      }
-      return localName;
-    }
+    return getTypeScriptTypeForActionScriptType(new ExpressionType(type));
+  }
+
+  private String getTypeScriptTypeForActionScriptType(ExpressionType expressionType) {
+    AS3Type as3Type = expressionType == null ? AS3Type.ANY : expressionType.getAS3Type();
     switch (as3Type) {
-      case ANY:
       case OBJECT:
+        TypeDeclaration declaration = expressionType.getDeclaration();
+        if (!"Object".equals(declaration.getQualifiedNameStr())) {
+          return getLocalName(declaration, true);
+        }
+        // fall-through
+      case ANY:
         return "any";
       case UINT:
       case INT:
         return "number";
       case VECTOR:
       case ARRAY:
-        String arrayElementType = "any";
-        if (type.getParentNode() instanceof TypeRelation) {
-          ExpressionType expressionType = type.getIde().getScope().getExpressionType((TypeRelation) type.getParentNode());
-          ExpressionType typeParameter = expressionType.getTypeParameter();
-          if (typeParameter != null && typeParameter.getType() != null) {
-            arrayElementType = getTypeScriptTypeForActionScriptType(typeParameter.getType());
-          }
-        }
-        return "Array<" + arrayElementType + ">";
+        return "Array<" + getTypeScriptTypeForActionScriptType(expressionType.getTypeParameter()) + ">";
       case BOOLEAN:
       case NUMBER:
       case STRING:
