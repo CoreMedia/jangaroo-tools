@@ -84,7 +84,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode); // computes modifiers
     if (namespace != null) {
-      namespace.analyze(parentNode);
+      namespace.analyze(this);
     }
     if (isPublicApi()) {
       if (namespace != null) {
@@ -93,7 +93,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
       addPublicApiDependencyOn(optTypeRelation);
     }
     if (optTypeRelation != null) {
-      optTypeRelation.analyze(parentNode);
+      optTypeRelation.analyze(this);
     }
   }
 
