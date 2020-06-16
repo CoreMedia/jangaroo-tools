@@ -77,8 +77,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(modifier, false);
       }
     }
-    if (isPrimaryDeclaration && declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null) {
-      out.write("declare");
+    if (isPrimaryDeclaration) {
+      Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotation != null) {
+        if (getNativeAnnotationRequireValue(nativeAnnotation) == null
+                && !declaration.getPackageDeclaration().isTopLevel()) {
+          out.writeToken("export");
+        }
+        if (!isInterface(declaration)) {
+          out.writeToken("declare");
+        }
+      }
     }
   }
 
@@ -94,26 +103,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     String primaryLocalName = primaryDeclaration.getName();
     imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
 
-    // is it [Native] without "require"?
-    if (getRequireModuleName(primaryDeclaration) == null) {
+    boolean isModule = getRequireModuleName(primaryDeclaration) != null;
+    if (isModule) {
+      out.beginComment();
+      compilationUnit.getPackageDeclaration().visit(this);
+      out.endComment();
+      out.write("import * as AS3 from 'AS3';");
+    } else {
       Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
-      if (packageIde == null) {
-        // global namespace, simply leave it out
-        primaryDeclaration.visit(this);
-      } else {
+      // if global namespace, simply leave it out
+      if (packageIde != null) {
         writeSymbolReplacement(compilationUnit.getPackageDeclaration().getSymbol(), "namespace");
-        packageIde.visit(this);
+        writeSymbolReplacement(packageIde.getSymbol(), packageIde.getQualifiedNameStr());
         out.writeSymbol(compilationUnit.getLBrace());
-        primaryDeclaration.visit(this);
-        out.writeSymbol(compilationUnit.getRBrace());
       }
-      return;
     }
-
-    out.beginComment();
-    compilationUnit.getPackageDeclaration().visit(this);
-    out.endComment();
-    out.write("import * as AS3 from 'AS3';");
 
     Set<String> localNames = new HashSet<>();
     localNames.add(primaryLocalName);
@@ -121,22 +125,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // generate imports
     // first pass: detect import local name clashes:
     Set<String> localNameClashes = new HashSet<>();
-    for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
-      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
-      String localName = getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
-      localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
-      if (!localNames.add(localName)) {
-        localNameClashes.add(localName);
+    if (isModule) {
+      for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
+        CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+        String localName = getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
+        localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
+        if (!localNames.add(localName)) {
+          localNameClashes.add(localName);
+        }
       }
     }
+
     // second pass: generate imports, using fully-qualified names for local name clashes:
     for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
       String localName = getDefaultImportName(dependentPrimaryDeclaration);
-      if (requireModuleName != null && localNameClashes.contains(localName)) {
-        localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+      if (requireModuleName != null) {
+        if (!isModule) {
+          // Non-modules do not allow import directives, or they'd become modules.
+          // Unfortunately, TypeScript's new "import type" syntax also turns the importing file to a module,
+          // which I consider a (design) bug.
+          // Workaround: use special ad-hoc import syntax. This must be repeated for every usage, because
+          // we cannot define a local type, as in a non-module, there is no "local" scope (at least not in a
+          // top-level non-module, using no namespace).
+          localName = String.format("import('%s').default", requireModuleName);
+          requireModuleName = null;
+        } else {
+          if (localNameClashes.contains(localName)) {
+            localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+          }
+        }
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
       if (requireModuleName != null) {
@@ -146,7 +166,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     primaryDeclaration.visit(this);
 
-    out.write("\nexport default " + primaryDeclaration.getName() + ";\n");
+    if (isModule) {
+      out.write("\nexport default " + primaryDeclaration.getName() + ";\n");
+    } else if (compilationUnit.getPackageDeclaration().getIde() != null) {
+      // close namespace:
+      out.writeSymbol(compilationUnit.getRBrace());
+    }
   }
 
   @Override
@@ -166,7 +191,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     visitAll(classDeclaration.getSecondaryDeclarations());
 
     if (classDeclaration.isPrimaryDeclaration()) {
-      if (classDeclaration.isInterface() || classDeclaration.getOptImplements() != null) {
+      if (classDeclaration.isInterface() && classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
+              || classDeclaration.getOptImplements() != null) {
         out.write(MessageFormat.format(classDeclaration.isInterface()
                 ? "\nconst {0} = AS3.createInterface<{0}>(\"{0}\""
                 : "\nAS3.implementsInterfaces({0}", classDeclaration.getName()));
@@ -430,21 +456,50 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   void visitVariableDeclarationBase(VariableDeclaration variableDeclaration) throws IOException {
-    if (variableDeclaration.getOptTypeRelation() != null
-            && variableDeclaration.getOptInitializer() != null
-            && variableDeclaration.getOptInitializer().getValue() instanceof ApplyExpr
-            && ((ApplyExpr) variableDeclaration.getOptInitializer().getValue()).isTypeCast()
-            && isConfigFactory((ApplyExpr) variableDeclaration.getOptInitializer().getValue())) {
+    TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+    Initializer initializer = variableDeclaration.getOptInitializer();
+    if (typeRelation != null
+            && initializer != null
+            && initializer.getValue() instanceof ApplyExpr
+            && ((ApplyExpr) initializer.getValue()).isTypeCast()
+            && isConfigFactory((ApplyExpr) initializer.getValue())) {
       variableDeclaration.getIde().visit(this);
-      variableDeclaration.getOptTypeRelation().visit(this);
+      typeRelation.visit(this);
       // now, the difference: use Config type instead of Class type:
       out.write(".Config");
       // this will render as a Config factory invocation:
-      visitIfNotNull(variableDeclaration.getOptInitializer());
+      visitIfNotNull(initializer);
     } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate()) {
       writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), getDefinitionName(variableDeclaration));
-      visitIfNotNull(variableDeclaration.getOptTypeRelation());
-      visitIfNotNull(variableDeclaration.getOptInitializer());
+      visitIfNotNull(typeRelation);
+      visitIfNotNull(initializer);
+    } else if (variableDeclaration.isPrimaryDeclaration()
+            && !variableDeclaration.isConst()
+            && getRequireModuleName(variableDeclaration) != null) {
+      out.writeSymbol(variableDeclaration.getIde().getSymbol()); // do not rewrite var name (no underscore)!
+      if (typeRelation != null) {
+        out.writeSymbol(typeRelation.getSymRelation());
+        // wrap type by simple object:
+        out.write("{_: ");
+        typeRelation.getType().visit(this);
+        out.write("}");
+      }
+      if (!isCompilationUnitAmbient()) {
+        // ambient CUs allow no initializers, while non-ambient CUs must have one, so
+        // that the _ property at least exists.
+        if (initializer != null) {
+          out.writeSymbol(initializer.getSymEq());
+        } else {
+          out.write("=");
+        }
+        out.write("{_: ");
+        if (initializer != null) {
+          initializer.getValue().visit(this);
+        } else {
+          out.write(VariableDeclaration.getDefaultValue(typeRelation));
+        }
+        out.write("}");
+      }
     } else {
       super.visitVariableDeclarationBase(variableDeclaration);
     }
