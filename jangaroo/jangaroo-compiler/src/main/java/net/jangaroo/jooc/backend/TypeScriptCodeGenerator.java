@@ -32,6 +32,7 @@ import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
@@ -54,12 +55,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private CompilationUnit compilationUnit;
   private Map<String, TypedIdeDeclaration> configs;
   private Map<String, String> imports;
+  private boolean companionInterfaceMode;
+  private boolean needsCompanionInterface;
 
   TypeScriptCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -70,7 +74,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbolWhitespace(modifier);
-      if (!isPrimaryDeclaration && (modifier.sym == sym.PUBLIC
+      if (!isPrimaryDeclaration && !companionInterfaceMode &&
+              (modifier.sym == sym.PUBLIC
               || modifier.sym == sym.PROTECTED
               || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())
       )) {
@@ -176,6 +181,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    needsCompanionInterface = false;
     for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
       if (member.isPrivate()) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
@@ -188,9 +194,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     visitIfNotNull(classDeclaration.getOptExtends());
     visitIfNotNull(classDeclaration.getOptImplements());
     classDeclaration.getBody().visit(this);
-    visitAll(classDeclaration.getSecondaryDeclarations());
+
+    if (needsCompanionInterface) {
+      out.write("\ninterface " + classDeclaration.getName());
+      // TODO: output "extends <mixin-interfaces>"
+      // visit class body again in "companion interface" mode
+      companionInterfaceMode = true;
+      classDeclaration.getBody().visit(this);
+      companionInterfaceMode = false;
+      out.write("\n");
+    }
 
     if (classDeclaration.isPrimaryDeclaration()) {
+      visitAll(classDeclaration.getSecondaryDeclarations());
+
       if (classDeclaration.isInterface() && classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
               || classDeclaration.getOptImplements() != null) {
         out.write(MessageFormat.format(classDeclaration.isInterface()
@@ -240,6 +257,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("export function " + primaryDeclarationName + "_(config?: " + primaryDeclarationName + ".Config): " + primaryDeclarationName + ".Config { return config; }\n");
       }
     }
+  }
+
+  @Override
+  public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
+    super.visitClassBodyDirectives(!companionInterfaceMode ? classBodyDirectives
+            : classBodyDirectives.stream()
+            .filter(FunctionDeclaration.class::isInstance)
+            .collect(Collectors.toList()));
   }
 
   @Override
@@ -439,12 +464,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         // for class members, leave out "var", replace "const" by "readonly":
         if (variableDeclaration.isConst()) {
-          out.writeToken("readonly");
-          // take care to not render new-lines after 'readonly', or TypeScript will interpret
-          // it as the variable name and start a new variable declaration on the next line,
-          // missing all modifiers!
-          out.write(" ");
-          out.suppressWhitespace(currentVariableDeclaration.getSymbol());
+          writeReadonlySuppressWhitespace(currentVariableDeclaration.getSymbol());
         }
         visitVariableDeclarationBase(currentVariableDeclaration);
         writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
@@ -452,6 +472,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else {
       super.visitVariableDeclaration(variableDeclaration);
     }
+  }
+
+  private void writeReadonlySuppressWhitespace(JooSymbol suppressWhitespaceOf) throws IOException {
+    out.writeToken("readonly");
+    // take care to not render new-lines after 'readonly', or TypeScript will interpret
+    // it as the variable name and start a new variable declaration on the next line,
+    // missing all modifiers!
+    out.write(" ");
+    out.suppressWhitespace(suppressWhitespaceOf);
   }
 
   @Override
@@ -527,17 +556,32 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                       || functionDeclaration.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null)) {
         configs.put(functionDeclaration.getName(), functionDeclaration);
       }
-      boolean isNativeGetter = false;
-      if (functionDeclaration.isNative() || isAmbientOrInterface(compilationUnit)) {
-        if (functionDeclaration.isSetter()) {
-          return; // completely suppress native setter class members!
-        }
-        isNativeGetter = functionDeclaration.isGetter();
+      boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
+      boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
+              (functionDeclaration.isNative() || isAmbientOrInterface);
+      if (convertToProperty && functionDeclaration.isSetter()) {
+        // completely suppress native setter class members!
+        return;
+      }
+      // any other native members in a non-ambient/interface compilation unit are moved
+      // to its companion interface declaration:
+      boolean renderIntoInterface = !convertToProperty
+              && !isAmbientOrInterface
+              && functionDeclaration.isNative();
+      if (renderIntoInterface) {
+        needsCompanionInterface = true;
+      }
+      if (companionInterfaceMode != renderIntoInterface) {
+        return;
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
-      if (!isNativeGetter) {
+      if (convertToProperty) {
+        if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
+          writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
+        }
+      } else {
         writeOptSymbol(functionDeclaration.getSymGetOrSet());
       }
       if (functionDeclaration.isConstructor()) {
@@ -552,7 +596,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           functionDeclaration.getIde().visit(this);
         }
       }
-      if (!isNativeGetter) {
+      if (!convertToProperty) {
         out.writeSymbol(functionExpr.getLParen());
         visitIfNotNull(functionExpr.getParams());
         out.writeSymbol(functionExpr.getRParen());
@@ -597,6 +641,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
       }
     }
+  }
+
+  private static boolean hasSetter(FunctionDeclaration getter) {
+    TypedIdeDeclaration maybePropertyDeclaration = getter.getClassDeclaration().getMemberDeclaration(getter.getName());
+    return maybePropertyDeclaration instanceof PropertyDeclaration &&
+            ((PropertyDeclaration) maybePropertyDeclaration).getSetter() != null;
   }
 
   @Override
