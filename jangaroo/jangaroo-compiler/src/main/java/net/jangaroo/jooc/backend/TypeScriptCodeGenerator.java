@@ -275,17 +275,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
-    super.visitTypeRelation(typeRelation);
-    AstNode maybeIdeDeclaration = typeRelation.getParentNode();
-    if (maybeIdeDeclaration instanceof IdeDeclaration) {
-      String name = ((IdeDeclaration) maybeIdeDeclaration).getName();
-      if ("config".equals(name)) {
-        TypeDeclaration maybeExtConfigClassDeclaration = typeRelation.getType().getDeclaration(false);
+    if (typeRelation.getParentNode() instanceof IdeDeclaration) {
+      out.writeSymbol(typeRelation.getSymbol());
+      IdeDeclaration ideDeclaration = (IdeDeclaration) typeRelation.getParentNode();
+      ExpressionType expressionType = ideDeclaration.getIde().getScope().getExpressionType(ideDeclaration);
+      String tsType = getTypeScriptTypeForActionScriptType(expressionType);
+      if ("config".equals(ideDeclaration.getName())) {
+        TypeDeclaration maybeExtConfigClassDeclaration = expressionType.getDeclaration();
         if (maybeExtConfigClassDeclaration instanceof ClassDeclaration
                 && ((ClassDeclaration) maybeExtConfigClassDeclaration).hasAnyExtConfig()) {
-          out.write(".Config");
+          tsType += ".Config";
         }
       }
+      writeSymbolReplacement(typeRelation.getType().getSymbol(), tsType);
+    } else {
+      super.visitTypeRelation(typeRelation);
     }
   }
 
