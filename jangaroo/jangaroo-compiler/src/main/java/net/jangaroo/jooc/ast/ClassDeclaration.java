@@ -285,9 +285,26 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
+  public boolean hasOwnExtConfig() {
+    String qualifiedName = getQualifiedNameStr();
+    if ("ext.mixin.Observable".equals(qualifiedName)) {
+      // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
+      // but do not define any other [ExtConfig]s, must not be treated as using the config system.
+      return false;
+    }
+    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig);
+  }
+
   public boolean hasAnyExtConfig() {
     boolean hasAnyExtConfig = false;
     ClassDeclaration current = this;
+    // for Mixins, start a Mixin class, not this interface:
+    if (isInterface()) {
+      CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(this);
+      if (mixinCompilationUnit != null) {
+        current = (ClassDeclaration) mixinCompilationUnit.getPrimaryDeclaration();
+      }
+    }
     do {
       String qualifiedName = current.getQualifiedNameStr();
       if ("ext.Base".equals(qualifiedName)) {
@@ -295,13 +312,7 @@ public class ClassDeclaration extends TypeDeclaration {
         return hasAnyExtConfig;
       }
       if (!hasAnyExtConfig) {
-        if ("ext.mixin.Observable".equals(qualifiedName)) {
-          // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
-          // but do not define any other [ExtConfig]s, must not be treated as using the config system.
-          // No other [ExtConfig]s appear in Observable's superclasses, so we can bail out here:
-          return false;
-        }
-        hasAnyExtConfig = current.getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig);
+        hasAnyExtConfig = current.hasOwnExtConfig();
       }
       current = current.getSuperTypeDeclaration();
     } while (current != null);
