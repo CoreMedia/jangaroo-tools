@@ -553,20 +553,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitImplements(Implements anImplements) throws IOException {
-    out.writeSymbol(anImplements.getSymImplements());
-    generateImplements(anImplements.getSuperTypes());
-  }
-
-  private void generateImplements(CommaSeparatedList<Ide> superTypes) throws IOException {
-    superTypes.getHead().visit(this);
-    if (superTypes.getSymComma() != null) {
-      out.writeSymbol(superTypes.getSymComma());
-      generateImplements(superTypes.getTail());
-    }
-  }
-
-  @Override
   public void visitIdeExpression(IdeExpr ideExpr) throws IOException {
     visitInExpressionMode(ideExpr.getIde());
   }
