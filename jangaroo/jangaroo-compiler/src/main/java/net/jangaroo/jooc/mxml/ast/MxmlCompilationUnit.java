@@ -123,6 +123,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if (directive instanceof VariableDeclaration) {
         VariableDeclaration variableDeclaration = (VariableDeclaration) directive;
         classVariablesByName.put(variableDeclaration.getName(), variableDeclaration);
+        ((ClassDeclaration) primaryDeclaration).registerMember(variableDeclaration);
       }
     }
 
