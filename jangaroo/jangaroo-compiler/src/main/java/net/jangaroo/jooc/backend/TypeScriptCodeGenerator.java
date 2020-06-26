@@ -18,7 +18,6 @@ import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyStatement;
 import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.ForInStatement;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
@@ -26,6 +25,7 @@ import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
+import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
@@ -51,7 +51,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +59,6 @@ import java.util.stream.Collectors;
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private CompilationUnit compilationUnit;
-  private Map<String, TypedIdeDeclaration> configs;
   private Map<String, String> imports;
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
@@ -99,7 +97,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     this.compilationUnit = compilationUnit;
-    this.configs = new LinkedHashMap<>();
     this.imports = new HashMap<>();
 
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
@@ -182,6 +179,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     needsCompanionInterface = false;
+    List<Ide> mixins = new ArrayList<>();
+    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+            .filter(TypedIdeDeclaration::isExtConfig)
+            .collect(Collectors.toList());
+    String ownConfigsClassName = null;
+    if (!configs.isEmpty()) {
+      ownConfigsClassName = classDeclaration.getName() + "Configs";
+      out.write(String.format("class %s {", ownConfigsClassName));
+      for (TypedIdeDeclaration configDeclaration : configs) {
+        visitAsConfig(configDeclaration);
+      }
+      out.write("}\n");
+      out.write(String.format("type PropsFromConfigs = Required<%s>;", ownConfigsClassName));
+      mixins.add(new Ide("PropsFromConfigs"));
+      needsCompanionInterface = true;
+    }
     for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
       if (member.isPrivate()) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
@@ -191,13 +204,68 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
-    visitIfNotNull(classDeclaration.getOptExtends());
-    visitIfNotNull(classDeclaration.getOptImplements());
+    String configClassName = null;
+    FunctionDeclaration constructor = classDeclaration.getConstructor();
+    if (constructor != null && constructor.getParams() != null) {
+      Parameter firstParam = constructor.getParams().getHead();
+      if ("config".equals(firstParam.getName()) && firstParam.getOptTypeRelation() != null) {
+        configClassName = compilationUnitAccessCode(firstParam.getOptTypeRelation().getType().getDeclaration()) + "._";
+      }
+    }
+    if (configClassName == null && classDeclaration.hasAnyExtConfig()) {
+      configClassName = classDeclaration.getName() + "._";
+    }
+    String configTypeParameterDeclaration = "";
+    if (configClassName != null) {
+      configTypeParameterDeclaration = String.format("<Cfg extends %s = %s>", configClassName, configClassName);
+      out.write(configTypeParameterDeclaration);
+    }
+    if (classDeclaration.getOptExtends() != null) {
+      classDeclaration.getOptExtends().visit(this);
+      if (configClassName != null) {
+        // *always* hand through Cfg type parameter to super class if using config system:
+        out.write("<Cfg>");
+      }
+    }
+
+    List<String> configMixins = new ArrayList<>();
+    List<Ide> realInterfaces = new ArrayList<>();
+    if (classDeclaration.getOptImplements() != null) {
+      CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
+      do {
+        ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
+        CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
+        if (mixinCompilationUnit != null
+                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+          mixins.add(superTypes.getHead());
+          if (maybeMixinDeclaration.hasAnyExtConfig()) {
+            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
+          }
+        } else {
+          realInterfaces.add(superTypes.getHead());
+        }
+        superTypes = superTypes.getTail();
+      } while (superTypes != null);
+
+      visitImplementsFiltered(
+              classDeclaration.getOptImplements().getSymImplements(),
+              null,
+              classDeclaration.getOptImplements(),
+              configClassName != null,
+              realInterfaces);
+    }
+
     classDeclaration.getBody().visit(this);
 
     if (needsCompanionInterface) {
-      out.write("\ninterface " + classDeclaration.getName());
-      // TODO: output "extends <mixin-interfaces>"
+      out.write("\ninterface " + classDeclaration.getName() + configTypeParameterDeclaration);
+      // output "extends <mixin-interfaces>[, PropsFromConfigs]"
+      visitImplementsFiltered(
+              new JooSymbol("extends"),
+              configs.isEmpty() ? null : "PropsFromConfigs",
+              classDeclaration.getOptImplements(),
+              configClassName != null,
+              mixins);
       // visit class body again in "companion interface" mode
       companionInterfaceMode = true;
       classDeclaration.getBody().visit(this);
@@ -219,44 +287,83 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         out.write(");\n");
       }
-      if (classDeclaration.hasAnyExtConfig()) {
-        String primaryDeclarationName = classDeclaration.getName();
-        out.write("\nnamespace ");
-        out.write(primaryDeclarationName);
+      if (configClassName != null) {
+        out.write("\ndeclare namespace ");
+        out.write(classDeclaration.getName());
         out.write(" {\n");
-        if (classDeclaration.getOptImplements() != null) {
-          CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
-          List<String> mixins = new ArrayList<>();
-          do {
-            IdeDeclaration interfaceIdeDeclaration = superTypes.getHead().getDeclaration(false);
-            CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(interfaceIdeDeclaration);
-            if (mixinCompilationUnit != null
-                    && ((ClassDeclaration) mixinCompilationUnit.getPrimaryDeclaration()).hasAnyExtConfig()) {
-              mixins.add(mixinCompilationUnit.getPrimaryDeclaration().getName() + ".Config");
-            }
-            superTypes = superTypes.getTail();
-          } while (superTypes != null);
-          if (!mixins.isEmpty()) {
-            out.write(String.format("  export interface Config extends %s {}\n", String.join(", ", mixins)));
-          }
-        }
-        out.write("  export class Config ");
+        List<String> configExtends = new ArrayList<>();
         ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-        if (superTypeDeclaration.hasAnyExtConfig()) {
-          out.write("extends " + superTypeDeclaration.getName() + ".Config");
+        if (superTypeDeclaration != null) {
+          configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
         }
-        out.write(" {\n");
-        for (TypedIdeDeclaration configDeclaration : configs.values()) {
-          out.write("    " + configDeclaration.getName() + "?");
-          visitIfNotNull(configDeclaration.getOptTypeRelation());
-          out.write(";\n");
+        configExtends.addAll(configMixins);
+        if (ownConfigsClassName != null) {
+          configExtends.add(ownConfigsClassName);
         }
-        out.write("  }\n");
+        out.write(String.format("  export interface _ extends %s {}\n", String.join(", ", configExtends)));
+        out.write("  export function _(config?: _):_;\n");
         out.write("}\n\n");
-
-        out.write("export function " + primaryDeclarationName + "_(config?: " + primaryDeclarationName + ".Config): " + primaryDeclarationName + ".Config { return config; }\n");
       }
     }
+  }
+
+  private void visitImplementsFiltered(JooSymbol symImplementsOrExtends,
+                                       String additionalIde,
+                                       Implements optImplements,
+                                       boolean useCfgTypeParameter,
+                                       List<Ide> filter) throws IOException {
+    JooSymbol lastSym = symImplementsOrExtends;
+    if (additionalIde != null) {
+      out.writeSymbol(lastSym);
+      out.writeToken(additionalIde);
+      lastSym = new JooSymbol(",");
+    }
+    if (optImplements != null) {
+      CommaSeparatedList<Ide> current = optImplements.getSuperTypes();
+      do {
+        Ide head = current.getHead();
+        if (filter.contains(head)) {
+          out.writeSymbol(lastSym);
+          head.visit(this);
+          if (useCfgTypeParameter && useCfgTypeParameter(head)) {
+            // hand through my Config class type parameter:
+            out.write("<Cfg>");
+          }
+        }
+        lastSym = current.getSymComma();
+        current = current.getTail();
+      } while (current != null);
+    }
+  }
+
+  private void visitAsConfig(TypedIdeDeclaration configDeclaration) throws IOException {
+    JooSymbol optSymSemicolon = null;
+    if (configDeclaration instanceof FunctionDeclaration) {
+      FunctionDeclaration functionDeclaration = (FunctionDeclaration) configDeclaration;
+      if (functionDeclaration.isGetter()) {
+        optSymSemicolon = functionDeclaration.getOptSymSemicolon();
+      } else {
+        // completely suppress set accessors (there are no write-only configs):
+        return;
+      }
+    }
+    // output all comments & white-space:
+    visitDeclarationAnnotationsAndModifiers(configDeclaration);
+    configDeclaration.getIde().visit(this);
+    // we want all configs optional (even those documented as "required"):
+    out.write("?");
+    visitIfNotNull(configDeclaration.getOptTypeRelation());
+    if (configDeclaration instanceof VariableDeclaration) {
+      VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
+      visitIfNotNull(variableDeclaration.getOptInitializer());
+      optSymSemicolon = variableDeclaration.getOptSymSemicolon();
+    } else if (configDeclaration instanceof PropertyDeclaration) {
+      PropertyDeclaration propertyDeclaration = (PropertyDeclaration) configDeclaration;
+      if (propertyDeclaration.getGetter() != null) {
+        optSymSemicolon = propertyDeclaration.getGetter().getOptSymSemicolon();
+      }
+    }
+    writeOptSymbol(optSymSemicolon, ";");
   }
 
   @Override
@@ -267,10 +374,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             .collect(Collectors.toList()));
   }
 
-  @Override
-  public void visitExtends(Extends anExtends) throws IOException {
-    out.writeSymbol(anExtends.getSymExtends());
-    out.writeToken(anExtends.getSuperClass().getName());
+  private boolean useCfgTypeParameter(Ide superType) {
+    IdeDeclaration declaration = superType.getDeclaration();
+    if (declaration instanceof ClassDeclaration) {
+      if (((ClassDeclaration) declaration).hasAnyExtConfig()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -284,7 +395,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         TypeDeclaration maybeExtConfigClassDeclaration = expressionType.getDeclaration();
         if (maybeExtConfigClassDeclaration instanceof ClassDeclaration
                 && ((ClassDeclaration) maybeExtConfigClassDeclaration).hasAnyExtConfig()) {
-          tsType += ".Config";
+          tsType += "._"; // use config class instead!
         }
       }
       writeSymbolReplacement(typeRelation.getType().getSymbol(), tsType);
@@ -458,7 +569,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
     if (variableDeclaration.isClassMember()) {
       if (variableDeclaration.isExtConfig()) {
-        configs.put(variableDeclaration.getName(), variableDeclaration);
+        // never render [ExtConfig]s in a normal "visit":
+        return;
       }
       visitDeclarationAnnotationsAndModifiers(variableDeclaration);
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
@@ -497,25 +609,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   void visitVariableDeclarationBase(VariableDeclaration variableDeclaration) throws IOException {
     TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
     Initializer initializer = variableDeclaration.getOptInitializer();
-    if (typeRelation != null
-            && initializer != null
-            && initializer.getValue() instanceof ApplyExpr
-            && ((ApplyExpr) initializer.getValue()).isTypeCast()
-            && isConfigFactory((ApplyExpr) initializer.getValue())) {
-      variableDeclaration.getIde().visit(this);
-      typeRelation.visit(this);
-      // now, the difference: use Config type instead of Class type:
-      out.write(".Config");
-      // this will render as a Config factory invocation:
-      visitIfNotNull(initializer);
-    } else if (variableDeclaration.isClassMember() && variableDeclaration.isPrivate()) {
-      writeSymbolReplacement(variableDeclaration.getIde().getSymbol(), getDefinitionName(variableDeclaration));
+    Ide ide = variableDeclaration.getIde();
+    if (variableDeclaration.isClassMember()) {
+      if (variableDeclaration.isPrivate()) {
+        writeSymbolReplacement(ide.getSymbol(), getDefinitionName(variableDeclaration));
+      } else {
+        ide.visit(this);
+      }
       visitIfNotNull(typeRelation);
       visitIfNotNull(initializer);
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
             && getRequireModuleName(variableDeclaration) != null) {
-      out.writeSymbol(variableDeclaration.getIde().getSymbol()); // do not rewrite var name (no underscore)!
+      out.writeSymbol(ide.getSymbol()); // do not rewrite var name (no underscore)!
       if (typeRelation != null) {
         out.writeSymbol(typeRelation.getSymRelation());
         // wrap type by simple object:
@@ -540,7 +646,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("}");
       }
     } else {
-      super.visitVariableDeclarationBase(variableDeclaration);
+      ide.visit(this);
+      if (typeRelation != null) {
+        // TypeScript supports type inference! And since the rhs might be changed to a config type,
+        // leaving TypeScript to chose the same type leads to better results than to declaring it again!
+        // So leave out type declaration if it just re-declares the exact type of the initializer:
+        if (initializer == null
+                || initializer.getValue().getType() == null
+                || !initializer.getValue().getType().equals(new ExpressionType(typeRelation.getType()))) {
+          typeRelation.visit(this);
+        }
+      }
+      visitIfNotNull(initializer);
     }
   }
 
@@ -561,10 +678,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     FunctionExpr functionExpr = functionDeclaration.getFun();
     if (functionDeclaration.isClassMember()) {
-      if (functionDeclaration.isGetter() &&
-              (functionDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null
-                      || functionDeclaration.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null)) {
-        configs.put(functionDeclaration.getName(), functionDeclaration);
+      if (functionDeclaration.isExtConfig()) {
+        // never render [ExtConfig]s in a normal "visit":
+        return;
       }
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
@@ -606,7 +722,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           functionDeclaration.getIde().visit(this);
         }
       }
-      if (!convertToProperty) {
+      if (convertToProperty) {
+        if (functionDeclaration.isExtConfig()) {
+          out.write("?");
+        }
+      } else {
         out.writeSymbol(functionExpr.getLParen());
         visitIfNotNull(functionExpr.getParams());
         out.writeSymbol(functionExpr.getRParen());
@@ -718,7 +838,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
       if (isConfigFactory(applyExpr)) {
         out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
-        out.write("_"); // use config factory function instead of the class itself!
+        out.write("._"); // use config factory function instead of the class itself!
         args.visit(this);
       } else {
         out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
