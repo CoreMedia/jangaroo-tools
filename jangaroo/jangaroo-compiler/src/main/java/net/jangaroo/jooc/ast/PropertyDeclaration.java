@@ -57,6 +57,11 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public boolean isExtConfig() {
+    return getter != null && getter.isExtConfig() || setter != null && setter.isExtConfig();
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     throw new IllegalStateException("PropertyDeclaration is virtual and must not appear in AST.");
   }
