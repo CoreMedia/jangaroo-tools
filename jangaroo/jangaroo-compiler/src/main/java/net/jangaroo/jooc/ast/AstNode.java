@@ -37,4 +37,8 @@ public interface AstNode {
   AstNode getParentNode();
 
   void visit(AstVisitor visitor) throws IOException;
+
+  void notifyInstanceThisUsed();
+
+  boolean usesInstanceThis();
 }

@@ -114,8 +114,12 @@ public abstract class CodeGeneratorBase implements AstVisitor {
         first = false;
       }
     }
-    visitAll(blockStatement.getDirectives());
+    visitBlockStatementDirectives(blockStatement);
     out.writeSymbol(blockStatement.getRBrace());
+  }
+
+  protected void visitBlockStatementDirectives(BlockStatement blockStatement) throws IOException {
+    visitAll(blockStatement.getDirectives());
   }
 
   protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {

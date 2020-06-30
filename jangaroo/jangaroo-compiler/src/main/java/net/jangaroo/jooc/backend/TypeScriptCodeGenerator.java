@@ -51,6 +51,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -738,15 +739,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (functionDeclaration.isConstructor()
               && !functionDeclaration.containsSuperConstructorCall()
               && functionDeclaration.getClassDeclaration().notExtendsObject()) {
-        addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("super();"));
+        addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("\n    super();"));
       }
-      if (functionDeclaration.isThisAliased()
-              && (!functionDeclaration.containsSuperConstructorCall()
-              || !functionDeclaration.getClassDeclaration().notExtendsObject())) {
+      if (functionDeclaration.isThisAliased()) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
-      } // else:
-      // The super() call takes care of adding the this-alias, because TypeScript does not allow access
-      // to "this" before super constructor call.
+      }
 
       if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
         out.writeToken("=>");
@@ -771,6 +768,76 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
       }
     }
+  }
+
+  protected void visitBlockStatementDirectives(BlockStatement body) throws IOException {
+    if (!(body.usesInstanceThis()
+            && body.getParentNode() instanceof FunctionExpr
+            && body.getParentNode().getParentNode() instanceof FunctionDeclaration
+            && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall())) {
+      super.visitBlockStatementDirectives(body);
+      return;
+    }
+    Iterator<Directive> iterator = body.getDirectives().iterator();
+    List<Directive> directivesToWrap = null;
+    while (iterator.hasNext()) {
+      Directive directive = iterator.next();
+      if (directivesToWrap == null && directive.usesInstanceThis()) {
+        // start recording:
+        directivesToWrap = new ArrayList<>();
+      }
+      if (directive instanceof SuperConstructorCallStatement) {
+        if (directivesToWrap == null) {
+          directive.visit(this);
+        } else {
+          visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
+        }
+        break;
+      }
+      if (directivesToWrap == null) {
+        directive.visit(this);
+      } else {
+        directivesToWrap.add(directive);
+      }
+    }
+    while (iterator.hasNext()) {
+      iterator.next().visit(this);
+    }
+  }
+
+  private void visitSuperCallWithWrappedDirectives(SuperConstructorCallStatement superCall, List<Directive> directivesToWrap) throws IOException {
+    superCall.getFun().visit(this);
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = superCall.getArgs();
+    out.writeSymbol(args.getLParen());
+    CommaSeparatedList<Expr> superCallParams = args.getExpr();
+    // not exactly one parameter?
+    boolean hasOneParameter = superCallParams != null && superCallParams.getTail() == null;
+    if (!hasOneParameter) {
+      // use spread operator on the returned array:
+      out.write("...");
+    }
+    // declare as immediately-evaluating function (IEF), so that TypeScript does not complaing about
+    // usage of `this` before calling `super()`:
+    out.write("(()=>");
+    if (!directivesToWrap.isEmpty()) {
+      out.write("{");
+      visitAll(directivesToWrap);
+      out.write("\n    return ");
+    }
+    if (!hasOneParameter) {
+      out.write("[");
+    }
+    visitIfNotNull(superCallParams);
+    if (!hasOneParameter) {
+      out.write("]");
+    }
+    if (!directivesToWrap.isEmpty()) {
+      out.write(";}");
+    }
+    // evaluate IEF:
+    out.write(")()");
+    out.writeSymbol(args.getRParen());
+    writeOptSymbol(superCall.getSymSemicolon());
   }
 
   private static boolean hasSetter(FunctionDeclaration getter) {

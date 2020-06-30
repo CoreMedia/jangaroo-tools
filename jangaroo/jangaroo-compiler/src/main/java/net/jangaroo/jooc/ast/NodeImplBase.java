@@ -29,6 +29,28 @@ import java.util.List;
 public abstract class NodeImplBase implements AstNode {
 
   private AstNode parentNode;
+  protected boolean usesInstanceThis;
+
+  @Override
+  public void notifyInstanceThisUsed() {
+    usesInstanceThis = true;
+    if (propagateInstanceThisUsed()) {
+      if (parentNode != null) {
+        parentNode.notifyInstanceThisUsed();
+      } else {
+        System.err.println("*** Cannot propagate instance this usage of node of type " +getClass().getName() + ", because parentNode is null.");
+      }
+    }
+  }
+
+  protected boolean propagateInstanceThisUsed() {
+    return true;
+  }
+
+  @Override
+  public boolean usesInstanceThis() {
+    return usesInstanceThis;
+  }
 
   public List<? extends AstNode> getChildren() {
     return Collections.emptyList();

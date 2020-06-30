@@ -67,7 +67,9 @@ public class IdeExpr extends Expr {
               (ideDeclaration != null && ideDeclaration.isClassMember())) {  // "this." or "<Class>." may have to be synthesized
         DotExpr dotExpr = null;
         if (ide instanceof QualifiedIde) {
-          dotExpr = new DotExpr(new IdeExpr(ide.getQualifier()).getNormalizedExpr(), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
+          IdeExpr qualifierIdeExpr = new IdeExpr(ide.getQualifier());
+          qualifierIdeExpr.analyze(getParentNode());
+          dotExpr = new DotExpr(qualifierIdeExpr.getNormalizedExpr(), ((QualifiedIde)ide).getSymDot(), new Ide(ide.getIde()));
         } else if (!ideDeclaration.isStatic()) {
           // non-static class member: synthesize "this."
           JooSymbol ideSymbol = ide.getSymbol();

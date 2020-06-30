@@ -316,6 +316,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  protected boolean propagateInstanceThisUsed() {
+    return !isClassMember();
+  }
+
+  @Override
   protected int getAllowedModifiers() {
     return isConstructor() ? MODIFIERS_SCOPE | MODIFIER_NATIVE : DEFAULT_ALLOWED_METHOD_MODIFIERS;
   }
