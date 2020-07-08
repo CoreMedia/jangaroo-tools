@@ -144,11 +144,11 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
   }
 
   private void createSymbolicLinksForPackages(File workspaceDir, Path packagesPath, File remotePackagesDir, boolean isAppPackaging) throws MojoExecutionException {
-    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
+    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectModules(project);
     Set<Artifact> artifacts = project.getArtifacts();
     Optional<Artifact> extFrameworkArtifact = artifacts.stream().filter(this::isExtFrameworkArtifact).findFirst();
     if (extFrameworkArtifact.isPresent()) {
-      createSymbolicLinkToPackage(workspaceDir.toPath(), "ext", getPkgDir(extFrameworkArtifact.get(), remotePackagesDir, reactorProjectPackagePaths));
+      createSymbolicLinkToModule(workspaceDir.toPath(), "ext", getPkgDir(extFrameworkArtifact.get(), remotePackagesDir, reactorProjectPackagePaths));
     } else {
       getLog().warn("no Ext framework dependency found");
     }
@@ -159,7 +159,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
       String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
       File packageDir = new File(workspaceDir.getParentFile(), PACKAGES_DIRECTORY_NAME + SEPARATOR + senchaPackageName);
       FileHelper.ensureDirectory(packageDir); // make sure target folder exists, or symlink will look funny on Windows
-      createSymbolicLinkToPackage(packagesPath, senchaPackageName, packageDir.toPath());
+      createSymbolicLinkToModule(packagesPath, senchaPackageName, packageDir.toPath());
     }
   }
 

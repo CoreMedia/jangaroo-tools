@@ -36,6 +36,9 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   protected MavenSession session;
 
+  @Parameter(property = "mainApp")
+  private String mainApp;
+
   @Component
   ArtifactHandlerManager artifactHandlerManager;
 
@@ -186,7 +189,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
         // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
         MavenProject dependentProject = getProjectFromDependency(project, dependency);
         JangarooApp baseApp = createJangarooApp(dependentProject);
-        if (baseApp != null) {
+        if (baseApp != null && isMainApp(baseApp)) {
           return new JangarooAppOverlay(project, baseApp);
         }
       }
@@ -194,9 +197,14 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
   }
 
+  private boolean isMainApp(JangarooApp baseApp) {
+    return mainApp != null && mainApp.equals(baseApp.mavenProject.getGroupId() + "." + baseApp.mavenProject.getArtifactId());
+  }
+
   static class JangarooApp {
     final MavenProject mavenProject;
     Set<Artifact> packages = new LinkedHashSet<>();
+    Set<Artifact> apps = new LinkedHashSet<>();
 
     JangarooApp(MavenProject mavenProject) {
       this.mavenProject = mavenProject;

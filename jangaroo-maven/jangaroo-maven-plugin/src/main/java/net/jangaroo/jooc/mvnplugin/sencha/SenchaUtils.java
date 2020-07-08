@@ -51,6 +51,8 @@ public class SenchaUtils {
 
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
+  public static final String APPS_DIRECTORY_NAME = "apps";
+
   public static final String LOCAL_PACKAGES_PATH = SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR;
 
   public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;

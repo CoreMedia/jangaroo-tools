@@ -47,19 +47,38 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     File overlayPackagesDir = new File(webResourcesOutputDirectory, SenchaUtils.PACKAGES_DIRECTORY_NAME);
     FileHelper.ensureDirectory(overlayPackagesDir);
     Path packagesPath = overlayPackagesDir.toPath().normalize();
+
+    File appsDir = new File(webResourcesOutputDirectory, SenchaUtils.APPS_DIRECTORY_NAME);
+    FileHelper.ensureDirectory(appsDir);
+    Path appsPath = appsDir.toPath().normalize();
+
     File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
 
     JangarooAppOverlay jangarooAppOverlay = createJangarooAppOverlay(project);
     populatePackages(jangarooAppOverlay, project);
+    populateApps(jangarooAppOverlay, project);
 
     Set<Artifact> ownDynamicPackages = jangarooAppOverlay.getOwnDynamicPackages();
     createSymbolicLinksForArtifacts(ownDynamicPackages, packagesPath, remotePackagesDir);
+
+    createSymbolicLinksForArtifacts(jangarooAppOverlay.apps, appsPath, remotePackagesDir);
 
     Set<Artifact> allDynamicPackages = jangarooAppOverlay.getAllDynamicPackages();
     Set<String> overlayPackageNames = allDynamicPackages.stream().map(artifact ->
             SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
             .collect(Collectors.toSet());
     writeDynamicPackagesJson(overlayPackageNames);
+  }
+
+  private void populateApps(JangarooAppOverlay jangarooAppOverlay, MavenProject project) throws MojoExecutionException {
+    List<Dependency> dependencies = project.getDependencies();
+    for (Dependency dependency : dependencies) {
+      MavenProject mavenProject = getProjectFromDependency(project, dependency);
+      if ((Type.JANGAROO_APP_PACKAGING.equals(mavenProject.getPackaging()) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(mavenProject.getPackaging()))
+              && !mavenProject.equals(jangarooAppOverlay.baseApp.mavenProject)) {
+        jangarooAppOverlay.apps.add(getArtifact(dependency));
+      }
+    }
   }
 
   private void populatePackages(JangarooApp jangarooApp, MavenProject project) throws MojoExecutionException {

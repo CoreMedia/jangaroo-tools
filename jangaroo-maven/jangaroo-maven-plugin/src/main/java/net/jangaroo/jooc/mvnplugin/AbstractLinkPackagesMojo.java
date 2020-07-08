@@ -24,35 +24,38 @@ import static org.apache.commons.io.FileUtils.cleanDirectory;
 abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
   private static final Object lock = new Object();
 
-  void createSymbolicLinkToPackage(Path packagesPath, String packageName, Path targetPath) throws MojoExecutionException {
-    Path link = packagesPath.resolve(packageName);
+  void createSymbolicLinkToModule(Path modulesPath, String moduleName, Path targetPath) throws MojoExecutionException {
+    Path link = modulesPath.resolve(moduleName);
     if (link.toFile().exists()) {
       return; // TODO: for now, assume that if something with that name already exists, it is correct.
     }
-    Path target = packagesPath.relativize(targetPath);
-    if (target.toString().equals(packageName)) {
+    Path target = modulesPath.relativize(targetPath);
+    if (target.toString().equals(moduleName)) {
       return; // Do not link a package to itself!
     }
     getLog().debug("Linking " + link + " -> " + target);
     try {
       FileHelper.createSymbolicLink(link, target);
     } catch (IOException e) {
-      throw new MojoExecutionException("Creating directory link for package " + packageName + " failed.", e);
+      throw new MojoExecutionException("Creating directory link for module " + moduleName + " failed.", e);
     }
   }
 
-  static Map<Artifact, Path> findReactorProjectPackages(MavenProject project) {
-    Map<Artifact, Path> reactorProjectPackagePaths = new HashMap<>();
+  static Map<Artifact, Path> findReactorProjectModules(MavenProject project) {
+    Map<Artifact, Path> reactorProjectModulePaths = new HashMap<>();
     Set<MavenProject> referencedProjects = new HashSet<>();
     collectReferencedProjects(project, referencedProjects);
     for (MavenProject projectInReactor : referencedProjects) {
-      String packageType = projectInReactor.getPackaging();
-      if (Type.JANGAROO_SWC_PACKAGING.equals(packageType) || Type.JANGAROO_PKG_PACKAGING.equals(packageType)) {
-        String senchaPackageName = SenchaUtils.getSenchaPackageName(projectInReactor);
-        reactorProjectPackagePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaPackageName));
+      String moduleType = projectInReactor.getPackaging();
+      if (Type.JANGAROO_SWC_PACKAGING.equals(moduleType)
+              || Type.JANGAROO_PKG_PACKAGING.equals(moduleType)) {
+        String senchaModuleName = SenchaUtils.getSenchaPackageName(projectInReactor);
+        reactorProjectModulePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaModuleName));
+      } else if (Type.JANGAROO_APP_PACKAGING.equals(moduleType) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(moduleType)) {
+        reactorProjectModulePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY));
       }
     }
-    return reactorProjectPackagePaths;
+    return reactorProjectModulePaths;
   }
 
   private static void collectReferencedProjects(MavenProject project, Set<MavenProject> referencedProjects) {
@@ -64,13 +67,13 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     }
   }
 
-  void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path packagesPath, File remotePackagesDir) throws MojoExecutionException {
-    getLog().info(String.format("Linking package directories for %d artifacts into package path %s", artifacts.size(), packagesPath));
-    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectPackages(project);
+  void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path targetPath, File remotePackagesDir) throws MojoExecutionException {
+    getLog().info(String.format("Linking module directories for %d artifacts into path %s", artifacts.size(), targetPath));
+    Map<Artifact, Path> reactorProjectModulePaths = findReactorProjectModules(project);
     for (Artifact artifact : artifacts) {
-      String senchaPackageName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
-      Path pkgDir = getPkgDir(artifact, remotePackagesDir, reactorProjectPackagePaths);
-      createSymbolicLinkToPackage(packagesPath, senchaPackageName, pkgDir);
+      String senchaModuleName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
+      Path pkgDir = getPkgDir(artifact, remotePackagesDir, reactorProjectModulePaths);
+      createSymbolicLinkToModule(targetPath, senchaModuleName, pkgDir);
     }
   }
 
