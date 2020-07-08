@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 
@@ -41,8 +42,8 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     }
   }
 
-  static Map<Artifact, Path> findReactorProjectModules(MavenProject project) {
-    Map<Artifact, Path> reactorProjectModulePaths = new HashMap<>();
+  static Map<String, Path> findReactorProjectModules(MavenProject project) {
+    Map<String, Path> reactorProjectModulePaths = new HashMap<>();
     Set<MavenProject> referencedProjects = new HashSet<>();
     collectReferencedProjects(project, referencedProjects);
     for (MavenProject projectInReactor : referencedProjects) {
@@ -50,9 +51,9 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
       if (Type.JANGAROO_SWC_PACKAGING.equals(moduleType)
               || Type.JANGAROO_PKG_PACKAGING.equals(moduleType)) {
         String senchaModuleName = SenchaUtils.getSenchaPackageName(projectInReactor);
-        reactorProjectModulePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaModuleName));
-      } else if (Type.JANGAROO_APP_PACKAGING.equals(moduleType) || Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(moduleType)) {
-        reactorProjectModulePaths.put(projectInReactor.getArtifact(), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY));
+        reactorProjectModulePaths.put(getSenchaPackageName(projectInReactor), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.LOCAL_PACKAGES_PATH + senchaModuleName));
+      } else if (Type.JANGAROO_APP_PACKAGING.equals(moduleType)) {
+        reactorProjectModulePaths.put(getSenchaPackageName(projectInReactor), Paths.get(projectInReactor.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY));
       }
     }
     return reactorProjectModulePaths;
@@ -69,7 +70,7 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
 
   void createSymbolicLinksForArtifacts(Set<Artifact> artifacts, Path targetPath, File remotePackagesDir) throws MojoExecutionException {
     getLog().info(String.format("Linking module directories for %d artifacts into path %s", artifacts.size(), targetPath));
-    Map<Artifact, Path> reactorProjectModulePaths = findReactorProjectModules(project);
+    Map<String, Path> reactorProjectModulePaths = findReactorProjectModules(project);
     for (Artifact artifact : artifacts) {
       String senchaModuleName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId());
       Path pkgDir = getPkgDir(artifact, remotePackagesDir, reactorProjectModulePaths);
@@ -77,8 +78,8 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
     }
   }
 
-  Path getPkgDir(Artifact artifact, File remotePackagesDir, Map<Artifact, Path> reactorProjectPackagePaths) throws MojoExecutionException {
-    Path pkgDir = reactorProjectPackagePaths.get(artifact);
+  Path getPkgDir(Artifact artifact, File remotePackagesDir, Map<String, Path> reactorProjectPackagePaths) throws MojoExecutionException {
+    Path pkgDir = reactorProjectPackagePaths.get(getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()));
     return pkgDir != null ? pkgDir : unpackPkg(artifact, remotePackagesDir).toPath();
   }
 

@@ -144,7 +144,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
   }
 
   private void createSymbolicLinksForPackages(File workspaceDir, Path packagesPath, File remotePackagesDir, boolean isAppPackaging) throws MojoExecutionException {
-    Map<Artifact, Path> reactorProjectPackagePaths = findReactorProjectModules(project);
+    Map<String, Path> reactorProjectPackagePaths = findReactorProjectModules(project);
     Set<Artifact> artifacts = project.getArtifacts();
     Optional<Artifact> extFrameworkArtifact = artifacts.stream().filter(this::isExtFrameworkArtifact).findFirst();
     if (extFrameworkArtifact.isPresent()) {
