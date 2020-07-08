@@ -174,7 +174,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   JangarooApp createJangarooApp(MavenProject project) throws MojoExecutionException {
     String packaging = project.getPackaging();
-    if (Type.JANGAROO_APP_PACKAGING.equals(packaging)) {
+    if (Type.JANGAROO_APP_PACKAGING.equals(packaging) && isMainApp(project)) {
       return new JangarooApp(project);
     } else if (Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(packaging)) {
       return createJangarooAppOverlay(project);
@@ -189,7 +189,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
         // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
         MavenProject dependentProject = getProjectFromDependency(project, dependency);
         JangarooApp baseApp = createJangarooApp(dependentProject);
-        if (baseApp != null && isMainApp(baseApp)) {
+        if (baseApp != null) {
           return new JangarooAppOverlay(project, baseApp);
         }
       }
@@ -197,8 +197,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
   }
 
-  private boolean isMainApp(JangarooApp baseApp) {
-    return mainApp != null && mainApp.equals(baseApp.mavenProject.getGroupId() + "." + baseApp.mavenProject.getArtifactId());
+  private boolean isMainApp(MavenProject baseApp) {
+    return mainApp != null && mainApp.equals(baseApp.getGroupId() + "." + baseApp.getArtifactId());
   }
 
   static class JangarooApp {
