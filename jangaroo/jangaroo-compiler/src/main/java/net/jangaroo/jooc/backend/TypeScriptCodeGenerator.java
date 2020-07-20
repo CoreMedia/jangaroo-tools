@@ -921,6 +921,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
         out.write("._"); // use config factory function instead of the class itself!
         args.visit(this);
+      } else if (isExtApply(args.getExpr())) {
+        // If you type-cast the result of Ext.apply(), you are surely using config objects.
+        // Since in TypeScript, Ext.apply() hands through the types of its parameters, it
+        // should work without the type case:
+        out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
+        out.writeSymbolWhitespace(args.getLParen());
+        args.getExpr().getHead().visit(this);
+        out.writeSymbolWhitespace(args.getRParen());
       } else {
         out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
         out.writeToken("AS3.cast");
@@ -939,6 +947,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   static boolean isConfigFactory(ApplyExpr applyExpr) {
     Expr arg1 = applyExpr.getArgs().getExpr().getHead();
     return arg1 instanceof ObjectLiteral && applyExpr.getFun() instanceof IdeExpr;
+  }
+
+  private static boolean isExtApply(CommaSeparatedList<Expr> commaSeparatedList) {
+    if (commaSeparatedList != null && commaSeparatedList.getTail() == null) {
+      Expr expr = commaSeparatedList.getHead();
+      if (expr instanceof ApplyExpr) {
+        ApplyExpr applyExpr = (ApplyExpr) expr;
+        Expr fun = applyExpr.getFun();
+        if (fun instanceof IdeExpr) {
+          fun = ((IdeExpr) fun).getNormalizedExpr();
+        }
+        if (fun instanceof DotExpr) {
+          DotExpr dotExpr = (DotExpr) fun;
+          // TODO: Check dotExpr.getExpr() for "ext.Ext" or "net.jangaroo.Exml"!
+          return "apply".equals(dotExpr.getIde().getName());
+        }
+      }
+    }
+    return false;
   }
 
   @Override
