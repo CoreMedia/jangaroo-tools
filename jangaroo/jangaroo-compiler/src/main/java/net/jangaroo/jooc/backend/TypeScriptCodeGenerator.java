@@ -202,7 +202,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
-      if (member.isPrivate() && useSymbolForPrivateMemeber(member)) {
+      if (member.isPrivate() && useSymbolForPrivateMember(member)) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
       }
     }
@@ -668,11 +668,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String getDefinitionName(IdeDeclaration varOrFunDeclaration) {
-    return String.format(useSymbolForPrivateMemeber(varOrFunDeclaration)
+    return String.format(useSymbolForPrivateMember(varOrFunDeclaration)
             ? "[$%s]" : "#%s", varOrFunDeclaration.getIde().getName());
   }
 
-  private boolean useSymbolForPrivateMemeber(IdeDeclaration varOrFunDeclaration) {
+  private boolean useSymbolForPrivateMember(IdeDeclaration varOrFunDeclaration) {
     return varOrFunDeclaration.isStatic()
             || !varOrFunDeclaration.isNative()
             && (varOrFunDeclaration instanceof PropertyDeclaration
@@ -730,7 +730,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (functionDeclaration.isPrivate()) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getDefinitionName(functionDeclaration));
-          if (!useSymbolForPrivateMemeber(functionDeclaration)) {
+          if (!useSymbolForPrivateMember(functionDeclaration)) {
             out.writeToken("=");
           }
         } else {
@@ -759,7 +759,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
-      if (functionDeclaration.isPrivate() && !useSymbolForPrivateMemeber(functionDeclaration)) {
+      if (functionDeclaration.isPrivate() && !useSymbolForPrivateMember(functionDeclaration)) {
         out.writeToken("=>");
       }
       visitIfNotNull(functionExpr.getBody());
@@ -1042,7 +1042,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
       if (memberDeclaration != null && memberDeclaration.isPrivate()) {
         arg.visit(this);
-        if (useSymbolForPrivateMemeber(memberDeclaration)) {
+        if (useSymbolForPrivateMember(memberDeclaration)) {
           writeSymbolReplacement(dotExpr.getOp(), "[");
           writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
           out.write("]");
