@@ -201,6 +201,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
       }
     }
+    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
+      if (member.isPrivate() && useSymbolForPrivateMemeber(member)) {
+        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
+      }
+    }
 
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
@@ -662,8 +667,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private String getDefinitionName(IdeDeclaration variableDeclaration) {
-    return String.format(variableDeclaration.isStatic() ? "[$%s]" : "#%s", variableDeclaration.getIde().getName());
+  private String getDefinitionName(IdeDeclaration varOrFunDeclaration) {
+    return String.format(useSymbolForPrivateMemeber(varOrFunDeclaration)
+            ? "[$%s]" : "#%s", varOrFunDeclaration.getIde().getName());
+  }
+
+  private boolean useSymbolForPrivateMemeber(IdeDeclaration varOrFunDeclaration) {
+    return varOrFunDeclaration.isStatic()
+            || !varOrFunDeclaration.isNative()
+            && (varOrFunDeclaration instanceof PropertyDeclaration
+            || varOrFunDeclaration instanceof FunctionDeclaration
+            && ((FunctionDeclaration) varOrFunDeclaration).isGetterOrSetter());
   }
 
   @Override
@@ -716,7 +730,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (functionDeclaration.isPrivate()) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getDefinitionName(functionDeclaration));
-          if (!functionDeclaration.isStatic()) {
+          if (!useSymbolForPrivateMemeber(functionDeclaration)) {
             out.writeToken("=");
           }
         } else {
@@ -745,7 +759,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
-      if (functionDeclaration.isPrivate() && !functionDeclaration.isStatic()) {
+      if (functionDeclaration.isPrivate() && !useSymbolForPrivateMemeber(functionDeclaration)) {
         out.writeToken("=>");
       }
       visitIfNotNull(functionExpr.getBody());
@@ -1001,7 +1015,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
       if (memberDeclaration != null && memberDeclaration.isPrivate()) {
         arg.visit(this);
-        if (memberDeclaration.isStatic()) {
+        if (useSymbolForPrivateMemeber(memberDeclaration)) {
           writeSymbolReplacement(dotExpr.getOp(), "[");
           writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
           out.write("]");
