@@ -159,6 +159,7 @@ public class ClassDeclaration extends TypeDeclaration {
 
     // define these here so they get the right scope:
     thisType = new Type(new Ide(getIde().getSymbol()));
+    fixDefaultSuperClass();
     superType = isInterface() || isObject(getQualifiedNameStr()) ? null
             : new Type(getOptExtends() == null ? new Ide(OBJECT_CLASSNAME) : getOptExtends().getSuperClass());
 
@@ -193,6 +194,18 @@ public class ClassDeclaration extends TypeDeclaration {
         }
       }
     });
+  }
+
+  private void fixDefaultSuperClass() {
+    // several plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
+    // system defined by ext.Base, so patch "extends ext.Base" in:
+    if (optExtends == null && optImplements != null
+            && "Plugin".equals(optImplements.getSuperTypes().getHead().getName())) {
+      QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
+      new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
+      JooSymbol extendsSymbol = new JooSymbol(sym.EXTENDS, "<generated>", -1, -1, " ", "extends");
+      optExtends = new Extends(extendsSymbol, extDotBase);
+    }
   }
 
   @Override
@@ -308,7 +321,7 @@ public class ClassDeclaration extends TypeDeclaration {
     do {
       String qualifiedName = current.getQualifiedNameStr();
       if ("ext.Base".equals(qualifiedName)) {
-        // having ExtConfigs only counts if you explicitly inherit from ext.Base!
+        // having ExtConfigs only counts if you explicitly inherit from ext.Base or implement ext.Plugin!
         return hasAnyExtConfig;
       }
       if (!hasAnyExtConfig) {
