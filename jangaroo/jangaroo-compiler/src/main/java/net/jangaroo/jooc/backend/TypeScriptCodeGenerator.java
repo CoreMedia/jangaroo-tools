@@ -623,7 +623,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         ide.visit(this);
       }
       visitIfNotNull(typeRelation);
-      visitIfNotNull(initializer);
+      if (initializer == null) {
+        out.write(" = " + VariableDeclaration.getDefaultValue(typeRelation));
+      } else {
+        initializer.visit(this);
+      }
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
             && getRequireModuleName(variableDeclaration) != null) {
