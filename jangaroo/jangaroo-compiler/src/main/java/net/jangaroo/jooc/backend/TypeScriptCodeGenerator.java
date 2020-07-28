@@ -1070,17 +1070,32 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (type != null) {
       Ide ide = dotExpr.getIde();
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
-      if (memberDeclaration != null && memberDeclaration.isPrivate()) {
-        arg.visit(this);
-        if (useSymbolForPrivateMember(memberDeclaration)) {
-          writeSymbolReplacement(dotExpr.getOp(), "[");
-          writeSymbolReplacement(ide.getSymbol(), "$" + ide.getName());
-          out.write("]");
-        } else {
-          out.writeSymbol(dotExpr.getOp());
-          writeSymbolReplacement(ide.getSymbol(), "#" + ide.getName());
+      if (memberDeclaration != null) {
+        Annotation nativeAnnotation = memberDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+        String memberName = ide.getName();
+        if (nativeAnnotation != null) {
+          Object nativeMemberName = nativeAnnotation.getPropertiesByName().get(null);
+          if (nativeMemberName instanceof String) {
+            memberName = (String) nativeMemberName;
+          }
         }
-        return;
+        if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
+          arg.visit(this);
+          if (memberDeclaration.isPrivate()) {
+            if (useSymbolForPrivateMember(memberDeclaration)) {
+              writeSymbolReplacement(dotExpr.getOp(), "[");
+              writeSymbolReplacement(ide.getSymbol(), "$" + memberName);
+              out.write("]");
+            } else {
+              out.writeSymbol(dotExpr.getOp());
+              writeSymbolReplacement(ide.getSymbol(), "#" + memberName);
+            }
+          } else {
+            out.writeSymbol(dotExpr.getOp());
+            writeSymbolReplacement(ide.getSymbol(), memberName);
+          }
+          return;
+        }
       }
     }
 
