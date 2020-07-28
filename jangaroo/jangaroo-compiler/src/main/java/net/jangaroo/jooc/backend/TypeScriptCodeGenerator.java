@@ -208,7 +208,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
-    out.writeSymbol(classDeclaration.getSymClass());
+    out.writeSymbolWhitespace(classDeclaration.getSymClass());
+    if (classDeclaration.isInterface()) {
+      out.writeToken("abstract");
+    }
+    out.writeToken("class");
     classDeclaration.getIde().visit(this);
     String configClassName = null;
     FunctionDeclaration constructor = classDeclaration.getConstructor();
@@ -253,8 +257,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         superTypes = superTypes.getTail();
       } while (superTypes != null);
 
+      JooSymbol extendsOrImplements;
+      if (classDeclaration.isInterface() && classDeclaration.getOptImplements().getSuperTypes().getTail() != null) {
+        extendsOrImplements = new JooSymbol("implements");
+        needsCompanionInterface = true;
+        mixins = realInterfaces;
+      } else {
+        extendsOrImplements = classDeclaration.getOptImplements().getSymImplements();
+      }
       visitImplementsFiltered(
-              classDeclaration.getOptImplements().getSymImplements(),
+              extendsOrImplements,
               null,
               classDeclaration.getOptImplements(),
               configClassName != null,
@@ -282,15 +294,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (classDeclaration.isPrimaryDeclaration()) {
       visitAll(classDeclaration.getSecondaryDeclarations());
 
-      if (classDeclaration.isInterface() && classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
-              || classDeclaration.getOptImplements() != null) {
-        out.write(MessageFormat.format(classDeclaration.isInterface()
-                ? "\nconst {0} = AS3.createInterface<{0}>(\"{0}\""
-                : "\nAS3.implementsInterfaces({0}", classDeclaration.getName()));
-        if (classDeclaration.getOptImplements() != null) {
-          out.write(", ");
-          classDeclaration.getOptImplements().getSuperTypes().visit(this);
-        }
+      if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
+              && classDeclaration.getOptImplements() != null
+              && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
+        out.write("\nAS3.mixin(" + classDeclaration.getName());
+        out.write(", ");
+        classDeclaration.getOptImplements().getSuperTypes().visit(this);
         out.write(");\n");
       }
       if (configClassName != null) {
@@ -578,6 +587,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // never render [ExtConfig]s in a normal "visit":
         return;
       }
+      if (variableDeclaration.getClassDeclaration().isInterface()) {
+        out.writeSymbolWhitespace(variableDeclaration.getSymbol());
+        out.writeToken("abstract");
+      }
       visitDeclarationAnnotationsAndModifiers(variableDeclaration);
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
            currentVariableDeclaration != null;
@@ -720,6 +733,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         return;
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+      if (functionDeclaration.getClassDeclaration().isInterface()) {
+        out.writeSymbolWhitespace(functionDeclaration.getSymbol());
+        out.writeToken("abstract");
+      }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
       if (convertToProperty) {
