@@ -218,7 +218,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     FunctionDeclaration constructor = classDeclaration.getConstructor();
     if (constructor != null && constructor.getParams() != null) {
       Parameter firstParam = constructor.getParams().getHead();
-      if ("config".equals(firstParam.getName()) && firstParam.getOptTypeRelation() != null) {
+      if ("config".equals(firstParam.getName()) && firstParam.getOptTypeRelation() != null
+              && classDeclaration.getName().startsWith(firstParam.getOptTypeRelation().getType().getIde().getName())) {
         configClassName = compilationUnitAccessCode(firstParam.getOptTypeRelation().getType().getDeclaration()) + "._";
       }
     }
