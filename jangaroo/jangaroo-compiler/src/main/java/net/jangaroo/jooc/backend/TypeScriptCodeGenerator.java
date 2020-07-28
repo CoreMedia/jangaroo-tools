@@ -637,10 +637,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         ide.visit(this);
       }
       visitIfNotNull(typeRelation);
-      if (initializer == null) {
-        out.write(" = " + VariableDeclaration.getDefaultValue(typeRelation));
-      } else {
-        initializer.visit(this);
+      if (!isAmbientOrInterface(compilationUnit)) {
+        if (initializer != null) {
+          initializer.visit(this);
+        } else {
+          // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
+          // so we have to add an explicit initializer to keep semantics:
+          String implicitDefaultValue = VariableDeclaration.getDefaultValue(typeRelation);
+          // no need to explicitly set a field to "undefined":
+          if (!"undefined".equals(implicitDefaultValue)) {
+            out.write(" = " + implicitDefaultValue);
+          }
+        }
       }
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
