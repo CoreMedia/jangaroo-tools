@@ -358,6 +358,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public boolean isExtConfig() {
+    return false;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
