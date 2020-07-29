@@ -684,6 +684,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // leaving TypeScript to chose the same type leads to better results than to declaring it again!
         // So leave out type declaration if it just re-declares the exact type of the initializer:
         if (initializer == null
+                || isAmbientOrInterface(compilationUnit)
                 || initializer.getValue().getType() == null
                 || !initializer.getValue().getType().equals(new ExpressionType(typeRelation.getType()))) {
           typeRelation.visit(this);
