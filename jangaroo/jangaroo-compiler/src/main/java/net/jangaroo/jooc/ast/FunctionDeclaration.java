@@ -359,7 +359,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public boolean isExtConfig() {
-    return false;
+    return isGetterOrSetter() && super.isExtConfig();
   }
 
   @Override
