@@ -135,7 +135,7 @@ public class AbstractJoocTest {
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension) throws URISyntaxException, IOException {
-    assertCompilationResult(relativeClassFileName, extension, "");
+    assertCompilationResult(relativeClassFileName, extension, "/expected");
   }
 
   void assertCompilationResult(String relativeClassFileName, String extension, String expectedPath) throws URISyntaxException, IOException {
@@ -147,13 +147,13 @@ public class AbstractJoocTest {
   void assertNoCompilationFailures(String relativeClassFileName) throws URISyntaxException, IOException {
     compile(".as", relativeClassFileName);
 
-    File destFile = outputFile(outputFolder, relativeClassFileName, Jooc.OUTPUT_FILE_SUFFIX);
+    File destFile = outputFile(outputFolder, relativeClassFileName, ".js");
     assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
     assertTrue("the output file " + destFile + " should exist, but doesn't", destFile.exists());
   }
 
   void verifyClassOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {
-    verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".as");
+    verifyOutput(relativeClassFileName, outputFolder, expectedPath, ".js");
   }
 
   void verifyApiOutput(String relativeClassFileName, String expectedPath) throws URISyntaxException, IOException {

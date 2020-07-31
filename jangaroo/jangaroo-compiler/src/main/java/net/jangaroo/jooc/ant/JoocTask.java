@@ -265,7 +265,7 @@ public class JoocTask extends MatchingTask {
   protected void scanDir(File srcDir, File destDir, String[] files) {
     FileNameMapper m = new RegexpPatternMapper();
     m.setFrom("^(.*)\\.(" + Jooc.AS_SUFFIX_NO_DOT + "|" + Jooc.MXML_SUFFIX_NO_DOT + ")$");
-    m.setTo("\\1.ts");
+    m.setTo("\\1.js");
     SourceFileScanner sfs = new SourceFileScanner(this);
     File[] newFiles = sfs.restrictAsFiles(files, srcDir, destDir, m);
 

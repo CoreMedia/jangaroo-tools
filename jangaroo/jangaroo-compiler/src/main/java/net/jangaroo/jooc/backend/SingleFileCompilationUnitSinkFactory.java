@@ -7,6 +7,7 @@ import net.jangaroo.jooc.CompilationUnitRegistry;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
@@ -70,7 +71,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             try {
               out.setOptions(getOptions());
               compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
-              compilationUnit.visit(new TypeScriptCodeGenerator(out, compilationUnitModelResolver));
+              compilationUnit.visit(Jooc.OUTPUT_FILE_SUFFIX.equals(suffix) ? new JsCodeGenerator(out, compilationUnitModelResolver) : new TypeScriptCodeGenerator(out, compilationUnitModelResolver));
               if (options.isGenerateSourceMaps()) {
                 codeSuffix = generateSourceMap(out, outFile);
               }

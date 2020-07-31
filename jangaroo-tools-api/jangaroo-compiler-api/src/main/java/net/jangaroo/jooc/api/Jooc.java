@@ -17,7 +17,7 @@ public interface Jooc {
   String PROPERTIES_SUFFIX = "." + PROPERTIES_SUFFIX_NO_DOT;
 
   String INPUT_FILE_SUFFIX = AS_SUFFIX;
-  String OUTPUT_FILE_SUFFIX = ".ts";
+  String OUTPUT_FILE_SUFFIX = ".js";
 
   void setConfig(JoocConfiguration config);
 

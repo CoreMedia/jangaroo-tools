@@ -12,6 +12,8 @@ public interface JoocOptions {
 
   boolean isGenerateApi();
 
+  boolean isMigrateToTypeScript();
+
   PublicApiViolationsMode getPublicApiViolationsMode();
 
   /**

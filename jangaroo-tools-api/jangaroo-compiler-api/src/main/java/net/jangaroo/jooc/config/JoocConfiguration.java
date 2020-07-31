@@ -26,6 +26,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private File localizedOutputDirectory;
 
   private File apiOutputDirectory;
+  private boolean migrateToTypeScript = false;
 
   private boolean mergeOutput = false;
   private String outputFileName;
@@ -88,6 +89,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Override
   public boolean isGenerateApi() {
     return apiOutputDirectory != null;
+  }
+
+  @Override
+  public boolean isMigrateToTypeScript() {
+    return migrateToTypeScript;
+  }
+
+  @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
+  public void setMigrateToTypeScript(boolean migrateToTypeScript) {
+    this.migrateToTypeScript = migrateToTypeScript;
   }
 
   @Override

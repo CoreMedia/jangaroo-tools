@@ -54,7 +54,7 @@ public class PackagerImpl implements Packager {
     final String outputFilePath = outputFile.getAbsolutePath();
     if (somethingChanged && !sources.isEmpty()) {
       System.out.println(String.format("Packing %d js files into %s", sources.size(), outputFilePath));
-      //pack(sources, outputFile);
+      pack(sources, outputFile);
 
       File inventoryFile = new File(outputDirectory, CompilerUtils.removeExtension(outputFileName) + ".json");
       PrintWriter printWriter = new PrintWriter(inventoryFile);

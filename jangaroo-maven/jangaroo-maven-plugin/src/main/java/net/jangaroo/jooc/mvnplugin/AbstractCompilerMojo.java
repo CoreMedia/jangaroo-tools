@@ -130,6 +130,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File catalogOutputDirectory;
 
+  /**
+   * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
+   */
+  @Parameter(property = "maven.compiler.migrateToTypeScript")
+  private boolean migrateToTypeScript = false;
+
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
@@ -156,6 +162,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   @Nullable
   protected abstract File getApiOutputDirectory();
+
+  public boolean isMigrateToTypeScript() { return migrateToTypeScript; }
 
   protected File getCatalogOutputDirectory() {
     return catalogOutputDirectory;
@@ -220,6 +228,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setExcludeClassByDefault(excludeClassByDefault);
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
+    configuration.setMigrateToTypeScript(migrateToTypeScript);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {
@@ -342,7 +351,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     String outputFileSuffix = Jooc.AS_SUFFIX;
     if (outputDirectory == null) {
       outputDirectory = getClassesOutputDirectory();
-      outputFileSuffix = Jooc.OUTPUT_FILE_SUFFIX;
+      outputFileSuffix = isMigrateToTypeScript() ? ".ts" : Jooc.OUTPUT_FILE_SUFFIX;
     }
     List<File> compileSourceRoots = getCompileSourceRoots();
     List<File> staleFiles = new ArrayList<>();

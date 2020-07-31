@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import javax.annotation.Nonnull;
@@ -68,7 +69,9 @@ public class Type extends NodeImplBase {
       if (!(declaration instanceof TypeDeclaration)) {
         ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
       }
-      ide.addExternalUsage(false);
+      if (((Jooc) ide.getScope().getCompiler()).getConfig().isMigrateToTypeScript()) {
+        ide.addExternalUsage(false);
+      }
     }
   }
 

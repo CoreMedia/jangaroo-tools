@@ -20,10 +20,7 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
-import net.jangaroo.jooc.backend.CompilationUnitSink;
-import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
-import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
-import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.*;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
@@ -48,7 +45,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,11 +75,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
   public static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
-  private static final Collection<String> TYPESCRIPT_BUILT_IN_TYPES = Arrays.asList(
-          "Object",
-          "Array",
-          "Vector$object"
-  );
 
   private List<FileInputSource> compileQueue = new ArrayList<>();
 
@@ -199,9 +190,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           }
           CompilationUnit unit = importSource(source);
           if (unit != null) {
-            // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
             final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
-            if (!TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())) {
+            if (getConfig().isMigrateToTypeScript()
+                    ? TypeScriptCodeGenerator.generatesCode(primaryDeclaration)
+                    : JsCodeGenerator.generatesCode(primaryDeclaration)) {
               outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
             }
             if (getConfig().isGenerateApi()) {
@@ -333,7 +325,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, config.getOutputFile(), this, this);
     } else {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
-      final String suffix = generateActionScriptApi ? AS_SUFFIX : OUTPUT_FILE_SUFFIX;
+      final String suffix = generateActionScriptApi ? AS_SUFFIX : config.isMigrateToTypeScript() ? ".ts" : OUTPUT_FILE_SUFFIX;
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this, this);
     }
     return codeSinkFactory;

@@ -8,52 +8,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.SyntacticKeywords;
-import net.jangaroo.jooc.ast.Annotation;
-import net.jangaroo.jooc.ast.AnnotationParameter;
-import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.AssignmentOpExpr;
-import net.jangaroo.jooc.ast.AstNode;
-import net.jangaroo.jooc.ast.BlockStatement;
-import net.jangaroo.jooc.ast.Catch;
-import net.jangaroo.jooc.ast.ClassBody;
-import net.jangaroo.jooc.ast.ClassDeclaration;
-import net.jangaroo.jooc.ast.CommaSeparatedList;
-import net.jangaroo.jooc.ast.CompilationUnit;
-import net.jangaroo.jooc.ast.Declaration;
-import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.DotExpr;
-import net.jangaroo.jooc.ast.EmptyStatement;
-import net.jangaroo.jooc.ast.Expr;
-import net.jangaroo.jooc.ast.ForInStatement;
-import net.jangaroo.jooc.ast.FunctionDeclaration;
-import net.jangaroo.jooc.ast.FunctionExpr;
-import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.IdeExpr;
-import net.jangaroo.jooc.ast.IdeWithTypeParam;
-import net.jangaroo.jooc.ast.Implements;
-import net.jangaroo.jooc.ast.ImportDirective;
-import net.jangaroo.jooc.ast.InfixOpExpr;
-import net.jangaroo.jooc.ast.Initializer;
-import net.jangaroo.jooc.ast.LiteralExpr;
-import net.jangaroo.jooc.ast.NamespaceDeclaration;
-import net.jangaroo.jooc.ast.NamespacedIde;
-import net.jangaroo.jooc.ast.PackageDeclaration;
-import net.jangaroo.jooc.ast.Parameter;
-import net.jangaroo.jooc.ast.Parameters;
-import net.jangaroo.jooc.ast.ParenthesizedExpr;
-import net.jangaroo.jooc.ast.PropertyDeclaration;
-import net.jangaroo.jooc.ast.QualifiedIde;
-import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
-import net.jangaroo.jooc.ast.Statement;
-import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
-import net.jangaroo.jooc.ast.TypeDeclaration;
-import net.jangaroo.jooc.ast.TypeRelation;
-import net.jangaroo.jooc.ast.Typed;
-import net.jangaroo.jooc.ast.TypedIdeDeclaration;
-import net.jangaroo.jooc.ast.UseNamespaceDirective;
-import net.jangaroo.jooc.ast.VariableDeclaration;
-import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.ast.*;
 import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.json.JsonArray;
@@ -122,6 +77,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PRIMITIVES.add("Class");
     PRIMITIVES.add("Function");
     PRIMITIVES.add("XML");
+  }
+
+  public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
+    // only generate JavaScript if [Native] / [Mixin] annotation and 'native' modifier on primary compilationUnit are not present:
+    return primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
+            && !primaryDeclaration.isNative()
+            && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
   private boolean expressionMode = false;
@@ -268,6 +230,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
     typeRelation.getType().getIde().visit(this);
     out.endComment();
+  }
+
+  @Override
+  public void visitExtends(Extends anExtends) throws IOException {
+    out.writeSymbol(anExtends.getSymExtends());
+    out.writeSymbol(anExtends.getSuperClass().getIde());
   }
 
   @Override
@@ -1288,7 +1256,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (isPrimaryDeclaration) {
       factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
-    if (functionDeclaration.isThisAliased()) {
+    if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased()) {
       addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {

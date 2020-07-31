@@ -48,16 +48,20 @@ import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
+
+  private static final Collection<String> TYPESCRIPT_BUILT_IN_TYPES = Arrays.asList(
+          "Object",
+          "Array",
+          "Vector$object"
+  );
+  public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
+    // generate TypeScript for almost everything *except* some built-in classes which would fail to compile:
+    return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr());
+  }
 
   private CompilationUnit compilationUnit;
   private Map<String, String> imports;
