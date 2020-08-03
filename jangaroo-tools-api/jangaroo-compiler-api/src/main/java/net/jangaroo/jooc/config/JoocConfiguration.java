@@ -16,6 +16,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private SemicolonInsertionMode semicolonInsertionMode = SemicolonInsertionMode.WARN;
 
   private DebugMode debugMode;
+  private boolean suppressCommentedActionScriptCode = false;
 
   private boolean help, version, verbose, enableAssertions;
   private PublicApiViolationsMode publicApiViolationsMode = PublicApiViolationsMode.WARN;
@@ -75,6 +76,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-g", usage ="generate debuggable output (possible modes: source, lines, none)")
   public void setDebugMode(DebugMode debugMode) {
     this.debugMode = debugMode;
+  }
+
+  @Override
+  public boolean isSuppressCommentedActionScriptCode() {
+    return suppressCommentedActionScriptCode;
+  }
+
+  @Option(name="-noas", aliases = "--suppress-commented-actionscript-code", usage="Suppress comments for ActionScript syntax like types and modifiers in JavaScript output. Only effective with -g source.")
+  public void setSuppressCommentedActionScriptCode(boolean suppressCommentedActionScriptCode) {
+    this.suppressCommentedActionScriptCode = suppressCommentedActionScriptCode;
   }
 
   public boolean isVerbose() {

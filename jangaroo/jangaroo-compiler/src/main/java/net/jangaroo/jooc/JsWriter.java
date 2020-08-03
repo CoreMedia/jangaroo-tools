@@ -44,6 +44,7 @@ public final class JsWriter extends FilterWriter {
   private int nOpenBeginComments = 0;
   private char lastChar = ' ';
   private boolean inString = false;
+  private boolean writingWhitespace = false;
   private int nOpenStrings = 0;
   private boolean suppressWhitespace = false;
   private List<SymbolToOutputFilePosition> sourceMappings = new ArrayList<SymbolToOutputFilePosition>();
@@ -159,6 +160,10 @@ public final class JsWriter extends FilterWriter {
   }
 
   private boolean shouldWrite() throws IOException {
+    if (options.isSuppressCommentedActionScriptCode()) {
+      commentStartWritten = nOpenBeginComments > 0;
+      return writingWhitespace || !commentStartWritten;
+    }
     boolean result = getKeepSource() || nOpenBeginComments == 0;
     if (result) {
       if (nOpenBeginComments > 0 && !commentStartWritten) {
@@ -248,6 +253,7 @@ public final class JsWriter extends FilterWriter {
     }
     isWhitespaceWritten.add(symbol);
     String ws = symbol.getWhitespace();
+    writingWhitespace = true;
     if (getKeepSource()) {
       if (inString) {
         writeLinesInsideString(ws);
@@ -259,6 +265,7 @@ public final class JsWriter extends FilterWriter {
     } else {
       writeLine(ws);
     }
+    writingWhitespace = false;
   }
 
   private void writeLine(String ws) throws IOException {
@@ -347,7 +354,7 @@ public final class JsWriter extends FilterWriter {
 
   public void write(int c) throws IOException {
     if ((getKeepLines() && c == '\n') || shouldWrite()) {
-      if (lastChar == '*' && c == '/') {
+      if (lastChar == '*' && c == '/' && !options.isSuppressCommentedActionScriptCode()) {
         super.write(' ');
       }
       super.write(c);

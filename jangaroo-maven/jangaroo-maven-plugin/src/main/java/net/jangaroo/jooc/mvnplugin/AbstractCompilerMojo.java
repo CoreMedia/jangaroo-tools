@@ -136,6 +136,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(property = "maven.compiler.migrateToTypeScript")
   private boolean migrateToTypeScript = false;
 
+  /**
+   * Experimental: If set to "true", compiler generates no ActionScript syntax in comments, resulting
+   * in "purer" JavaScript code.
+   */
+  @Parameter(property = "maven.compiler.suppressCommentedActionScriptCode")
+  private boolean suppressCommentedActionScriptCode = false;
+
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
@@ -164,6 +171,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   protected abstract File getApiOutputDirectory();
 
   public boolean isMigrateToTypeScript() { return migrateToTypeScript; }
+
+  public boolean isSuppressCommentedActionScriptCode() { return suppressCommentedActionScriptCode; }
 
   protected File getCatalogOutputDirectory() {
     return catalogOutputDirectory;
@@ -229,6 +238,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
+    configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {

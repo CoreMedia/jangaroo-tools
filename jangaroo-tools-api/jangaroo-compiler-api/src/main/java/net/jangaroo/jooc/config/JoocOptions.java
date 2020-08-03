@@ -8,6 +8,8 @@ public interface JoocOptions {
 
   DebugMode getDebugMode();
 
+  boolean isSuppressCommentedActionScriptCode();
+
   boolean isEnableAssertions();
 
   boolean isGenerateApi();
