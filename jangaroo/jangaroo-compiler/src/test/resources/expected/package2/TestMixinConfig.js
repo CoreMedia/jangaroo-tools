@@ -1,5 +1,5 @@
-Ext.define("package2.TestMixinConfig", function(TestMixinConfig) {/*package package2 {
-public class TestMixinConfig {
+/*package package2 {*/
+Ext.define("package2.TestMixinConfig", function(TestMixinConfig) {/*public class TestMixinConfig {
 
   [MixinHook(before="foo")]
   private*/ function doSomethingBeforeFoo() {

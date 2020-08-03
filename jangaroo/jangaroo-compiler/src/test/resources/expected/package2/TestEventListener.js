@@ -1,8 +1,8 @@
-Ext.define("package2.TestEventListener", function(TestEventListener) {/*package package2 {
+/*package package2 {
 import ext.Panel;
-import ext.events.PanelEvent;
+import ext.events.PanelEvent;*/
 
-public class TestEventListener {
+Ext.define("package2.TestEventListener", function(TestEventListener) {/*public class TestEventListener {
 
   private var panel:Panel =*/function panel_(){this.panel$iwqQ=( AS3.cast(ext.Panel,{}));}/*;
   [ArrayElementType("ext.Panel")]

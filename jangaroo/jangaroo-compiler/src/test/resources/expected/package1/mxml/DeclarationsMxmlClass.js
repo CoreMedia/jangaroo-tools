@@ -1,7 +1,7 @@
-Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass) {/*package package1.mxml{
+/*package package1.mxml{
 import package1.*;
-import package1.someOtherPackage.*;
-public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){this.super$GkLq();if(arguments.length<=0)config=null;
+import package1.someOtherPackage.*;*/
+Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass) {/*public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){this.super$GkLq();if(arguments.length<=0)config=null;
     AS3.setBindable(this,"bar" , "BAR!");
     AS3.setBindable(this,"num" , 123);
     AS3.setBindable(this,"empty" , null);

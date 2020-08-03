@@ -1,9 +1,9 @@
-Ext.define("package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*package package1.mxml{
+/*package package1.mxml{
 import package1.*;
 
     [ThisIsJustATest]
-    [Deprecated (replacement='use.this.please')]
-public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){this.super$$82_();if(arguments.length<=0)config=null;
+    [Deprecated (replacement='use.this.please')]*/
+Ext.define("package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){this.super$$82_();if(arguments.length<=0)config=null;
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 

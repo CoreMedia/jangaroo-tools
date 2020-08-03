@@ -1,6 +1,6 @@
-Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*package package1 {
+/*package package1 {*/
 
-public class TestTypeCast {
+Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestTypeCast {
 
   public*/ function TestTypeCast$() {
   }/*

@@ -58,6 +58,11 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public JooSymbol getSymbol() {
+    JooSymbol symbol = super.getSymbol();
+    return symbol != null ? symbol : getDeclarationSymbol();
+  }
+
+  protected JooSymbol getDeclarationSymbol() {
     return getIde().getSymbol();
   }
 

@@ -1,4 +1,4 @@
-Ext.define("package1.TestBind", function(TestBind) {/* /*
+/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -13,9 +13,9 @@ Ext.define("package1.TestBind", function(TestBind) {/* /*
  * governing permissions and limitations under the License.
  * /
 
-package package1 {
+package package1 {*/
 
-public class TestBind {
+Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
 
   public var boundField:Function =*/function boundField_(){this.boundField=(AS3.bind( this,"getStatePrivate$JrNo"));}/*;
 

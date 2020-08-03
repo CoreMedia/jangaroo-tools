@@ -1,5 +1,5 @@
-Ext.define("package1.TestStaticNonStaticConfusion", function(TestStaticNonStaticConfusion) {/*package package1 {
-public class TestStaticNonStaticConfusion {
+/*package package1 {*/
+Ext.define("package1.TestStaticNonStaticConfusion", function(TestStaticNonStaticConfusion) {/*public class TestStaticNonStaticConfusion {
 
   public*/ function TestStaticNonStaticConfusion$() {
     this.foo$8Jhk();

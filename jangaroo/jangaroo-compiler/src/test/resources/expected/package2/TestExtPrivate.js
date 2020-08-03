@@ -1,5 +1,5 @@
-Ext.define("package2.TestExtPrivate", function(TestExtPrivate) {/*package package2 {
-public class TestExtPrivate {
+/*package package2 {*/
+Ext.define("package2.TestExtPrivate", function(TestExtPrivate) {/*public class TestExtPrivate {
 
   public*/ function canOverride()/*:void*/ {
     // This method can be overridden in subclasses.

@@ -69,6 +69,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  protected JooSymbol getDeclarationSymbol() {
+    return getOptSymConstOrVar();
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitVariableDeclaration(this);
   }

@@ -58,6 +58,11 @@ public class NamespaceDeclaration extends IdeDeclaration {
   }
 
   @Override
+  protected JooSymbol getDeclarationSymbol() {
+    return getSymNamespace();
+  }
+
+  @Override
   public void visit(AstVisitor visitor) throws IOException {
     visitor.visitNamespaceDeclaration(this);
   }

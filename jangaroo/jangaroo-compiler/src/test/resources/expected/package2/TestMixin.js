@@ -1,5 +1,5 @@
-Ext.define("package2.TestMixin", function(TestMixin) {/*package package2 {
-public class TestMixin implements ITestMixin {
+/*package package2 {*/
+Ext.define("package2.TestMixin", function(TestMixin) {/*public class TestMixin implements ITestMixin {
 
   public*/ function mix(thing/*:String*/)/*:String*/ {
     return "Mixed " + thing + "!";

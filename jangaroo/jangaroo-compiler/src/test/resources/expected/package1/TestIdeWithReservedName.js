@@ -1,5 +1,5 @@
-Ext.define("package1.TestIdeWithReservedName", function(TestIdeWithReservedName) {/*package package1 {
-public class TestIdeWithReservedName {
+/*package package1 {*/
+Ext.define("package1.TestIdeWithReservedName", function(TestIdeWithReservedName) {/*public class TestIdeWithReservedName {
   public*/ function parameterWithReservedName(char_/*:String*/)/*:String*/ {
     char_ = char_ + "!";
     return char_;

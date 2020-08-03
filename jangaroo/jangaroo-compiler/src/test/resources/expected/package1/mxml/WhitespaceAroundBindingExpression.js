@@ -1,6 +1,6 @@
-Ext.define("package1.mxml.WhitespaceAroundBindingExpression", function(WhitespaceAroundBindingExpression) {/*package package1.mxml{
-import ext.*;
-public class WhitespaceAroundBindingExpression extends Panel{
+/*package package1.mxml{
+import ext.*;*/
+Ext.define("package1.mxml.WhitespaceAroundBindingExpression", function(WhitespaceAroundBindingExpression) {/*public class WhitespaceAroundBindingExpression extends Panel{
 
     import ext.layout.ContainerLayout;public*/function WhitespaceAroundBindingExpression$(config/*:WhitespaceAroundBindingExpression=null*/){this.super$TIEI();if(arguments.length<=0)config=null;
     var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});

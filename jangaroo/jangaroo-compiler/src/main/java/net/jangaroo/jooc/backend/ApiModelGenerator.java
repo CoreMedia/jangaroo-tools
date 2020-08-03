@@ -320,9 +320,7 @@ public class ApiModelGenerator {
   }
 
   private void recordAsdoc(Declaration declaration) {
-    for (JooSymbol symbol : declaration.getSymModifiers()) {
-      recordAsdoc(symbol);
-    }
+    recordAsdoc(declaration.getSymbol());
   }
 
   private void consumeRecordedAsdoc() {
@@ -536,7 +534,6 @@ public class ApiModelGenerator {
         handleExcludeClassByDefault(fieldModel);
       }
       recordAsdoc(variableDeclaration);
-      recordAsdoc(variableDeclaration.getOptSymConstOrVar());
       consumeRecordedAsdoc();
       generateMemberModifiers(variableDeclaration);
       fieldModel.setConst(variableDeclaration.isConst());
@@ -571,7 +568,6 @@ public class ApiModelGenerator {
         handleExcludeClassByDefault(methodModel);
       }
       recordAsdoc(functionDeclaration);
-      recordAsdoc(functionDeclaration.getSymbol());
       consumeRecordedAsdoc();
       generateMemberModifiers(functionDeclaration);
       methodModel.setOverride(functionDeclaration.isOverride());
@@ -646,7 +642,6 @@ public class ApiModelGenerator {
     getCurrent(CompilationUnitModel.class).setPrimaryDeclaration(classModel);
     modelStack.push(classModel);
     recordAsdoc(classDeclaration);
-    recordAsdoc(classDeclaration.getSymClass());
     consumeRecordedAsdoc();
     classModel.setFinal(classDeclaration.isFinal());
     classModel.setDynamic(classDeclaration.isDynamic());
@@ -685,7 +680,6 @@ public class ApiModelGenerator {
     consumeRecordedAnnotations();
     handleExcludeClassByDefault(namespaceModel);
     recordAsdoc(namespaceDeclaration);
-    recordAsdoc(namespaceDeclaration.getSymNamespace());
     consumeRecordedAsdoc();
     generateVisibility(namespaceDeclaration);
     namespaceDeclaration.getIde().visit(this);

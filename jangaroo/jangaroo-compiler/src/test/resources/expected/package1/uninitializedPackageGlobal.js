@@ -1,12 +1,12 @@
-Ext.define("package1.uninitializedPackageGlobal", function(uninitializedPackageGlobal) {/*package package1 {
+/*package package1 {
 
-import package1.someOtherPackage.SomeOtherClass;
+import package1.someOtherPackage.SomeOtherClass;*/
 
 // This comment to vanish in API
 /**
  * Some package-global documentation;
- * /
-public var uninitializedPackageGlobal:SomeOtherClass;
+ */
+Ext.define("package1.uninitializedPackageGlobal", function(uninitializedPackageGlobal) {/*public var uninitializedPackageGlobal:SomeOtherClass;
 
 }
 

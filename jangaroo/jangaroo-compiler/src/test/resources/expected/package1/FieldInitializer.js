@@ -1,5 +1,5 @@
-Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*package package1 {
-public class FieldInitializer {
+/*package package1 {*/
+Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public class FieldInitializer {
   private const const1:String = "foo";
   private const const2:Object = "foo" + "bar";
   private const const3:Object =*/function const3_(){this.const3$ZOoB=( {"foo": "bar"});}/*;

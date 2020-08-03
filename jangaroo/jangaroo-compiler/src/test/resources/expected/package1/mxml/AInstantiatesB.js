@@ -1,8 +1,8 @@
-Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*package package1.mxml{
+/*package package1.mxml{
 import ext.*;
 import package1.mxml.*;
-import net.jangaroo.ext.Exml;
-public class AInstantiatesB extends Panel{
+import net.jangaroo.ext.Exml;*/
+Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public class AInstantiatesB extends Panel{
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
     var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});

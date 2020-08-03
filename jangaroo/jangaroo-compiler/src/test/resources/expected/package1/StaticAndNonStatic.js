@@ -1,9 +1,9 @@
-Ext.define("package1.StaticAndNonStatic", function(StaticAndNonStatic) {/*package package1 {
+/*package package1 {*/
 
 /**
  * Retest for JOO-64.
- * /
-public class StaticAndNonStatic {
+ */
+Ext.define("package1.StaticAndNonStatic", function(StaticAndNonStatic) {/*public class StaticAndNonStatic {
 
   public var StaticAndNonStatic:String;*/function static$0(){
   

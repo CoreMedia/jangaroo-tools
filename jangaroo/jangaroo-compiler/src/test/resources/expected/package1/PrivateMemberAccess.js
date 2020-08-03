@@ -1,5 +1,5 @@
-Ext.define("package1.PrivateMemberAccess", function(PrivateMemberAccess) {/*package package1 {
-public class PrivateMemberAccess {
+/*package package1 {*/
+Ext.define("package1.PrivateMemberAccess", function(PrivateMemberAccess) {/*public class PrivateMemberAccess {
 
   public static const INSTANCE:PrivateMemberAccess =*/function INSTANCE$static_(){PrivateMemberAccess.INSTANCE=( new PrivateMemberAccess());}/*;
   private var secret:String;

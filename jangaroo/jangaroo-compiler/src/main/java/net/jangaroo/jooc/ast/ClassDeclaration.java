@@ -75,6 +75,11 @@ public class ClassDeclaration extends TypeDeclaration {
     return makeChildren(super.getChildren(), optExtends, optImplements, body);
   }
 
+  @Override
+  protected JooSymbol getDeclarationSymbol() {
+    return getSymClass();
+  }
+
   public FunctionDeclaration getConstructor() {
     return constructor;
   }

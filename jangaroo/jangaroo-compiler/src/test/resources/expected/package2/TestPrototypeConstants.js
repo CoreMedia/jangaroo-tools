@@ -1,6 +1,6 @@
-Ext.define("package2.TestPrototypeConstants", function(TestPrototypeConstants) {/*package package2 {
+/*package package2 {*/
 
-public class TestPrototypeConstants {
+Ext.define("package2.TestPrototypeConstants", function(TestPrototypeConstants) {/*public class TestPrototypeConstants {
 
   public const foo:String = "FOO";
   public const bar:Object =*/function bar_(){this.bar=( {});}/*;

@@ -1,4 +1,4 @@
-Ext.define("package2.TestStaticAccess", function(TestStaticAccess) {/* /*
+/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -13,9 +13,9 @@ Ext.define("package2.TestStaticAccess", function(TestStaticAccess) {/* /*
  * governing permissions and limitations under the License.
  * /
 
-package package2 {
+package package2 {*/
 
-public class TestStaticAccess extends StaticAccessSuperClass {
+Ext.define("package2.TestStaticAccess", function(TestStaticAccess) {/*public class TestStaticAccess extends StaticAccessSuperClass {
 
   static public var s1:String = "s1";
   static private*/ var s2$static/*:String*/ = "s2";/*

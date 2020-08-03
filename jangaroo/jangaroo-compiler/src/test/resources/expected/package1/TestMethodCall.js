@@ -1,4 +1,4 @@
-Ext.define("package1.TestMethodCall", function(TestMethodCall) {/* /*
+/* /*
  * Copyright 2008 CoreMedia AG
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
@@ -13,12 +13,12 @@ Ext.define("package1.TestMethodCall", function(TestMethodCall) {/* /*
  * governing permissions and limitations under the License.
  * /
 
-package package1 /*blubber* / {
+package package1 /*blubber* / {*/
 
 /**
 * a comment
-* /
-public class TestMethodCall /* blub ber * //*extends Object* / {
+*/
+Ext.define("package1.TestMethodCall", function(TestMethodCall) {/*public class TestMethodCall /* blub ber * //*extends Object* / {
 
   public*/ function TestMethodCall$() {
   }/*

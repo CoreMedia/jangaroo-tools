@@ -1,10 +1,10 @@
-Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*package package1 {
-import package1.someOtherPackage.SomeNativeClass;
+/*package package1 {
+import package1.someOtherPackage.SomeNativeClass;*/
 
 /**
  * This is an example of a class using a "native" class.
- * /
-public class UsingSomeNativeClass {
+ */
+Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*public class UsingSomeNativeClass {
 
   public var someNative:package1.SomeNativeClass =*/function someNative_(){this.someNative=( new SomeNativeClass());}/*;
   public var someOtherNative:SomeOtherNativeClass =*/function someOtherNative_(){this.someOtherNative=( new SomeOtherNativeClass());}/*;

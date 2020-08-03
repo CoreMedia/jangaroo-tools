@@ -66,6 +66,14 @@ public abstract class Declaration extends Statement {
     computeModifiers();
   }
 
+  @Override
+  public JooSymbol getSymbol() {
+    if (symModifiers.length > 0) {
+      return symModifiers[0];
+    }
+    return null;
+  }
+
   public AstNode getParentDeclaration() {
     return parentDeclaration;
   }

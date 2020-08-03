@@ -1,6 +1,6 @@
-Ext.define("package1.TestHelperClasses", function(TestHelperClasses) {/*package package1 {
+/*package package1 {*/
 
-public class TestHelperClasses {
+Ext.define("package1.TestHelperClasses", function(TestHelperClasses) {/*public class TestHelperClasses {
 
   public static const TEXT:String = "foo";
   public static*/ function getText$static()/*:String*/ {

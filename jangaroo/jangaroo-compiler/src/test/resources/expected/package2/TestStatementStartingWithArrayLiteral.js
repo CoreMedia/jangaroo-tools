@@ -1,5 +1,5 @@
-Ext.define("package2.TestStatementStartingWithArrayLiteral", function(TestStatementStartingWithArrayLiteral) {/*package package2 {
-public class TestStatementStartingWithArrayLiteral {
+/*package package2 {*/
+Ext.define("package2.TestStatementStartingWithArrayLiteral", function(TestStatementStartingWithArrayLiteral) {/*public class TestStatementStartingWithArrayLiteral {
 
   public static*/ function sum1_2_3$static()/*:int*/ {
     var result/*:int*/ = 0;

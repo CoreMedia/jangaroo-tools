@@ -1,8 +1,8 @@
-Ext.define("package1.ChainedConstants", function(ChainedConstants) {/*package package1 {
+/*package package1 {
 
-import package1.someOtherPackage.SomeOtherClass;
+import package1.someOtherPackage.SomeOtherClass;*/
 
-public class ChainedConstants {
+Ext.define("package1.ChainedConstants", function(ChainedConstants) {/*public class ChainedConstants {
   public static const METHOD_TYPE_GET : String = "get";
 
   public static const DEFAULT_METHOD_TYPE : String =*/function DEFAULT_METHOD_TYPE$static_(){ChainedConstants.DEFAULT_METHOD_TYPE=( ChainedConstants.METHOD_TYPE_GET);}/*;

@@ -1,12 +1,12 @@
-Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*package package1.mxml{
+/*package package1.mxml{
 import package1.*;
 import package1.someOtherPackage.*;
-import net.jangaroo.ext.Exml;
+import net.jangaroo.ext.Exml;*/
 /**
   My config class subclass, authored in MXML.
- * /
+ */
 
-public class SimpleMxmlClass extends ConfigClass{
+Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public class SimpleMxmlClass extends ConfigClass{
 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 

@@ -1,8 +1,8 @@
-Ext.define("package1.TestLocalVariableDoesNotShadeClass", function(TestLocalVariableDoesNotShadeClass) {/*package package1 {
+/*package package1 {
 import package1.someOtherPackage.SomeOtherClass;
-import package2.TestStaticAccess;
+import package2.TestStaticAccess;*/
 
-public class TestLocalVariableDoesNotShadeClass {
+Ext.define("package1.TestLocalVariableDoesNotShadeClass", function(TestLocalVariableDoesNotShadeClass) {/*public class TestLocalVariableDoesNotShadeClass {
   public*/ function TestLocalVariableDoesNotShadeClass$() {
     var SomeOtherClass = package1.someOtherPackage.SomeOtherClass.BLA;
   }/*

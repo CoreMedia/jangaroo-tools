@@ -244,11 +244,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;
     String[] requires = collectDependencies(compilationUnit, isClassDeclaration ? Boolean.TRUE : null);
     String[] uses = isClassDeclaration ? collectDependencies(compilationUnit, false) : new String[0];
-    String moduleName = CompilerUtils.quote(compilationUnit.getPrimaryDeclaration().getQualifiedNameStr());
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
-    out.write("Ext.define(");
-    out.write(moduleName);
-    out.write(", function(" + primaryDeclaration.getName() + ") {");
     this.compilationUnit = compilationUnit;
     out.beginComment();
     packageDeclaration.visit(this);
@@ -1054,6 +1050,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Debug.assertTrue(variableDeclaration.getOptSymConstOrVar() != null && variableDeclaration.getOptSymConstOrVar().sym == sym.COMMA, "Additional variable declarations must start with a COMMA.");
     }
     visitAll(variableDeclaration.getAnnotations());
+    writeExtDefineCodePrefix(variableDeclaration);
     List<Metadata> currentMetadata = buildMetadata(variableDeclaration);
     if ((variableDeclaration.isClassMember() || variableDeclaration.isPrimaryDeclaration()) && !variableDeclaration.isPrivateStatic()) {
       if (!variableDeclaration.isPrimaryDeclaration() && !currentMetadata.isEmpty()) {
@@ -1254,6 +1251,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     boolean isPrimaryDeclaration = functionDeclaration.equals(compilationUnit.getPrimaryDeclaration());
     assert functionDeclaration.isClassMember() || (!functionDeclaration.isNative() && !functionDeclaration.isAbstract());
     if (isPrimaryDeclaration) {
+      writeExtDefineCodePrefix(functionDeclaration);
       factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
     if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased()) {
@@ -1408,6 +1406,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     visitAll(classDeclaration.getAnnotations());
+    writeExtDefineCodePrefix(classDeclaration);
     List<Metadata> currentMetadata = buildMetadata(classDeclaration);
     ClassDefinitionBuilder classDefinitionBuilder = classDeclaration.isPrimaryDeclaration()
             ? primaryClassDefinitionBuilder : (secondaryClassDefinitionBuilder = new ClassDefinitionBuilder());
@@ -1437,6 +1436,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       new SuperCallCodeGenerator(classDeclaration).generate(out, true);
       out.write("}");
       classDefinitionBuilder.members.put("constructor", new PropertyDefinition(constructorName));
+    }
+  }
+
+  private void writeExtDefineCodePrefix(IdeDeclaration declaration) throws IOException {
+    if (declaration.isPrimaryDeclaration()) {
+      out.writeSymbolWhitespace(declaration.getSymbol());
+      out.write("Ext.define(");
+      out.write(CompilerUtils.quote(declaration.getQualifiedNameStr()));
+      out.write(", function(" + declaration.getName() + ") {");
     }
   }
 
@@ -1515,6 +1523,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitNamespaceDeclaration(NamespaceDeclaration namespaceDeclaration) throws IOException {
     visitAll(namespaceDeclaration.getAnnotations());
+    if (namespaceDeclaration.isPrimaryDeclaration()) {
+      writeExtDefineCodePrefix(namespaceDeclaration);
+    }
     out.beginString();
     writeModifiers(out, namespaceDeclaration);
     out.writeSymbol(namespaceDeclaration.getSymNamespace());

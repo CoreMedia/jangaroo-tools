@@ -1,12 +1,12 @@
-Ext.define("package1.AllElements", function(AllElements) {/*package package1{
+/*package package1{
 import ext.config.*;
 import exmlparser.config.*;
 import ext.*;
-import net.jangaroo.ext.Exml;
+import net.jangaroo.ext.Exml;*/
 /**
  This is my <b>TestComponent</b>
- * /
-public class AllElements extends panel{
+ */
+Ext.define("package1.AllElements", function(AllElements) {/*public class AllElements extends panel{
 
     /* add an extra import statement to the class * /
 

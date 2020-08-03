@@ -1,7 +1,7 @@
-Ext.define("package1.NoPrimitiveInit", function(NoPrimitiveInit) {/*package package1 {
-import package1.someOtherPackage.SomeOtherClass;
+/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;*/
 
-public class NoPrimitiveInit {
+Ext.define("package1.NoPrimitiveInit", function(NoPrimitiveInit) {/*public class NoPrimitiveInit {
   public*/ function NoPrimitiveInit$() {
   }/*
 

@@ -1,9 +1,9 @@
-Ext.define("package1.ConfigClass", function(ConfigClass) {/*package package1{
+/*package package1{
 import ext.mixin.Observable;
 
-[Event(name="click", type="package1.someOtherPackage.SomeEvent")]
+[Event(name="click", type="package1.someOtherPackage.SomeEvent")]*/
 
-public class ConfigClass extends Observable {
+Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigClass extends Observable {
 
   public*/ function ConfigClass$(config/*:ConfigClass = null*/) {this.super$klfp();if(arguments.length<=0)config=null;
   }/*

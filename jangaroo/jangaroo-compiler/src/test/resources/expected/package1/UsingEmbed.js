@@ -1,11 +1,11 @@
-Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*package package1 {
+/*package package1 {
 
 [SomeRuntimeAnnotation]
 /**
  * This is an example of a class using an [Embed] annotation.
  * /
-[SomeRuntimeAnnotation(foo="bar")]
-public class UsingEmbed {
+[SomeRuntimeAnnotation(foo="bar")]*/
+Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*public class UsingEmbed {
 
   [Embed(source="package1/UsingEmbed.as")]
   public var someText:Class;

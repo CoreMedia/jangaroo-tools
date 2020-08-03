@@ -1,5 +1,5 @@
-Ext.define("package1.mxml.TestOldPropertyAccessSyntax", function(TestOldPropertyAccessSyntax) {/*package package1.mxml{
-public class TestOldPropertyAccessSyntax extends Object{
+/*package package1.mxml{*/
+Ext.define("package1.mxml.TestOldPropertyAccessSyntax", function(TestOldPropertyAccessSyntax) {/*public class TestOldPropertyAccessSyntax extends Object{
 
     import testPackage.PropertiesTest_properties;
 

@@ -339,8 +339,8 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  public JooSymbol getSymbol() {
-    return fun.getSymbol();
+  protected JooSymbol getDeclarationSymbol() {
+    return isGetterOrSetter() ? getSymGetOrSet() : getFun().getSymbol();
   }
 
   @Override

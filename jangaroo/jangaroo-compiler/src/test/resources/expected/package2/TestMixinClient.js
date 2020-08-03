@@ -1,6 +1,6 @@
-Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*package package2 {
+/*package package2 {*/
 
-public class TestMixinClient implements ITestMixin {
+Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*public class TestMixinClient implements ITestMixin {
 
   public*/ function TestMixinClient$(thing/*:String*/) {
     this.mix(thing);

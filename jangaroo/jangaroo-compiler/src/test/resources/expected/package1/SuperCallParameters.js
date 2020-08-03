@@ -1,6 +1,6 @@
-Ext.define("package1.SuperCallParameters", function(SuperCallParameters) {/*package package1 {
+/*package package1 {*/
 
-public class SuperCallParameters extends ManyConstructorParameters {
+Ext.define("package1.SuperCallParameters", function(SuperCallParameters) {/*public class SuperCallParameters extends ManyConstructorParameters {
   public*/ function SuperCallParameters$() {
     this.super$rE5W("bar", -1, -4.2, true, {}, []);
   }/*

@@ -1,7 +1,7 @@
-Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) {/*package package1.mxml{
+/*package package1.mxml{
 import package1.*;
-import package1.mxml.SimpleInterface;
-public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
+import package1.mxml.SimpleInterface;*/
+Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) {/*public class ScriptCdataMxmlClass extends ConfigClass implements package1.mxml.SimpleInterface{
 
     import package1.someOtherPackage.SomeOtherClass;
 

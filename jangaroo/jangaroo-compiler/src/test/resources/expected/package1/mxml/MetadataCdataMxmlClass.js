@@ -1,4 +1,4 @@
-Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*package package1.mxml{
+/*package package1.mxml{
 import package1.*;
 
     /**
@@ -6,8 +6,8 @@ import package1.*;
      * @see {@link http://help.adobe.com/en_US/flex/using/WSd0ded3821e0d52fe1e63e3d11c2f44bc36-7ff2.html}
      * /
     [ThisIsJustATest]
-    [Deprecated (replacement='use.this.please')]
-public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){this.super$3$jH();if(arguments.length<=0)config=null;
+    [Deprecated (replacement='use.this.please')]*/
+Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){this.super$3$jH();if(arguments.length<=0)config=null;
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 

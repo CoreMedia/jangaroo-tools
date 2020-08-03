@@ -1,10 +1,10 @@
-Ext.define("package1.UsingSomePackageGlobal", function(UsingSomePackageGlobal) {/*package package1 {
-import package1.someOtherPackage.SomeOtherClass;
+/*package package1 {
+import package1.someOtherPackage.SomeOtherClass;*/
 
 /**
  * This is an example of a class using a "package global" variable.
- * /
-public class UsingSomePackageGlobal {
+ */
+Ext.define("package1.UsingSomePackageGlobal", function(UsingSomePackageGlobal) {/*public class UsingSomePackageGlobal {
 
   public static*/ function main$static()/*:void*/ {
     package1.somePackageGlobal = new package1.someOtherPackage.SomeOtherClass();

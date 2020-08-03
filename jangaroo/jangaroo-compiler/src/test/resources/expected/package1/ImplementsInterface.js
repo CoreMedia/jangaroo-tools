@@ -1,7 +1,7 @@
-Ext.define("package1.ImplementsInterface", function(ImplementsInterface) {/*package package1{
-import ext.Panel;
+/*package package1{
+import ext.Panel;*/
 
-public final class ImplementsInterface implements Interface {
+Ext.define("package1.ImplementsInterface", function(ImplementsInterface) {/*public final class ImplementsInterface implements Interface {
 
   /**
    * Field with ASDoc.

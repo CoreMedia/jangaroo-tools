@@ -1,7 +1,7 @@
-Ext.define("package2.TestRequireResourceBundle", function(TestRequireResourceBundle) {/*package package2 {
+/*package package2 {
 
-[ResourceBundle("package2.ResourceBundle")]
-public class TestRequireResourceBundle {
+[ResourceBundle("package2.ResourceBundle")]*/
+Ext.define("package2.TestRequireResourceBundle", function(TestRequireResourceBundle) {/*public class TestRequireResourceBundle {
 }*/function TestRequireResourceBundle$() {}/*
 }
 

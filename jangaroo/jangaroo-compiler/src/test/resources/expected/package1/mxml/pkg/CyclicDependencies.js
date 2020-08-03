@@ -1,6 +1,6 @@
-Ext.define("package1.mxml.pkg.CyclicDependencies", function(CyclicDependencies) {/*package package1.mxml.pkg{
-import package1.mxml.pkg.*;
-public class CyclicDependencies extends Object{
+/*package package1.mxml.pkg{
+import package1.mxml.pkg.*;*/
+Ext.define("package1.mxml.pkg.CyclicDependencies", function(CyclicDependencies) {/*public class CyclicDependencies extends Object{
 
     public*/function CyclicDependencies$(config/*:CyclicDependencies = null*/){if(arguments.length<=0)config=null;
     var cause_trouble_12_5_$1/*: package1.mxml.pkg.CyclicDependencies_1*/ =AS3.cast(package1.mxml.pkg.CyclicDependencies_1,{});
