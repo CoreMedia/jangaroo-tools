@@ -704,10 +704,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (functionExpr.getIde() != null) {
       out.writeSymbol(functionExpr.getIde().getIde());
     }
+    handleParameters(functionExpr);
     generateFunTailCode(functionExpr);
   }
 
-  public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
+  public void handleParameters(FunctionExpr functionExpr) throws IOException {
     Parameters params = functionExpr.getParams();
     if (functionExpr.hasBody()) {
       if (functionExpr.isArgumentsUsedAsArray()) {
@@ -718,6 +719,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionExpr.getBody(), getParameterInitializerCodeGenerator(params));
       }
     }
+  }
+
+  public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
     generateSignatureJsCode(functionExpr);
     if (functionExpr.hasBody()) {
       functionExpr.getBody().visit(this);
@@ -728,27 +732,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return new CodeGenerator() {
       @Override
       public void generate(JsWriter out, boolean first) throws IOException {
-        // collect the ... (rest) parameter and all optional parameters with their position index:
-        int restParamIndex = -1;
-        Parameter restParam = null;
+        // collect all optional parameters with their position index:
         Map<Integer,Parameter> paramByIndex = new HashMap<Integer, Parameter>();
-        Parameters parameters = params;
-        for (int paramIndex = 0; parameters != null; parameters = parameters.getTail()) {
+        int paramIndex = 0;
+        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
           Parameter param = parameters.getHead();
-          if (param.isRest()) {
-            restParamIndex = paramIndex;
-            restParam = param;
-            break;
-          }
           if (param.hasInitializer()) {
             paramByIndex.put(paramIndex, param);
           }
           ++paramIndex;
         }
         generateParameterInitializers(out, paramByIndex);
-        if (restParam != null) {
-          generateRestParamCode(restParam, restParamIndex);
-        }
+        generateRestParamCode(params);
       }
 
     };
@@ -786,10 +781,23 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  public void generateRestParamCode(Parameter param, int paramIndex) throws IOException {
-    String paramName = param.getName();
-    if (paramName != null && !(paramName.equals(FunctionExpr.ARGUMENTS) && paramIndex == 0)) {
-      generateToArrayCode(paramName, paramIndex);
+  public void generateRestParamCode(final Parameters params) throws IOException {
+    if (params != null) {
+      // determine the last parameter and its index:
+      int lastParamIndex = 0;
+      Parameters parameters = params;
+      while (parameters.getTail() != null) {
+        ++lastParamIndex;
+        parameters = parameters.getTail();
+      }
+      // now check for ...rest parameter:
+      Parameter lastParam = parameters.getHead();
+      if (lastParam.isRest()) {
+        String lastParamName = lastParam.getName();
+        if (lastParamName != null && !(lastParamName.equals(FunctionExpr.ARGUMENTS) && lastParamIndex == 0)) {
+          generateToArrayCode(lastParamName, lastParamIndex);
+        }
+      }
     }
   }
 
@@ -1254,6 +1262,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeExtDefineCodePrefix(functionDeclaration);
       factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
+    handleParameters(functionDeclaration.getFun());
     if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased()) {
       addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }

@@ -13,7 +13,7 @@ Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) 
       for (var v/*:Object*/ in values) {
         throw "cannot do it with " + v;
       }
-    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){this.super$5omj();if(arguments.length<=0)config=null;
+    }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$5omj();
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
     config_$1.foo = "bar";
 }/*}}

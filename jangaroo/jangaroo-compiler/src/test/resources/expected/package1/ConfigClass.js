@@ -5,7 +5,7 @@ import ext.mixin.Observable;
 
 Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigClass extends Observable {
 
-  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {this.super$klfp();if(arguments.length<=0)config=null;
+  public*/ function ConfigClass$(config/*:ConfigClass = null*/) {if(arguments.length<=0)config=null;this.super$klfp();
   }/*
 
   public var foo:String = "foo";

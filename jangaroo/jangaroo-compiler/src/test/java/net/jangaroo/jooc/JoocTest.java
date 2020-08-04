@@ -201,6 +201,7 @@ public class JoocTest extends AbstractJoocTest {
 
   @Test
   public void testParameterInitializers() throws Exception {
+    assertCompilationResult("package1/ParameterInitializers");
     assertApiCompilationResult("package1/ParameterInitializers");
   }
 

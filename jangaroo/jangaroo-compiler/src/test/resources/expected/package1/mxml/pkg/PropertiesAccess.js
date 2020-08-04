@@ -1,6 +1,6 @@
 /*package package1.mxml.pkg{
 import package1.mxml.pkg.*;*/
-Ext.define("package1.mxml.pkg.PropertiesAccess", function(PropertiesAccess) {/*public class PropertiesAccess extends PropertiesAccessBase{public*/function PropertiesAccess$(config/*:PropertiesAccess=null*/){this.super$drFQ();if(arguments.length<=0)config=null;
+Ext.define("package1.mxml.pkg.PropertiesAccess", function(PropertiesAccess) {/*public class PropertiesAccess extends PropertiesAccessBase{public*/function PropertiesAccess$(config/*:PropertiesAccess=null*/){if(arguments.length<=0)config=null;this.super$drFQ();
     var config_$1/*: package1.mxml.pkg.PropertiesAccessBase*/ =AS3.cast(package1.mxml.pkg.PropertiesAccessBase,{});
     config_$1.property_1 = "egal";
     config_$1.property_2 = "egaler";

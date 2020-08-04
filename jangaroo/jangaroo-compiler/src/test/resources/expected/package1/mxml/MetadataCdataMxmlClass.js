@@ -7,7 +7,7 @@ import package1.*;
      * /
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]*/
-Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){this.super$3$jH();if(arguments.length<=0)config=null;
+Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$3$jH();
     var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
 }/*}}
 
