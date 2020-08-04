@@ -13,7 +13,7 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
     return this.panels$iwqQ;
   }/*
 
-  public*/ function TestEventListener$() {var this$=this;panel_.call(this);panels_.call(this);
+  public*/ function TestEventListener$() {var this$=this;this.super$iwqQ();
     AS3.setBindable(this.panel$iwqQ,"title" , "not yet clicked.");
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(this$.getThis().getPanel(),"title" , "clicked!");
@@ -37,6 +37,10 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
     return {
       getPanels$iwqQ: getPanels,
       constructor: TestEventListener$,
+      super$iwqQ: function() {
+        panel_.call(this);
+        panels_.call(this);
+      },
       getThis: getThis,
       getPanel: getPanel,
       uses: [

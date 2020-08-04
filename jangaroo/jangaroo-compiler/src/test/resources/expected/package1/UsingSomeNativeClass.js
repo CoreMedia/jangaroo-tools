@@ -10,7 +10,7 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
   public var someOtherNative:SomeOtherNativeClass =*/function someOtherNative_(){this.someOtherNative=( new SomeOtherNativeClass());}/*;
   public native function get someNative2():package1.SomeNativeClass;
 
-  public*/ function UsingSomeNativeClass$() {var this$=this;someNative_.call(this);someOtherNative_.call(this);
+  public*/ function UsingSomeNativeClass$() {var this$=this;this.super$7Tfi();
     new package1.someOtherPackage.SomeNativeClass();
     AS3.setBindable(this.someNative,"baz" , "foo");
     AS3.setBindable(this.someNative2,"baz" , "foo");
@@ -45,6 +45,10 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: UsingSomeNativeClass$,
+      super$7Tfi: function() {
+        someNative_.call(this);
+        someOtherNative_.call(this);
+      },
       getSomeNativeAccessor: get$someNativeAccessor,
       getAnotherNativeAccessor: get$anotherNativeAccessor,
       getMonkey: get$monkey,

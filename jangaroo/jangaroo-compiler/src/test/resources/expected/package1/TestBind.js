@@ -19,7 +19,7 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
 
   public var boundField:Function =*/function boundField_(){this.boundField=(AS3.bind( this,"getStatePrivate$JrNo"));}/*;
 
-  public*/ function TestBind$(state/* : String*/) {boundField_.call(this);
+  public*/ function TestBind$(state/* : String*/) {this.super$JrNo();
     this.state$JrNo = state;
     var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$JrNo");
   }/*
@@ -40,6 +40,9 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
 ============================================== Jangaroo part ==============================================*/
     return {
       constructor: TestBind$,
+      super$JrNo: function() {
+        boundField_.call(this);
+      },
       getState: getState,
       getStatePrivate$JrNo: getStatePrivate,
       state$JrNo: null

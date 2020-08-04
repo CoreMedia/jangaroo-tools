@@ -13,7 +13,7 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public cla
   public*/ function foo()/*:String*/ {
     return this.const1$ZOoB + this.const2$ZOoB + this.const3$ZOoB;
   }/*
-}*/function FieldInitializer$() {const3_.call(this);myConfigOption2_.call(this);}/*
+}*/function FieldInitializer$() {this.super$ZOoB();}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
@@ -21,6 +21,10 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public cla
       const1$ZOoB: "foo",
       const2$ZOoB: "foo" + "bar",
       foo: foo,
+      super$ZOoB: function() {
+        const3_.call(this);
+        myConfigOption2_.call(this);
+      },
       constructor: FieldInitializer$,
       config: {
         myConfigOption: "baz",

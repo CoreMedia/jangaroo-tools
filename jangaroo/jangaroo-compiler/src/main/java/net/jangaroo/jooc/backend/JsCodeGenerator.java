@@ -3,7 +3,6 @@ package net.jangaroo.jooc.backend;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.Debug;
-import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * A visitor of the AST that generates executable JavaScript code on
@@ -1483,26 +1483,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return args;
   }
 
-  private void generateFieldInitCode(ClassDeclaration classDeclaration, boolean startWithSemicolon) throws IOException {
-    Iterator<VariableDeclaration> iterator = classDeclaration.getFieldsWithInitializer().iterator();
-    if (iterator.hasNext()) {
-      if (startWithSemicolon) {
-        out.write(";");
-      }
-      do {
-        VariableDeclaration field = iterator.next();
-        generateInitCode(field, true);
-      } while (iterator.hasNext());
-    }
-  }
-
-  public void generateInitCode(VariableDeclaration field, boolean endWithSemicolon) throws IOException {
-    out.write(field.getName() + "_.call(this)");
-    if (endWithSemicolon) {
-      out.write(";");
-    }
-  }
-
   private class SuperCallCodeGenerator implements CodeGenerator {
     private ClassDeclaration classDeclaration;
 
@@ -1512,11 +1492,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     @Override
     public void generate(JsWriter out, boolean first) throws IOException {
-      if (classDeclaration.notExtendsObject()) { // suppress for classes extending Object
-        generateSuperConstructorCallCode(null);
+      if (classDeclaration.notExtendsObject() // suppress for classes extending Object
+              || !classDeclaration.getFieldsWithInitializer().isEmpty()) { // but not if there are field initializers
+        generateSuperConstructorCallCode(classDeclaration, null);
         out.writeToken(";");
       }
-      generateFieldInitCode(classDeclaration, false);
     }
   }
 
@@ -1549,23 +1529,21 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
-    if (superConstructorCallStatement.getClassDeclaration().notExtendsObject()) {
+    ClassDeclaration classDeclaration = superConstructorCallStatement.getClassDeclaration();
+    if (classDeclaration.notExtendsObject() || !classDeclaration.getFieldsWithInitializer().isEmpty()) {
       out.writeSymbolWhitespace(superConstructorCallStatement.getSymbol());
-      generateSuperConstructorCallCode(superConstructorCallStatement.getArgs());
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), true);
+      generateSuperConstructorCallCode(classDeclaration, superConstructorCallStatement.getArgs());
     } else { // suppress for classes extending Object
       // Object super call does nothing anyway:
       out.beginComment();
       out.writeSymbol(superConstructorCallStatement.getSymbol());
       visitIfNotNull(superConstructorCallStatement.getArgs());
       out.endComment();
-      generateFieldInitCode(superConstructorCallStatement.getClassDeclaration(), false);
     }
     out.writeSymbol(superConstructorCallStatement.getSymSemicolon());
   }
 
-  private void generateSuperConstructorCallCode(ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
-    ClassDeclaration classDeclaration = (ClassDeclaration) compilationUnit.getPrimaryDeclaration();
+  private void generateSuperConstructorCallCode(ClassDeclaration classDeclaration, ParenthesizedExpr<CommaSeparatedList<Expr>> args) throws IOException {
     String superWithLevel = "super$" + classDeclaration.getQualifiedNameHash();
     out.write("this." + superWithLevel);
     if (args == null) {
@@ -1573,10 +1551,27 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       args.visit(this);
     }
-    String callSuperCode = "function() {\n" +
-            "        " + getSuperClassPrototypeAccessCode() + ".constructor.apply(this, arguments);\n" +
-            "      }";
-    primaryClassDefinitionBuilder.members.put(superWithLevel, new PropertyDefinition(callSuperCode));
+    List<String> callSuperCode = new ArrayList<>();
+    callSuperCode.add("function() {\n");
+    if (classDeclaration.notExtendsObject()) {
+      callSuperCode.add("        " + getSuperClassPrototypeAccessCode() + ".constructor.apply(this, arguments);\n");
+    }
+    for (VariableDeclaration field : classDeclaration.getFieldsWithInitializer()) {
+      callSuperCode.add("        " + field.getName() + "_.call(this);\n");
+    }
+    callSuperCode.add("      }");
+    ClassDefinitionBuilder classDefinitionBuilder;
+    if (classDeclaration.isPrimaryDeclaration()) {
+      classDefinitionBuilder = primaryClassDefinitionBuilder;
+    } else {
+      classDefinitionBuilder = secondaryClassDefinitionBuilder;
+      // secondary class definition does not allow new-lines:
+      callSuperCode = callSuperCode.stream()
+              .map(String::trim)
+              .collect(Collectors.toList());
+
+    }
+    classDefinitionBuilder.members.put(superWithLevel, new PropertyDefinition(String.join("", callSuperCode)));
   }
 
   private String getSuperClassPrototypeAccessCode() {

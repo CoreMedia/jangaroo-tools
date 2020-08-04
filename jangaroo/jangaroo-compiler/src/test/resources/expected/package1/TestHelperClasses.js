@@ -19,7 +19,7 @@ class Helper {
   internal static const CONST:String = "FOO";
   private var text:String =*/function text_(){this.text$K0sP=( TestHelperClasses.TEXT);}/*;
 
-  public*/ function Helper$(text/*:String*/) {text_.call(this);
+  public*/ function Helper$(text/*:String*/) {this.super$K0sP();
     this.text$K0sP = text;
   }/*
 
@@ -32,7 +32,7 @@ class Helper {
   private*/ function text_getter()/*:String*/ {
     return this.text$K0sP;
   }/*
-}*/var Helper$static = Ext.define(null, {constructor: Helper$,getText: getText,text_getter$K0sP: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
+}*/var Helper$static = Ext.define(null, {constructor: Helper$,super$K0sP: function() {text_.call(this);},getText: getText,text_getter$K0sP: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
