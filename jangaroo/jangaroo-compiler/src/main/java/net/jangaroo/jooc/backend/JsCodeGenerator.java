@@ -749,9 +749,28 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     };
   }
 
+  public CodeGenerator getEcmaParameterInitializerCodeGenerator(final Parameters params) {
+    return new CodeGenerator() {
+      @Override
+      public void generate(JsWriter out, boolean first) throws IOException {
+        for (Parameters parameters = params; parameters != null; parameters = parameters.getTail()) {
+          Parameter param = parameters.getHead();
+          if (param.hasInitializer()) {
+            out.write(ASSIGN_DEFAULT_IF_PARAMETER_IS_UNDEFINED.format(param.getName()));
+            generateBodyInitializerCode(param);
+            out.write("}");
+          }
+        }
+        generateRestParamCode(params);
+      }
+    };
+  }
+
   private final MessageFormat IF_ARGUMENT_LENGTH_LTE_$N = new MessageFormat("if(arguments.length<={0})");
   private final MessageFormat SWITCH_$INDEX = new MessageFormat("switch({0,choice,0#arguments.length|0<Math.max(arguments.length,{0})})");
   private final MessageFormat CASE_$N = new MessageFormat("case {0}:");
+
+  private final MessageFormat ASSIGN_DEFAULT_IF_PARAMETER_IS_UNDEFINED = new MessageFormat("if ({0} === void 0) '{' ");
 
   private void generateParameterInitializers(JsWriter out, Map<Integer, Parameter> paramByIndex) throws IOException {
     Iterator<Map.Entry<Integer, Parameter>> paramByIndexIterator = paramByIndex.entrySet().iterator();
