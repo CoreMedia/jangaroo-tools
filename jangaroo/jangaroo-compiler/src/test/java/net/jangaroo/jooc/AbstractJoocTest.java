@@ -107,6 +107,7 @@ public class AbstractJoocTest {
     config.setLocalizedOutputDirectory(localizedOutputFolder);
     config.setApiOutputDirectory(apiOutputFolder);
     config.setSuppressCommentedActionScriptCode(false);
+    config.setMigrateToTypeScript(false);
     testLog.reset();
     jooc = new Jooc(config, testLog);
     jooc.getMxmlComponentRegistry().registerElement("library://test.namespace", "someOtherClass",
