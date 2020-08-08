@@ -110,17 +110,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     String primaryLocalName = primaryDeclaration.getName();
     imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
 
+    out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
+
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
     if (isModule) {
-      out.beginComment();
-      compilationUnit.getPackageDeclaration().visit(this);
-      out.endComment();
       out.write("import * as AS3 from 'AS3';");
     } else {
       Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
       // if global namespace, simply leave it out
       if (packageIde != null) {
-        writeSymbolReplacement(compilationUnit.getPackageDeclaration().getSymbol(), "namespace");
+        out.writeToken("namespace");
         writeSymbolReplacement(packageIde.getSymbol(), packageIde.getQualifiedNameStr());
         out.writeSymbol(compilationUnit.getLBrace());
       }
