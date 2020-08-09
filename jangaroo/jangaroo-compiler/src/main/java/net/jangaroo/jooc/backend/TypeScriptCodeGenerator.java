@@ -1173,6 +1173,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           localName += "._";
         }
       }
+    } else if (declaration instanceof Parameter && ((Parameter) declaration).isRest()
+            && FunctionExpr.ARGUMENTS.equals(declaration.getName())) {
+      // parameter name "arguments" is not allowed in ECMAScript strict to avoid confusion with the built-in
+      // "arguments", so let's rename this:
+      localName = FunctionExpr.ARGUMENTS + "$";
     }
     if (localName == null) {
       return useQualifiedName ? toLocalName(declaration.getQualifiedName()) : declaration.getName();
