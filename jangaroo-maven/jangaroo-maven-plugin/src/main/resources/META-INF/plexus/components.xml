@@ -62,6 +62,19 @@
         <packaging>jangaroo-app-overlay</packaging>
       </configuration>
     </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>jangaroo-apps</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>jangaroo-apps</type>
+        <extension>jar</extension>
+        <language>jangaroo</language>
+        <addedToClasspath>false</addedToClasspath>
+        <includesDependencies>true</includesDependencies>
+        <packaging>jangaroo-apps</packaging>
+      </configuration>
+    </component>
 
     <!--
     A custom lifecycle for javascript packaging
@@ -142,6 +155,22 @@
           <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
           <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:prepare-package-app-overlay</prepare-package>
           <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-app-overlay</package>
+          <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+          <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+        </phases>
+      </configuration>
+    </component>
+
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jangaroo-apps</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <phases>
+          <pre-clean>net.jangaroo:jangaroo-maven-plugin:${pom.version}:pre-clean</pre-clean>
+          <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+          <prepare-package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:prepare-package-apps</prepare-package>
+          <package>net.jangaroo:jangaroo-maven-plugin:${pom.version}:package-apps</package>
           <install>org.apache.maven.plugins:maven-install-plugin:install</install>
           <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
         </phases>

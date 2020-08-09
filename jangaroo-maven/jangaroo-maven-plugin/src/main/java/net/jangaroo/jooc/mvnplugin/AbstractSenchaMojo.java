@@ -194,6 +194,25 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
   }
 
+  JangarooApps createJangarooApps(MavenProject project) throws MojoExecutionException {
+    if (Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging())) {
+      Set<JangarooApp> apps = new LinkedHashSet<>();
+      List<Dependency> dependencies = project.getDependencies();
+      for (Dependency dependency : dependencies) {
+        if (Type.JAR_EXTENSION.equals(dependency.getType())) {
+          // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
+          MavenProject dependentProject = getProjectFromDependency(project, dependency);
+          JangarooApp baseApp = createJangarooApp(dependentProject);
+          if (baseApp != null) {
+            apps.add(baseApp);
+          }
+        }
+      }
+      return new JangarooApps(project, apps);
+    }
+    return null;
+  }
+
   static class JangarooApp {
     final MavenProject mavenProject;
     Set<Artifact> packages = new LinkedHashSet<>();
@@ -230,6 +249,16 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       LinkedHashSet<Artifact> allDynamicPackages = new LinkedHashSet<>(packages);
       allDynamicPackages.removeAll(getRootBaseApp().packages);
       return allDynamicPackages;
+    }
+  }
+
+  static class JangarooApps {
+    final MavenProject mavenProject;
+    final Set<JangarooApp> apps;
+
+    JangarooApps(MavenProject mavenProject, Set<JangarooApp> apps) {
+      this.mavenProject = mavenProject;
+      this.apps = apps;
     }
   }
 }

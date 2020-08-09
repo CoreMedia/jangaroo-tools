@@ -29,9 +29,12 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
@@ -193,6 +196,66 @@ public final class FileHelper {
       fileSet.setIncludingEmptyDirectories(false);
       addFileSetFollowingSymLinks(archiver, fileSet);
     }
+    MavenArchiver mavenArchiver = new MavenArchiver();
+    mavenArchiver.setArchiver(archiver);
+    mavenArchiver.setOutputFile(jarFile);
+    try {
+      MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
+      archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
+      mavenArchiver.createArchive(session, project, archive);
+    } catch (Exception e) { // NOSONAR
+      throw new MojoExecutionException("Failed to create the javascript archive", e);
+    }
+    Artifact mainArtifact = project.getArtifact();
+    mainArtifact.setFile(jarFile);
+    // workaround for MNG-1682: force maven to install artifact using the "jar" handler
+    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
+  }
+
+  public static void createAppsJar(MavenSession session,
+                                   JarArchiver archiver,
+                                   ArtifactHandlerManager artifactHandlerManager,
+                                   String senchaAppBuild,
+                                   File appsDir,
+                                   Map<String, List<File>> appNamesToDirs) throws MojoExecutionException {
+    if (senchaAppBuild != null && !SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
+      // really important?
+      throw new MojoExecutionException("Apps jar is only supported for developer mode");
+    }
+    MavenProject project = session.getCurrentProject();
+    appsDir = appsDir != null ? appsDir : new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+
+    File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
+
+    // add the Jangaroo compiler resources to the resulting JAR first, no files will be overridden afterwards
+    DefaultFileSet fileSet = fileSet(appsDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
+    fileSet.setIncludingEmptyDirectories(false);
+    addFileSetFollowingSymLinks(archiver, fileSet);
+
+    appNamesToDirs.forEach((appName, appDirs) -> {
+      appDirs.forEach(appDir -> {
+        // add the Jangaroo compiler resources to the resulting JAR
+        DefaultFileSet appFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES + APPS_DIRECTORY_NAME + SEPARATOR + appName + SEPARATOR);
+        appFileSet.setExcludes(new String[]{
+                "**/build/temp/**",
+                "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",
+                PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
+                "**/*-timestamp",
+                "packages/**",
+        });
+        appFileSet.setIncludingEmptyDirectories(false);
+        addFileSetFollowingSymLinks(archiver, appFileSet);
+
+        // add the Jangaroo compiler resources to the resulting JAR
+        DefaultFileSet packagesFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
+        packagesFileSet.setIncludes(new String[]{
+                "packages/**",
+        });
+        packagesFileSet.setIncludingEmptyDirectories(false);
+        addFileSetFollowingSymLinks(archiver, packagesFileSet);
+      });
+    });
+
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);

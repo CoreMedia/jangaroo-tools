@@ -81,21 +81,12 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
   }
 
   private void writeDynamicPackagesJson(Set<String> dynamicPackageNames) throws MojoExecutionException {
-    getLog().info(String.format("Writing %s for module %s.", DYNAMIC_PACKAGES_FILENAME, project.getName()));
-    File dynamicPackagesFile = new File(webResourcesOutputDirectory, DYNAMIC_PACKAGES_FILENAME);
-    if (!dynamicPackagesFile.exists()) {
-      FileHelper.ensureDirectory(dynamicPackagesFile.getParentFile());
-    } else {
-      getLog().debug(DYNAMIC_PACKAGES_FILENAME + " for module already exists, deleting...");
-      if (!dynamicPackagesFile.delete()) {
-        throw new MojoExecutionException("Could not delete " + DYNAMIC_PACKAGES_FILENAME + " file for module");
-      }
-    }
+    File dynamicPackagesFile = prepareFile(new File(webResourcesOutputDirectory, DYNAMIC_PACKAGES_FILENAME));
 
     try {
       DynamicPackagesDeSerializer.writeDynamicPackages(new FileOutputStream(dynamicPackagesFile), dynamicPackageNames);
     } catch (IOException e) {
-      throw new MojoExecutionException("Could not create " + DYNAMIC_PACKAGES_FILENAME + " resource", e);
+      throw new MojoExecutionException("Could not create " + dynamicPackagesFile + " resource", e);
     }
   }
 

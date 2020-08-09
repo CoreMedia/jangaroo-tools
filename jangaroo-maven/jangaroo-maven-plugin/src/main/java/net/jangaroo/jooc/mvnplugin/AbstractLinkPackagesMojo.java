@@ -143,4 +143,18 @@ abstract class AbstractLinkPackagesMojo extends AbstractSenchaMojo {
             isRequiredSenchaDependency(MavenDependencyHelper.fromArtifact(artifact), includeTestDependencies))
             .collect(Collectors.toSet());
   }
+
+  protected File prepareFile(File file) throws MojoExecutionException {
+    Path relativeFilePath = project.getBasedir().toPath().relativize(file.toPath());
+    getLog().info(String.format("Writing %s for module %s.", relativeFilePath, project.getName()));
+    if (!file.exists()) {
+      FileHelper.ensureDirectory(file.getParentFile());
+    } else {
+      getLog().debug(relativeFilePath + " for module already exists, deleting...");
+      if (!file.delete()) {
+        throw new MojoExecutionException("Could not delete " + relativeFilePath + " file for module");
+      }
+    }
+    return file;
+  }
 }
