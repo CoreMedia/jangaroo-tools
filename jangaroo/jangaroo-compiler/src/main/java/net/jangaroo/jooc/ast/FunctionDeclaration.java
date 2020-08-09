@@ -340,7 +340,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   protected JooSymbol getDeclarationSymbol() {
-    return isGetterOrSetter() ? getSymGetOrSet() : getFun().getSymbol();
+    return getFun().getSymbol();
   }
 
   @Override
