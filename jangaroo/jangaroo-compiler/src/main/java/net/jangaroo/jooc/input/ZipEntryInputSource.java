@@ -25,6 +25,10 @@ public class ZipEntryInputSource implements InputSource {
     }
   }
 
+  public ZipFileInputSource getZipFileInputSource() {
+    return zipFileInputSource;
+  }
+
   @Override
   public boolean isInSourcePath() {
     return zipFileInputSource.isInSourcePath();

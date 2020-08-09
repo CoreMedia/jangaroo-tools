@@ -42,10 +42,16 @@ import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.input.FileInputSource;
+import net.jangaroo.jooc.input.InputSource;
+import net.jangaroo.jooc.input.ZipEntryInputSource;
+import net.jangaroo.jooc.input.ZipFileInputSource;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
@@ -114,7 +120,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
     if (isModule) {
-      out.write("import * as AS3 from 'AS3';");
+      out.write("import * as AS3 from '@jangaroo/joo/AS3';\n");
     } else {
       Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
       // if global namespace, simply leave it out
@@ -469,6 +475,74 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String getRequireModuleName(IdeDeclaration declaration) {
+    String moduleName = getRequireModulePath(declaration);
+    if (moduleName == null) {
+      return null;
+    }
+    InputSource importedInputSource = declaration.getCompilationUnit().getInputSource();
+    FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
+    if (importedInputSource instanceof FileInputSource &&
+            ((FileInputSource) importedInputSource).getSourceDir().equals(currentInputSource.getSourceDir())) {
+      // same input source: relativize against current file
+      moduleName = computeRelativeModulePath(currentInputSource.getFile(),
+              new File(currentInputSource.getSourceDir(), moduleName));
+    } else {
+      // compute target npm package name
+      String npmPackageName;
+      if (importedInputSource instanceof FileInputSource) {
+        // When using Maven, only test code uses code from another source directory.
+        // We know that in the target TypeScript workspace, the relative path from the test source root
+        // directory to the source root directory is "../src". This is achieved by creating
+        // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
+        // and one which is just the root directory "/src". The 'modulePath' is added later.
+        npmPackageName = computeRelativeModulePath(new File("/tests/" + currentInputSource.getRelativePath()),
+                new File("/src"));
+      } else if (importedInputSource instanceof ZipEntryInputSource) {
+        npmPackageName = findSenchaPackageName((ZipEntryInputSource) importedInputSource);
+      } else {
+        throw new IllegalStateException("The input source for a compilation unit was not a file");
+      }
+      if (npmPackageName.startsWith("net.jangaroo__")) {
+        // well-known vendor prefix net.jangaroo -> @jangaroo
+        npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
+        // very special case jangaroo-runtime -> joo
+        npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
+      }
+      // prepend target npm package in front
+      moduleName = npmPackageName + "/" + moduleName;
+    }
+    return moduleName;
+  }
+
+  private String computeRelativeModulePath(File currentFile, File importedFile) {
+    File currentDir = currentFile.getParentFile();
+    String relativeModulePath = CompilerUtils.getRelativePath(currentDir,
+            importedFile, false);
+    relativeModulePath = relativeModulePath.replace(File.separatorChar, '/');
+    if (!relativeModulePath.startsWith(".")) {
+      relativeModulePath = "./" + relativeModulePath;
+    }
+    return relativeModulePath;
+  }
+
+  private String findSenchaPackageName(ZipEntryInputSource zipEntryInputSource) {
+    String npmPackageName = null;
+    ZipFileInputSource zipFileInputSource = zipEntryInputSource.getZipFileInputSource();
+    List<? extends InputSource> swcPkgFiles = zipFileInputSource.getChild("META-INF/pkg").list();
+    for (InputSource swcPkgFile : swcPkgFiles) {
+      String swcPkgFileName = swcPkgFile.getName();
+      if (swcPkgFileName.endsWith(".json") && !"package.json".equals(swcPkgFileName)) {
+        npmPackageName = CompilerUtils.removeExtension(swcPkgFileName);
+        break;
+      }
+    }
+    if (npmPackageName == null) {
+      throw new IllegalStateException("SWC " + zipFileInputSource.getZipFile().getName() + " does not contain a /META-INF/pkg/<package-name>.json file");
+    }
+    return npmPackageName;
+  }
+
+  private String getRequireModulePath(IdeDeclaration declaration) {
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeAnnotation == null) {
       return String.join("/", declaration.getQualifiedName());
