@@ -49,6 +49,8 @@ public class SenchaUtils {
 
   public static final String TEST_APP_DIRECTORY_NAME = "test-classes"; // for historic reasons...
 
+  public static final String EXT_DIRECTORY_NAME = "ext";
+
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   public static final String APPS_DIRECTORY_NAME = "apps";

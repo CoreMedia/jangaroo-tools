@@ -45,8 +45,6 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.*;
         threadSafe = true)
 public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
 
-  private static final String EXT_TARGET_DIRECTORY = "ext";
-
   /**
    * Non-null if we have joounit tests in this module
    */
@@ -113,7 +111,7 @@ public class SenchaGenerateWsMojo extends AbstractLinkPackagesMojo {
 
     // sencha.cfg should be recreated
     Map<String, Object> properties = new LinkedHashMap<>();
-    properties.put("ext.dir", SenchaUtils.absolutizeToModuleWithPlaceholder(Type.WORKSPACE, EXT_TARGET_DIRECTORY));
+    properties.put("ext.dir", SenchaUtils.absolutizeToModuleWithPlaceholder(Type.WORKSPACE, EXT_DIRECTORY_NAME));
     // needed for sencha app watch:
     // properties.put("build.web.root", absolutizeUsingWorkspace(workspaceDir, webRootDir));
     // properties.put("remotePackages", absolutizeUsingWorkspace(workspaceDir, remotePackagesDir));

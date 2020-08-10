@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +25,12 @@ public class AppsDeSerializer {
 
   private static final List<String> DEFAULT_LOCALES = Collections.singletonList("en");
 
-  public static List<String> readApps(InputStream appsSource) throws IOException {
+  public static List<AppInfo> readApps(InputStream appsSource) throws IOException {
     //noinspection unchecked
     return new ObjectMapper().readValue(appsSource, List.class);
   }
 
-  public static void writeApps(OutputStream output, Collection<String> apps) throws IOException {
+  public static void writeApps(OutputStream output, List<AppInfo> apps) throws IOException {
     new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(new PrintWriter(output), apps);
   }
 
@@ -75,5 +75,15 @@ public class AppsDeSerializer {
       }
     }
     return path;
+  }
+
+  public static class AppInfo {
+    public final String name;
+    public final Path path;
+
+    public AppInfo(String name, Path path) {
+      this.name = name;
+      this.path = path;
+    }
   }
 }

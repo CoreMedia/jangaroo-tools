@@ -29,6 +29,7 @@ import static net.jangaroo.apprunner.util.JettyWrapper.ROOT_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EXT_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.LOCAL_APPS_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.LOCAL_PACKAGES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
@@ -169,8 +170,8 @@ public class RunMojo extends AbstractSenchaMojo {
           // Add base app and all app overlays
           do {
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, appPath, "");
-            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + "ext", "ext/");
-            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, "packages/");
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + EXT_DIRECTORY_NAME, EXT_DIRECTORY_NAME + SEPARATOR);
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, PACKAGES_DIRECTORY_NAME + SEPARATOR);
             jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
           } while (jangarooApp != null);
           if (!isRootApp) {

@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableMap;
 import net.jangaroo.apprunner.util.AppsDeSerializer;
+import net.jangaroo.apprunner.util.AppsDeSerializer.AppInfo;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.model.Dependency;
@@ -16,13 +17,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 
 /**
  * Generates and prepares packaging of Sencha apps modules.
@@ -45,25 +46,25 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
   }
 
   private void packageApps() throws MojoExecutionException {
-    File appsDir = new File(webResourcesOutputDirectory, SenchaUtils.APPS_DIRECTORY_NAME);
-    FileHelper.ensureDirectory(appsDir);
-    Path appsPath = appsDir.toPath().normalize();
+    Path rootPath = webResourcesOutputDirectory.toPath().normalize();
+    Path appsPath = rootPath.resolve(SenchaUtils.APPS_DIRECTORY_NAME).normalize();
+    FileHelper.ensureDirectory(appsPath.toFile());
 
     JangarooApps jangarooApps = createJangarooApps(project);
     Dependency rootApp = getRootApp();
-    Map<String, String> pathMapping = ImmutableMap.of(
-            "packages/",  "../../packages/",
-            "ext/", "../../ext/"
-    );
+    List<AppInfo> appInfoList = new ArrayList<>();
     for (JangarooApp jangarooApp : jangarooApps.apps) {
-      // skip for root app
-      if (rootApp != null
+      String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
+      boolean isRootApp = rootApp != null
               && rootApp.getGroupId().equals(jangarooApp.mavenProject.getGroupId())
-              && rootApp.getArtifactId().equals(jangarooApp.mavenProject.getArtifactId())) {
+              && rootApp.getArtifactId().equals(jangarooApp.mavenProject.getArtifactId());
+      Path appPath = isRootApp ? rootPath : appsPath.resolve(senchaAppName);
+      appInfoList.add(new AppInfo(senchaAppName, rootPath.relativize(appPath)));
+
+      // skip remaining stuff for root app
+      if (isRootApp) {
         continue;
       }
-      String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
-      Path appPath = appsPath.resolve(senchaAppName);
 
       // TODO: check if in reactor
       // assuming no bootstrap file has been overridden in an app-overlay for now...
@@ -81,10 +82,14 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
         File bootstrapJsonSourceFile = new File(appReactorDir, locale + ".json");
         File bootstrapJsonTargetFile = new File(appPath.toFile(), locale + ".json");
         try {
+          Path pathToRoot = appPath.relativize(rootPath);
           AppsDeSerializer.rewriteBootstrapJsonPaths(
                   new FileInputStream(bootstrapJsonSourceFile),
                   new FileOutputStream(bootstrapJsonTargetFile),
-                  pathMapping
+                  ImmutableMap.of(
+                          "ext/", pathToRoot + "ext/",
+                          PACKAGES_DIRECTORY_NAME + SEPARATOR, pathToRoot + PACKAGES_DIRECTORY_NAME + SEPARATOR
+                  )
           );
         } catch (IOException e) {
           throw new MojoExecutionException("Could not rewrite bootstrap paths", e);
@@ -92,16 +97,13 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
       }
     }
 
-    Set<String> appNames = jangarooApps.apps.stream()
-            .map(app -> app.mavenProject.getArtifact())
-            .map(artifact -> SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
-            .collect(Collectors.toSet());
-
-    writeAppsJson(appNames);
+    for (AppInfo appInfo : appInfoList) {
+      writeAppsJson(webResourcesOutputDirectory.toPath().resolve(appInfo.path).toFile(), appInfoList);
+    }
   }
 
-  private void writeAppsJson(Set<String> appNames) throws MojoExecutionException {
-    File appsFile = prepareFile(new File(webResourcesOutputDirectory, APPS_FILENAME));
+  private void writeAppsJson(File folder, List<AppInfo> appNames) throws MojoExecutionException {
+    File appsFile = prepareFile(new File(folder, APPS_FILENAME));
 
     try {
       AppsDeSerializer.writeApps(new FileOutputStream(appsFile), appNames);
