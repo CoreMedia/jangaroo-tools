@@ -21,6 +21,7 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -228,6 +229,31 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       return new JangarooApps(project, apps);
     }
     return null;
+  }
+
+  @Nonnull
+  protected File getArtifactFile(MavenProject mavenProject) throws MojoExecutionException {
+    Artifact appArtifact = getArtifact(mavenProject);
+    if (appArtifact == null) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " not found in project dependencies.");
+    }
+    File appJarFile = appArtifact.getFile();
+    if (appJarFile == null) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " has null file, cannot determine JAR location.");
+    }
+    if (appJarFile.isDirectory()) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " is a directory.");
+    }
+    return appJarFile;
+  }
+
+  @Nonnull
+  protected File getAppDirOrJar(MavenProject mavenProject) throws MojoExecutionException {
+    File appReactorDir = new File(mavenProject.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    if (appReactorDir.isDirectory()) {
+      return appReactorDir;
+    }
+    return getArtifactFile(mavenProject);
   }
 
   static class JangarooApp {

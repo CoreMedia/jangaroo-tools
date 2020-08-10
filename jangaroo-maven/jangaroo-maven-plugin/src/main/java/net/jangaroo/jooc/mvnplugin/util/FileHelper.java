@@ -15,10 +15,16 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.AbstractArchiver;
+import org.codehaus.plexus.archiver.ArchivedFileSet;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.util.AbstractFileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.archiver.zip.PlexusArchiverZipFileResourceCollection;
+import org.codehaus.plexus.components.io.filemappers.FileMapper;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
+import org.codehaus.plexus.components.io.fileselectors.IncludeExcludeFileSelector;
 import org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection;
 
 import javax.annotation.Nonnull;
@@ -29,6 +35,8 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +50,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+import static org.codehaus.plexus.archiver.util.DefaultArchivedFileSet.archivedFileSet;
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 public final class FileHelper {
@@ -218,7 +227,7 @@ public final class FileHelper {
                                    ArtifactHandlerManager artifactHandlerManager,
                                    String senchaAppBuild,
                                    File appsDir,
-                                   Map<String, List<File>> appNamesToDirs,
+                                   Map<String, List<File>> appNamesToDirsOrJars,
                                    String rootAppName) throws MojoExecutionException {
     if (senchaAppBuild != null && !SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       // really important?
@@ -234,32 +243,49 @@ public final class FileHelper {
     fileSet.setIncludingEmptyDirectories(false);
     addFileSetFollowingSymLinks(archiver, fileSet);
 
-    appNamesToDirs.forEach((appName, appDirs) -> {
-      appDirs.forEach(appDir -> {
+    appNamesToDirsOrJars.forEach((appName, appDirsOrJars) -> {
+      appDirsOrJars.forEach(appDirOrJar -> {
         // add the Jangaroo compiler resources to the resulting JAR
         boolean isRootApp = appName.equals(rootAppName);
         String appPath = isRootApp ? "" : APPS_DIRECTORY_NAME + SEPARATOR + appName + SEPARATOR;
-        DefaultFileSet appFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES + appPath);
+        boolean isDirectory = appDirOrJar.isDirectory();
+        // while FileSet#setPrefix determines a prefix inside the generated archive, the
+        // sourcePrefix is meant as a prefix for the input files
+        String sourcePrefix = isDirectory ? "" : MavenPluginHelper.META_INF_RESOURCES;
+
+        AbstractFileSet<?> appFileSet = isDirectory ? fileSet(appDirOrJar) : archivedFileSet(appDirOrJar);
+        appFileSet.prefixed(MavenPluginHelper.META_INF_RESOURCES + appPath);
+
         appFileSet.setExcludes(new String[]{
                 "**/build/temp/**",
                 "**/*-timestamp",
-                EXT_DIRECTORY_NAME + SEPARATOR + "**",
-                PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
+                sourcePrefix + EXT_DIRECTORY_NAME + SEPARATOR + "**",
+                sourcePrefix + PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
         });
         appFileSet.setIncludingEmptyDirectories(false);
-        addFileSetFollowingSymLinks(archiver, appFileSet);
+        if (isDirectory) {
+          addFileSetFollowingSymLinks(archiver, (FileSet) appFileSet);
+        } else {
+          addArchivedFileSetRemovingPrefixFromSource(archiver, (ArchivedFileSet) appFileSet, MavenPluginHelper.META_INF_RESOURCES);
+        }
 
         // add the Jangaroo compiler resources to the resulting JAR
-        DefaultFileSet packagesFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
+        AbstractFileSet<?> packagesFileSet = isDirectory ? fileSet(appDirOrJar) : archivedFileSet(appDirOrJar);
+        packagesFileSet.prefixed(MavenPluginHelper.META_INF_RESOURCES);
+
         packagesFileSet.setIncludes(new String[]{
-                EXT_DIRECTORY_NAME + SEPARATOR + "**",
-                PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
+                sourcePrefix + EXT_DIRECTORY_NAME + SEPARATOR + "**",
+                sourcePrefix + PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
         });
         packagesFileSet.setExcludes(new String[]{
-                PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
+                sourcePrefix + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
         });
         packagesFileSet.setIncludingEmptyDirectories(false);
-        addFileSetFollowingSymLinks(archiver, packagesFileSet);
+        if (isDirectory) {
+          addFileSetFollowingSymLinks(archiver, (FileSet) packagesFileSet);
+        } else {
+          addArchivedFileSetRemovingPrefixFromSource(archiver, (ArchivedFileSet) packagesFileSet, MavenPluginHelper.META_INF_RESOURCES);
+        }
       });
     });
 
@@ -313,6 +339,42 @@ public final class FileHelper {
     {
       collection.setDefaultAttributes( -1, null, -1, null, archiver.getDefaultFileMode(), archiver.getDefaultDirectoryMode() );
     }
+
+    archiver.addResources( collection );
+  }
+
+  private static void addArchivedFileSetRemovingPrefixFromSource(@Nonnull AbstractArchiver archiver, @Nonnull final ArchivedFileSet fileSet, String prefix )
+          throws ArchiverException
+  {
+    final File archive = fileSet.getArchive();
+
+    final PlexusArchiverZipFileResourceCollection collection = new PlexusArchiverZipFileResourceCollection();
+
+    collection.setFile(archive);
+    collection.setIncludes( fileSet.getIncludes() );
+    collection.setExcludes( fileSet.getExcludes() );
+    collection.setIncludingEmptyDirectories( fileSet.isIncludingEmptyDirectories() );
+    collection.setPrefix( fileSet.getPrefix() );
+    collection.setCaseSensitive( fileSet.isCaseSensitive() );
+    collection.setUsingDefaultExcludes( fileSet.isUsingDefaultExcludes() );
+    collection.setStreamTransformer( fileSet.getStreamTransformer() );
+
+    FileSelector[] fileSelectors = fileSet.getFileSelectors();
+    List<FileSelector> fileSelectorsList = fileSelectors == null ? new ArrayList<>() : Arrays.asList(fileSelectors);
+    fileSelectorsList.add(0,
+            fileInfo -> !prefix.equals(fileInfo.getName()) && fileInfo.getName().startsWith(prefix)
+    );
+    // as soon as an own fileSelector is used the include/exclude list is no longer applied
+    if (fileSet.getIncludes() != null || fileSet.getExcludes() != null) {
+      IncludeExcludeFileSelector includeExcludeFileSelector = new IncludeExcludeFileSelector();
+      includeExcludeFileSelector.setIncludes(fileSet.getIncludes());
+      includeExcludeFileSelector.setExcludes(fileSet.getExcludes());
+      fileSelectorsList.add(includeExcludeFileSelector);
+    }
+    collection.setFileSelectors(fileSelectorsList.toArray(new FileSelector[]{}));
+    collection.setFileMappers(new FileMapper[]{
+            s -> s.replaceFirst("^" + prefix, "")
+    });
 
     archiver.addResources( collection );
   }

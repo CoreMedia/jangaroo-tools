@@ -35,21 +35,20 @@ public class PackageAppsMojo extends AbstractSenchaMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     JangarooApps jangarooApps = createJangarooApps(project);
-    Map<String, List<File>> appNamesToDir = new HashMap<>();
+    Map<String, List<File>> appNamesToDirsOrJars = new HashMap<>();
     for (JangarooApp jangarooApp : jangarooApps.apps) {
       String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
       List<File> appReactorDirs = new ArrayList<>();
 
       do {
-        // TODO: check if in reactor
-        appReactorDirs.add(new File(jangarooApp.mavenProject.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY));
+        appReactorDirs.add(getAppDirOrJar(jangarooApp.mavenProject));
         jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
       } while (jangarooApp != null);
 
-      appNamesToDir.put(senchaAppName, appReactorDirs);
+      appNamesToDirsOrJars.put(senchaAppName, appReactorDirs);
     }
     Dependency rootApp = getRootApp();
     String rootAppName = rootApp == null ? null : SenchaUtils.getSenchaPackageName(rootApp.getGroupId(), rootApp.getArtifactId());
-    FileHelper.createAppsJar(session, archiver, artifactHandlerManager, null, null, appNamesToDir, rootAppName);
+    FileHelper.createAppsJar(session, archiver, artifactHandlerManager, null, null, appNamesToDirsOrJars, rootAppName);
   }
 }

@@ -14,16 +14,24 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EXT_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 /**
  * Generates and prepares packaging of Sencha apps modules.
@@ -66,28 +74,27 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
         continue;
       }
 
-      // TODO: check if in reactor
-      // assuming no bootstrap file has been overridden in an app-overlay for now...
-      File appReactorDir = new File(jangarooApp.getRootBaseApp().mavenProject.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
-      File appJson = new File(appReactorDir, SENCHA_APP_FILENAME);
+      File appDirOrJar = getAppDirOrJar(jangarooApp.mavenProject);
 
+      // assuming no bootstrap file has been overridden in an app-overlay for now...
       final List<String> locales;
       try {
-        locales = AppsDeSerializer.readLocales(new FileInputStream(appJson));
+        locales = AppsDeSerializer.readLocales(getInputStreamForDirOrJar(appDirOrJar, Paths.get(SENCHA_APP_FILENAME)));
       } catch (IOException e) {
-        throw new MojoExecutionException("Could not read " + appJson, e);
+        throw new MojoExecutionException("Could not read " + SENCHA_APP_FILENAME, e);
       }
       for (String locale : locales) {
         FileHelper.ensureDirectory(appPath.toFile());
-        File bootstrapJsonSourceFile = new File(appReactorDir, locale + ".json");
-        File bootstrapJsonTargetFile = new File(appPath.toFile(), locale + ".json");
         try {
-          Path pathToRoot = appPath.relativize(rootPath);
+          String pathToRoot = appPath.relativize(rootPath).toString();
+          if (!pathToRoot.isEmpty() && !pathToRoot.endsWith(SEPARATOR)) {
+            pathToRoot += SEPARATOR;
+          }
           AppsDeSerializer.rewriteBootstrapJsonPaths(
-                  new FileInputStream(bootstrapJsonSourceFile),
-                  new FileOutputStream(bootstrapJsonTargetFile),
+                  getInputStreamForDirOrJar(appDirOrJar, Paths.get(locale + ".json")),
+                  new FileOutputStream(new File(appPath.toFile(), locale + ".json")),
                   ImmutableMap.of(
-                          "ext/", pathToRoot + "ext/",
+                          EXT_DIRECTORY_NAME + SEPARATOR, pathToRoot + EXT_DIRECTORY_NAME + SEPARATOR,
                           PACKAGES_DIRECTORY_NAME + SEPARATOR, pathToRoot + PACKAGES_DIRECTORY_NAME + SEPARATOR
                   )
           );
@@ -109,6 +116,35 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
       AppsDeSerializer.writeApps(new FileOutputStream(appsFile), appNames);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + appsFile + " resource", e);
+    }
+  }
+
+  private InputStream getInputStreamForDirOrJar(File dirOrJar, Path path) throws MojoExecutionException {
+    if (dirOrJar.isDirectory()) {
+      try {
+        return new FileInputStream(dirOrJar.toPath().resolve(path).toFile());
+      } catch (FileNotFoundException e) {
+        return null;
+      }
+    } else {
+      URL inputURL;
+      try {
+        String urlString = "jar:" + dirOrJar.toURI().toURL().toString() + "!/" + META_INF_RESOURCES + path;
+        inputURL = new URL(urlString);
+      } catch (MalformedURLException ignored) {
+        // will not happen
+        return null;
+      }
+
+      try {
+        JarURLConnection urlConnection = (JarURLConnection) inputURL.openConnection();
+        if (urlConnection.getJarEntry() == null) {
+          return null;
+        }
+        return urlConnection.getInputStream();
+      } catch (IOException e) {
+        throw new MojoExecutionException("Error reading " + path, e);
+      }
     }
   }
 }
