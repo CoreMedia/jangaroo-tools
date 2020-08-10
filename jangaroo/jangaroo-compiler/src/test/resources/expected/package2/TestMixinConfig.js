@@ -41,7 +41,7 @@ Ext.define("package2.TestMixinConfig", function(TestMixinConfig) {/*public class
   private static*/ function extendClass$static(baseClass/*:Class*/, derivedClass/*:Class*/, classBody/*: Object*/)/*:void*/ {
     // gotcha extended!
   }/*
-}*/function TestMixinConfig$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
@@ -73,7 +73,6 @@ Ext.define("package2.TestMixinConfig", function(TestMixinConfig) {/*public class
       doSomethingOnBar: doSomethingOnBar,
       doSomethingOnBaz: doSomethingOnBaz,
       doSomethingOnMany: doSomethingOnMany,
-      doSomethingOnBoth: doSomethingOnBoth,
-      constructor: TestMixinConfig$
+      doSomethingOnBoth: doSomethingOnBoth
     };
 });

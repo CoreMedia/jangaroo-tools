@@ -7,12 +7,9 @@ Ext.define("package2.TestStatementStartingWithArrayLiteral", function(TestStatem
     return result;
   }/*
 
-}*/function TestStatementStartingWithArrayLiteral$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      constructor: TestStatementStartingWithArrayLiteral$,
-      statics: {sum1_2_3: sum1_2_3$static}
-    };
+    return {statics: {sum1_2_3: sum1_2_3$static}};
 });

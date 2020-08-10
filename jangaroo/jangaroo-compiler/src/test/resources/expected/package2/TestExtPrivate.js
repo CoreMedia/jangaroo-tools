@@ -9,13 +9,12 @@ Ext.define("package2.TestExtPrivate", function(TestExtPrivate) {/*public class T
   public*/ function canOnlyOverrideIfAnnotated(foo/*:String*/)/*:Boolean*/ {
     // This method can only be overridden in subclasses if annotated with [ExtPrivate].
   }/*
-}*/function TestExtPrivate$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       canOverride: canOverride,
-      constructor: TestExtPrivate$,
       privates: {canOnlyOverrideIfAnnotated: canOnlyOverrideIfAnnotated}
     };
 });

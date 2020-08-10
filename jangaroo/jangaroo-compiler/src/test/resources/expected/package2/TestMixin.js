@@ -4,12 +4,9 @@ Ext.define("package2.TestMixin", function(TestMixin) {/*public class TestMixin i
   public*/ function mix(thing/*:String*/)/*:String*/ {
     return "Mixed " + thing + "!";
   }/*
-}*/function TestMixin$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      mix: mix,
-      constructor: TestMixin$
-    };
+    return {mix: mix};
 });

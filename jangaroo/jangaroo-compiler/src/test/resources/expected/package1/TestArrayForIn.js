@@ -50,20 +50,17 @@ Ext.define("package1.TestArrayForIn", function(TestArrayForIn) {/*public class T
   private static*/ function doSomething$static(param/*:**/)/*:void*/ {
     // do something...
   }/*
-}*/function TestArrayForIn$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      constructor: TestArrayForIn$,
-      statics: {
-        ARRAY: undefined,
-        array: undefined,
-        test: test$static,
-        __initStatics__: function() {
+    return {statics: {
+      ARRAY: undefined,
+      array: undefined,
+      test: test$static,
+      __initStatics__: function() {
           ARRAY$static_();
           array$static_();
         }
-      }
-    };
+    }};
 });

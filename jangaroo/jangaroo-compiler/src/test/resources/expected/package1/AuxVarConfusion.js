@@ -8,12 +8,9 @@ Ext.define("package1.AuxVarConfusion", function(AuxVarConfusion) {/*public class
     }
   }/*
 
-}*/function AuxVarConfusion$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      doSomething: doSomething,
-      constructor: AuxVarConfusion$
-    };
+    return {doSomething: doSomething};
 });

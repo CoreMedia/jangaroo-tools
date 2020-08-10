@@ -32,16 +32,13 @@ class Helper {
   private*/ function text_getter()/*:String*/ {
     return this.text$K0sP;
   }/*
-}*/var Helper$static = Ext.define(null, {constructor: Helper$,super$K0sP: function() {text_.call(this);},getText: getText,text_getter$K0sP: text_getter,statics: {CONST: "FOO"}});function TestHelperClasses$() {}/*
+}*/var Helper$static = Ext.define(null, {constructor: Helper$,super$K0sP: function() {text_.call(this);},getText: getText,text_getter$K0sP: text_getter,statics: {CONST: "FOO"}});/*
 }
 
 ============================================== Jangaroo part ==============================================*/
-    return {
-      constructor: TestHelperClasses$,
-      statics: {
-        TEXT: "foo",
-        getText: getText$static,
-        getConstantFromHelperClass: getConstantFromHelperClass$static
-      }
-    };
+    return {statics: {
+      TEXT: "foo",
+      getText: getText$static,
+      getConstantFromHelperClass: getConstantFromHelperClass$static
+    }};
 });

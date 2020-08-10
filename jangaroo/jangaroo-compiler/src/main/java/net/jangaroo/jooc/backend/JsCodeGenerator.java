@@ -1273,7 +1273,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased()) {
       addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }
-    if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()) {
+    if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()
+       && needsSuperCallCodeGenerator(functionDeclaration.getClassDeclaration())) {
       addBlockStartCodeGenerator(functionDeclaration.getBody(), new SuperCallCodeGenerator(functionDeclaration.getClassDeclaration()));
     }
     if (!functionDeclaration.isClassMember() && !isPrimaryDeclaration) {
@@ -1445,7 +1446,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write(");");
     }
 
-    if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null) {
+    if (!classDeclaration.isInterface() && classDeclaration.getConstructor() == null
+            && needsSuperCallCodeGenerator(classDeclaration)) {
       // generate default constructor that calls field initializers:
       String constructorName = classDeclaration.getName() + "$";
       out.write("function " + constructorName + "() {");
@@ -1499,6 +1501,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return args;
   }
 
+  public static boolean needsSuperCallCodeGenerator(ClassDeclaration classDeclaration) {
+    return classDeclaration.notExtendsObject()                         // only if class has a "real" superclass
+            || !classDeclaration.getFieldsWithInitializer().isEmpty(); // or there are field initializers
+  }
+
   private class SuperCallCodeGenerator implements CodeGenerator {
     private ClassDeclaration classDeclaration;
 
@@ -1508,11 +1515,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
     @Override
     public void generate(JsWriter out, boolean first) throws IOException {
-      if (classDeclaration.notExtendsObject() // suppress for classes extending Object
-              || !classDeclaration.getFieldsWithInitializer().isEmpty()) { // but not if there are field initializers
-        generateSuperConstructorCallCode(classDeclaration, null);
-        out.writeToken(";");
-      }
+      generateSuperConstructorCallCode(classDeclaration, null);
+      out.writeToken(";");
     }
   }
 

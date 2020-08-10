@@ -7,13 +7,12 @@ Ext.define("package1.PrivateMemberAccess", function(PrivateMemberAccess) {/*publ
   public static*/ function doSomething$static()/*:String*/ {
     return PrivateMemberAccess.INSTANCE.secret$Z3lU;
   }/*
-}*/function PrivateMemberAccess$() {}/*
+}
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
       secret$Z3lU: null,
-      constructor: PrivateMemberAccess$,
       statics: {
         INSTANCE: undefined,
         doSomething: doSomething$static,
