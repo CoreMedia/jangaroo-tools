@@ -450,12 +450,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // fall-through
       case ANY:
         return "any";
-      case UINT:
-      case INT:
-        return "number";
       case VECTOR:
       case ARRAY:
         return "Array<" + getTypeScriptTypeForActionScriptType(expressionType.getTypeParameter()) + ">";
+      case UINT:
+      case INT:
       case BOOLEAN:
       case NUMBER:
       case STRING:
