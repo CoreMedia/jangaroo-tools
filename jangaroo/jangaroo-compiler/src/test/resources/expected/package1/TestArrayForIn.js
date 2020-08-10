@@ -57,8 +57,6 @@ public class TestArrayForIn {
     return {
       constructor: TestArrayForIn$,
       statics: {
-        ARRAY: undefined,
-        array: undefined,
         test: test$static,
         __initStatics__: function() {
           ARRAY$static_();

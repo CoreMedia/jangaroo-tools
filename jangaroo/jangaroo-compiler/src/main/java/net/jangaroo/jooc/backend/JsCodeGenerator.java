@@ -1553,7 +1553,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (variableDeclaration.isStatic()) {
         primaryClassDefinitionBuilder.staticCode.append("          ").append(variableName).append("$static_();\n");
       }
-      if (isBindable || variableDeclaration.isStatic()) {
+      if (isBindable || variableDeclaration.isStatic() && !variableDeclaration.isPrivate()) {
         // make sure that configs are always declared, even with dynamic initializer, so that Ext magic is applied:
         value = "undefined";
       }
