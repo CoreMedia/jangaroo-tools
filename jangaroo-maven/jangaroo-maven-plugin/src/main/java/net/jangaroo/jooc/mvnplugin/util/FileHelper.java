@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EXT_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_ARTIFACT_ID;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_TEMPLATE_GROUP_ID;
@@ -241,11 +242,9 @@ public final class FileHelper {
         DefaultFileSet appFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES + appPath);
         appFileSet.setExcludes(new String[]{
                 "**/build/temp/**",
-                "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",
-                PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
                 "**/*-timestamp",
-                "ext/**",
-                "packages/**",
+                EXT_DIRECTORY_NAME + SEPARATOR + "**",
+                PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
         });
         appFileSet.setIncludingEmptyDirectories(false);
         addFileSetFollowingSymLinks(archiver, appFileSet);
@@ -253,8 +252,11 @@ public final class FileHelper {
         // add the Jangaroo compiler resources to the resulting JAR
         DefaultFileSet packagesFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
         packagesFileSet.setIncludes(new String[]{
-                "ext/**",
-                "packages/**",
+                EXT_DIRECTORY_NAME + SEPARATOR + "**",
+                PACKAGES_DIRECTORY_NAME + SEPARATOR + "**",
+        });
+        packagesFileSet.setExcludes(new String[]{
+                PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
         });
         packagesFileSet.setIncludingEmptyDirectories(false);
         addFileSetFollowingSymLinks(archiver, packagesFileSet);
