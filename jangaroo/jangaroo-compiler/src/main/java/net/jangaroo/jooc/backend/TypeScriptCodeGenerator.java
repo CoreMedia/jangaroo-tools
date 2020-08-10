@@ -598,18 +598,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
-    out.writeToken("AS3.");
-    out.writeSymbolToken(infixOpExpr.getOp());
-    out.write('(');
-    infixOpExpr.getArg1().visit(this);
-    out.write(',');
-    out.writeSymbolWhitespace(infixOpExpr.getOp());
-    infixOpExpr.getArg2().visit(this);
-    out.write(')');
-  }
-
-  @Override
   public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
     vectorLiteral.getArrayLiteral().visit(this);
   }

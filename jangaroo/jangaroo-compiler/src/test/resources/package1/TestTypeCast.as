@@ -10,6 +10,7 @@ public class TestTypeCast {
     var n :Number = Number("99.8");
     var i :int = int(r);
     var b :Boolean = p is TestTypeCast;
+    var notB :Boolean = !(p is TestTypeCast);
     return p as TestTypeCast;
   }
 

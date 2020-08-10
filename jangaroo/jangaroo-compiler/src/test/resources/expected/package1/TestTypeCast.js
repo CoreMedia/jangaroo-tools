@@ -10,6 +10,7 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
     var n/* :Number*/ = Number("99.8");
     var i/* :int*/ = AS3.int_(r);
     var b/* :Boolean*/ =AS3.is( p,  TestTypeCast);
+    var notB/* :Boolean*/ = !AS3.is(p,  TestTypeCast);
     return AS3.as( p,  TestTypeCast);
   }/*
 

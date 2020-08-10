@@ -672,18 +672,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
-    out.writeToken("AS3.");
-    out.writeSymbolToken(infixOpExpr.getOp());
-    out.write('(');
-    infixOpExpr.getArg1().visit(this);
-    out.write(',');
-    out.writeSymbolWhitespace(infixOpExpr.getOp());
-    infixOpExpr.getArg2().visit(this);
-    out.write(')');
-  }
-
-  @Override
   public void visitParameters(Parameters parameters) throws IOException {
     visitIfNotNull(parameters.getHead());
     if (parameters.getSymComma() != null) {

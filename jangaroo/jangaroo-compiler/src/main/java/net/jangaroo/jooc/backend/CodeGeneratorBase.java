@@ -59,6 +59,7 @@ import net.jangaroo.jooc.ast.NamespacedIde;
 import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
+import net.jangaroo.jooc.ast.OpExpr;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
@@ -365,9 +366,16 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
-    out.writeSymbol(parenthesizedExpr.getLParen());
-    visitIfNotNull(parenthesizedExpr.getExpr());
-    out.writeSymbol(parenthesizedExpr.getRParen());
+    if (parenthesizedExpr.getParentNode() instanceof OpExpr
+            && parenthesizedExpr.getExpr() instanceof InfixOpExpr) {
+      // suppress redundant parenthesis like !(AS3.is(foo, Foo)), because Babel does so, too:
+      generateInfixOpExpr((InfixOpExpr) parenthesizedExpr.getExpr(),
+              parenthesizedExpr.getLParen(), parenthesizedExpr.getRParen());
+    } else {
+      out.writeSymbol(parenthesizedExpr.getLParen());
+      visitIfNotNull(parenthesizedExpr.getExpr());
+      out.writeSymbol(parenthesizedExpr.getRParen());
+    }
   }
 
   @Override
@@ -382,7 +390,18 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
-    visitBinaryOpExpr(infixOpExpr);
+    generateInfixOpExpr(infixOpExpr, new JooSymbol("("), new JooSymbol(")"));
+  }
+
+  private void generateInfixOpExpr(InfixOpExpr infixOpExpr, JooSymbol lParenSym, JooSymbol rParenSym) throws IOException {
+    out.writeToken("AS3.");
+    out.writeSymbolToken(infixOpExpr.getOp());
+    out.writeSymbol(lParenSym);
+    infixOpExpr.getArg1().visit(this);
+    out.write(',');
+    out.writeSymbolWhitespace(infixOpExpr.getOp());
+    infixOpExpr.getArg2().visit(this);
+    out.writeSymbol(rParenSym);
   }
 
   @Override
