@@ -13,18 +13,17 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 public class AddBootstrapJsonServlet extends HttpServlet {
   private static final String APP_JSON = "app.json";
 
   private final String appUrl;
-  private final String oldPackagesPath;
-  private final String newPackagesPath;
+  private final Map<String, String> pathMapping;
 
-  public AddBootstrapJsonServlet(String appUrl, String oldPackagesPath, String newPackagesPath) {
+  public AddBootstrapJsonServlet(String appUrl, Map<String, String> pathMapping) {
     this.appUrl = appUrl;
-    this.oldPackagesPath = oldPackagesPath;
-    this.newPackagesPath = newPackagesPath;
+    this.pathMapping = pathMapping;
   }
 
   @Override
@@ -48,7 +47,7 @@ public class AddBootstrapJsonServlet extends HttpServlet {
           resp.setHeader("Content-Type", "application/json");
 
           httpResponse = HttpClientBuilder.create().setSSLSocketFactory(HttpClientUtil.createSSLSocketFactory()).build().execute(new HttpGet(appUrl + "/" + locale + ".json"));
-          AppsDeSerializer.rewriteBootstrapJsonPaths(httpResponse.getEntity().getContent(), resp.getOutputStream(), oldPackagesPath, newPackagesPath);
+          AppsDeSerializer.rewriteBootstrapJsonPaths(httpResponse.getEntity().getContent(), resp.getOutputStream(), pathMapping);
           return;
         }
       }

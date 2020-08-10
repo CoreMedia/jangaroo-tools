@@ -5,7 +5,6 @@ import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -14,9 +13,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
+import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.impl.StaticLoggerBinder;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -168,6 +169,7 @@ public class RunMojo extends AbstractSenchaMojo {
           // Add base app and all app overlays
           do {
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, appPath, "");
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + "ext", "ext/");
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, "packages/");
             jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
           } while (jangarooApp != null);
@@ -223,8 +225,10 @@ public class RunMojo extends AbstractSenchaMojo {
             new File(baseAppProject.getBuild().getDirectory()).isDirectory()) {
       // base app is part of our Reactor, so we can determine its output directory:
       File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME + SEPARATOR + subDirectory);
-      jettyWrapper.addBaseDir(appResourceDir.toPath(), appPath);
-      getLog().info(String.format("Adding base app resource directory %s for handler with context path %s", appResourceDir.getAbsolutePath(), appPath));
+      if (appResourceDir.exists()) {
+        getLog().info(String.format("Adding base app resource directory %s for handler with context path %s", appResourceDir.getAbsolutePath(), appPath));
+        jettyWrapper.addBaseDir(appResourceDir.toPath(), appPath);
+      }
     } else {
       // base app is referenced externally, so we have to use the JAR artifact:
       Artifact baseAppArtifact = getArtifact(baseAppProject);
@@ -236,7 +240,14 @@ public class RunMojo extends AbstractSenchaMojo {
         throw new MojoExecutionException("Artifact of base app " + baseAppProject + " has null file, cannot determine JAR location.");
       }
       getLog().info(String.format("Adding base app JAR %s for handler with context path %s", baseAppResourceJarFile.getAbsolutePath(), appPath));
-      jettyWrapper.addResourceJar(new JettyWrapper.ResourceJar(baseAppResourceJarFile, Paths.get("/META-INF/resources", subDirectory)), appPath);
+      try {
+        Resource resourceFromJar = JettyWrapper.getResourceFromJar(baseAppResourceJarFile, Paths.get("/META-INF/resources", subDirectory));
+        if (resourceFromJar.exists()) {
+          jettyWrapper.addResourceJar(resourceFromJar, appPath);
+        }
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not read JAR: " + baseAppResourceJarFile, e);
+      }
     }
   }
 

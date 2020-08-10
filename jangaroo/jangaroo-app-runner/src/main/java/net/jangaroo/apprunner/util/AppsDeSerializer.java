@@ -44,13 +44,13 @@ public class AppsDeSerializer {
     return DEFAULT_LOCALES;
   }
 
-  public static void rewriteBootstrapJsonPaths(InputStream bootstrapJsonSource, OutputStream bootstrapJsonTarget, String oldPath, String newPath) throws IOException {
+  public static void rewriteBootstrapJsonPaths(InputStream bootstrapJsonSource, OutputStream bootstrapJsonTarget, Map<String, String> pathMapping) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
     //noinspection unchecked
     Map<String, Object> bootstrap = objectMapper.readValue(bootstrapJsonSource, Map.class);
     //noinspection unchecked
     Map<String, String> classToPath = (Map<String, String>) bootstrap.get(PATHS_PROPERTY);
-    classToPath.forEach((key, value) -> classToPath.put(key, rewritePath(value, oldPath, newPath)));
+    classToPath.forEach((key, value) -> classToPath.put(key, rewritePath(value, pathMapping)));
 
     Arrays.asList(CSS_PROPERTY, JS_PROPERTY, LOAD_ORDER_PROPERTY).forEach(propertyWithPathObjectList -> {
       if (bootstrap.containsKey(propertyWithPathObjectList)) {
@@ -58,7 +58,7 @@ public class AppsDeSerializer {
         List<Map<String, Object>> pathObjectList = (List<Map<String, Object>>) bootstrap.get(propertyWithPathObjectList);
         pathObjectList.forEach(pathObject -> {
           if (pathObject.containsKey(PATH_PROPERTY)) {
-            pathObject.put(PATH_PROPERTY, rewritePath((String) pathObject.get(PATH_PROPERTY), oldPath, newPath));
+            pathObject.put(PATH_PROPERTY, rewritePath((String) pathObject.get(PATH_PROPERTY), pathMapping));
           }
         });
       }
@@ -67,9 +67,12 @@ public class AppsDeSerializer {
     objectMapper.writeValue(new PrintWriter(bootstrapJsonTarget), bootstrap);
   }
 
-  private static String rewritePath(String path, String oldPath, String newPath) {
-    if (path.startsWith(oldPath)) {
-      return newPath + path.substring(oldPath.length());
+  private static String rewritePath(String path, Map<String, String> pathMappings) {
+    for (String oldPath : pathMappings.keySet()) {
+      if (path.startsWith(oldPath)) {
+        String newPath = pathMappings.get(oldPath);
+        path = newPath + path.substring(oldPath.length());
+      }
     }
     return path;
   }

@@ -244,6 +244,7 @@ public final class FileHelper {
                 "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",
                 PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID) + "/**",
                 "**/*-timestamp",
+                "ext/**",
                 "packages/**",
         });
         appFileSet.setIncludingEmptyDirectories(false);
@@ -252,6 +253,7 @@ public final class FileHelper {
         // add the Jangaroo compiler resources to the resulting JAR
         DefaultFileSet packagesFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
         packagesFileSet.setIncludes(new String[]{
+                "ext/**",
                 "packages/**",
         });
         packagesFileSet.setIncludingEmptyDirectories(false);

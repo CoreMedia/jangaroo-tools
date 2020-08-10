@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.common.collect.ImmutableMap;
 import net.jangaroo.apprunner.util.AppsDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
@@ -16,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,6 +51,10 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
 
     JangarooApps jangarooApps = createJangarooApps(project);
     Dependency rootApp = getRootApp();
+    Map<String, String> pathMapping = ImmutableMap.of(
+            "packages/",  "../../packages/",
+            "ext/", "../../ext/"
+    );
     for (JangarooApp jangarooApp : jangarooApps.apps) {
       // skip for root app
       if (rootApp != null
@@ -78,8 +84,7 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
           AppsDeSerializer.rewriteBootstrapJsonPaths(
                   new FileInputStream(bootstrapJsonSourceFile),
                   new FileOutputStream(bootstrapJsonTargetFile),
-                  "packages/",
-                  "../../packages/"
+                  pathMapping
           );
         } catch (IOException e) {
           throw new MojoExecutionException("Could not rewrite bootstrap paths", e);

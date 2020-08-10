@@ -16,10 +16,10 @@ import org.slf4j.Logger;
 
 import javax.servlet.Servlet;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -77,11 +77,11 @@ public class JettyWrapper {
     getConfiguration(path).addBaseDir(baseDir);
   }
 
-  public void addResourceJar(ResourceJar resourceJar) {
+  public void addResourceJar(Resource resourceJar) {
     addResourceJar(resourceJar, ROOT_PATH);
   }
 
-  public void addResourceJar(ResourceJar resourceJar, String path) {
+  public void addResourceJar(Resource resourceJar, String path) {
     getConfiguration(path).addResourceJar(resourceJar);
   }
 
@@ -221,7 +221,7 @@ public class JettyWrapper {
     return server;
   }
 
-  private WebAppContext createHandler(String path, List<Path> baseDirs, List<ResourceJar> resourceJars, List<StaticResourcesServletConfig> staticResourcesServletConfigs, List<ProxyServletConfig> proxyServletConfigs, Map<String, Servlet> additionalServlets) throws JettyWrapperException {
+  private WebAppContext createHandler(String path, List<Path> baseDirs, List<Resource> resourceJars, List<StaticResourcesServletConfig> staticResourcesServletConfigs, List<ProxyServletConfig> proxyServletConfigs, Map<String, Servlet> additionalServlets) throws JettyWrapperException {
     // root path needs a root path servlet. make sure it is created.
     boolean hasRootPathServlet = !(ROOT_PATH.equals(path));
     try {
@@ -234,9 +234,7 @@ public class JettyWrapper {
       List<Resource> baseResources = baseDirs.stream().map(Resource::newResource).collect(Collectors.toList());
       baseResources = new ArrayList<>(baseResources);
       if (resourceJars != null && !resourceJars.isEmpty()) {
-        for (ResourceJar resourceJar : resourceJars) {
-          baseResources.add(Resource.newResource("jar:"+Resource.toURL(resourceJar.file).toString()+"!" + resourceJar.path));
-        }
+        baseResources.addAll(resourceJars);
       }
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[0])));
       getLog().info("Using base resources " + baseResources);
@@ -267,6 +265,10 @@ public class JettyWrapper {
     } catch (Exception e) {
       throw new JettyWrapperException(e);
     }
+  }
+
+  public static Resource getResourceFromJar(File file, Path path) throws IOException {
+    return Resource.newResource("jar:" + Resource.toURL(file).toString() + "!" + path);
   }
 
   private boolean addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {
@@ -329,24 +331,9 @@ public class JettyWrapper {
     }
   }
 
-  public static class ResourceJar {
-    public final File file;
-    public final Path path;
-
-    public ResourceJar(File file) {
-      this.file = file;
-      this.path = Paths.get("");
-    }
-
-    public ResourceJar(File file, Path path) {
-      this.file = file;
-      this.path = path;
-    }
-  }
-
   private static class Configuration {
     private final List<Path> baseDirs = new ArrayList<>();
-    private final List<ResourceJar> resourceJars = new ArrayList<>();
+    private final List<Resource> resourceJars = new ArrayList<>();
     private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
     private List<ProxyServletConfig> proxyServletConfigs;
     private Map<String, Servlet> additionalServlets;
@@ -363,7 +350,7 @@ public class JettyWrapper {
       this.staticResourcesServletConfigs = staticResourcesServletConfigs;
     }
 
-    public void addResourceJar(ResourceJar resourceJar) {
+    public void addResourceJar(Resource resourceJar) {
       resourceJars.add(resourceJar);
     }
 
