@@ -55,8 +55,6 @@ Ext.define("package1.TestArrayForIn", function(TestArrayForIn) {/*public class T
 
 ============================================== Jangaroo part ==============================================*/
     return {statics: {
-      ARRAY: undefined,
-      array: undefined,
       test: test$static,
       __initStatics__: function() {
           ARRAY$static_();
