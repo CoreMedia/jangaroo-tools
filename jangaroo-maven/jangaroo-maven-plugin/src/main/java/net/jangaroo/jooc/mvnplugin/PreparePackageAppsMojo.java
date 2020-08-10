@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import net.jangaroo.apprunner.util.AppsDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -47,7 +48,14 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
     Path appsPath = appsDir.toPath().normalize();
 
     JangarooApps jangarooApps = createJangarooApps(project);
+    Dependency rootApp = getRootApp();
     for (JangarooApp jangarooApp : jangarooApps.apps) {
+      // skip for root app
+      if (rootApp != null
+              && rootApp.getGroupId().equals(jangarooApp.mavenProject.getGroupId())
+              && rootApp.getArtifactId().equals(jangarooApp.mavenProject.getArtifactId())) {
+        continue;
+      }
       String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
       Path appPath = appsPath.resolve(senchaAppName);
 

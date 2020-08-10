@@ -5,7 +5,9 @@ import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -152,23 +154,31 @@ public class RunMojo extends AbstractSenchaMojo {
         throw new MojoExecutionException("Not supported yet!");
       } else {
         // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
+        Dependency rootApp = getRootApp();
         for (JangarooApp jangarooApp : jangarooApps.apps) {
+          boolean isRootApp = rootApp != null
+                  && jangarooApp.mavenProject.getGroupId().equals(rootApp.getGroupId())
+                  && jangarooApp.mavenProject.getArtifactId().equals(rootApp.getArtifactId());
           String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
-          String appPath = LOCAL_APPS_PATH + senchaAppName;
-          // add local apps folder
-          jettyWrapper.addBaseDir(new File(baseDir, APPS_DIRECTORY_NAME + SEPARATOR + senchaAppName).toPath(), appPath);
+          String appPath = isRootApp ? ROOT_PATH : LOCAL_APPS_PATH + senchaAppName;
+          if (!isRootApp) {
+            // add local apps folder
+            jettyWrapper.addBaseDir(new File(baseDir, APPS_DIRECTORY_NAME + SEPARATOR + senchaAppName).toPath(), appPath);
+          }
           // Add base app and all app overlays
           do {
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, appPath, "");
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, "packages/");
             jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
           } while (jangarooApp != null);
-          jettyWrapper.setStaticResourcesServletConfigs(
-                  Collections.singletonList(
-                          new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, "/")
-                  ),
-                  appPath
-          );
+          if (!isRootApp) {
+            jettyWrapper.setStaticResourcesServletConfigs(
+                    Collections.singletonList(
+                            new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, "/")
+                    ),
+                    appPath
+            );
+          }
         }
         jettyWrapper.setStaticResourcesServletConfigs(
                 Collections.singletonList(

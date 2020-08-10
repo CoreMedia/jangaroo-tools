@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -68,6 +69,15 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(property = "senchaJvmArgs")
   private String senchaJvmArgs;
 
+  /**
+   * The maven coordinates ("groupId:artifactId") an app that should be provided in the root
+   * instead of the "apps/${appName}/".
+   *
+   * Only affects the packaging type "jangaroo-apps".
+   */
+  @Parameter
+  private String rootApp;
+
   private volatile Pattern extFrameworkArtifactPattern;
 
   private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
@@ -89,6 +99,13 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   public String getExtFrameworkArtifactRegexp() {
     return extFrameworkArtifactRegexp;
+  }
+
+  public Dependency getRootApp() {
+    if (rootApp == null || rootApp.isEmpty()) {
+      return null;
+    }
+    return MavenDependencyHelper.fromKey(rootApp);
   }
 
   // ***********************************************************************

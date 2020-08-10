@@ -217,7 +217,8 @@ public final class FileHelper {
                                    ArtifactHandlerManager artifactHandlerManager,
                                    String senchaAppBuild,
                                    File appsDir,
-                                   Map<String, List<File>> appNamesToDirs) throws MojoExecutionException {
+                                   Map<String, List<File>> appNamesToDirs,
+                                   String rootAppName) throws MojoExecutionException {
     if (senchaAppBuild != null && !SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       // really important?
       throw new MojoExecutionException("Apps jar is only supported for developer mode");
@@ -235,7 +236,9 @@ public final class FileHelper {
     appNamesToDirs.forEach((appName, appDirs) -> {
       appDirs.forEach(appDir -> {
         // add the Jangaroo compiler resources to the resulting JAR
-        DefaultFileSet appFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES + APPS_DIRECTORY_NAME + SEPARATOR + appName + SEPARATOR);
+        boolean isRootApp = appName.equals(rootAppName);
+        String appPath = isRootApp ? "" : APPS_DIRECTORY_NAME + SEPARATOR + appName + SEPARATOR;
+        DefaultFileSet appFileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES + appPath);
         appFileSet.setExcludes(new String[]{
                 "**/build/temp/**",
                 "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",

@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -47,6 +48,8 @@ public class PackageAppsMojo extends AbstractSenchaMojo {
 
       appNamesToDir.put(senchaAppName, appReactorDirs);
     }
-    FileHelper.createAppsJar(session, archiver, artifactHandlerManager, null, null, appNamesToDir);
+    Dependency rootApp = getRootApp();
+    String rootAppName = rootApp == null ? null : SenchaUtils.getSenchaPackageName(rootApp.getGroupId(), rootApp.getArtifactId());
+    FileHelper.createAppsJar(session, archiver, artifactHandlerManager, null, null, appNamesToDir, rootAppName);
   }
 }
