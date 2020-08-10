@@ -683,7 +683,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         // for class members, leave out "var", replace "const" by "readonly":
         if (variableDeclaration.isConst()) {
-          writeReadonlySuppressWhitespace(currentVariableDeclaration.getSymbol());
+          writeReadonlySuppressWhitespace(currentVariableDeclaration.getIde().getSymbol());
         }
         visitVariableDeclarationBase(currentVariableDeclaration);
         writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
