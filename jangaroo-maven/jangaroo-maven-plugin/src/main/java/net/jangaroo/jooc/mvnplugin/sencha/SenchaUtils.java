@@ -61,6 +61,8 @@ public class SenchaUtils {
 
   public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;
 
+  public static final String APPS_TARGET_DIRECTORY = SEPARATOR + APPS_DIRECTORY_NAME;
+
   /**
    * The name of the folder of the generated module inside the packages folder of the module.
    * Make sure that the name is not too long to avoid exceeding the max path length in windows.

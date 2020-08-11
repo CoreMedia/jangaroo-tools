@@ -41,7 +41,7 @@ import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOUR
         requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
 
-  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
+  @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APPS_TARGET_DIRECTORY, readonly = true)
   private File webResourcesOutputDirectory;
 
   @Override

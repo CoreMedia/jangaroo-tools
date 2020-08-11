@@ -234,7 +234,7 @@ public final class FileHelper {
       throw new MojoExecutionException("Apps jar is only supported for developer mode");
     }
     MavenProject project = session.getCurrentProject();
-    appsDir = appsDir != null ? appsDir : new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    appsDir = appsDir != null ? appsDir : new File(project.getBuild().getDirectory() + SenchaUtils.APPS_TARGET_DIRECTORY);
 
     File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
 

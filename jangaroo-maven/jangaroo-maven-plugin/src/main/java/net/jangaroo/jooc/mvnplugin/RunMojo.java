@@ -107,7 +107,7 @@ public class RunMojo extends AbstractSenchaMojo {
 
     File baseDir = isAppPackaging || isAppOverlayPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
             : isSwcPackaging ? new File(project.getBuild().getTestOutputDirectory())
-            : isAppsPackaging ? new File(project.getBuild().getDirectory(), /* TODO: maybe rename? */APP_DIRECTORY_NAME)
+            : isAppsPackaging ? new File(project.getBuild().getDirectory(), APPS_DIRECTORY_NAME)
             : null;
 
     if (baseDir == null) {
