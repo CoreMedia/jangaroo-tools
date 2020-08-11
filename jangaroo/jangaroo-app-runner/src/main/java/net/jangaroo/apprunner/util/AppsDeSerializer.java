@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,9 +78,9 @@ public class AppsDeSerializer {
 
   public static class AppInfo {
     public final String name;
-    public final Path path;
+    public final String path;
 
-    public AppInfo(String name, Path path) {
+    public AppInfo(String name, String path) {
       this.name = name;
       this.path = path;
     }

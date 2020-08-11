@@ -207,6 +207,9 @@ public class JettyWrapper {
   }
 
   private Configuration getConfiguration(String path) {
+    if (path.contains("\\")) {
+      getLog().warn("Path should not contain backslashes: " + path);
+    }
     if (!configurationByPath.containsKey(path)) {
       configurationByPath.put(path, new Configuration());
     }
@@ -233,7 +236,7 @@ public class JettyWrapper {
 
       List<Resource> baseResources = baseDirs.stream().map(Resource::newResource).collect(Collectors.toList());
       baseResources = new ArrayList<>(baseResources);
-      if (resourceJars != null && !resourceJars.isEmpty()) {
+      if (!resourceJars.isEmpty()) {
         baseResources.addAll(resourceJars);
       }
       handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[0])));
@@ -267,8 +270,8 @@ public class JettyWrapper {
     }
   }
 
-  public static Resource getResourceFromJar(File file, Path path) throws IOException {
-    return Resource.newResource("jar:" + Resource.toURL(file).toString() + "!" + path);
+  public static Resource getResourceFromJar(File file, String relativePathInsideJar) throws IOException {
+    return Resource.newResource("jar:" + Resource.toURL(file).toString() + "!/" + relativePathInsideJar);
   }
 
   private boolean addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {

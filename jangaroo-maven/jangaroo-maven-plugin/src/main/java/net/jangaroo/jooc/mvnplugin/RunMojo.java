@@ -5,6 +5,7 @@ import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -17,7 +18,6 @@ import org.slf4j.impl.StaticLoggerBinder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,7 +67,7 @@ public class RunMojo extends AbstractSenchaMojo {
   private String jooProxyTargetUri;
 
   public void setJooProxyTargetUri(String jooProxyTargetUri) {
-    this.jooProxyTargetUri = jooProxyTargetUri.endsWith("/") ? jooProxyTargetUri : jooProxyTargetUri + "/";
+    this.jooProxyTargetUri = jooProxyTargetUri.endsWith(SEPARATOR) ? jooProxyTargetUri : jooProxyTargetUri + SEPARATOR;
   }
 
   /**
@@ -147,7 +147,7 @@ public class RunMojo extends AbstractSenchaMojo {
           addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
         }
 
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, "/"));
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
       }
     } else if (isAppsPackaging) {
       JangarooApps jangarooApps = createJangarooApps(project);
@@ -176,7 +176,7 @@ public class RunMojo extends AbstractSenchaMojo {
           if (!isRootApp) {
             jettyWrapper.setStaticResourcesServletConfigs(
                     Collections.singletonList(
-                            new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, "/")
+                            new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
                     ),
                     appPath
             );
@@ -184,11 +184,17 @@ public class RunMojo extends AbstractSenchaMojo {
         }
         jettyWrapper.setStaticResourcesServletConfigs(
                 Collections.singletonList(
-                        new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, "/")
+                        new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
+                ),
+                SEPARATOR + EXT_DIRECTORY_NAME
+        );
+        jettyWrapper.setStaticResourcesServletConfigs(
+                Collections.singletonList(
+                        new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
                 ),
                 SEPARATOR + PACKAGES_DIRECTORY_NAME
         );
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, "/"));
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
       }
     }
 
@@ -232,7 +238,7 @@ public class RunMojo extends AbstractSenchaMojo {
     } else {
       getLog().info(String.format("Adding base app JAR %s for handler with context path %s", appDirOrJar.getAbsolutePath(), appPath));
       try {
-        Resource resourceFromJar = JettyWrapper.getResourceFromJar(appDirOrJar, Paths.get("/META-INF/resources", subDirectory));
+        Resource resourceFromJar = JettyWrapper.getResourceFromJar(appDirOrJar, MavenPluginHelper.META_INF_RESOURCES + subDirectory);
         if (resourceFromJar.exists()) {
           jettyWrapper.addResourceJar(resourceFromJar, appPath);
         }
