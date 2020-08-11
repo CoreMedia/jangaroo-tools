@@ -170,7 +170,7 @@ public class JettyWrapper {
   }
 
   public URI getUri() {
-    return server.getURI();
+    return server.getURI().resolve(ROOT_PATH);
   }
 
   public void waitUntilStarted(int timeoutMillis) throws JettyWrapperException {
