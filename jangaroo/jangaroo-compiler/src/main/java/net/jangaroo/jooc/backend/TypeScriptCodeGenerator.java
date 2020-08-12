@@ -572,14 +572,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitParameter(Parameter parameter) throws IOException {
     writeOptSymbol(parameter.getOptSymRest());
     parameter.getIde().visit(this);
-    boolean hasInitializer = parameter.getOptInitializer() != null;
-    if (hasInitializer && isAmbientOrInterface(compilationUnit)) {
+    Initializer initializer = parameter.getOptInitializer();
+    boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()));
+    if (isOptional) {
       out.write("?");
     }
     visitParameterTypeRelation(parameter);
-    if (hasInitializer && !isAmbientOrInterface(compilationUnit)) {
-      parameter.getOptInitializer().visit(this);
+    if (initializer != null && !isOptional) {
+        initializer.visit(this);
     }
+  }
+
+  private static boolean isUndefined(Expr expr) {
+     return expr instanceof IdeExpr && "undefined".equals(((IdeExpr) expr).getIde().getName());
   }
 
   private boolean isCompilationUnitAmbient() {
