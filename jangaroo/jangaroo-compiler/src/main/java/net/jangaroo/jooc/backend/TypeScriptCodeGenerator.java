@@ -1090,7 +1090,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (forInStatement.getSymEach() != null) {
       // In ECMAScript 6, "for each (... in ...)" is replaced by "for (... of ...)":
       writeSymbolReplacement(forInStatement.getSymIn(), "of");
-      Type declType = decl == null ? null : decl.getOptTypeRelation().getType();
+      Type declType = decl == null || decl.getOptTypeRelation() == null ? null : decl.getOptTypeRelation().getType();
       if (exprType != null && exprType.isArrayLike()) {
         forInStatement.getExpr().visit(this);
         // as decl cannot have a type, cast to specific Array, but only if the array's element type is not the exact declared type:
