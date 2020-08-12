@@ -704,7 +704,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       if (params != null) {
         // inject into body for generating initializers later:
-        addBlockStartCodeGenerator(functionExpr.getBody(), getParameterInitializerCodeGenerator(params));
+        JoocConfiguration config = ((Jooc) params.getHead().getIde().getScope().getCompiler()).getConfig();
+        addBlockStartCodeGenerator(functionExpr.getBody(),
+                config.isUseEcmaParameterInitializerSemantics()
+                        ? getEcmaParameterInitializerCodeGenerator(params)
+                        : getParameterInitializerCodeGenerator(params));
       }
     }
   }

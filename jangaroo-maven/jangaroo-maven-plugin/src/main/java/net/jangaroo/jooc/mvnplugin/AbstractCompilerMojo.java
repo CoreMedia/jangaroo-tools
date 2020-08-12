@@ -137,6 +137,21 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean migrateToTypeScript = false;
 
   /**
+   * Experimental: If set to "true", compiler generates parameter initializer code that implements
+   * ECMAScript semantics, which is subtly different from ActionScript 3 semantics.
+   * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
+   * In AS3, initializer values are assigned only if you call a method with less arguments.
+   * An example would be
+   *     function foo(bar: string = "default"): string {
+   *       return bar;
+   *     }
+   *     foo(); // "default" for both AS3 and ECMAScript semantics
+   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   */
+  @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
+  private boolean useEcmaParameterInitializerSemantics = false;
+
+  /**
    * Experimental: If set to "true", compiler generates no ActionScript syntax in comments, resulting
    * in "purer" JavaScript code.
    */
@@ -238,6 +253,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
+    configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
 
     if (StringUtils.isNotEmpty(debuglevel)) {

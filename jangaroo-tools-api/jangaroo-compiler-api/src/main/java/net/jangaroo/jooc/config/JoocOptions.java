@@ -14,6 +14,8 @@ public interface JoocOptions {
 
   boolean isGenerateApi();
 
+  boolean isUseEcmaParameterInitializerSemantics();
+
   boolean isMigrateToTypeScript();
 
   PublicApiViolationsMode getPublicApiViolationsMode();

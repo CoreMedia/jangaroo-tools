@@ -28,6 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private boolean useEcmaParameterInitializerSemantics = false;
 
   private boolean mergeOutput = false;
   private String outputFileName;
@@ -107,9 +108,19 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return migrateToTypeScript;
   }
 
+  @Override
+  public boolean isUseEcmaParameterInitializerSemantics() {
+    return useEcmaParameterInitializerSemantics;
+  }
+
   @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
   public void setMigrateToTypeScript(boolean migrateToTypeScript) {
     this.migrateToTypeScript = migrateToTypeScript;
+  }
+
+  @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")
+  public void setUseEcmaParameterInitializerSemantics(boolean useEcmaParameterInitializerSemantics) {
+    this.useEcmaParameterInitializerSemantics = useEcmaParameterInitializerSemantics;
   }
 
   @Override
