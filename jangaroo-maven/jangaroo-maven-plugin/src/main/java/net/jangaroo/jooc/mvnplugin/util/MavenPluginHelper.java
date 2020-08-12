@@ -155,7 +155,9 @@ public class MavenPluginHelper {
         log.debug("Dependency: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + " type: " + dependency.getType());
       }
       if (!dependency.isOptional()
-              && (Artifact.SCOPE_COMPILE.equals(dependency.getScope()) || includeTestScope && Artifact.SCOPE_TEST.equals(dependency.getScope()))
+              && (Artifact.SCOPE_COMPILE.equals(dependency.getScope())
+              || Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
+              || includeTestScope && Artifact.SCOPE_TEST.equals(dependency.getScope()))
               && Type.SWC_EXTENSION.equals(dependency.getType())) {
         if (log.isDebugEnabled()) {
           log.debug("adding to classpath: compile dependency [" + dependency.toString() + "]");

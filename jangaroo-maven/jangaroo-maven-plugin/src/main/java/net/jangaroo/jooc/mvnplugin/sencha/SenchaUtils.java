@@ -49,11 +49,19 @@ public class SenchaUtils {
 
   public static final String TEST_APP_DIRECTORY_NAME = "test-classes"; // for historic reasons...
 
+  public static final String EXT_DIRECTORY_NAME = "ext";
+
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
+
+  public static final String APPS_DIRECTORY_NAME = "apps";
 
   public static final String LOCAL_PACKAGES_PATH = SEPARATOR + PACKAGES_DIRECTORY_NAME + SEPARATOR;
 
+  public static final String LOCAL_APPS_PATH = SEPARATOR + APPS_DIRECTORY_NAME + SEPARATOR;
+
   public static final String APP_TARGET_DIRECTORY = SEPARATOR + APP_DIRECTORY_NAME;
+
+  public static final String APPS_TARGET_DIRECTORY = SEPARATOR + APPS_DIRECTORY_NAME;
 
   /**
    * The name of the folder of the generated module inside the packages folder of the module.
@@ -88,6 +96,7 @@ public class SenchaUtils {
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
   public static final String DYNAMIC_PACKAGES_FILENAME = "dynamic-packages.json";
+  public static final String APPS_FILENAME = "apps.json";
 
   public static final String SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID = "sencha-test-app-template";
   public static final String SENCHA_APP_TEMPLATE_ARTIFACT_ID = "sencha-app-template";
