@@ -34,6 +34,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class JettyWrapper {
 
   private static final long WAIT_TIME_MILLIS = 1000L;
+  /**
+   * For the special port of zero, retry this given number of times
+   * to get a new random port, in case other services already blocked
+   * that port meanwhile.
+   */
+  private static final int RANDOM_PORT_RETRY_LIMIT = 20;
+  private static final Integer RANDOM_PORT_IDENTIFIER = 0;
 
   public static final String ROOT_PATH_SPEC = "/*";
   private static final StaticResourcesServletConfig DEFAULT_RESOURCES_SERVLET_CONFIG =
@@ -110,9 +117,7 @@ public class JettyWrapper {
     List<Integer> shuffledPorts = shufflePortRange(portRange);
     for (Integer port : shuffledPorts) {
       try {
-        server = null;
-        server = createServer(host, port, handler);
-        server.start();
+        tryServerStart(host, port, handler);
         break;
       } catch (Exception e) {
         getLog().debug("Could not start server", e);
@@ -122,6 +127,34 @@ public class JettyWrapper {
 
     if (server == null || !server.isRunning()) {
       throw new JettyWrapperException("Could not start server", lastException);
+    }
+  }
+
+  /**
+   * Tries to start the server.
+   *
+   * @param host    host for server
+   * @param port    port for server; zero will use a random port (and retry several times upon failure)
+   * @param handler server handler
+   * @throws Exception exception on failure; on retries, the last exception
+   */
+  private void tryServerStart(String host, Integer port, Handler handler) throws Exception {
+    int retryLimit = RANDOM_PORT_IDENTIFIER.equals(port) ? RANDOM_PORT_RETRY_LIMIT : 1;
+    Exception lastException = null;
+
+    for (int i = 0; i < retryLimit; i++) {
+      try {
+        server = null;
+        server = createServer(host, port, handler);
+        server.start();
+        break;
+      } catch (Exception e) {
+        lastException = e;
+      }
+    }
+
+    if (lastException != null) {
+      throw lastException;
     }
   }
 
