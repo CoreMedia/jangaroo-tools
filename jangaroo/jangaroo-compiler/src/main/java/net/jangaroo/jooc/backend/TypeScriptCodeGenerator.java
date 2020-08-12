@@ -543,13 +543,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String getRequireModulePath(IdeDeclaration declaration) {
+    // exception: In TypeScript, "AS3.Error" is directly mapped to native "Error":
+    String qualifiedName = declaration.getQualifiedNameStr();
+    if ("Error".equals(qualifiedName)) {
+      return null;
+    }
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeAnnotation == null) {
       return String.join("/", declaration.getQualifiedName());
     } else {
       String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
       if (nativeAnnotationValue == null) {
-        nativeAnnotationValue = declaration.getQualifiedNameStr();
+        nativeAnnotationValue = qualifiedName;
       }
       if (getNativeAnnotationRequireValue(nativeAnnotation) != null) {
         return nativeAnnotationValue.replace('.', '/');
