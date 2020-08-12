@@ -13,11 +13,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jetty.maven.plugin.JettyWebAppContext;
-import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.impl.StaticLoggerBinder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -237,14 +235,7 @@ public class RunMojo extends AbstractSenchaMojo {
       }
     } else {
       getLog().info(String.format("Adding base app JAR %s for handler with context path %s", appDirOrJar.getAbsolutePath(), appPath));
-      try {
-        Resource resourceFromJar = JettyWrapper.getResourceFromJar(appDirOrJar, MavenPluginHelper.META_INF_RESOURCES + subDirectory);
-        if (resourceFromJar.exists()) {
-          jettyWrapper.addResourceJar(resourceFromJar, appPath);
-        }
-      } catch (IOException e) {
-        throw new MojoExecutionException("Could not read JAR: " + appDirOrJar, e);
-      }
+      jettyWrapper.addBaseDirInResourceJar(appDirOrJar, MavenPluginHelper.META_INF_RESOURCES + subDirectory, appPath);
     }
   }
 
