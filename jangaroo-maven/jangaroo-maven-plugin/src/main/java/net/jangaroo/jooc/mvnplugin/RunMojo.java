@@ -1,11 +1,12 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.apprunner.proxy.AddDynamicPackagesServlet;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
-import org.apache.maven.artifact.Artifact;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -21,8 +22,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.apprunner.util.JettyWrapper.ROOT_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EXT_DIRECTORY_NAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.LOCAL_APPS_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.LOCAL_PACKAGES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
@@ -60,7 +65,7 @@ public class RunMojo extends AbstractSenchaMojo {
   private String jooProxyTargetUri;
 
   public void setJooProxyTargetUri(String jooProxyTargetUri) {
-    this.jooProxyTargetUri = jooProxyTargetUri.endsWith("/") ? jooProxyTargetUri : jooProxyTargetUri + "/";
+    this.jooProxyTargetUri = jooProxyTargetUri.endsWith(SEPARATOR) ? jooProxyTargetUri : jooProxyTargetUri + SEPARATOR;
   }
 
   /**
@@ -96,9 +101,11 @@ public class RunMojo extends AbstractSenchaMojo {
     boolean isSwcPackaging = Type.JANGAROO_SWC_PACKAGING.equals(project.getPackaging());
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
     boolean isAppOverlayPackaging = Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging());
+    boolean isAppsPackaging = Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging());
 
     File baseDir = isAppPackaging || isAppOverlayPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
             : isSwcPackaging ? new File(project.getBuild().getTestOutputDirectory())
+            : isAppsPackaging ? new File(project.getBuild().getDirectory(), APPS_DIRECTORY_NAME)
             : null;
 
     if (baseDir == null) {
@@ -135,10 +142,57 @@ public class RunMojo extends AbstractSenchaMojo {
         JangarooApp jangarooApp = createJangarooApp(project);
         while (jangarooApp instanceof JangarooAppOverlay) {
           jangarooApp = ((JangarooAppOverlay) jangarooApp).baseApp;
-          addAppToResources(jettyWrapper, jangarooApp.mavenProject);
+          addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
         }
 
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, "/"));
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
+      }
+    } else if (isAppsPackaging) {
+      JangarooApps jangarooApps = createJangarooApps(project);
+      if (JettyWrapper.ROOT_PATH_SPEC.equals(jooProxyPathSpec)) {
+        throw new MojoExecutionException("Not supported yet!");
+      } else {
+        // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
+        Dependency rootApp = getRootApp();
+        for (JangarooApp jangarooApp : jangarooApps.apps) {
+          boolean isRootApp = rootApp != null
+                  && jangarooApp.mavenProject.getGroupId().equals(rootApp.getGroupId())
+                  && jangarooApp.mavenProject.getArtifactId().equals(rootApp.getArtifactId());
+          String senchaAppName = SenchaUtils.getSenchaPackageName(jangarooApp.mavenProject);
+          String appPath = isRootApp ? ROOT_PATH : LOCAL_APPS_PATH + senchaAppName;
+          if (!isRootApp) {
+            // add local apps folder
+            jettyWrapper.addBaseDir(new File(baseDir, APPS_DIRECTORY_NAME + SEPARATOR + senchaAppName).toPath(), appPath);
+          }
+          // Add base app and all app overlays
+          do {
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, appPath, "");
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + EXT_DIRECTORY_NAME, EXT_DIRECTORY_NAME + SEPARATOR);
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, PACKAGES_DIRECTORY_NAME + SEPARATOR);
+            jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
+          } while (jangarooApp != null);
+          if (!isRootApp) {
+            jettyWrapper.setStaticResourcesServletConfigs(
+                    Collections.singletonList(
+                            new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
+                    ),
+                    appPath
+            );
+          }
+        }
+        jettyWrapper.setStaticResourcesServletConfigs(
+                Collections.singletonList(
+                        new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
+                ),
+                SEPARATOR + EXT_DIRECTORY_NAME
+        );
+        jettyWrapper.setStaticResourcesServletConfigs(
+                Collections.singletonList(
+                        new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
+                ),
+                SEPARATOR + PACKAGES_DIRECTORY_NAME
+        );
+        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
       }
     }
 
@@ -170,25 +224,18 @@ public class RunMojo extends AbstractSenchaMojo {
     }
   }
 
-  private void addAppToResources(JettyWrapper jettyWrapper, MavenProject baseAppProject) throws MojoExecutionException {
-    if (baseAppProject.getBuild().getDirectory() != null &&
-            new File(baseAppProject.getBuild().getDirectory()).isDirectory()) {
+  private void addAppToResources(JettyWrapper jettyWrapper, MavenProject baseAppProject, String appPath, String subDirectory) throws MojoExecutionException {
+    File appDirOrJar = getAppDirOrJar(baseAppProject);
+    if (appDirOrJar.isDirectory()) {
       // base app is part of our Reactor, so we can determine its output directory:
-      File appResourceDir = new File(baseAppProject.getBuild().getDirectory(), APP_DIRECTORY_NAME);
-      jettyWrapper.addBaseDir(appResourceDir.toPath());
-      getLog().info("Adding base app resource directory " + appResourceDir.getAbsolutePath());
+      File appResourceDir = subDirectory.isEmpty() ? appDirOrJar : new File(appDirOrJar, subDirectory);
+      if (appResourceDir.exists()) {
+        getLog().info(String.format("Adding base app resource directory %s for handler with context path %s", appResourceDir.getAbsolutePath(), appPath));
+        jettyWrapper.addBaseDir(appResourceDir.toPath(), appPath);
+      }
     } else {
-      // base app is referenced externally, so we have to use the JAR artifact:
-      Artifact baseAppArtifact = getArtifact(baseAppProject);
-      if (baseAppArtifact == null) {
-        throw new MojoExecutionException("Artifact of base app " + baseAppProject + " not found in project dependencies.");
-      }
-      File baseAppResourceJar = baseAppArtifact.getFile();
-      if (baseAppResourceJar == null) {
-        throw new MojoExecutionException("Artifact of base app " + baseAppProject + " has null file, cannot determine JAR location.");
-      }
-      getLog().info("Adding base app JAR " + baseAppResourceJar.getAbsolutePath());
-      jettyWrapper.addResourceJar(baseAppResourceJar);
+      getLog().info(String.format("Adding base app JAR %s for handler with context path %s", appDirOrJar.getAbsolutePath(), appPath));
+      jettyWrapper.addBaseDirInResourceJar(appDirOrJar, MavenPluginHelper.META_INF_RESOURCES + subDirectory, appPath);
     }
   }
 

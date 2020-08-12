@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -20,6 +21,7 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -68,6 +70,15 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter(property = "senchaJvmArgs")
   private String senchaJvmArgs;
 
+  /**
+   * The maven coordinates ("groupId:artifactId") an app that should be provided in the root
+   * instead of the "apps/${appName}/".
+   *
+   * Only affects the packaging type "jangaroo-apps".
+   */
+  @Parameter
+  private String rootApp;
+
   private volatile Pattern extFrameworkArtifactPattern;
 
   private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
@@ -89,6 +100,13 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   public String getExtFrameworkArtifactRegexp() {
     return extFrameworkArtifactRegexp;
+  }
+
+  public Dependency getRootApp() {
+    if (rootApp == null || rootApp.isEmpty()) {
+      return null;
+    }
+    return MavenDependencyHelper.fromKey(rootApp);
   }
 
   // ***********************************************************************
@@ -194,6 +212,50 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
   }
 
+  JangarooApps createJangarooApps(MavenProject project) throws MojoExecutionException {
+    if (Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging())) {
+      Set<JangarooApp> apps = new LinkedHashSet<>();
+      List<Dependency> dependencies = project.getDependencies();
+      for (Dependency dependency : dependencies) {
+        if (Type.JAR_EXTENSION.equals(dependency.getType())) {
+          // First, use MavenProject from project references, because it is already "evaluated" (${project.baseDir} etc.):
+          MavenProject dependentProject = getProjectFromDependency(project, dependency);
+          JangarooApp baseApp = createJangarooApp(dependentProject);
+          if (baseApp != null) {
+            apps.add(baseApp);
+          }
+        }
+      }
+      return new JangarooApps(project, apps);
+    }
+    return null;
+  }
+
+  @Nonnull
+  protected File getArtifactFile(MavenProject mavenProject) throws MojoExecutionException {
+    Artifact appArtifact = getArtifact(mavenProject);
+    if (appArtifact == null) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " not found in project dependencies.");
+    }
+    File appJarFile = appArtifact.getFile();
+    if (appJarFile == null) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " has null file, cannot determine JAR location.");
+    }
+    if (appJarFile.isDirectory()) {
+      throw new MojoExecutionException("Artifact of app " + mavenProject + " is a directory.");
+    }
+    return appJarFile;
+  }
+
+  @Nonnull
+  protected File getAppDirOrJar(MavenProject mavenProject) throws MojoExecutionException {
+    File appReactorDir = new File(mavenProject.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    if (appReactorDir.isDirectory()) {
+      return appReactorDir;
+    }
+    return getArtifactFile(mavenProject);
+  }
+
   static class JangarooApp {
     final MavenProject mavenProject;
     Set<Artifact> packages = new LinkedHashSet<>();
@@ -230,6 +292,16 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       LinkedHashSet<Artifact> allDynamicPackages = new LinkedHashSet<>(packages);
       allDynamicPackages.removeAll(getRootBaseApp().packages);
       return allDynamicPackages;
+    }
+  }
+
+  static class JangarooApps {
+    final MavenProject mavenProject;
+    final Set<JangarooApp> apps;
+
+    JangarooApps(MavenProject mavenProject, Set<JangarooApp> apps) {
+      this.mavenProject = mavenProject;
+      this.apps = apps;
     }
   }
 }

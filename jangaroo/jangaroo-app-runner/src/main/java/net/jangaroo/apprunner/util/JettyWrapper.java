@@ -4,6 +4,7 @@ import net.jangaroo.apprunner.proxy.JangarooProxyServlet;
 import org.apache.commons.lang3.Range;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -15,13 +16,16 @@ import org.slf4j.Logger;
 
 import javax.servlet.Servlet;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.lang.invoke.MethodHandles.lookup;
@@ -42,6 +46,8 @@ public class JettyWrapper {
   private static final int RANDOM_PORT_RETRY_LIMIT = 20;
   private static final Integer RANDOM_PORT_IDENTIFIER = 0;
 
+  public static final String ROOT_PATH = "/";
+
   public static final String ROOT_PATH_SPEC = "/*";
   private static final StaticResourcesServletConfig DEFAULT_RESOURCES_SERVLET_CONFIG =
           new StaticResourcesServletConfig(ROOT_PATH_SPEC, "/");
@@ -52,15 +58,9 @@ public class JettyWrapper {
 
   private static final Logger LOG = getLogger(lookup().lookupClass());
 
-  private List<Path> baseDirs = new ArrayList<>();
-  private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
-  private List<ProxyServletConfig> proxyServletConfigs;
-  private Map<String, Servlet> additionalServlets;
+  private final Map<String, Configuration> configurationByPath = new HashMap<>();
 
   private Server server;
-  private List<File> resourceJars = new ArrayList<>();
-
-  private boolean hasRootPathServlet = false;
 
   private Class<? extends WebAppContext> webAppContextClass = WebAppContext.class;
 
@@ -74,32 +74,60 @@ public class JettyWrapper {
   }
 
   public void addBaseDir(Path baseDir) {
-    baseDirs.add(baseDir);
+    addBaseDir(baseDir, ROOT_PATH);
   }
 
   @SuppressWarnings("WeakerAccess")
   public void addBaseDirs(Path... baseDirs) {
-    addAll(this.baseDirs, baseDirs);
+    addAll(getConfiguration(ROOT_PATH).baseDirs, baseDirs);
   }
 
   public void setWebAppContextClass(Class<? extends WebAppContext> webAppContextClass) {
     this.webAppContextClass = webAppContextClass;
   }
 
-  public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs) {
-    this.staticResourcesServletConfigs = staticResourcesServletConfigs;
+  public void addBaseDir(Path baseDir, String path) {
+    getConfiguration(path).addBaseDir(baseDir);
   }
 
   public void addResourceJar(File resourceJar) {
-    resourceJars.add(resourceJar);
+    addResourceJar(resourceJar, ROOT_PATH);
+  }
+
+  public void addResourceJar(File resourceJar, String path) {
+    addBaseDirInResourceJar(resourceJar, "META-INF/resources", path);
+  }
+
+  public void addBaseDirInResourceJar(File resourceJar, String relativePathInsideJar) {
+    addBaseDirInResourceJar(resourceJar, relativePathInsideJar, ROOT_PATH);
+  }
+
+  public void addBaseDirInResourceJar(File resourceJar, String relativePathInsideJar, String path) {
+    getConfiguration(path).addResourceJar(new JarFileWithRelativePath(resourceJar, relativePathInsideJar));
+  }
+
+  public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs) {
+    setStaticResourcesServletConfigs(staticResourcesServletConfigs, ROOT_PATH);
+  }
+
+  public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs, String path) {
+    getConfiguration(path).setStaticResourcesServletConfigs(staticResourcesServletConfigs);
   }
 
   public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs) {
-    this.proxyServletConfigs = proxyServletConfigs;
+    setProxyServletConfigs(proxyServletConfigs, ROOT_PATH);
+  }
+
+  public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs, String path) {
+    getConfiguration(path).setProxyServletConfigs(proxyServletConfigs);
   }
 
   public void setAdditionalServlets(Map<String, Servlet> additionalServlets) {
-    this.additionalServlets = additionalServlets;
+    setAdditionalServlets(additionalServlets, ROOT_PATH);
+  }
+
+  public void setAdditionalServlets(Map<String, Servlet> additionalServlets, String path) {
+    getConfiguration(path).setAdditionalServlets(additionalServlets);
   }
 
   public void start(String host, int port) throws JettyWrapperException {
@@ -112,12 +140,32 @@ public class JettyWrapper {
     }
 
     Exception lastException = null;
-    Handler handler = createHandler();
+    HandlerCollection handlerCollection = new HandlerCollection();
+    ArrayList<String> paths = new ArrayList<>(configurationByPath.keySet());
+    // sort paths so that the deeper paths have precedence
+    paths.sort((path1, path2) -> {
+      String[] dirs1 = path1.split("/");
+      String[] dirs2 = path2.split("/");
+      return dirs2.length - dirs1.length;
+    });
+    for (String path : paths) {
+      Configuration configuration = getConfiguration(path);
+      WebAppContext handler = createHandler(
+              path,
+              configuration.baseDirs,
+              configuration.jarFilesWithRelativePath,
+              configuration.staticResourcesServletConfigs,
+              configuration.proxyServletConfigs,
+              configuration.additionalServlets
+      );
+      handlerCollection.addHandler(handler);
+    }
+
 
     List<Integer> shuffledPorts = shufflePortRange(portRange);
     for (Integer port : shuffledPorts) {
       try {
-        tryServerStart(host, port, handler);
+        tryServerStart(host, port, handlerCollection);
         break;
       } catch (Exception e) {
         getLog().debug("Could not start server", e);
@@ -169,7 +217,7 @@ public class JettyWrapper {
   }
 
   public URI getUri() {
-    return server.getURI();
+    return server.getURI().resolve(ROOT_PATH);
   }
 
   public void waitUntilStarted(int timeoutMillis) throws JettyWrapperException {
@@ -205,6 +253,16 @@ public class JettyWrapper {
     }
   }
 
+  private Configuration getConfiguration(String path) {
+    if (path.contains("\\")) {
+      getLog().warn("Path should not contain backslashes: " + path);
+    }
+    if (!configurationByPath.containsKey(path)) {
+      configurationByPath.put(path, new Configuration());
+    }
+    return configurationByPath.get(path);
+  }
+
   private Server createServer(String host, int port, Handler handler) {
     InetSocketAddress address = new InetSocketAddress(host, port);
     getLog().info("Creating Jetty server at " + address);
@@ -213,37 +271,43 @@ public class JettyWrapper {
     return server;
   }
 
-  private WebAppContext createHandler() throws JettyWrapperException {
+  private WebAppContext createHandler(String path, List<Path> baseDirs, List<JarFileWithRelativePath> resourceJarsWithRelativePaths, List<StaticResourcesServletConfig> staticResourcesServletConfigs, List<ProxyServletConfig> proxyServletConfigs, Map<String, Servlet> additionalServlets) throws JettyWrapperException {
+    // root path needs a root path servlet. make sure it is created.
+    boolean hasRootPathServlet = !(ROOT_PATH.equals(path));
     try {
+      getLog().info("Setting up handler with context path " + path);
       WebAppContext handler = webAppContextClass.newInstance();
+      handler.setContextPath(path);
 
       handler.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
 
       List<Resource> baseResources = baseDirs.stream().map(Resource::newResource).collect(Collectors.toList());
       baseResources = new ArrayList<>(baseResources);
-      if (resourceJars != null && !resourceJars.isEmpty()) {
-        for (File webInfLibJar : resourceJars) {
-          baseResources.add(Resource.newResource("jar:"+Resource.toURL(webInfLibJar).toString()+"!/META-INF/resources"));
-        }
+      if (!resourceJarsWithRelativePaths.isEmpty()) {
+        baseResources.addAll(
+                resourceJarsWithRelativePaths.stream()
+                        .map(JarFileWithRelativePath::toResource)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
       }
-      handler.setBaseResource(new ResourceCollection(baseResources.toArray(new Resource[0])));
+      handler.setBaseResource(new ResourceCollection(baseResources.stream().filter(Resource::exists).toArray(Resource[]::new)));
       getLog().info("Using base resources " + baseResources);
 
       if (staticResourcesServletConfigs != null && !staticResourcesServletConfigs.isEmpty()) {
         for (StaticResourcesServletConfig config : staticResourcesServletConfigs) {
-          addDefaultServlet(handler, config);
+          hasRootPathServlet = addDefaultServlet(handler, config) || hasRootPathServlet;
         }
       }
 
       if (proxyServletConfigs != null && !proxyServletConfigs.isEmpty()) {
         for (ProxyServletConfig config : proxyServletConfigs) {
-          addProxyServlet(handler, config);
+          hasRootPathServlet = addProxyServlet(handler, config) || hasRootPathServlet;
         }
       }
 
       if (additionalServlets != null && !additionalServlets.isEmpty()) {
         for (Map.Entry<String, Servlet> servletEntry : additionalServlets.entrySet()) {
-          addServlet(handler, new ServletHolder(servletEntry.getValue()), servletEntry.getKey());
+          hasRootPathServlet = addServlet(handler, new ServletHolder(servletEntry.getValue()), servletEntry.getKey()) || hasRootPathServlet;
         }
       }
 
@@ -257,19 +321,20 @@ public class JettyWrapper {
     }
   }
 
-  private void addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {
+  private boolean addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {
     ServletHolder servletHolder = new ServletHolder(DefaultServlet.class);
 
     servletHolder.setInitParameter("relativeResourceBase", config.getRelativeResourceBase());
     servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
 
     webAppContext.addAliasCheck(new AllowSymLinkAliasChecker());
-    addServlet(webAppContext, servletHolder, config.getPathSpec());
+    boolean addedRootPathServlet = addServlet(webAppContext, servletHolder, config.getPathSpec());
     getLog().info(String.format("Serving static resources: %s -> %s",
             config.getPathSpec(), config.getRelativeResourceBase()));
+    return addedRootPathServlet;
   }
 
-  private void addProxyServlet(ServletContextHandler webAppContext, ProxyServletConfig config) {
+  private boolean addProxyServlet(ServletContextHandler webAppContext, ProxyServletConfig config) {
     String pathSpec = config.getPathSpec();
     ServletHolder servletHolder = new ServletHolder(pathSpec, JangarooProxyServlet.class); // TODO: Is this really a good servlet name?
 
@@ -278,16 +343,15 @@ public class JettyWrapper {
     servletHolder.setInitParameter(ProxyServlet.P_LOG, String.valueOf(config.isLoggingEnabled()));
     servletHolder.setInitParameter(ProxyServlet.P_PRESERVECOOKIES, "true");
 
-    addServlet(webAppContext, servletHolder, pathSpec);
+    boolean addedRootPathServlet = addServlet(webAppContext, servletHolder, pathSpec);
     getLog().info(String.format("Proxy requests: %s -> %s",
             pathSpec, config.getTargetUri()));
+    return addedRootPathServlet;
   }
 
-  private void addServlet(ServletContextHandler webAppContext, ServletHolder servletHolder, String pathSpec) {
+  private boolean addServlet(ServletContextHandler webAppContext, ServletHolder servletHolder, String pathSpec) {
     webAppContext.addServlet(servletHolder, pathSpec);
-    if (ROOT_PATH_SPEC.equals(pathSpec)) {
-      hasRootPathServlet = true;
-    }
+    return ROOT_PATH_SPEC.equals(pathSpec);
   }
 
   private List<Integer> shufflePortRange(Range<Integer> portRange) {
@@ -317,4 +381,53 @@ public class JettyWrapper {
     }
   }
 
+  private static class JarFileWithRelativePath {
+    public final File jarFile;
+    public final String relativePath;
+
+    private JarFileWithRelativePath(File jarFile, String relativePath) {
+      this.jarFile = jarFile;
+      this.relativePath = relativePath;
+    }
+
+    public Resource toResource() {
+      try {
+        return Resource.newResource("jar:" + Resource.toURL(jarFile).toString() + "!/" + relativePath);
+      } catch (IOException e) {
+        return null;
+      }
+    }
+  }
+
+  private static class Configuration {
+    private final List<Path> baseDirs = new ArrayList<>();
+    private final List<JarFileWithRelativePath> jarFilesWithRelativePath = new ArrayList<>();
+    private List<StaticResourcesServletConfig> staticResourcesServletConfigs;
+    private List<ProxyServletConfig> proxyServletConfigs;
+    private Map<String, Servlet> additionalServlets;
+
+    public void addBaseDir(Path baseDir) {
+      baseDirs.add(baseDir);
+    }
+
+    public void addBaseDirs(Path...baseDirs) {
+      addAll(this.baseDirs, baseDirs);
+    }
+
+    public void setStaticResourcesServletConfigs(List<StaticResourcesServletConfig> staticResourcesServletConfigs) {
+      this.staticResourcesServletConfigs = staticResourcesServletConfigs;
+    }
+
+    public void addResourceJar(JarFileWithRelativePath jarFileWithRelativePath) {
+      jarFilesWithRelativePath.add(jarFileWithRelativePath);
+    }
+
+    public void setProxyServletConfigs(List<ProxyServletConfig> proxyServletConfigs) {
+      this.proxyServletConfigs = proxyServletConfigs;
+    }
+
+    public void setAdditionalServlets(Map<String, Servlet> additionalServlets) {
+      this.additionalServlets = additionalServlets;
+    }
+  }
 }
