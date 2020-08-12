@@ -1050,7 +1050,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } else {
       parameter.getIde().visit(this);
     }
-    visitIfNotNull(parameter.getOptTypeRelation());
+    visitParameterTypeRelation(parameter);
     // in the method signature, comment out initializer code.
     if (parameter.getOptInitializer() != null) {
       out.beginComment();

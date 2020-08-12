@@ -565,7 +565,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (hasInitializer && isAmbientOrInterface(compilationUnit)) {
       out.write("?");
     }
-    visitIfNotNull(parameter.getOptTypeRelation());
+    visitParameterTypeRelation(parameter);
     if (hasInitializer && !isAmbientOrInterface(compilationUnit)) {
       parameter.getOptInitializer().visit(this);
     }

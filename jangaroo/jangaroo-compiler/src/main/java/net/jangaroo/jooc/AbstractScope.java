@@ -190,16 +190,18 @@ public abstract class AbstractScope implements Scope {
         getCompiler().getLog().error(parameter.getSymbol(), "rest (...) parameter may not be followed by more parameters.");
         break;
       }
-      parameterTypes.add(getExpressionType(parameter.getOptTypeRelation()));
       if (parameter.isRest()) {
         hasRest = true;
-      } else if (parameter.getOptInitializer() != null) {
-        optionalEncountered = true;
       } else {
-        if (optionalEncountered) {
-          getCompiler().getLog().error(parameter.getSymbol(), "all parameters following an optional parameter must also be optional.");
+        parameterTypes.add(getExpressionType(parameter.getOptTypeRelation()));
+        if (parameter.getOptInitializer() != null) {
+          optionalEncountered = true;
         } else {
-          ++minArgumentCount;
+          if (optionalEncountered) {
+            getCompiler().getLog().error(parameter.getSymbol(), "all parameters following an optional parameter must also be optional.");
+          } else {
+            ++minArgumentCount;
+          }
         }
       }
     }
