@@ -530,7 +530,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     List<? extends InputSource> swcPkgFiles = zipFileInputSource.getChild("META-INF/pkg").list();
     for (InputSource swcPkgFile : swcPkgFiles) {
       String swcPkgFileName = swcPkgFile.getName();
-      if (swcPkgFileName.endsWith(".json") && !"package.json".equals(swcPkgFileName)) {
+      if (swcPkgFileName.endsWith(".json") && !swcPkgFileName.equals("package.json")
+              && !swcPkgFileName.endsWith("-overrides.json")) {
         npmPackageName = CompilerUtils.removeExtension(swcPkgFileName);
         break;
       }
