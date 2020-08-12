@@ -10,9 +10,9 @@ public class TestArrayForIn {
     // test rewrite of Array for ... in with local variable
     for (var $1=0;$1</* in*/ a.length;++$1) {var i1/*:String*/ =String($1);
       doSomething$static(a[i1]);
-    }var $3;
+    }
     // test rewrite of Array for each ... in with Array literal
-    for/* each*/ (var $2 in $3= [1, 2, 3]) {var e0/*:int*/ =$3[$2];
+    for/* each*/ (var $2=0,$3=/* in*/ [1, 2, 3];$2<$3.length;++$2) {var e0/*:int*/ =$3[$2];
       doSomething$static(e0);
     }
     // test rewrite of Array for each ... in with local variable

@@ -1458,7 +1458,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (!isRest) {
       parameter.getIde().visit(this);
     }
-    visitIfNotNull(parameter.getOptTypeRelation());
+    TypeRelation typeRelation = parameter.getOptTypeRelation();
+    if (typeRelation != null && !typeRelation.getSymRelation().isVirtual()) {
+      typeRelation.visit(this);
+    }
     // in the method signature, comment out initializer code.
     if (parameter.getOptInitializer() != null) {
       out.beginComment();
