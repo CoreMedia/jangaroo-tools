@@ -394,6 +394,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   private void generateInfixOpExpr(InfixOpExpr infixOpExpr, JooSymbol lParenSym, JooSymbol rParenSym) throws IOException {
+    out.writeSymbolWhitespace(lParenSym);
     out.writeToken("AS3.");
     out.writeSymbolToken(infixOpExpr.getOp());
     out.writeSymbol(lParenSym);
