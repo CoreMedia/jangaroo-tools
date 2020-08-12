@@ -9,6 +9,7 @@ import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassDeclaration;
@@ -27,8 +28,8 @@ import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
-import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
+import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
@@ -64,6 +65,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           "Array",
           "Vector$object"
   );
+  public static final List<AS3Type> TYPES_ALLOWED_AS_INDEX = Arrays.asList(AS3Type.ANY, AS3Type.STRING, AS3Type.NUMBER, AS3Type.INT, AS3Type.UINT);
+
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile:
     return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr());
@@ -444,10 +447,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     switch (as3Type) {
       case OBJECT:
         TypeDeclaration declaration = expressionType.getDeclaration();
-        if (!"Object".equals(declaration.getQualifiedNameStr())) {
-          return getLocalName(declaration, true);
+        if (as3Type.name.equals(declaration.getQualifiedNameStr())) {
+          // it is really "Object", use TypeScript "Object":
+          return as3Type.name;
         }
-        // fall-through
+        // use class name:
+        return getLocalName(declaration, true);
       case ANY:
         return "any";
       case VECTOR:
@@ -1141,7 +1146,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (type != null) {
       Ide ide = dotExpr.getIde();
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
-      if (memberDeclaration != null) {
+      if (memberDeclaration == null) {
+        if (!AS3Type.ANY.equals(type.getAS3Type())) {
+          // dynamic property access on typed objects must be converted to ["<ide>"] in TypeScript:
+          arg.visit(this);
+          writeSymbolReplacement(dotExpr.getOp(), "[");
+          writeSymbolReplacement(ide.getSymbol(), "'" + ide.getName() + "'");
+          out.write("]");
+          return;
+        }
+      } else {
         Annotation nativeAnnotation = memberDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
         String memberName = ide.getName();
         if (nativeAnnotation != null) {
@@ -1171,6 +1185,46 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     super.visitDotExpr(dotExpr);
+  }
+
+  @Override
+  public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
+    // check for obj["typedMember"], as TypeScript will treat this like obj.typedMember,
+    // so we must rewrite this to (obj as object)["typedMember"]
+    // (alternative: (obj as unknown).typedMember))
+    Expr indexedExpr = arrayIndexExpr.getArray();
+    ExpressionType type = indexedExpr.getType();
+    ParenthesizedExpr<Expr> indexExpr = arrayIndexExpr.getIndexExpr();
+    if (type != null && !AS3Type.ANY.equals(type.getAS3Type())) {
+      Expr innerIndexExpr = indexExpr.getExpr();
+      if (innerIndexExpr instanceof LiteralExpr) {
+        LiteralExpr innerIndexLiteralExpr = (LiteralExpr) innerIndexExpr;
+        Object stringValue = innerIndexLiteralExpr.getValue().getJooValue();
+        if (stringValue instanceof String) {
+          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration((String) stringValue);
+          if (memberDeclaration != null) {
+            // found a typed member, need to downcast to 'object':
+            out.writeSymbolWhitespace(indexedExpr.getSymbol());
+            out.write("(");
+            indexedExpr.visit(this);
+            out.write(" as object)");
+            indexExpr.visit(this);
+            return;
+          }
+        }
+      }
+    }
+    ExpressionType indexExprType = indexExpr.getType();
+    if (indexExprType != null && !(TYPES_ALLOWED_AS_INDEX.contains(indexExprType.getAS3Type()))) {
+      indexedExpr.visit(this);
+      out.writeSymbol(indexExpr.getLParen());
+      out.write("String(");
+      indexExpr.getExpr().visit(this);
+      out.write(")");
+      out.writeSymbol(indexExpr.getRParen());
+    } else {
+      super.visitArrayIndexExpr(arrayIndexExpr);
+    }
   }
 
   @Override
