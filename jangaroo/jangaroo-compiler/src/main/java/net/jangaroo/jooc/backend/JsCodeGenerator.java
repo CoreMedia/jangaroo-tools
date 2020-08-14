@@ -1121,6 +1121,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.writeToken(";");
           generateFieldInitializerCode(variableDeclaration);
           registerField(variableDeclaration, currentMetadata);
+          visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+          // suppress redundant ';' after field initializer:
+          writeOptSymbolWhitespace(variableDeclaration.getOptSymSemicolon());
+          return;
         } else {
           optInitializer.visit(this);
         }

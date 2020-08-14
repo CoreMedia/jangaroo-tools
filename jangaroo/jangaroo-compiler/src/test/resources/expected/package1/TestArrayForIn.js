@@ -2,8 +2,8 @@
 
 Ext.define("package1.TestArrayForIn", function(TestArrayForIn) {/*public class TestArrayForIn {
 
-  private static const*/var ARRAY$static/*:Array*/;/* =*/function ARRAY$static_(){ARRAY$static=( [1, 2, 3]);};/*
-  private static*/ var array$static/*:Array*/;/* =*/function array$static_(){array$static=( [1, 2, 3]);};/*
+  private static const*/var ARRAY$static/*:Array*/;/* =*/function ARRAY$static_(){ARRAY$static=( [1, 2, 3]);}/*
+  private static*/ var array$static/*:Array*/;/* =*/function array$static_(){array$static=( [1, 2, 3]);}/*
 
   public static*/ function test$static()/*:Array*/ {
     var a/*:Array*/ = [1, 2, 3];
