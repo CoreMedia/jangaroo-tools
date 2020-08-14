@@ -13,13 +13,13 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
     return this.panels$iwqQ;
   }/*
 
-  public*/ function TestEventListener$() {var this$=this;this.super$iwqQ();
+  public*/ function TestEventListener$() {var _this=this;this.super$iwqQ();
     AS3.setBindable(this.panel$iwqQ,"title" , "not yet clicked.");
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
-      AS3.setBindable(this$.getThis().getPanel(),"title" , "clicked!");
-      AS3.setBindable(this$.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
-      this$.panels$iwqQ.push(this$.panel$iwqQ);
-      AS3.setBindable(this$.getPanels$iwqQ()[0],"title" , "yes, clicked!");
+      AS3.setBindable(_this.getThis().getPanel(),"title" , "clicked!");
+      AS3.setBindable(_this.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
+      _this.panels$iwqQ.push(_this.panel$iwqQ);
+      AS3.setBindable(_this.getPanels$iwqQ()[0],"title" , "yes, clicked!");
     } );
   }/*
 

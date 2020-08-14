@@ -443,7 +443,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           ideText = getSuperClassPrototypeAccessCode();
         }
         if ("this".equals(ideText) && ide.isRewriteThis()) {
-          ideText = "this$";
+          ideText = "_this";
         } else {
           ideText = convertIdentifier(ideText);
           IdeDeclaration ideDeclaration = ide.getDeclaration(false);
@@ -1262,7 +1262,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("var this$=this;");
+  private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("var _this=this;");
 
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
