@@ -40,18 +40,7 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.mixin.Observable",
-      metadata: {
-        "": [
-          "Event",
-          [
-            "name",
-            "click",
-            "type",
-            "package1.someOtherPackage.SomeEvent"
-          ]
-        ],
-        items: ["DefaultProperty"]
-      },
+      metadata: {items: ["DefaultProperty"]},
       constructor: ConfigClass$,
       super$klfp: function() {
         ext.mixin.Observable.prototype.constructor.apply(this, arguments);

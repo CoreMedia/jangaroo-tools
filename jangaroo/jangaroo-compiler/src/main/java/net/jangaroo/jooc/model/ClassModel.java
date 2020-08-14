@@ -1,5 +1,7 @@
 package net.jangaroo.jooc.model;
 
+import net.jangaroo.jooc.Jooc;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -116,12 +118,12 @@ public class ClassModel extends AbstractAnnotatedModel implements NamespacedMode
   }
 
   public List<AnnotationModel> getEvents() {
-    return getAnnotations("Event");
+    return getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
   }
 
   public AnnotationModel getEvent(String name) {
     for (AnnotationModel event : getEvents()) {
-      AnnotationPropertyModel eventName = event.getPropertiesByName().get("name");
+      AnnotationPropertyModel eventName = event.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
       if (eventName == null) {
         eventName = event.getPropertiesByName().get(null);
         if (eventName == null) {

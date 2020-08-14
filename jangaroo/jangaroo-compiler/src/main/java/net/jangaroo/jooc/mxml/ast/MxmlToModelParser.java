@@ -505,7 +505,7 @@ final class MxmlToModelParser {
     } else {
       eventTypeStr = "Object";
     }
-    Object eventNameModel = eventPropertiesByName.get("name");
+    Object eventNameModel = eventPropertiesByName.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
     String eventName = (String) (eventNameModel != null ? eventNameModel : eventPropertiesByName.get(null));
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
@@ -609,11 +609,11 @@ final class MxmlToModelParser {
   }
 
   private Annotation getEvent(ClassDeclaration classDeclaration, String propertyName) {
-    for (Annotation eventAnnotation : classDeclaration.getAnnotations("Event")) {
+    for (Annotation eventAnnotation : classDeclaration.getAnnotations(Jooc.EVENT_ANNOTATION_NAME)) {
       CommaSeparatedList<AnnotationParameter> annotationParameters = eventAnnotation.getOptAnnotationParameters();
       while (annotationParameters != null) {
         Ide name = annotationParameters.getHead().getOptName();
-        if (name != null && "name".equals(name.getName())) {
+        if (name != null && Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME.equals(name.getName())) {
           AstNode value = annotationParameters.getHead().getValue();
           if (value instanceof LiteralExpr && propertyName.equals(value.getSymbol().getJooValue())) {
             return eventAnnotation;

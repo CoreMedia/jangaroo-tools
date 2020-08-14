@@ -549,8 +549,8 @@ public class ExtAsApiGenerator {
   private static void addEvents(ClassModel classModel, CompilationUnitModel compilationUnitModel, List<Event> events, String thisJsClassName) {
     for (Event event : events) {
       String eventName = toCamelCase(event.name);
-      AnnotationModel annotationModel = new AnnotationModel("Event",
-              new AnnotationPropertyModel("name", "'on" + eventName + "'"));
+      AnnotationModel annotationModel = new AnnotationModel(Jooc.EVENT_ANNOTATION_NAME,
+              new AnnotationPropertyModel(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME, "'on" + eventName + "'"));
       String asdoc;
       if (!generateEventClasses) {
         asdoc = toAsDoc(event, "", thisJsClassName);

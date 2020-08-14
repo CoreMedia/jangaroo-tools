@@ -75,6 +75,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EMBED_ANNOTATION_SOURCE_PROPERTY = "source";
   public static final String RESOURCE_BUNDLE_ANNOTATION_NAME = "ResourceBundle";
   public static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
+  public static final String EVENT_ANNOTATION_NAME = "Event";
+  public static final String EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME = "name";
 
   private List<FileInputSource> compileQueue = new ArrayList<>();
 
