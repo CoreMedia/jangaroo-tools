@@ -291,7 +291,7 @@ public class JettyWrapper {
                         .collect(Collectors.toList()));
       }
       handler.setBaseResource(new ResourceCollection(baseResources.stream().filter(Resource::exists).toArray(Resource[]::new)));
-      getLog().info("Using base resources " + baseResources);
+      getLog().info("  Using base resources: " + baseResources);
 
       if (staticResourcesServletConfigs != null && !staticResourcesServletConfigs.isEmpty()) {
         for (StaticResourcesServletConfig config : staticResourcesServletConfigs) {
@@ -322,15 +322,16 @@ public class JettyWrapper {
   }
 
   private boolean addDefaultServlet(ServletContextHandler webAppContext, StaticResourcesServletConfig config) {
+    String pathSpec = config.getPathSpec();
     ServletHolder servletHolder = new ServletHolder(DefaultServlet.class);
 
     servletHolder.setInitParameter("relativeResourceBase", config.getRelativeResourceBase());
     servletHolder.setInitParameter("cacheControl", "no-store, no-cache, must-revalidate, max-age=0");
 
     webAppContext.addAliasCheck(new AllowSymLinkAliasChecker());
-    boolean addedRootPathServlet = addServlet(webAppContext, servletHolder, config.getPathSpec());
-    getLog().info(String.format("Serving static resources: %s -> %s",
-            config.getPathSpec(), config.getRelativeResourceBase()));
+    boolean addedRootPathServlet = addServlet(webAppContext, servletHolder, pathSpec);
+    getLog().info(String.format("  Serving static resources: %s -> %s",
+            resolve(webAppContext.getContextPath(), pathSpec), config.getRelativeResourceBase()));
     return addedRootPathServlet;
   }
 
@@ -344,8 +345,8 @@ public class JettyWrapper {
     servletHolder.setInitParameter(ProxyServlet.P_PRESERVECOOKIES, "true");
 
     boolean addedRootPathServlet = addServlet(webAppContext, servletHolder, pathSpec);
-    getLog().info(String.format("Proxy requests: %s -> %s",
-            pathSpec, config.getTargetUri()));
+    getLog().info(String.format("  Proxying requests: %s -> %s",
+            resolve(webAppContext.getContextPath(), pathSpec), config.getTargetUri()));
     return addedRootPathServlet;
   }
 
@@ -365,6 +366,10 @@ public class JettyWrapper {
 
   protected Logger getLog() {
     return LOG;
+  }
+
+  private static String resolve(String base, String relative) {
+    return (ROOT_PATH.equals(base) ? ""  : base) + relative;
   }
 
   public static final class JettyWrapperException extends Exception {

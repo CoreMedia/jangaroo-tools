@@ -171,14 +171,6 @@ public class RunMojo extends AbstractSenchaMojo {
             addAppToResources(jettyWrapper, jangarooApp.mavenProject, SEPARATOR + PACKAGES_DIRECTORY_NAME, PACKAGES_DIRECTORY_NAME + SEPARATOR);
             jangarooApp = jangarooApp instanceof JangarooAppOverlay ? ((JangarooAppOverlay) jangarooApp).baseApp : null;
           } while (jangarooApp != null);
-          if (!isRootApp) {
-            jettyWrapper.setStaticResourcesServletConfigs(
-                    Collections.singletonList(
-                            new StaticResourcesServletConfig(appPath + JettyWrapper.ROOT_PATH_SPEC, SEPARATOR)
-                    ),
-                    appPath
-            );
-          }
         }
         jettyWrapper.setStaticResourcesServletConfigs(
                 Collections.singletonList(
@@ -192,7 +184,6 @@ public class RunMojo extends AbstractSenchaMojo {
                 ),
                 SEPARATOR + PACKAGES_DIRECTORY_NAME
         );
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
       }
     }
 
