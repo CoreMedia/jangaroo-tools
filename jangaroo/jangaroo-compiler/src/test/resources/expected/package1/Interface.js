@@ -15,7 +15,7 @@ Ext.define("package1.Interface", function(Interface) {/*public interface Interfa
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      mixins: ["package1.SuperInterface"],
+      extend: "package1.SuperInterface",
       requires: ["package1.SuperInterface"]
     };
 });

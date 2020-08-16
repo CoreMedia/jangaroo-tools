@@ -311,7 +311,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         superTypes = superTypes.getTail();
       }
       if (!superInterfaces.isEmpty()) {
-        classDefinition.set("mixins", new JsonArray(superInterfaces.toArray()));
+        if (classDeclaration.isInterface() && superInterfaces.size() == 1) {
+          // if interface has just one super interface, let Ext class extend super interface Ext class:
+          classDefinition.set("extend", superInterfaces.get(0));
+        } else {
+          // is class or has more than one super interface: mix-in interfaces Ext classes
+          classDefinition.set("mixins", new JsonArray(superInterfaces.toArray()));
+        }
       }
     }
   }
