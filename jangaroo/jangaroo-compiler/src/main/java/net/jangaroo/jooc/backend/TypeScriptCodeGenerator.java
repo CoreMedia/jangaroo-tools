@@ -488,8 +488,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (importedInputSource instanceof FileInputSource &&
             ((FileInputSource) importedInputSource).getSourceDir().equals(currentInputSource.getSourceDir())) {
       // same input source: relativize against current file
-      moduleName = computeRelativeModulePath(currentInputSource.getFile(),
-              new File(currentInputSource.getSourceDir(), moduleName));
+      moduleName = CompilerUtils.removeExtension(computeRelativeModulePath(currentInputSource.getFile(),
+              new File(currentInputSource.getSourceDir(), moduleName + ".ts")));
     } else {
       // compute target npm package name
       String npmPackageName;
