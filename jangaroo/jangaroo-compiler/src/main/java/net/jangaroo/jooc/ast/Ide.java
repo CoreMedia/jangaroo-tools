@@ -281,13 +281,11 @@ public class Ide extends NodeImplBase {
       usageInExpr(exprParent);
       if (!isThis() && !isQualified()) {
         IdeDeclaration decl = getDeclaration(false);
-        if (decl != null) {
-          if ((!isQualifier() || exprParent instanceof ApplyExpr)
-            && !(exprParent instanceof ArrayIndexExpr) && (decl instanceof Parameter)) {
-            FunctionExpr currentFunction = scope.getFunctionExpr();
-            if (currentFunction != null) {
-              currentFunction.notifyArgumentsUsed(decl);
-            }
+        if (decl instanceof Parameter) {
+          FunctionExpr currentFunction = scope.getFunctionExpr();
+          if (currentFunction != null && currentFunction.isMyArguments((Parameter) decl)) {
+            currentFunction.notifyArgumentsUsed((!isQualifier() || exprParent instanceof ApplyExpr)
+                    && !(exprParent instanceof ArrayIndexExpr));
           }
         }
       }

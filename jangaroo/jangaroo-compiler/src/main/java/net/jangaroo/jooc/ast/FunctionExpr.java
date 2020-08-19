@@ -49,6 +49,7 @@ public class FunctionExpr extends Expr {
   private boolean thisDefined = false;
   private boolean explicitThisUsed = false;
   private final Parameter argumentsParameter;
+  private boolean argumentsUsed = false;
   private boolean argumentsUsedAsArray = false;
   private IdeDeclaration classDeclaration;
 
@@ -218,14 +219,19 @@ public class FunctionExpr extends Expr {
   }
 
   public boolean rewriteToArrowFunction() {
-    return !isExplicitThisUsed() && getBody() != null
+    return !isExplicitThisUsed() && !argumentsUsed && getBody() != null
             && (getIde() == null && getFunctionDeclaration() == null
             || getIde() != null && getFunctionDeclaration() != null
             && getFunctionDeclaration().isThisAliased() && !getFunctionDeclaration().isClassMember());
   }
 
-  void notifyArgumentsUsed(IdeDeclaration argumentsIdeDeclaration) {
-    if (argumentsIdeDeclaration == argumentsParameter) {
+  boolean isMyArguments(Parameter maybeArgumentsParameter) {
+    return argumentsParameter == maybeArgumentsParameter;
+  }
+
+  void notifyArgumentsUsed(boolean asArray) {
+    argumentsUsed = true;
+    if (asArray) {
       argumentsUsedAsArray = true;
     }
   }
