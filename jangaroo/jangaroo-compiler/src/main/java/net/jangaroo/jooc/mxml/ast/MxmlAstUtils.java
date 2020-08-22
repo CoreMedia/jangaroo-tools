@@ -24,6 +24,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
@@ -69,6 +70,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
+  static final JooSymbol SYM_NEW = new JooSymbol(sym.NEW, "new").withWhitespace(" ");
   private static final List<Annotation> EMPTY_ANNOTATIONS = Collections.<Annotation>emptyList();
 
   private MxmlAstUtils() {
@@ -233,4 +235,7 @@ class MxmlAstUtils {
     return result;
   }
 
+  static NewExpr createNewExpr(Ide typeIde, Expr ...args) {
+    return new NewExpr(SYM_NEW, createApplyExpr(new IdeExpr(typeIde), args));
+  }
 }
