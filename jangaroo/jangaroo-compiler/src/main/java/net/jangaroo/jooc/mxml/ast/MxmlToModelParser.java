@@ -315,38 +315,42 @@ final class MxmlToModelParser {
                 .append("public var ").append(id).append(':').append(className).append(';');
         additionalDeclaration = classBodyCode.toString();
         classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives());
+        id = null;
+      } else if (variableDeclaration.isExtConfig()) {
+        id = null;
       }
     }
 
+    Expr valueExpr;
     if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
             CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       // process attributes and children, using a forward reference to the object to build inside bindings:
       ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
-      return MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
-    }
-    JooSymbol textContentSymbol = getTextContent(objectElement);
-    Expr valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
-    if (valueExpr == null) {
-      if ("Object".equals(className)) {
-        valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
-        if (id != null) {
-          valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
-                  new IdeExpr(new Ide(Ide.THIS)), new Ide(id)), valueExpr);
-        }
-        return valueExpr;
-      } else if ("Array".equals(className)) {
-        return createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
-      } else {
-        return new NewExpr(new JooSymbol(sym.NEW, "new"), MxmlAstUtils.createCastExpr(typeIde, null));
-      }
+      valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
     } else {
-      if (!objectElement.getElements().isEmpty()) {
-        throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContentSymbol.getText().trim()));
+      JooSymbol textContentSymbol = getTextContent(objectElement);
+      valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
+      if (valueExpr == null) {
+        if ("Object".equals(className)) {
+          valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
+        } else if ("Array".equals(className)) {
+          valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
+        } else {
+          valueExpr = new NewExpr(new JooSymbol(sym.NEW, "new"), MxmlAstUtils.createCastExpr(typeIde, null));
+        }
+      } else {
+        if (!objectElement.getElements().isEmpty()) {
+          throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContentSymbol.getText().trim()));
+        }
+        if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
+          return null;
+        }
       }
-      if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
-        return null;
-      }
+    }
+    if (id != null) {
+      valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
+              new IdeExpr(new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4))), new Ide(id)), valueExpr);
     }
     return valueExpr;
   }

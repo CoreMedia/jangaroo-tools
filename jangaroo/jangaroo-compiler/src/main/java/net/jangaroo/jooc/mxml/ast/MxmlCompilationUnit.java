@@ -24,6 +24,7 @@ import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
+import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
@@ -223,7 +224,11 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if (fieldNameSym != null) {
         Expr valueExpr = mxmlToModelParser.createExprFromElement(declaration, null);
         if (valueExpr != null) {
-          defaults.add(MxmlAstUtils.createObjectField(fieldNameSym.getValue().getText(), valueExpr));
+          if (valueExpr instanceof AssignmentOpExpr) {
+            constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(valueExpr));
+          } else {
+            defaults.add(MxmlAstUtils.createObjectField(fieldNameSym.getValue().getText(), valueExpr));
+          }
         }
       }
     }
