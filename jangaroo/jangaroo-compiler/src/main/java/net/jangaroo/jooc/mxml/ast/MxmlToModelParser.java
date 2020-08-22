@@ -7,18 +7,15 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
-import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
-import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
-import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
@@ -27,21 +24,20 @@ import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
-import net.jangaroo.jooc.sym;
-import net.jangaroo.utils.CompilerUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
 final class MxmlToModelParser {
 
@@ -180,6 +176,9 @@ final class MxmlToModelParser {
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
             Expr valueExpr = createValueExprFromTextSymbol(getTextContent(element), "");
+            if (valueExpr == null && hasArrayLikeType(propertyModel)) { // TODO: what about empty Object etc.?
+              valueExpr = MxmlAstUtils.createArrayLiteral(Collections.emptyList());
+            }
             if (valueExpr != null) {
               fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
             }
@@ -265,7 +264,7 @@ final class MxmlToModelParser {
   private Expr createArrayExprFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
     List<Expr> arrayItems = new ArrayList<>();
     for (XmlElement arrayItemNode : childElements) {
-      Expr itemValue = createExprFromElement(arrayItemNode, useConfigObjects);
+      Expr itemValue = createExprFromElement(arrayItemNode, useConfigObjects, true);
       arrayItems.add(itemValue);
     }
     Expr value;
@@ -276,13 +275,13 @@ final class MxmlToModelParser {
       // The property is either unspecified, untyped, or object-typed
       // and it contains at least one child element. Use the first element as the
       // property value.
-      value = arrayItems.isEmpty() ? new LiteralExpr(new JooSymbol(sym.NULL_LITERAL, "null")) : arrayItems.get(0);
+      value = arrayItems.isEmpty() ? MxmlAstUtils.createNullLiteral() : arrayItems.get(0);
     }
     return value;
   }
 
   @Nullable
-  Expr createExprFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects) {
+  Expr createExprFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, boolean generatingConfig) {
     String className;
     try {
       className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
@@ -307,16 +306,20 @@ final class MxmlToModelParser {
       if (null == variableDeclaration) {
         String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
         int i = asDoc.lastIndexOf('\n');
-        StringBuilder classBodyCode = new StringBuilder();
-        classBodyCode
-                .append(asDoc)
-                .append('[').append(Jooc.BINDABLE_ANNOTATION_NAME).append(']')
-                .append(i < 0 ? "\n" : asDoc.substring(i))
-                .append("public var ").append(id).append(':').append(className).append(';');
-        additionalDeclaration = classBodyCode.toString();
-        classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives());
-        id = null;
-      } else if (variableDeclaration.isExtConfig()) {
+        additionalDeclaration = asDoc +
+                '[' + Jooc.BINDABLE_ANNOTATION_NAME + ']' +
+                (i < 0 ? "\n" : asDoc.substring(i)) +
+                "public var " + id + ':' + className + ';';
+        Collection<Directive> directives = mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives();
+        Iterator<Directive> directiveIterator = directives.iterator();
+        if (!directiveIterator.hasNext()) {
+          throw new IllegalStateException("MXML: parsing generated field declaration with name '"+ id + "' failed.");
+        }
+        variableDeclaration = (VariableDeclaration) directiveIterator.next();
+        classBodyDirectives.add(variableDeclaration);
+      }
+      if (generatingConfig && variableDeclaration.isExtConfig()) {
+        // default values are applied through the config object, not directly on 'this':
         id = null;
       }
     }
@@ -353,7 +356,7 @@ final class MxmlToModelParser {
     }
     if (id != null) {
       valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
-              new IdeExpr(new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4))), new Ide(id)), valueExpr);
+              new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4)), id), valueExpr);
     }
     return valueExpr;
   }
@@ -370,9 +373,10 @@ final class MxmlToModelParser {
     Expr valueExpr = mxmlParserHelper.parseExpression(value.equals(textContentSymbol.getText())
             ? textContentSymbol
             : textContentSymbol.replacingSymAndTextAndJooValue(textContentSymbol.sym, value, value));
+    // special case: String properties auto-cast any right-hand-side into a String:
     if ("String".equals(className) && !(valueExpr instanceof LiteralExpr && ((LiteralExpr)valueExpr).getValue().getJooValue() instanceof String)) {
       valueExpr = MxmlAstUtils.createApplyExpr(
-              MxmlAstUtils.createDotExpr(new IdeExpr(new Ide("Exml")), new Ide("asString")),
+              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), "asString"),
               valueExpr);
     }
     return valueExpr;
@@ -417,35 +421,6 @@ final class MxmlToModelParser {
       annotationParameters = annotationParameters.getTail();
     }
     return defaultValue;
-  }
-
-  private Ide createAuxVar(XmlElement element) {
-    JooSymbol symbol = element.getSymbol();
-    String prefix = element.getName();
-    return createAuxVar(symbol, prefix);
-  }
-
-  @Nonnull
-  private Ide createAuxVar(@Nonnull XmlElement element, @Nullable String idAttributeValue) {
-    JooSymbol symbol = element.getSymbol();
-    StringBuilder name = new StringBuilder();
-    if (StringUtils.isEmpty(idAttributeValue)) {
-      String prefix = element.getPrefix();
-      if(null != prefix) {
-        name.append(prefix).append('_');
-      }
-      name.append(element.getLocalName());
-    } else {
-      name.append(idAttributeValue);
-      Ide.verifyIdentifier(idAttributeValue, symbol);
-    }
-    return createAuxVar(symbol, name.toString());
-  }
-
-  @Nonnull
-  private Ide createAuxVar(@Nonnull JooSymbol symbol, @Nonnull String prefix) {
-    String preferredName = CompilerUtils.uncapitalize(prefix.replaceAll("-", "\\$")) + '_' + symbol.getLine() + '_' + symbol.getColumn();
-    return compilationUnit.createAuxVar(preferredName);
   }
 
   private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull Annotation event) {
@@ -500,15 +475,11 @@ final class MxmlToModelParser {
     Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, attributeValueAsString));
     // special case: String properties auto-cast any right-hand-side into a String:
     if ("String".equals(propertyType) && !(rightHandSide instanceof LiteralExpr && ((LiteralExpr)rightHandSide).getValue().getJooValue() instanceof String)) {
-      rightHandSide = new ApplyExpr(new DotExpr(new IdeExpr(new Ide("Exml")), MxmlAstUtils.SYM_DOT , new Ide("asString")), MxmlAstUtils.SYM_LPAREN, new CommaSeparatedList<>(rightHandSide), MxmlAstUtils.SYM_RPAREN);
+      rightHandSide = MxmlAstUtils.createApplyExpr(
+              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), "asString"),
+              rightHandSide);
     }
     return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
-  }
-
-  @Nonnull
-  private static String getPropertyAssignmentCode(@Nonnull Ide variable, String propertyName, String attributeValueAsString) {
-    String leftHandSide = MessageFormat.format("{0}[{1}]", variable.getName(), CompilerUtils.quote(propertyName));
-    return MessageFormat.format("{0} = {1};", leftHandSide, attributeValueAsString);
   }
 
   private static String getConfigOptionName(TypedIdeDeclaration propertyModel) {

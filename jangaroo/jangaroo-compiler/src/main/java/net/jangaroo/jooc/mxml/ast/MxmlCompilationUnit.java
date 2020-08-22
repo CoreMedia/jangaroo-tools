@@ -24,7 +24,6 @@ import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
-import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
@@ -133,22 +132,41 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     preProcessClassBodyDirectives();
 
-    ObjectLiteral defaultsConfig = createFields();
-    if (constructorParam != null) {
-      ImportDirective importDirective = mxmlParserHelper.parseImport(NET_JANGAROO_EXT_EXML);
-      getDirectives().add(importDirective);
-      Ide exml = mxmlParserHelper.parseIde(" " + NET_JANGAROO_EXT_EXML);
-      if (defaultsConfig.getFields() != null) {
-        ApplyExpr applyOntoDefaultsExpr = createExmlApply(exml, defaultsConfig, new IdeExpr(constructorParam.getIde()));
-        IdeExpr config = new IdeExpr(constructorParam.getIde().getSymbol().withWhitespace("\n    "));
-        AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyOntoDefaultsExpr);
+    // Check whether the super constructor has a 'config' param to construct the right super call:
+    boolean useSuperConfig = CompilationUnitUtils.constructorSupportsConfigOptionsParameter(superClassIde.getQualifiedNameStr(), parser);
+
+    ObjectLiteral defaultsConfig = createFields(useSuperConfig);
+    // all kinds of (weird) cases:
+    // 1. class and super class have config param (normal Ext JS) -> super(apply config onto defaults onto MXML configs)
+    // 2. class has config param, super class not -> apply config onto this or (if inherits from Ext.Base) call initConfig()
+    // 3. class has no config param, super class got one -> super(apply MXML configs onto defaults)
+    // 4. class has no config param, super class too (normal MXML) -> super(); apply defaults to 'this'
+    Ide config = constructorParam == null ? null : constructorParam.getIde();
+    if (defaultsConfig.getFields() != null) {
+      if (config == null) {
+        config = new Ide(MxmlUtils.CONFIG);
+        MxmlAstUtils.createVariableDeclaration(config, classDeclaration.getIde(), defaultsConfig);
+      } else {
+        ApplyExpr applyOntoDefaultsExpr = createExmlApply(defaultsConfig, new IdeExpr(config));
+        AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(new IdeExpr(config), MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyOntoDefaultsExpr);
         constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
       }
-      Expr configObjectLiteral = mxmlToModelParser.createExprFromElement(rootNode, true);
-
-      ApplyExpr applyExpr = createExmlApply(exml, configObjectLiteral, new IdeExpr(constructorParam.getIde()));
-      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(applyExpr));
     }
+    Expr configFromMxmlExpr = mxmlToModelParser.createExprFromElement(rootNode, true, true);
+    // Only apply config onto config-from-MXML if the latter is not empty, otherwise use config in super() directly,
+    // but not if super class needs an (empty) config object:
+    Expr superConfigExpr = !(config == null && useSuperConfig) && isSuperConfigEmpty(configFromMxmlExpr)
+            ? config == null ? null : new IdeExpr(config)
+            : config == null ? configFromMxmlExpr : createExmlApply(configFromMxmlExpr, new IdeExpr(config));
+    if (useSuperConfig) {
+      constructorBodyDirectives.add(superConfigExpr == null
+              ? MxmlAstUtils.createSuperConstructorCall()
+              : MxmlAstUtils.createSuperConstructorCall(superConfigExpr));
+    } else if (superConfigExpr != null) {
+      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(
+              createExmlApply(MxmlAstUtils.createThisExpr(), superConfigExpr)));
+    }
+
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
 
     postProcessClassBodyDirectives();
@@ -156,8 +174,15 @@ public class MxmlCompilationUnit extends CompilationUnit {
     super.scope(scope);
   }
 
-  private static ApplyExpr createExmlApply(Ide exml, Expr targetObject, Expr sourceObject) {
-    return new ApplyExpr(new DotExpr(new IdeExpr(exml), MxmlAstUtils.SYM_DOT, new Ide(new JooSymbol(APPLY))), MxmlAstUtils.SYM_LPAREN, MxmlAstUtils.createCommaSeparatedList(targetObject, sourceObject), MxmlAstUtils.SYM_RPAREN);
+  private static boolean isSuperConfigEmpty(Expr configFromMxmlExpr) {
+    Expr superConfigObject = configFromMxmlExpr instanceof ApplyExpr
+            ? ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getHead()
+            : configFromMxmlExpr;
+    return superConfigObject instanceof ObjectLiteral && ((ObjectLiteral) superConfigObject).getFields() == null;
+  }
+
+  private ApplyExpr createExmlApply(Expr targetObject, Expr sourceObject) {
+    return MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(addImport(NET_JANGAROO_EXT_EXML), APPLY), targetObject, sourceObject);
   }
 
   Ide createAuxVar(String name) {
@@ -204,7 +229,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if(null != constructorParam && initMethod.getParams() != null) {
         args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
       }
-      DotExpr initFunctionInvocation = new DotExpr(new IdeExpr(new Ide(MxmlAstUtils.SYM_THIS)), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
+      DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
       Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
       constructorBodyDirectives.add(directive);
     }
@@ -216,12 +241,12 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
   }
 
-  ObjectLiteral createFields() {
+  ObjectLiteral createFields(boolean useSuperConfig) {
     List<ObjectField> defaults = new ArrayList<>();
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
       XmlAttribute fieldNameSym = declaration.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
       if (fieldNameSym != null) {
-        Expr valueExpr = mxmlToModelParser.createExprFromElement(declaration, null);
+        Expr valueExpr = mxmlToModelParser.createExprFromElement(declaration, null, constructorParam != null && useSuperConfig);
         if (valueExpr != null) {
           if (valueExpr instanceof AssignmentOpExpr) {
             constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(valueExpr));

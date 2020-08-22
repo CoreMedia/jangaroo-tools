@@ -138,8 +138,12 @@ class MxmlAstUtils {
     return new ApplyExpr(fun, SYM_LPAREN, createCommaSeparatedList(args), SYM_RPAREN);
   }
 
-  static DotExpr createDotExpr(Expr expr, Ide ide) {
-    return new DotExpr(expr, SYM_DOT, ide);
+  static DotExpr createDotExpr(Ide object, String property) {
+    return createDotExpr(new IdeExpr(object), new Ide(property));
+  }
+
+  static DotExpr createDotExpr(Expr object, Ide property) {
+    return new DotExpr(object, SYM_DOT, property);
   }
 
   static ArrayIndexExpr createArrayIndexExpr(Expr expr, String index) {
@@ -168,8 +172,8 @@ class MxmlAstUtils {
     return createSuperConstructorCall(new IdeExpr(superConfigVar));
   }
 
-  static SuperConstructorCallStatement createSuperConstructorCall(Expr superConfigExpr) {
-    CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(superConfigExpr);
+  static SuperConstructorCallStatement createSuperConstructorCall(Expr ...argExprs) {
+    CommaSeparatedList<Expr> args = createCommaSeparatedList(argExprs);
     return new SuperConstructorCallStatement(SYM_SUPER.withWhitespace(INDENT_4), SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
   }
 
@@ -237,5 +241,13 @@ class MxmlAstUtils {
 
   static NewExpr createNewExpr(Ide typeIde, Expr ...args) {
     return new NewExpr(SYM_NEW.withWhitespace(" "), createApplyExpr(new IdeExpr(typeIde), args));
+  }
+
+  static LiteralExpr createNullLiteral() {
+    return new LiteralExpr(SYM_NULL);
+  }
+
+  static IdeExpr createThisExpr() {
+    return new IdeExpr(new Ide(SYM_THIS));
   }
 }
