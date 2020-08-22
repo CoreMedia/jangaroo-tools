@@ -8,8 +8,6 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
-import net.jangaroo.jooc.ast.ArrayIndexExpr;
-import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -20,12 +18,16 @@ import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,15 +35,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.APPLY;
-import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
 final class MxmlToModelParser {
 
@@ -54,8 +54,8 @@ final class MxmlToModelParser {
   private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
   private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<>();
 
-  private static final String DELETE_OBJECT_PROPERTY_CODE = "\n    delete %s['%s'];";
   private static final String UNTYPED_MARKER = "__UNTYPED__";
+  public static final List<String> PRIMITIVE_TYPE_NAMES = Arrays.asList("int", "uint", "Number", "Boolean");
 
   static {
     CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
@@ -68,7 +68,6 @@ final class MxmlToModelParser {
 
   private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
-  String additionalDeclarations = "";
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
@@ -76,14 +75,10 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private void renderConfigAuxVar(@Nonnull Ide ide, Ide type) {
-    constructorBodyDirectives.add(MxmlAstUtils.createVariableDeclaration(ide, type));
-  }
-
-  private void processAttributes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
-    Ide variable = generatingConfig ? configVariable : targetVariable;
+  private List<ObjectField> processAttributes(XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
+    List<ObjectField> fields = new ArrayList<>();
     for (XmlAttribute attribute : objectNode.getAttributes()) {
       if (RootElementProcessor.alreadyProcessed(attribute)) {
         continue;
@@ -102,7 +97,7 @@ final class MxmlToModelParser {
           if (propertyModel == null) {
             Annotation eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
-              createEventHandlerCode(variable, value, eventModel);
+              //createEventHandlerCode(variable, value, eventModel);
               continue;
             }
           }
@@ -110,18 +105,15 @@ final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
         }
-        createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, value, propertyModel);
+        TypeRelation typeRelation = propertyModel.getOptTypeRelation();
+        String className = typeRelation == null ? "*" : typeRelation.getType().getIde().getQualifiedNameStr();
+        Expr valueExpr = createValueExprFromTextSymbol(value, className);
+        if (valueExpr != null) {
+          fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
+        }
       }
     }
-  }
-
-  private void createPropertyAssignmentCodeWithBindings(Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig, @Nonnull JooSymbol value, @Nonnull TypedIdeDeclaration propertyModel) {
-    Ide variable = generatingConfig ? configVariable : targetVariable;
-    // skip property assignment to target object if it was already contained in config object:
-    if (generatingConfig || configVariable == null) {
-      // default: create a normal property assignment:
-      createPropertyAssignmentCode(variable, propertyModel, value, generatingConfig);
-    }
+    return fields;
   }
 
 
@@ -141,20 +133,26 @@ final class MxmlToModelParser {
     return null;
   }
 
-  void processAttributesAndChildNodes(XmlElement objectNode, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
-    if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
-      CompilationUnit type = getCompilationUnitModel(objectNode);
-      processAttributes(objectNode, type, configVariable, targetVariable, generatingConfig);
-      processChildNodes(objectNode, type, configVariable, targetVariable, generatingConfig);
-    }
+  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(XmlElement objectNode) {
+    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(objectNode));
   }
 
-  private void processChildNodes(XmlElement objectNode, CompilationUnit type, Ide configVariable, @Nonnull Ide targetVariable, boolean generatingConfig) {
-    Ide variable = generatingConfig ? configVariable : targetVariable;
+  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(XmlElement objectNode) {
+    List<ObjectField> fields = new ArrayList<>();
+    if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
+      CompilationUnit type = getCompilationUnitModel(objectNode);
+      fields.addAll(processAttributes(objectNode, type));
+      fields.addAll(processChildNodes(objectNode, type));
+    }
+    return fields;
+  }
+
+  private List<ObjectField> processChildNodes(XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
     List<XmlElement> defaultPropertyValues = new ArrayList<>();
+    List<ObjectField> fields = new ArrayList<>();
     for (XmlElement element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
         TypedIdeDeclaration propertyModel = null;
@@ -162,14 +160,14 @@ final class MxmlToModelParser {
         if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
           if (classModel != null) {
             propertyModel = findPropertyModel(classModel, propertyName);
-            if (propertyModel == null) {
-              Annotation eventModel = findEvent(classModel, propertyName);
-              if (eventModel != null) {
-                JooSymbol textContent = getTextContent(element);
-                createEventHandlerCode(variable, textContent, eventModel);
-                continue;
-              }
-            }
+//            if (propertyModel == null) {
+//              Annotation eventModel = findEvent(classModel, propertyName);
+//              if (eventModel != null) {
+//                JooSymbol textContent = getTextContent(element);
+//                createEventHandlerCode(variable, textContent, eventModel);
+//                continue;
+//              }
+//            }
           }
         }
         if (propertyModel == null && defaultPropertyModel != null) {
@@ -181,39 +179,37 @@ final class MxmlToModelParser {
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
-            JooSymbol textContent = getTextContent(element);
-            createPropertyAssignmentCodeWithBindings(configVariable, targetVariable, generatingConfig, textContent, propertyModel);
+            Expr valueExpr = createValueExprFromTextSymbol(getTextContent(element), "");
+            if (valueExpr != null) {
+              fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
+            }
           } else {
             if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
-              StringBuilder constructorCode = new StringBuilder();
               for (XmlElement arrayItemNode : childElements) {
-                String itemValue = createValueCodeFromElement(null, arrayItemNode, true);
-                createDeleteTypePropertiesCode(constructorCode, itemValue);
-                constructorCode.append("\n    " + NET_JANGAROO_EXT_EXML + "." + APPLY + "(" + configVariable + ", " + itemValue + ");");
+                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(arrayItemNode);
+                fields.addAll(mixinFields);
               }
-              constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
             } else {
-              createChildElementsPropertyAssignmentCode(childElements, variable, propertyModel, generatingConfig);
+              fields.add(createPropertyAssignmentCode(propertyModel, createArrayExprFromChildElements(childElements, hasArrayLikeType(propertyModel), null)));
             }
           }
           String configMode = getConfigMode(element, propertyModel);
           String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
           if (atValue != null) {
-            String atPropertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-            Expr dotExpr = new ArrayIndexExpr(new IdeExpr(new Ide(variable.getIde().withWhitespace("\n    "))), MxmlAstUtils.SYM_LBRACK, new LiteralExpr(new JooSymbol(CompilerUtils.quote(atPropertyName + CONFIG_MODE_AT_SUFFIX))), MxmlAstUtils.SYM_RBRACK);
-            IdeExpr ideExpr = new IdeExpr(mxmlParserHelper.parseIde(" " + atValue));
-            constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(dotExpr, MxmlAstUtils.SYM_EQ.withWhitespace(" "), ideExpr)));
+            String atPropertyName = getConfigOptionName(propertyModel);
+            fields.add(MxmlAstUtils.createObjectField(atPropertyName + CONFIG_MODE_AT_SUFFIX, new IdeExpr(mxmlParserHelper.parseIde(atValue))));
           }
         }
       }
     }
     if (!defaultPropertyValues.isEmpty()) {
-      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
+//      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
     }
+    return fields;
   }
 
   private static String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
-    if ("Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName())) {
+    if (hasArrayLikeType(propertyModel)) {
       String configMode = element.getAttributeNS(EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
       if (!configMode.isEmpty()) {
         return configMode;
@@ -239,68 +235,54 @@ final class MxmlToModelParser {
     return "";
   }
 
-  private void createChildElementsPropertyAssignmentCode(List<XmlElement> childElements, Ide variable,
-                                                         TypedIdeDeclaration propertyModel, boolean generatingConfig) {
-    boolean forceArray = "Array".equals(propertyModel.getOptTypeRelation().getType().getIde().getName()); // TODO: improve Array detection!
+  private List<ObjectField> createChildElementsPropertyAssignmentCode(List<XmlElement> childElements,
+                                                                      TypedIdeDeclaration propertyModel) {
+    boolean forceArray = hasArrayLikeType(propertyModel); // TODO: improve Array detection!
     Annotation extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
     Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
-    String value = createArrayCodeFromChildElements(childElements, forceArray, useConfigObjects);
+    Expr value = createArrayExprFromChildElements(childElements, forceArray, useConfigObjects);
+    List<ObjectField> fields = new ArrayList<>();
     if (extConfigAnnotation != null) {
       Map<String, Object> propertiesByName = extConfigAnnotation.getPropertiesByName();
       if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER)) {
         Object extractXType = propertiesByName.get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
         if (extractXType == null || extractXType instanceof String) {
           String extractXTypeToProperty = (String) extractXType;
-          StringBuilder constructorCode = new StringBuilder();
           if (extractXTypeToProperty != null) {
-            constructorCode.append("    ")
-                    .append(getPropertyAssignmentCode(variable, extractXTypeToProperty, value + "['xtype']"));
+            fields.add(MxmlAstUtils.createObjectField(extractXTypeToProperty, MxmlAstUtils.createArrayIndexExpr(value, "xtype")));
           }
-          createDeleteTypePropertiesCode(constructorCode, value);
-          constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
         }
       }
     }
-    createPropertyAssignmentCode(variable, propertyModel, new JooSymbol(MxmlUtils.createBindingExpression(value)), generatingConfig);
+    createPropertyAssignmentCode(propertyModel, value);
+    return fields;
   }
 
-  private static void createDeleteTypePropertiesCode(StringBuilder constructorCode, String value) {
-    constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xtype"));
-    constructorCode.append(String.format(DELETE_OBJECT_PROPERTY_CODE, value, "xclass"));
+  private static boolean hasArrayLikeType(TypedIdeDeclaration propertyModel) {
+    return propertyModel.getIde().getScope().getExpressionType(propertyModel.getOptTypeRelation()).isArrayLike();
   }
 
-  private String createArrayCodeFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
-    List<String> arrayItems = new ArrayList<>();
+  private Expr createArrayExprFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
+    List<Expr> arrayItems = new ArrayList<>();
     for (XmlElement arrayItemNode : childElements) {
-      String itemValue = createValueCodeFromElement(null, arrayItemNode, useConfigObjects);
+      Expr itemValue = createExprFromElement(arrayItemNode, useConfigObjects);
       arrayItems.add(itemValue);
     }
-    String value;
+    Expr value;
     if (arrayItems.size() > 1 || forceArray) {
       // We must create an array.
-      value = "[" + join(arrayItems, ", ") + "]";
+      value = MxmlAstUtils.createArrayLiteral(arrayItems);
     } else {
       // The property is either unspecified, untyped, or object-typed
       // and it contains at least one child element. Use the first element as the
       // property value.
-      value = arrayItems.isEmpty() ? "null" : arrayItems.get(0);
+      value = arrayItems.isEmpty() ? new LiteralExpr(new JooSymbol(sym.NULL_LITERAL, "null")) : arrayItems.get(0);
     }
     return value;
   }
 
-  private static String join(List<String> array, String separator) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < array.size(); ++i) {
-      if (i > 0) {
-        sb.append(separator);
-      }
-      sb.append(array.get(i));
-    }
-    return sb.toString();
-  }
-
   @Nullable
-  String createValueCodeFromElement(@Nullable Ide configVar, XmlElement objectElement, Boolean defaultUseConfigObjects) {
+  Expr createExprFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects) {
     String className;
     try {
       className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
@@ -309,10 +291,9 @@ final class MxmlToModelParser {
       throw JangarooParser.error(objectElement.getSymbol(), e.getMessage(), e.getCause());
     }
     Ide typeIde = compilationUnit.addImport(className);
-    String targetVariableName = null;   // name of the variable holding the object to build
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
     String id = null;
-    String additionalDeclaration = null;
+    String additionalDeclaration;
     if (null != idAttribute) {
       JooSymbol idSymbol = idAttribute.getValue();
       id = (String) idSymbol.getJooValue();
@@ -323,12 +304,7 @@ final class MxmlToModelParser {
       Ide.verifyIdentifier(id, idSymbol);
 
       VariableDeclaration variableDeclaration = compilationUnit.getVariables().get(id);
-      String qualifier = null != configVar ? configVar.getName() : "";
-      if (null != variableDeclaration) {
-        if (!variableDeclaration.isPublic()) {
-          qualifier = ""; // corresponds to "this."
-        }
-      } else {
+      if (null == variableDeclaration) {
         String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
         int i = asDoc.lastIndexOf('\n');
         StringBuilder classBodyCode = new StringBuilder();
@@ -340,91 +316,61 @@ final class MxmlToModelParser {
         additionalDeclaration = classBodyCode.toString();
         classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives());
       }
-      targetVariableName = CompilerUtils.qName(qualifier, id);
     }
-
-    if (id != null && configVar != null // it is a declaration...
-            && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
-            && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty()) {
-      // prevent assigning a default value for such an empty declaration:
-      additionalDeclarations += additionalDeclaration;
-      return null;
-    }
-
-    Ide configVariable = null; // name of the variable holding the config object to use in the constructor
 
     if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
             CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
-      configVariable = createAuxVar(objectElement, id);
-      renderConfigAuxVar(configVariable, typeIde != null ? typeIde : new Ide(className));
-      if (targetVariableName == null) {
-        targetVariableName = createAuxVar(objectElement).getName();
-      }
       // process attributes and children, using a forward reference to the object to build inside bindings:
-      processAttributesAndChildNodes(objectElement, configVariable, new Ide(targetVariableName), true);
+      ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
+      return MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
     }
-
-    String value = createValueCodeFromElement(objectElement, defaultUseConfigObjects, className, configVariable);
-
-    StringBuilder constructorCode = new StringBuilder();
-    if (null != id) {
-      constructorCode.append("    ").append(targetVariableName);
-    } else if (configVariable == null) {
-      // no config object was built: create variable for object to build now:
-      targetVariableName = createAuxVar(objectElement).getName();
-      constructorCode.append("    ")
-              .append("var ").append(targetVariableName).append(":").append(className);
-    } else if (useConfigObjects(defaultUseConfigObjects, className)) {
-      return configVariable.getName();
-    } else {
-      return value; // no aux var necessary
-    }
-    constructorCode.append(" = ").append(value).append(";");
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
-
-    if (configVariable == null && !"Array".equals(className)) {
-      // no config object was built or event listeners or bindings have to be added:
-      // process attribute and children and assign properties directly on the target object
-      Ide ide = null != targetVariableName ? new Ide(targetVariableName) : null;
-      if(null == ide) {
-        throw new IllegalStateException("potential NPE ahead!");
-      }
-      processAttributesAndChildNodes(objectElement, null, ide, false);
-    }
-    return targetVariableName;
-  }
-
-  private String createValueCodeFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, String className, Ide configVariable) {
-    String value;
     JooSymbol textContentSymbol = getTextContent(objectElement);
-    String textContent = ((String) textContentSymbol.getJooValue()).trim();
-    if (MxmlUtils.isBindingExpression(textContent)) {
-      return MxmlUtils.getBindingExpression(textContent);
-    } else if ("String".equals(className)) {
-      return CompilerUtils.quote(textContent);
-    } else if ("int".equals(className) || "uint".equals(className) || "Number".equals(className) || "Boolean".equals(className)) {
-      return textContent.isEmpty() ? null : textContent;
-    }
-
-    if (!textContent.isEmpty()) {
-      throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
-    }
-    if ("Object".equals(className)) {
-      value = "{}";
-    } else if ("Array".equals(className)) {
-      value = createArrayCodeFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
-    } else {
-      StringBuilder valueBuilder = new StringBuilder();
-      valueBuilder.append("new ").append(className).append("(");
-      if (configVariable != null) {
-        valueBuilder.append(configVariable);
+    Expr valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
+    if (valueExpr == null) {
+      if ("Object".equals(className)) {
+        valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
+        if (id != null) {
+          valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
+                  new IdeExpr(new Ide(Ide.THIS)), new Ide(id)), valueExpr);
+        }
+        return valueExpr;
+      } else if ("Array".equals(className)) {
+        return createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
+      } else {
+        return new NewExpr(new JooSymbol(sym.NEW, "new"), MxmlAstUtils.createCastExpr(typeIde, null));
       }
-      valueBuilder.append(")");
-      value = valueBuilder.toString();
+    } else {
+      if (!objectElement.getElements().isEmpty()) {
+        throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContentSymbol.getText().trim()));
+      }
+      if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
+        return null;
+      }
     }
-    return value;
+    return valueExpr;
   }
+
+  private Expr createValueExprFromTextSymbol(JooSymbol textContentSymbol, String className) {
+    String textContent = ((String) textContentSymbol.getJooValue()).trim();
+    if (textContent.isEmpty()) {
+      if (PRIMITIVE_TYPE_NAMES.contains(className)) {
+        return new IdeExpr(new Ide("undefined"));
+      }
+      return null;
+    }
+    String value = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(textContent, className));
+    Expr valueExpr = mxmlParserHelper.parseExpression(value.equals(textContentSymbol.getText())
+            ? textContentSymbol
+            : textContentSymbol.replacingSymAndTextAndJooValue(textContentSymbol.sym, value, value));
+    if ("String".equals(className) && !(valueExpr instanceof LiteralExpr && ((LiteralExpr)valueExpr).getValue().getJooValue() instanceof String)) {
+      valueExpr = MxmlAstUtils.createApplyExpr(
+              MxmlAstUtils.createDotExpr(new IdeExpr(new Ide("Exml")), new Ide("asString")),
+              valueExpr);
+    }
+    return valueExpr;
+
+    }
 
   private boolean useConfigObjects(Boolean defaultUseConfigObjects, String className) {
     if (defaultUseConfigObjects != null) {
@@ -530,9 +476,8 @@ final class MxmlToModelParser {
     constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
   }
 
-  private void createPropertyAssignmentCode(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    Directive propertyAssignment = createPropertyAssigment(variable, propertyModel, value, generatingConfig);
-    constructorBodyDirectives.add(propertyAssignment);
+  private ObjectField createPropertyAssignmentCode(@Nonnull TypedIdeDeclaration propertyModel, @Nonnull Expr value) {
+    return MxmlAstUtils.createObjectField(getConfigOptionName(propertyModel), value);
   }
 
   @Nonnull

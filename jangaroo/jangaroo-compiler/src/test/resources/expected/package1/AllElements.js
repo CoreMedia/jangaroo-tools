@@ -38,61 +38,57 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     }/*
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
-    var config_$1/*: ext.config.panel*/ =AS3.cast(ext.config.panel,{});
-    var defaults_$1/*:AllElements*/ =AS3.cast(AllElements,{});
-    var myVar3_54_5_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
-    myVar3_54_5_$1.text = "Foo";
-    this.myVar3$6tZL = new ext.config.button(myVar3_54_5_$1);
-    var object_58_7_$1/*:Object*/ = {};
-    object_58_7_$1.header = "a";
-    object_58_7_$1.sortable = false;
-    object_58_7_$1.menuDisabled = true;
-    var object_59_7_$1/*:Object*/ = {};
-    object_59_7_$1.header = "b";
-    object_59_7_$1.sortable = true;
-    object_59_7_$1.menuDisabled = false;
-    this.myVar4$6tZL = [object_58_7_$1, object_59_7_$1];
-    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
-    config_$1.title = "I am a panel";
-    config_$1.layout =net.jangaroo.ext.Exml.asString( config.myProperty$6tZL);
-    var someMixin_65_7_$1/*: ext.config.someMixin*/ =AS3.cast(ext.config.someMixin,{});
-    var button_67_11_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
-    button_67_11_$1.text = "click me!";
-    button_67_11_$1["id"] = "myId";
-    var ext_Action_69_15_$1/*: ext.Action*/ =AS3.cast(ext.Action,{});
-    button_67_11_$1.baseAction = new ext.Action(ext_Action_69_15_$1);
-    someMixin_65_7_$1.someList = [button_67_11_$1];
-    someMixin_65_7_$1["someList$at"] = net.jangaroo.ext.Exml.APPEND;
-    config_$1.mixins = [someMixin_65_7_$1];
-    config_$1.defaults = null;
-    var object_83_7_$1/*:Object*/ = {};
-    object_83_7_$1.bla = "blub";
-    object_83_7_$1.anchor = "test";
-    object_83_7_$1.border = "solid";
-    config_$1.layoutConfig = object_83_7_$1;
-    var button_90_7_$1/*: ext.config.button*/ =AS3.cast(ext.config.button,{});
-    button_90_7_$1.text = "Save";
-    button_90_7_$1.handler = function()/*:void*/ {
+    this.myVar3$6tZL = new ext.config.button(AS3.cast(ext.config.button,{
+    text: "Foo"
+    }));
+    this.myVar4$6tZL = [{
+    header: "a",
+    sortable: false,
+    menuDisabled: true
+    },{
+    header: "b",
+    sortable: true,
+    menuDisabled: false
+    }];
+    this.super$6tZL(net.jangaroo.ext.Exml.apply( AS3.cast(ext.config.panel,{
+    title: "I am a panel",
+    layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
+    mixins:[ AS3.cast(ext.config.someMixin,{
+    someList:[ AS3.cast(ext.config.button,{
+    text: "click me!",
+    id: "myId",
+    baseAction: new ext.Action(AS3.cast(ext.Action,{
+    }))
+    })],
+    someList$at:net.jangaroo.ext.Exml.APPEND
+    })],
+    defaults: null,
+    layoutConfig:{
+    bla: "blub",
+    anchor: "test",
+    border: "solid"
+    },
+    items:[ AS3.cast(ext.config.button,{
+    text: "Save",
+    handler: function()/*:void*/ {
           ext.MessageBox.alert('gotcha!');
-        };
-    var object_95_7_$1/*:Object*/ = {xtype: "editortreepanel"};
-    var object_96_7_$1/*:Object*/ = {};
-    config_$1.items = [button_90_7_$1, object_95_7_$1, object_96_7_$1];
-    var menuitem_107_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
-    menuitem_107_7_$1.text = "juhu1";
-    var menuitem_108_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
-    menuitem_108_7_$1.text = "juhu2";
-    var menuitem_109_7_$1/*: ext.config.menuitem*/ =AS3.cast(ext.config.menuitem,{});
-    menuitem_109_7_$1.text = "juhu3";
-    config_$1.menu = [menuitem_107_7_$1, menuitem_108_7_$1, menuitem_109_7_$1];
-    AS3.setBindable(this,"gear" , {});
-    AS3.getBindable(this,"gear").handler = function(x){return ''+x;};
-    config_$1.tools = [AS3.getBindable(this,"gear")];
-    var aplugin_125_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
-    var aplugin_126_7_$1/*: ext.config.aplugin*/ =AS3.cast(ext.config.aplugin,{});
-    config_$1.plugins = [aplugin_125_7_$1, aplugin_126_7_$1];
-    net.jangaroo.ext.Exml.apply(config_$1,config);
-    this.super$6tZL(config_$1);
+        }
+    }), {xtype: "editortreepanel"},{
+    }],
+    menu:[ AS3.cast(ext.config.menuitem,{
+    text: "juhu1"
+    }), AS3.cast(ext.config.menuitem,{
+    text: "juhu2"
+    }), AS3.cast(ext.config.menuitem,{
+    text: "juhu3"
+    })],
+    tools:[AS3.setBindable(this,"gear" ,{
+    handler: function(x){return ''+x;}
+    })],
+    plugins:[ AS3.cast(ext.config.aplugin,{
+    }), AS3.cast(ext.config.aplugin,{
+    })]
+    }),config));
   }/*
 
       /*

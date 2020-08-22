@@ -6,6 +6,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationsAndModifiers;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
@@ -23,6 +24,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
@@ -120,11 +122,38 @@ class MxmlAstUtils {
 
   @Nonnull
   static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type) {
-    TypeRelation typeRelation = new TypeRelation(SYM_COLON, new Type(type));
-    Expr value = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
-    value = new ApplyExpr(new IdeExpr(type), SYM_LPAREN, new CommaSeparatedList<Expr>(value), SYM_RPAREN);
-    Initializer initializer = new Initializer(SYM_EQ, value);
-    return new VariableDeclaration(new AnnotationsAndModifiers(null,null), SYM_VAR.withWhitespace(INDENT_4), name, typeRelation, initializer, null, SYM_SEMICOLON);
+    Expr emptyObject = new ObjectLiteral(SYM_LBRACE, null, null, SYM_RBRACE);
+    Expr initializerExpr = createCastExpr(type, emptyObject);
+    return createVariableDeclaration(name, type, initializerExpr);
+  }
+
+  static ApplyExpr createCastExpr(@Nonnull Ide type, Expr expr) {
+    IdeExpr fun = new IdeExpr(type);
+    return createApplyExpr(fun, expr);
+  }
+
+  static ApplyExpr createApplyExpr(Expr fun, Expr ...args) {
+    return new ApplyExpr(fun, SYM_LPAREN, createCommaSeparatedList(args), SYM_RPAREN);
+  }
+
+  static DotExpr createDotExpr(Expr expr, Ide ide) {
+    return new DotExpr(expr, SYM_DOT, ide);
+  }
+
+  static ArrayIndexExpr createArrayIndexExpr(Expr expr, String index) {
+    return new ArrayIndexExpr(expr, SYM_LBRACK, createStringLiteral(index), SYM_RBRACK);
+  }
+
+  static LiteralExpr createStringLiteral(String index) {
+    return new LiteralExpr(new JooSymbol(CompilerUtils.quote(index)));
+  }
+
+  @Nonnull
+  static VariableDeclaration createVariableDeclaration(@Nonnull Ide name, @Nonnull Ide type, @Nullable Expr initializerExpr) {
+    Initializer initializer = initializerExpr == null ? null : new Initializer(SYM_EQ, initializerExpr);
+    return new VariableDeclaration(new AnnotationsAndModifiers(null,null),
+            SYM_VAR.withWhitespace(INDENT_4), name, new TypeRelation(SYM_COLON, new Type(type)), initializer,
+            null, SYM_SEMICOLON);
   }
 
   @Nonnull
@@ -134,7 +163,11 @@ class MxmlAstUtils {
 
   @Nonnull
   static SuperConstructorCallStatement createSuperConstructorCall(Ide superConfigVar) {
-    CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(new IdeExpr(superConfigVar));
+    return createSuperConstructorCall(new IdeExpr(superConfigVar));
+  }
+
+  static SuperConstructorCallStatement createSuperConstructorCall(Expr superConfigExpr) {
+    CommaSeparatedList<Expr> args = new CommaSeparatedList<Expr>(superConfigExpr);
     return new SuperConstructorCallStatement(SYM_SUPER.withWhitespace(INDENT_4), SYM_LPAREN, args, SYM_RPAREN, SYM_SEMICOLON);
   }
 
@@ -153,7 +186,51 @@ class MxmlAstUtils {
       }
     }
 
-    AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(leftHandSide, SYM_EQ.withWhitespace(" "), rightHandSide);
+    AssignmentOpExpr assignmentOpExpr = createAssignmentOpExpr(leftHandSide, rightHandSide);
     return createSemicolonTerminatedStatement(assignmentOpExpr);
   }
+
+  @Nonnull
+  static AssignmentOpExpr createAssignmentOpExpr(Expr leftHandSide, @Nonnull Expr rightHandSide) {
+    return new AssignmentOpExpr(leftHandSide, SYM_EQ.withWhitespace(" "), rightHandSide);
+  }
+
+  @Nonnull
+  static ObjectField createObjectField( @Nonnull String propertyName, @Nonnull Expr rightHandSide) {
+    return new ObjectField(new Ide(new JooSymbol(propertyName).withWhitespace(INDENT_4)), SYM_COLON, rightHandSide);
+  }
+
+  @Nonnull
+  static ObjectLiteral createObjectLiteral( @Nonnull List<ObjectField> objectFields) {
+    return new ObjectLiteral(
+            SYM_LBRACE,
+            createCommaSeparatedList(objectFields),
+            null,
+            SYM_RBRACE.withWhitespace(INDENT_4));
+  }
+
+  @Nonnull
+  static ArrayLiteral createArrayLiteral(@Nonnull List<Expr> arrayElements) {
+    return new ArrayLiteral(
+            SYM_LBRACK,
+            createCommaSeparatedList(arrayElements),
+            SYM_RBRACK);
+  }
+
+  @SafeVarargs
+  static <T extends AstNode> CommaSeparatedList<T> createCommaSeparatedList(T ...elements) {
+    return createCommaSeparatedList(Arrays.asList(elements));
+  }
+
+  static <T extends AstNode> CommaSeparatedList<T> createCommaSeparatedList(List<T> elements) {
+    CommaSeparatedList<T> result = null;
+    JooSymbol comma = null;
+    for (int i = elements.size() - 1; i >= 0; i--) {
+      T t = elements.get(i);
+      result = new CommaSeparatedList<>(t, comma, result);
+      comma = SYM_COMMA;
+    }
+    return result;
+  }
+
 }
