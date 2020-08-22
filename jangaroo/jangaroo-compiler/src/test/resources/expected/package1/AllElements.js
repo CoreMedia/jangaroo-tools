@@ -62,7 +62,6 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     })],
     someList$at:net.jangaroo.ext.Exml.APPEND
     })],
-    defaults: null,
     layoutConfig:{
     bla: "blub",
     anchor: "test",

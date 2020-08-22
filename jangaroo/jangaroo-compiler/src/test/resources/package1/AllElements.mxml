@@ -73,11 +73,6 @@
       </someMixin>
     </mixins>
 
-    <!-- attribute with sub-attributes
-    default:{layout:"border"},
-    -->
-    <defaults layout="border"/>
-
     <!-- attribute-->
     <layoutConfig>
       <fx:Object bla="blub" anchor="test" border="solid"/>
