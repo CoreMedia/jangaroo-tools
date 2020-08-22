@@ -57,7 +57,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_DOT = new JooSymbol(sym.DOT, ".");
   static final JooSymbol SYM_EQ = new JooSymbol(sym.EQ, "=");
   static final JooSymbol SYM_FUNCTION = new JooSymbol(sym.FUNCTION, "function");
-  static final JooSymbol SYM_IMPORT = new JooSymbol(sym.IMPORT, "import").withWhitespace("\n");
+  static final JooSymbol SYM_IMPORT = new JooSymbol(sym.IMPORT, "import");
   static final JooSymbol SYM_LBRACE = new JooSymbol(sym.LBRACE, "{");
   static final JooSymbol SYM_LBRACK = new JooSymbol(sym.LBRACK, "[");
   static final JooSymbol SYM_LPAREN = new JooSymbol(sym.LPAREN, "(");
@@ -70,7 +70,7 @@ class MxmlAstUtils {
   static final JooSymbol SYM_SUPER = new JooSymbol(sym.SUPER, "super");
   static final JooSymbol SYM_THIS = new JooSymbol(sym.THIS, Ide.THIS);
   static final JooSymbol SYM_VAR = new JooSymbol(sym.VAR, "var");
-  static final JooSymbol SYM_NEW = new JooSymbol(sym.NEW, "new").withWhitespace(" ");
+  static final JooSymbol SYM_NEW = new JooSymbol(sym.NEW, "new");
   private static final List<Annotation> EMPTY_ANNOTATIONS = Collections.<Annotation>emptyList();
 
   private MxmlAstUtils() {
@@ -109,7 +109,7 @@ class MxmlAstUtils {
 
   @Nonnull
   static ImportDirective createImport(@Nonnull Ide superClass) {
-    return new ImportDirective(SYM_IMPORT, superClass, SYM_SEMICOLON);
+    return new ImportDirective(SYM_IMPORT.withWhitespace("\n"), superClass, SYM_SEMICOLON);
   }
 
   @Nonnull
@@ -236,6 +236,6 @@ class MxmlAstUtils {
   }
 
   static NewExpr createNewExpr(Ide typeIde, Expr ...args) {
-    return new NewExpr(SYM_NEW, createApplyExpr(new IdeExpr(typeIde), args));
+    return new NewExpr(SYM_NEW.withWhitespace(" "), createApplyExpr(new IdeExpr(typeIde), args));
   }
 }
