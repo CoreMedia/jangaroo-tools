@@ -144,7 +144,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
         AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(config, MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyOntoDefaultsExpr);
         constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
       }
-      //ObjectLiteral configObjectLiteral = mxmlToModelParser.createObjectLiteralForAttributesAndChildNodes(rootNode);
       Expr configObjectLiteral = mxmlToModelParser.createExprFromElement(rootNode, true);
 
       ApplyExpr applyExpr = createExmlApply(exml, configObjectLiteral, new IdeExpr(constructorParam.getIde()));
