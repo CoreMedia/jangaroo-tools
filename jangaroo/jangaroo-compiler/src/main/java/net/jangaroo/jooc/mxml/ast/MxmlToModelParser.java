@@ -322,14 +322,15 @@ final class MxmlToModelParser {
     }
 
     Expr valueExpr;
-    boolean isConfigObject = false;
     if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
             CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
       // process attributes and children, using a forward reference to the object to build inside bindings:
       ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
       valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
-      isConfigObject = true;
+      if (id != null || !useConfigObjects(defaultUseConfigObjects, className)) {
+        valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
+      }
     } else {
       JooSymbol textContentSymbol = getTextContent(objectElement);
       valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
@@ -351,9 +352,6 @@ final class MxmlToModelParser {
       }
     }
     if (id != null) {
-      if (isConfigObject) {
-        valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
-      }
       valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
               new IdeExpr(new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4))), new Ide(id)), valueExpr);
     }
