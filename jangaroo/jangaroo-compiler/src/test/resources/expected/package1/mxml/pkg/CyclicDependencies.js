@@ -1,10 +1,11 @@
 /*package package1.mxml.pkg{
-import package1.mxml.pkg.*;*/
+import package1.mxml.pkg.*;
+import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.pkg.CyclicDependencies", function(CyclicDependencies) {/*public class CyclicDependencies extends Object{
 
     public*/function CyclicDependencies$(config/*:CyclicDependencies = null*/){if(arguments.length<=0)config=null;
-    var cause_trouble_12_5_$1/*: package1.mxml.pkg.CyclicDependencies_1*/ =AS3.cast(package1.mxml.pkg.CyclicDependencies_1,{});
-    AS3.setBindable(this,"cause_trouble" , new package1.mxml.pkg.CyclicDependencies_1(cause_trouble_12_5_$1));
+    AS3.setBindable(this,"cause_trouble" , new package1.mxml.pkg.CyclicDependencies_1(AS3.cast(package1.mxml.pkg.CyclicDependencies_1,{
+    })));net.jangaroo.ext.Exml.apply(this,config);
   }/*
 
     [Bindable]
@@ -14,6 +15,9 @@ Ext.define("package1.mxml.pkg.CyclicDependencies", function(CyclicDependencies) 
     return {
       constructor: CyclicDependencies$,
       config: {cause_trouble: null},
-      uses: ["package1.mxml.pkg.CyclicDependencies_1"]
+      uses: [
+        "net.jangaroo.ext.Exml",
+        "package1.mxml.pkg.CyclicDependencies_1"
+      ]
     };
 });

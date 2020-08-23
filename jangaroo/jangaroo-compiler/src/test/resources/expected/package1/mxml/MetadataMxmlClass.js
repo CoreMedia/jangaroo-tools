@@ -3,8 +3,8 @@ import package1.*;
 
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]*/
-Ext.define("package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$$82_();
-    var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
+Ext.define("package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*public class MetadataMxmlClass extends ConfigClass{public*/function MetadataMxmlClass$(config/*:MetadataMxmlClass=null*/){if(arguments.length<=0)config=null;
+    this.super$$82_(config);
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

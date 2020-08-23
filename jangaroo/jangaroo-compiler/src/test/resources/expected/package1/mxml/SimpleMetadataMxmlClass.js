@@ -1,8 +1,8 @@
 /*package package1.mxml{
 import package1.*;
 [ShortVersion]*/
-Ext.define("package1.mxml.SimpleMetadataMxmlClass", function(SimpleMetadataMxmlClass) {/*public class SimpleMetadataMxmlClass extends ConfigClass{public*/function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$mXNi();
-    var config_$1/*: package1.ConfigClass*/ =AS3.cast(package1.ConfigClass,{});
+Ext.define("package1.mxml.SimpleMetadataMxmlClass", function(SimpleMetadataMxmlClass) {/*public class SimpleMetadataMxmlClass extends ConfigClass{public*/function SimpleMetadataMxmlClass$(config/*:SimpleMetadataMxmlClass=null*/){if(arguments.length<=0)config=null;
+    this.super$mXNi(config);
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

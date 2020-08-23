@@ -5,14 +5,11 @@ import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public class AInstantiatesB extends Panel{
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
-    var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});
-    var defaults_$1/*:AInstantiatesB*/ =AS3.cast(AInstantiatesB,{});
-    config = net.jangaroo.ext.Exml.apply(defaults_$1,config);
-    var local_BDeclaresA_12_5_$1/*: package1.mxml.BDeclaresA*/ =AS3.cast(package1.mxml.BDeclaresA,{});
-    AS3.setBindable(local_BDeclaresA_12_5_$1,"someProperty" , "yes");
-    config_$1.items = [new package1.mxml.BDeclaresA(local_BDeclaresA_12_5_$1)];
-    net.jangaroo.ext.Exml.apply(config_$1,config);
-    this.super$2Olv(config_$1);
+    this.super$2Olv(net.jangaroo.ext.Exml.apply( AS3.cast(ext.Panel,{
+    items:[ new package1.mxml.BDeclaresA(AS3.cast(package1.mxml.BDeclaresA,{
+    someProperty: "yes"
+    }))]
+    }),config));
   }/*}}
 
 ============================================== Jangaroo part ==============================================*/

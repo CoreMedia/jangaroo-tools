@@ -1,8 +1,10 @@
 /*package package1.mxml{
-import ext.*;*/
-Ext.define("package1.mxml.StringToEmptyArrayCoercion", function(StringToEmptyArrayCoercion) {/*public class StringToEmptyArrayCoercion extends Panel{public*/function StringToEmptyArrayCoercion$(config/*:StringToEmptyArrayCoercion=null*/){if(arguments.length<=0)config=null;this.super$4x7N();
-    var config_$1/*: ext.Panel*/ =AS3.cast(ext.Panel,{});
-    config_$1.items = [];
+import ext.*;
+import net.jangaroo.ext.Exml;*/
+Ext.define("package1.mxml.StringToEmptyArrayCoercion", function(StringToEmptyArrayCoercion) {/*public class StringToEmptyArrayCoercion extends Panel{public*/function StringToEmptyArrayCoercion$(config/*:StringToEmptyArrayCoercion=null*/){if(arguments.length<=0)config=null;
+    this.super$4x7N(net.jangaroo.ext.Exml.apply( AS3.cast(ext.Panel,{
+    items:[]
+    }),config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
@@ -12,6 +14,7 @@ Ext.define("package1.mxml.StringToEmptyArrayCoercion", function(StringToEmptyArr
       super$4x7N: function() {
         ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.Panel"]
+      requires: ["ext.Panel"],
+      uses: ["net.jangaroo.ext.Exml"]
     };
 });
