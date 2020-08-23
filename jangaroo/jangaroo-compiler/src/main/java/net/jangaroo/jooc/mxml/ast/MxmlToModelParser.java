@@ -325,17 +325,21 @@ final class MxmlToModelParser {
     }
 
     Expr valueExpr;
+    JooSymbol textContentSymbol = getTextContent(objectElement);
+    String textContent = textContentSymbol.getText().trim();
     if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
             CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
       // if class supports a config options parameter, create a config options object and assign properties to it:
-      // process attributes and children, using a forward reference to the object to build inside bindings:
+      if (!textContent.isEmpty()) {
+        throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
+      }
+      // process attributes and children:
       ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
       valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
       if (id != null || !useConfigObjects(defaultUseConfigObjects, className)) {
         valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
       }
     } else {
-      JooSymbol textContentSymbol = getTextContent(objectElement);
       valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
       if (valueExpr == null) {
         if ("Object".equals(className)) {
@@ -346,8 +350,8 @@ final class MxmlToModelParser {
           valueExpr = MxmlAstUtils.createNewExpr(typeIde);
         }
       } else {
-        if (!objectElement.getElements().isEmpty()) {
-          throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContentSymbol.getText().trim()));
+        if (!textContent.isEmpty() && !objectElement.getElements().isEmpty()) {
+          throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
         }
         if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
           return null;
