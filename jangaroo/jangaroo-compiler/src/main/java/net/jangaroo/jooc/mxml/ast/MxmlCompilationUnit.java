@@ -208,8 +208,11 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
     if(!hasNativeConstructor) {
       // inserting constructor
-      classBodyDirectives.add(MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives));
-    } else if (null != constructorParam) {
+      FunctionDeclaration constructor = MxmlAstUtils.createConstructor(primaryDeclaration.getIde(), constructorBodyDirectives);
+      classBodyDirectives.add(constructor);
+      constructorParam = constructor.getParams().getHead();
+    }
+    if (constructorParam != null) {
       // remove "virtual" field declaration of constructor parameter:
       Iterator<Directive> iterator = classBodyDirectives.iterator();
       while (iterator.hasNext()) {
