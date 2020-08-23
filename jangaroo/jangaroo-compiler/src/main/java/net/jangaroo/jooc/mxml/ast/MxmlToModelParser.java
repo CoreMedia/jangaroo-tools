@@ -202,7 +202,7 @@ final class MxmlToModelParser {
       }
     }
     if (!defaultPropertyValues.isEmpty()) {
-//      createChildElementsPropertyAssignmentCode(defaultPropertyValues, variable, defaultPropertyModel, generatingConfig);
+      fields.addAll(createChildElementsPropertyAssignmentCode(defaultPropertyValues, defaultPropertyModel));
     }
     return fields;
   }
