@@ -150,8 +150,12 @@ class MxmlAstUtils {
     return new ArrayIndexExpr(expr, SYM_LBRACK, createStringLiteral(index), SYM_RBRACK);
   }
 
-  static LiteralExpr createStringLiteral(String index) {
-    return new LiteralExpr(new JooSymbol(CompilerUtils.quote(index)));
+  static LiteralExpr createStringLiteral(String value) {
+    return createStringLiteral(value, "");
+  }
+
+  static LiteralExpr createStringLiteral(String value, String whiteSpace) {
+    return new LiteralExpr(new JooSymbol(sym.STRING_LITERAL, null, -1, -1, whiteSpace, CompilerUtils.quote(value), value));
   }
 
   @Nonnull
@@ -203,7 +207,13 @@ class MxmlAstUtils {
 
   @Nonnull
   static ObjectField createObjectField( @Nonnull String propertyName, @Nonnull Expr rightHandSide) {
-    return new ObjectField(new Ide(new JooSymbol(propertyName).withWhitespace(INDENT_4)), SYM_COLON, rightHandSide);
+    return new ObjectField(createObjectFieldLabel(propertyName), SYM_COLON, rightHandSide);
+  }
+
+  private static AstNode createObjectFieldLabel(@Nonnull String propertyName) {
+    return Ide.isValidIdentifier(propertyName)
+            ? new Ide(new JooSymbol(propertyName).withWhitespace(INDENT_4))
+            : createStringLiteral(propertyName, INDENT_4);
   }
 
   @Nonnull

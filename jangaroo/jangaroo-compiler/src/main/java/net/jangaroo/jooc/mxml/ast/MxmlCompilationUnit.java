@@ -251,7 +251,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
           if (valueExpr instanceof AssignmentOpExpr) {
             constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(valueExpr));
           } else {
-            defaults.add(MxmlAstUtils.createObjectField(fieldNameSym.getValue().getText(), valueExpr));
+            defaults.add(MxmlAstUtils.createObjectField((String) fieldNameSym.getValue().getJooValue(), valueExpr));
           }
         }
       }

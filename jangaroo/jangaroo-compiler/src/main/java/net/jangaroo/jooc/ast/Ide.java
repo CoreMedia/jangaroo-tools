@@ -389,8 +389,12 @@ public class Ide extends NodeImplBase {
     this.rewriteThis = rewriteThis;
   }
 
+  public static boolean isValidIdentifier(String identifier) {
+    return IDE_PATTERN.matcher(identifier).matches();
+  }
+
   public static void verifyIdentifier(String identifier, JooSymbol source) {
-    if(!IDE_PATTERN.matcher(identifier).matches()) {
+    if(!isValidIdentifier(identifier)) {
       throw JangarooParser.error(source, "invalid action script identifier");
     }
   }
