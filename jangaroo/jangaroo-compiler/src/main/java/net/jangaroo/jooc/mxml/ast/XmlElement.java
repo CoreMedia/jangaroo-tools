@@ -85,7 +85,7 @@ public class XmlElement extends NodeImplBase {
 
   @Override
   public AstNode getParentNode() {
-    return null;
+    return parent;
   }
 
   @Override
