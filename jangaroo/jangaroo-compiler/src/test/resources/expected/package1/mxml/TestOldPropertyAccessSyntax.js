@@ -1,10 +1,11 @@
-/*package package1.mxml{*/
+/*package package1.mxml{
+import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.TestOldPropertyAccessSyntax", function(TestOldPropertyAccessSyntax) {/*public class TestOldPropertyAccessSyntax extends Object{
 
     import testPackage.PropertiesTest_properties;
 
     public static const BUNDLE:PropertiesTest_properties =*/function BUNDLE$static_(){TestOldPropertyAccessSyntax.BUNDLE=( testPackage.PropertiesTest_properties.INSTANCE);}/*;public*/function TestOldPropertyAccessSyntax$(config/*:TestOldPropertyAccessSyntax=null*/){if(arguments.length<=0)config=null;
-    AS3.setBindable(this,"foo" , TestOldPropertyAccessSyntax.BUNDLE.key + "\"");
+    AS3.setBindable(this,"foo" ,net.jangaroo.ext.Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\"")); net.jangaroo.ext.Exml.apply(this,config);
 }/*
 
     [Bindable]
@@ -20,6 +21,9 @@ Ext.define("package1.mxml.TestOldPropertyAccessSyntax", function(TestOldProperty
           BUNDLE$static_();
         }
       },
-      uses: ["testPackage.PropertiesTest_properties"]
+      uses: [
+        "net.jangaroo.ext.Exml",
+        "testPackage.PropertiesTest_properties"
+      ]
     };
 });

@@ -11,7 +11,7 @@ Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass
     AS3.setBindable(this,"list" ,[{
     name: "Joe"
     }, new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
-    items: [new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 123
     }))]
     }))]);

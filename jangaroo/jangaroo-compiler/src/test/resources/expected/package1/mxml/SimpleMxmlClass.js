@@ -15,7 +15,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     name: "Kuno"
     };config = net.jangaroo.ext.Exml.apply({
     bar: "FOO & BAR!",
-    computed: 'B' + 'AR!',
+    computed:net.jangaroo.ext.Exml.asString( 'B' + 'AR!'),
     num: 123,
     someFlag2: false,
     anotherFlag2: true,
@@ -43,13 +43,13 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     [package1.someOtherPackage.SomeEvent.CLICK]: AS3.bind(this, "$on_config_$1_click$5_bR")
     },
     defaultType: package1.someOtherPackage.SomeOtherClass.xtype,
-    defaults: AS3.cast(package1.someOtherPackage.SomeOtherClass, {
+    defaults: AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 99,
-    "known-unknown": true,
+    "known-unknown": true
     }),
-    items: [ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 23
-    })), new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass, {
+    })), new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     listeners: {
     [package1.someOtherPackage.SomeEvent.CLICK_CLACK]: AS3.bind(this, "$on_other$ns_SomeOtherClass_55_5_$1_clickClack$5_bR")
     },
@@ -67,7 +67,8 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     })), new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
     items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 12
-    })), AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    })),
+    AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 13
     })))],
     items$at:net.jangaroo.ext.Exml.APPEND

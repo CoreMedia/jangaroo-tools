@@ -101,8 +101,7 @@ final class MxmlToModelParser {
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
         }
-        TypeRelation typeRelation = propertyModel.getOptTypeRelation();
-        String className = typeRelation == null ? "*" : typeRelation.getType().getIde().getQualifiedNameStr();
+        String className = getTypeAsClassName(propertyModel);
         Expr valueExpr = createValueExprFromTextSymbol(value, className);
         if (valueExpr != null) {
           fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
@@ -110,6 +109,15 @@ final class MxmlToModelParser {
       }
     }
     return fields;
+  }
+
+  private static String getTypeAsClassName(TypedIdeDeclaration propertyModel) {
+    TypeRelation typeRelation = propertyModel.getOptTypeRelation();
+    String className = typeRelation == null ? "*" : typeRelation.getType().getIde().getQualifiedNameStr();
+    if (UNTYPED_MARKER.equals(className)) {
+      className = "*";
+    }
+    return className;
   }
 
 
@@ -175,7 +183,7 @@ final class MxmlToModelParser {
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
-            Expr valueExpr = createValueExprFromTextSymbol(getTextContent(element), "");
+            Expr valueExpr = createValueExprFromTextSymbol(getTextContent(element), getTypeAsClassName(propertyModel));
             if (valueExpr == null && hasArrayLikeType(propertyModel)) { // TODO: what about empty Object etc.?
               valueExpr = MxmlAstUtils.createArrayLiteral(Collections.emptyList());
             }
@@ -189,7 +197,9 @@ final class MxmlToModelParser {
                 fields.addAll(mixinFields);
               }
             } else {
-              fields.add(createPropertyAssignmentCode(propertyModel, createArrayExprFromChildElements(childElements, hasArrayLikeType(propertyModel), null)));
+              Annotation extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
+              Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
+              fields.add(createPropertyAssignmentCode(propertyModel, createArrayExprFromChildElements(childElements, hasArrayLikeType(propertyModel), useConfigObjects)));
             }
           }
           String configMode = getConfigMode(element, propertyModel);
@@ -318,7 +328,7 @@ final class MxmlToModelParser {
         variableDeclaration = (VariableDeclaration) directiveIterator.next();
         classBodyDirectives.add(variableDeclaration);
       }
-      if (generatingConfig && variableDeclaration.isExtConfig()) {
+      if (generatingConfig && variableDeclaration.isExtConfig() && isMxmlDeclarations(objectElement.getParentNode())) {
         // default values are applied through the config object, not directly on 'this':
         id = null;
       }
@@ -327,30 +337,32 @@ final class MxmlToModelParser {
     Expr valueExpr;
     JooSymbol textContentSymbol = getTextContent(objectElement);
     String textContent = textContentSymbol.getText().trim();
-    if (Boolean.TRUE.equals(defaultUseConfigObjects) ||
-            CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser)) {
-      // if class supports a config options parameter, create a config options object and assign properties to it:
-      if (!textContent.isEmpty()) {
-        throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
-      }
-      // process attributes and children:
-      ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
-      valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
-      if (id != null || !useConfigObjects(defaultUseConfigObjects, className)) {
-        valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
+    if (textContent.isEmpty()) {
+      if ("Object".equals(className)) {
+        valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
+      } else if ("Array".equals(className)) {
+        valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
+      } else if (PRIMITIVE_TYPE_NAMES.contains(className)) {
+        valueExpr = null;
+      } else  {
+        //if (objectElement.getParentNode() == null // top-level MXML element always generates config object!
+        //              || CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser))
+        // if class supports a config options parameter, create a config options object and assign properties to it:
+        // process attributes and children:
+        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
+        valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
+        if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
+          valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
+        }
       }
     } else {
       valueExpr = createValueExprFromTextSymbol(textContentSymbol, className);
       if (valueExpr == null) {
-        if ("Object".equals(className)) {
-          valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
-        } else if ("Array".equals(className)) {
-          valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
-        } else {
-          valueExpr = MxmlAstUtils.createNewExpr(typeIde);
-        }
+        valueExpr = MxmlAstUtils.createNewExpr(typeIde);
       } else {
-        if (!textContent.isEmpty() && !objectElement.getElements().isEmpty()) {
+        if (!(textContent.isEmpty()
+                || objectElement.getElements().isEmpty()
+                && objectElement.getAttributes().size() == (idAttribute == null ? 0 : 1))) {
           throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
         }
         if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
@@ -358,11 +370,20 @@ final class MxmlToModelParser {
         }
       }
     }
-    if (id != null) {
+    if (id != null && valueExpr != null) {
       valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
               new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4)), id), valueExpr);
     }
     return valueExpr;
+  }
+
+  private static boolean isMxmlDeclarations(AstNode mxmlNode) {
+    return mxmlNode instanceof XmlElement && isMxmlDeclarations((XmlElement) mxmlNode);
+  }
+
+  private static boolean isMxmlDeclarations(XmlElement mxmlNode) {
+    return MxmlUtils.isMxmlNamespace(mxmlNode.getNamespaceURI())
+            && MxmlUtils.MXML_DECLARATIONS.equals(mxmlNode.getName());
   }
 
   private Expr createValueExprFromTextSymbol(JooSymbol textContentSymbol, String className) {
@@ -384,8 +405,7 @@ final class MxmlToModelParser {
               valueExpr);
     }
     return valueExpr;
-
-    }
+  }
 
   private boolean useConfigObjects(Boolean defaultUseConfigObjects, String className) {
     if (defaultUseConfigObjects != null) {

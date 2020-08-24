@@ -81,9 +81,10 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     }), AS3.cast(ext.config.menuitem,{
     text: "juhu3"
     })],
-    tools:[{
+    tools:[
+    AS3.setBindable(this,"gear" ,{
     handler: function(x){return ''+x;}
-    }],
+    })],
     plugins:[ AS3.cast(ext.config.aplugin,{
     }), AS3.cast(ext.config.aplugin,{
     })]
