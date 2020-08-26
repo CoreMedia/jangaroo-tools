@@ -338,16 +338,15 @@ final class MxmlToModelParser {
     JooSymbol textContentSymbol = getTextContent(objectElement);
     String textContent = textContentSymbol.getText().trim();
     if (textContent.isEmpty()) {
+      // suppress fields with only an id attribute (no other attributes, no sub-elements, no text content):
+      if (idAttribute != null && objectElement.getElements().isEmpty() && objectElement.getAttributes().size() == 1) {
+        return null;
+      }
       if ("Object".equals(className)) {
         valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
       } else if ("Array".equals(className)) {
         valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
-      } else if (PRIMITIVE_TYPE_NAMES.contains(className)) {
-        valueExpr = null;
       } else  {
-        //if (objectElement.getParentNode() == null // top-level MXML element always generates config object!
-        //              || CompilationUnitUtils.constructorSupportsConfigOptionsParameter(className, jangarooParser))
-        // if class supports a config options parameter, create a config options object and assign properties to it:
         // process attributes and children:
         ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
         valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
@@ -360,9 +359,7 @@ final class MxmlToModelParser {
       if (valueExpr == null) {
         valueExpr = MxmlAstUtils.createNewExpr(typeIde);
       } else {
-        if (!(textContent.isEmpty()
-                || objectElement.getElements().isEmpty()
-                && objectElement.getAttributes().size() == (idAttribute == null ? 0 : 1))) {
+        if (!(objectElement.getElements().isEmpty() && objectElement.getAttributes().size() == (idAttribute == null ? 0 : 1))) {
           throw Jooc.error(textContentSymbol, String.format("Unexpected text inside MXML element: '%s'.", textContent));
         }
         if (valueExpr instanceof IdeExpr && ("undefined".equals(((IdeExpr) valueExpr).getIde().getName()))) {
