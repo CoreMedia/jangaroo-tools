@@ -65,7 +65,7 @@
       <number>12</number>
     </ConfigClass>
     <ConfigClass>
-      <items exml:mode="append">
+      <items exml:mode="prepend">
         <other-ns:SomeOtherClass bla="12"/>
         <other-ns:SomeOtherClass id="no_config" bla="13"/>
       </items>

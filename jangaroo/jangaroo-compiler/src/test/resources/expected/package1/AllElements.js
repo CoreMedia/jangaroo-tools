@@ -54,13 +54,12 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     title: "I am a panel",
     layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
     mixins:[ AS3.cast(ext.config.someMixin,{
-    someList:[ AS3.cast(ext.config.button,{
+    someList: net.jangaroo.ext.Exml.append([ AS3.cast(ext.config.button,{
     text: "click me!",
     id: "myId",
     baseAction: new ext.Action({
     })
-    })],
-    someList$at:net.jangaroo.ext.Exml.APPEND
+    })])
     })],
     layoutConfig:{
     bla: "blub",

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,17 +47,10 @@ final class MxmlToModelParser {
   private static final String EXT_CONFIG_CREATE_FLAG = "create";
   private static final String EXT_CONFIG_EXTRACT_XTYPE_PARAMETER = "extractXType";
 
-  private static final String CONFIG_MODE_AT_SUFFIX = "$at";
   private static final String CONFIG_MODE_ATTRIBUTE_NAME = "mode";
-  private static final Map<String, String> CONFIG_MODE_TO_AT_VALUE = new HashMap<>();
 
   private static final String UNTYPED_MARKER = "__UNTYPED__";
   public static final List<String> PRIMITIVE_TYPE_NAMES = Arrays.asList("int", "uint", "Number", "Boolean");
-
-  static {
-    CONFIG_MODE_TO_AT_VALUE.put("append", "net.jangaroo.ext.Exml.APPEND");
-    CONFIG_MODE_TO_AT_VALUE.put("prepend", "net.jangaroo.ext.Exml.PREPEND");
-  }
 
   private final JangarooParser jangarooParser;
   private final MxmlParserHelper mxmlParserHelper;
@@ -209,20 +201,15 @@ final class MxmlToModelParser {
                 fields.addAll(mixinFields);
               }
             } else {
-              fields.addAll(createChildElementsPropertyAssignmentCode(childElements, propertyModel));
+              fields.addAll(createChildElementsPropertyAssignmentCode(childElements, propertyModel,
+                      getConfigMode(element, propertyModel)));
             }
-          }
-          String configMode = getConfigMode(element, propertyModel);
-          String atValue = CONFIG_MODE_TO_AT_VALUE.get(configMode);
-          if (atValue != null) {
-            String atPropertyName = getConfigOptionName(propertyModel);
-            fields.add(MxmlAstUtils.createObjectField(atPropertyName + CONFIG_MODE_AT_SUFFIX, new IdeExpr(mxmlParserHelper.parseIde(atValue))));
           }
         }
       }
     }
     if (!defaultPropertyValues.isEmpty()) {
-      fields.addAll(createChildElementsPropertyAssignmentCode(defaultPropertyValues, defaultPropertyModel));
+      fields.addAll(createChildElementsPropertyAssignmentCode(defaultPropertyValues, defaultPropertyModel, ""));
     }
     return fields;
   }
@@ -255,7 +242,8 @@ final class MxmlToModelParser {
   }
 
   private List<ObjectField> createChildElementsPropertyAssignmentCode(List<XmlElement> childElements,
-                                                                      TypedIdeDeclaration propertyModel) {
+                                                                      TypedIdeDeclaration propertyModel,
+                                                                      String configMode) {
     boolean forceArray = hasArrayLikeType(propertyModel); // TODO: improve Array detection!
     Annotation extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
     Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
@@ -271,10 +259,15 @@ final class MxmlToModelParser {
           value = reduceTypeCastToTypeAssertion(typeCastExpr);
           if (extractXTypeToProperty != null) {
             fields.add(MxmlAstUtils.createObjectField(extractXTypeToProperty,
-                    MxmlAstUtils.createDotExpr((IdeExpr) typeCastExpr.getFun(), new Ide("xtype"))));
+                    MxmlAstUtils.createDotExpr(typeCastExpr.getFun(), new Ide("xtype"))));
           }
         }
       }
+    }
+    if (!configMode.isEmpty()) {
+      value = MxmlAstUtils.createApplyExpr(
+              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), configMode),
+              value);
     }
     fields.add(createPropertyAssignmentCode(propertyModel, value));
     return fields;

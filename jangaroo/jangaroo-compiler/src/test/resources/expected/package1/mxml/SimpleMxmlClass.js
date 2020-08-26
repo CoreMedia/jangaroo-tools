@@ -44,7 +44,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     bla: 99,
     "known-unknown": true
     },
-    items:[ new package1.someOtherPackage.SomeOtherClass({
+    items: net.jangaroo.ext.Exml.append([ new package1.someOtherPackage.SomeOtherClass({
     bla: 23
     }), new package1.someOtherPackage.SomeOtherClass({
     bla: 1,
@@ -61,15 +61,13 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     })],
     number: 12
     }), new package1.ConfigClass({
-    items:[ new package1.someOtherPackage.SomeOtherClass({
+    items: net.jangaroo.ext.Exml.prepend([ new package1.someOtherPackage.SomeOtherClass({
     bla: 12
     }),
     AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass({
     bla: 13
-    }))],
-    items$at:net.jangaroo.ext.Exml.APPEND
-    })],
-    items$at:net.jangaroo.ext.Exml.APPEND,
+    }))])
+    })]),
     listeners:{
     click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))
     }
