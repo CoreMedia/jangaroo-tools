@@ -10,6 +10,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassDeclaration;
@@ -1028,17 +1029,41 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
     if (applyExpr.isTypeCast()) {
       ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
-      if (isConfigFactory(applyExpr)) {
+      Expr typeCastedExpr = args.getExpr().getHead();
+      if (isConfigFactory(typeCastedExpr)) {
         out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
         out.write("._"); // use config factory function instead of the class itself!
-        args.visit(this);
-      } else if (isExtApply(args.getExpr())) {
+        out.writeSymbol(args.getLParen());
+        if (typeCastedExpr instanceof ObjectLiteral) {
+          typeCastedExpr.visit(this);
+        } else {
+          // it is an object literal type check call: transform
+          // __typeCheckObjectLiteral__([t1, ..., tn], { O }) -> AS3._<t1 & ... & tn>({ O })
+          ApplyExpr applyTypeCheckExpr = (ApplyExpr) typeCastedExpr;
+          CommaSeparatedList<Expr> typesAndObjectLiteral = applyTypeCheckExpr.getArgs().getExpr();
+          ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
+          Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
+          writeSymbolReplacement(applyTypeCheckExpr.getFun().getSymbol(), "AS3._");
+          writeSymbolReplacement(typesArray.getLParen(), "<");
+          for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
+            out.write(((IdeExpr) current.getHead()).getIde().getName() + "._");
+            if (current.getSymComma() != null) {
+              writeSymbolReplacement(current.getSymComma(), "&");
+            }
+          }
+          writeSymbolReplacement(typesArray.getRParen(), ">");
+          out.writeSymbol(applyTypeCheckExpr.getArgs().getLParen());
+          objectLiteral.visit(this);
+          out.writeSymbol(applyTypeCheckExpr.getArgs().getRParen());
+        }
+        out.writeSymbol(args.getRParen());
+      } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
         // Since in TypeScript, Ext.apply() hands through the types of its parameters, it
-        // should work without the type case:
+        // should work without the type cast:
         out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
         out.writeSymbolWhitespace(args.getLParen());
-        args.getExpr().getHead().visit(this);
+        typeCastedExpr.visit(this);
         out.writeSymbolWhitespace(args.getRParen());
       } else {
         out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
@@ -1047,7 +1072,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         applyExpr.getFun().visit(this);
         out.writeToken(",");
         // isTypeCast() ensures that there is exactly one parameter:
-        args.getExpr().getHead().visit(this);
+        typeCastedExpr.visit(this);
         out.writeSymbol(args.getRParen());
       }
     } else {
@@ -1055,25 +1080,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  static boolean isConfigFactory(ApplyExpr applyExpr) {
-    Expr arg1 = applyExpr.getArgs().getExpr().getHead();
-    return arg1 instanceof ObjectLiteral && applyExpr.getFun() instanceof IdeExpr;
+  static boolean isConfigFactory(Expr arg) {
+    return arg instanceof ObjectLiteral || arg instanceof ApplyExpr && ((ApplyExpr) arg).isTypeCheckObjectLiteralFunctionCall();
   }
 
-  private static boolean isExtApply(CommaSeparatedList<Expr> commaSeparatedList) {
-    if (commaSeparatedList != null && commaSeparatedList.getTail() == null) {
-      Expr expr = commaSeparatedList.getHead();
-      if (expr instanceof ApplyExpr) {
-        ApplyExpr applyExpr = (ApplyExpr) expr;
-        Expr fun = applyExpr.getFun();
-        if (fun instanceof IdeExpr) {
-          fun = ((IdeExpr) fun).getNormalizedExpr();
-        }
-        if (fun instanceof DotExpr) {
-          DotExpr dotExpr = (DotExpr) fun;
-          // TODO: Check dotExpr.getExpr() for "ext.Ext" or "net.jangaroo.Exml"!
-          return "apply".equals(dotExpr.getIde().getName());
-        }
+  private static boolean isExtApply(Expr expr) {
+    if (expr instanceof ApplyExpr) {
+      ApplyExpr applyExpr = (ApplyExpr) expr;
+      Expr fun = applyExpr.getFun();
+      if (fun instanceof IdeExpr) {
+        fun = ((IdeExpr) fun).getNormalizedExpr();
+      }
+      if (fun instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) fun;
+        // TODO: Check dotExpr.getExpr() for "ext.Ext" or "net.jangaroo.Exml"!
+        return "apply".equals(dotExpr.getIde().getName());
       }
     }
     return false;

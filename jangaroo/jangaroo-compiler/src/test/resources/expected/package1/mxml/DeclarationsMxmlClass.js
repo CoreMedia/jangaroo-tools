@@ -10,16 +10,16 @@ Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass
     });
     AS3.setBindable(this,"list" ,[{
     name: "Joe"
-    }, new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
-    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }, new package1.ConfigClass({
+    items:[ new package1.someOtherPackage.SomeOtherClass({
     bla: 123
-    }))]
-    }))]);
-    AS3.setBindable(this,"other" , new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    })]
+    })]);
+    AS3.setBindable(this,"other" , new package1.someOtherPackage.SomeOtherClass({
     bla: 3,
     blubb_config: 'blub config expression',
     blubb_accessor: 'blub accessor expression'
-    })));net.jangaroo.ext.Exml.apply(this,config);
+    }));net.jangaroo.ext.Exml.apply(this,config);
 }/*
 
     [Bindable]

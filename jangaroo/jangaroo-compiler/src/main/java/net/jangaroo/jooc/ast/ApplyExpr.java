@@ -32,6 +32,8 @@ import java.util.Set;
  */
 public class ApplyExpr extends Expr {
 
+  public static final String TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME = "__typeCheckObjectLiteral__";
+
   private Expr fun;
   private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
 
@@ -72,6 +74,11 @@ public class ApplyExpr extends Expr {
             && hasExactlyOneArgument();
   }
 
+  public boolean isTypeCheckObjectLiteralFunctionCall() {
+    return getFun() instanceof IdeExpr
+            && TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
+  }
+
   private boolean hasExactlyOneArgument() {
     if (getArgs() != null) {
       CommaSeparatedList<Expr> expr = getArgs().getExpr();
@@ -99,6 +106,7 @@ public class ApplyExpr extends Expr {
     if (getArgs() != null) {
       getArgs().analyze(this);
     }
+    // TODO: if isTypeCheckObjectLiteralFunctionCall(), type-check the object literal!
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       setType(type.getTypeParameter());

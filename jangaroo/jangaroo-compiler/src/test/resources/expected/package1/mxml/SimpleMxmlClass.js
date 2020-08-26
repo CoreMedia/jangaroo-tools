@@ -24,51 +24,51 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     joe: { name: "Joe" },
     list:[{
     name: "Joe"
-    }, new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
-    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }, new package1.ConfigClass({
+    items:[ new package1.someOtherPackage.SomeOtherClass({
     bla: 123
-    }))]
-    }))],
+    })]
+    })],
     otherByExpression: { foo: 'bar'},
-    other: new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    other: new package1.someOtherPackage.SomeOtherClass({
     bla: 3,
     blubb_config: 'blub config expression',
     blubb_accessor: 'blub accessor expression'
-    }))
+    })
     },config);
     this.super$5_bR( net.jangaroo.ext.Exml.apply( AS3.cast(package1.ConfigClass,{
     foo: "bar",
     number: 1 < 2  ? 1 + 1 : 3,
     defaultType: package1.someOtherPackage.SomeOtherClass.xtype,
-    defaults: AS3._(package1.someOtherPackage.SomeOtherClass,{
+    defaults:{
     bla: 99,
     "known-unknown": true
-    }),
-    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    },
+    items:[ new package1.someOtherPackage.SomeOtherClass({
     bla: 23
-    })), new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }), new package1.someOtherPackage.SomeOtherClass({
     bla: 1,
     listeners:{
     clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))
     }
-    })), new package1.someOtherPackage.SomeOtherClass(AS3._([package1.someOtherPackage.SomeOtherClass,package1.ConfigClass],{
+    }), new package1.someOtherPackage.SomeOtherClass({
     bla: 42,
     number: 24
-    })), new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
-    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }), new package1.ConfigClass({
+    items:[ new package1.someOtherPackage.SomeOtherClass({
     doodle: "non-bound",
     bla: AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed")
-    }))],
+    })],
     number: 12
-    })), new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
-    items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }), new package1.ConfigClass({
+    items:[ new package1.someOtherPackage.SomeOtherClass({
     bla: 12
-    })),
-    AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    }),
+    AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass({
     bla: 13
-    })))],
-    items$at:net.jangaroo.ext.Exml.APPEND
     }))],
+    items$at:net.jangaroo.ext.Exml.APPEND
+    })],
     items$at:net.jangaroo.ext.Exml.APPEND,
     listeners:{
     click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))

@@ -6,9 +6,9 @@ Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public cl
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
     this.super$2Olv(net.jangaroo.ext.Exml.apply( AS3.cast(ext.Panel,{
-    items:[ new package1.mxml.BDeclaresA(AS3.cast(package1.mxml.BDeclaresA,{
+    items:[ new package1.mxml.BDeclaresA({
     someProperty: "yes"
-    }))]
+    })]
     }),config));
   }/*}}
 

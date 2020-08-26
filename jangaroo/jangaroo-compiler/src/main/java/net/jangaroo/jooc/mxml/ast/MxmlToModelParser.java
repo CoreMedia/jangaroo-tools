@@ -7,6 +7,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
+import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -36,6 +37,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
@@ -137,17 +139,17 @@ final class MxmlToModelParser {
     return null;
   }
 
-  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(XmlElement objectNode) {
-    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(objectNode));
+  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(List<Ide> types, XmlElement objectNode) {
+    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(types, objectNode));
   }
 
-  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(XmlElement objectNode) {
+  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(List<Ide> types, XmlElement objectNode) {
     List<ObjectField> fields = new ArrayList<>();
     List<ObjectField> listenerFields = new ArrayList<>();
     if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
       CompilationUnit type = getCompilationUnitModel(objectNode);
       fields.addAll(processAttributes(listenerFields, objectNode, type));
-      fields.addAll(processChildNodes(listenerFields, objectNode, type));
+      fields.addAll(processChildNodes(types, listenerFields, objectNode, type));
     }
     if (!listenerFields.isEmpty()) {
       fields.add(MxmlAstUtils.createObjectField("listeners",
@@ -156,7 +158,7 @@ final class MxmlToModelParser {
     return fields;
   }
 
-  private List<ObjectField> processChildNodes(List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectField> processChildNodes(List<Ide> types, List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -198,13 +200,12 @@ final class MxmlToModelParser {
           } else {
             if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
               for (XmlElement arrayItemNode : childElements) {
-                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(arrayItemNode);
+                types.add(compilationUnit.addImport(getClassNameForElement(arrayItemNode)));
+                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(types, arrayItemNode);
                 fields.addAll(mixinFields);
               }
             } else {
-              Annotation extConfigAnnotation = getAnnotationAtSetter(propertyModel, Jooc.EXT_CONFIG_ANNOTATION_NAME);
-              Boolean useConfigObjects = extConfigAnnotation == null ? null : useConfigObjects(extConfigAnnotation, null);
-              fields.add(createPropertyAssignmentCode(propertyModel, createArrayExprFromChildElements(childElements, hasArrayLikeType(propertyModel), useConfigObjects)));
+              fields.addAll(createChildElementsPropertyAssignmentCode(childElements, propertyModel));
             }
           }
           String configMode = getConfigMode(element, propertyModel);
@@ -258,17 +259,25 @@ final class MxmlToModelParser {
     List<ObjectField> fields = new ArrayList<>();
     if (extConfigAnnotation != null) {
       Map<String, Object> propertiesByName = extConfigAnnotation.getPropertiesByName();
-      if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER)) {
+      if (propertiesByName.containsKey(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER) && value instanceof ApplyExpr) {
         Object extractXType = propertiesByName.get(EXT_CONFIG_EXTRACT_XTYPE_PARAMETER);
         if (extractXType == null || extractXType instanceof String) {
           String extractXTypeToProperty = (String) extractXType;
+          ApplyExpr typeCastExpr = (ApplyExpr) value;
+          IdeExpr clazz = (IdeExpr) typeCastExpr.getFun();
+          Expr typeCastArgExpr = typeCastExpr.getArgs().getExpr().getHead();
+          if (typeCastArgExpr instanceof ObjectLiteral) {
+            value = createObjectLiteralTypeAssertion(Collections.singletonList(clazz.getIde()),
+                    (ObjectLiteral) typeCastArgExpr);
+          } // else: it is already a type assertion!
           if (extractXTypeToProperty != null) {
-            fields.add(MxmlAstUtils.createObjectField(extractXTypeToProperty, MxmlAstUtils.createArrayIndexExpr(value, "xtype")));
+            fields.add(MxmlAstUtils.createObjectField(extractXTypeToProperty,
+                    MxmlAstUtils.createDotExpr(clazz, new Ide("xtype"))));
           }
         }
       }
     }
-    createPropertyAssignmentCode(propertyModel, value);
+    fields.add(createPropertyAssignmentCode(propertyModel, value));
     return fields;
   }
 
@@ -297,13 +306,7 @@ final class MxmlToModelParser {
 
   @Nullable
   Expr createExprFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, boolean generatingConfig) {
-    String className;
-    try {
-      className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
-    } catch (CompilerError e) {
-      // rewrite compiler error so that the source is the current symbol
-      throw JangarooParser.error(objectElement.getSymbol(), e.getMessage(), e.getCause());
-    }
+    String className = getClassNameForElement(objectElement);
     Ide typeIde = compilationUnit.addImport(className);
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
     String id = null;
@@ -347,16 +350,25 @@ final class MxmlToModelParser {
       if (idAttribute != null && objectElement.getElements().isEmpty() && objectElement.getAttributes().size() == 1) {
         return null;
       }
-      if ("Object".equals(className)) {
-        valueExpr = createObjectLiteralForAttributesAndChildNodes(objectElement);
-      } else if ("Array".equals(className)) {
+      if ("Array".equals(className)) {
         valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
       } else  {
         // process attributes and children:
-        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
-        valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
-        if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
-          valueExpr = MxmlAstUtils.createNewExpr(typeIde, valueExpr);
+        List<Ide> types = new ArrayList<>();
+        types.add(typeIde);
+        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(types, objectElement);
+        if ("Object".equals(className)) {
+          valueExpr = configObjectLiteral;
+        } else {
+          if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
+            valueExpr = MxmlAstUtils.createNewExpr(typeIde,
+                    createObjectLiteralTypeAssertion(types, configObjectLiteral));
+          } else {
+            valueExpr = MxmlAstUtils.createCastExpr(typeIde,
+                    types.size() == 1
+                            ? configObjectLiteral
+                            : createObjectLiteralTypeAssertion(types, configObjectLiteral));
+          }
         }
       }
     } else {
@@ -377,6 +389,27 @@ final class MxmlToModelParser {
               new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4)), id), valueExpr);
     }
     return valueExpr;
+  }
+
+  private ApplyExpr createObjectLiteralTypeAssertion(List<Ide> types, ObjectLiteral objectLiteral) {
+    return MxmlAstUtils.createApplyExpr(
+            new IdeExpr(new Ide(ApplyExpr.TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME)),
+            MxmlAstUtils.createArrayLiteral(types.stream()
+                    .map(IdeExpr::new)
+                    .collect(Collectors.toList())),
+            objectLiteral
+    );
+  }
+
+  private String getClassNameForElement(XmlElement objectElement) {
+    String className;
+    try {
+      className = mxmlParserHelper.getClassNameForElement(jangarooParser, objectElement);
+    } catch (CompilerError e) {
+      // rewrite compiler error so that the source is the current symbol
+      throw JangarooParser.error(objectElement.getSymbol(), e.getMessage(), e.getCause());
+    }
+    return className;
   }
 
   private static boolean isMxmlDeclarations(AstNode mxmlNode) {

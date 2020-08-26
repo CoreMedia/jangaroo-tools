@@ -927,6 +927,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       // isTypeCast() ensures that there is exactly one parameter:
       args.getExpr().getHead().visit(this);
       out.writeSymbol(args.getRParen());
+    } else if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
+      // suppress virtual object literal type check function call:
+      args.getExpr().getTail().getHead().visit(this);
     } else {
       applyExpr.getFun().visit(this);
       // check for super call:

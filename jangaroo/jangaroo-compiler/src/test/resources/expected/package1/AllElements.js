@@ -38,9 +38,9 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     }/*
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
-    this.myVar3$6tZL = new ext.config.button(AS3.cast(ext.config.button,{
+    this.myVar3$6tZL = new ext.config.button({
     text: "Foo"
-    }));
+    });
     this.myVar4$6tZL =[{
     header: "a",
     sortable: false,
@@ -57,8 +57,8 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     someList:[ AS3.cast(ext.config.button,{
     text: "click me!",
     id: "myId",
-    baseAction: new ext.Action(AS3.cast(ext.Action,{
-    }))
+    baseAction: new ext.Action({
+    })
     })],
     someList$at:net.jangaroo.ext.Exml.APPEND
     })],
