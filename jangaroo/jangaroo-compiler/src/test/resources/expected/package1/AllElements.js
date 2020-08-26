@@ -50,7 +50,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     sortable: true,
     menuDisabled: false
     }];
-    this.super$6tZL( net.jangaroo.ext.Exml.apply( AS3.cast(ext.config.panel,{
+    this.super$6tZL( net.jangaroo.ext.Exml.apply({
     title: "I am a panel",
     layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
     mixins:[ AS3.cast(ext.config.someMixin,{
@@ -88,7 +88,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     plugins:[ AS3.cast(ext.config.aplugin,{
     }), AS3.cast(ext.config.aplugin,{
     })]
-    }),config));
+    },config));
   }/*
 
       /*

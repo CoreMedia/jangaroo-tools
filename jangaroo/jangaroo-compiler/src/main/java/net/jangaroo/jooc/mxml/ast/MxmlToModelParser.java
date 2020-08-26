@@ -73,7 +73,7 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private List<ObjectField> processAttributes(List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectField> processAttributes(List<ObjectField> listenerFields, List<String> untypedProperties, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
     List<ObjectField> fields = new ArrayList<>();
@@ -102,6 +102,9 @@ final class MxmlToModelParser {
         }
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
+          if (isUntypedAccess) {
+            untypedProperties.add(propertyName);
+          }
         }
         String className = getTypeAsClassName(propertyModel);
         Expr valueExpr = createValueExprFromTextSymbol(value, className);
@@ -139,17 +142,17 @@ final class MxmlToModelParser {
     return null;
   }
 
-  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(List<Ide> types, XmlElement objectNode) {
-    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(types, objectNode));
+  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(List<Expr> types, List<String> untypedProperties, XmlElement objectNode) {
+    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(types, untypedProperties, objectNode));
   }
 
-  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(List<Ide> types, XmlElement objectNode) {
+  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(List<Expr> types, List<String> untypedProperties, XmlElement objectNode) {
     List<ObjectField> fields = new ArrayList<>();
     List<ObjectField> listenerFields = new ArrayList<>();
     if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
       CompilationUnit type = getCompilationUnitModel(objectNode);
-      fields.addAll(processAttributes(listenerFields, objectNode, type));
-      fields.addAll(processChildNodes(types, listenerFields, objectNode, type));
+      fields.addAll(processAttributes(listenerFields, untypedProperties, objectNode, type));
+      fields.addAll(processChildNodes(types, untypedProperties, listenerFields, objectNode, type));
     }
     if (!listenerFields.isEmpty()) {
       fields.add(MxmlAstUtils.createObjectField("listeners",
@@ -158,7 +161,7 @@ final class MxmlToModelParser {
     return fields;
   }
 
-  private List<ObjectField> processChildNodes(List<Ide> types, List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectField> processChildNodes(List<Expr> types, List<String> untypedProperties, List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -187,6 +190,7 @@ final class MxmlToModelParser {
         } else {
           if (propertyModel == null) {
             propertyModel = createDynamicPropertyModel(element, type, propertyName, false);
+            untypedProperties.add(propertyName);
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
@@ -200,8 +204,8 @@ final class MxmlToModelParser {
           } else {
             if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
               for (XmlElement arrayItemNode : childElements) {
-                types.add(compilationUnit.addImport(getClassNameForElement(arrayItemNode)));
-                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(types, arrayItemNode);
+                types.add(new IdeExpr(compilationUnit.addImport(getClassNameForElement(arrayItemNode))));
+                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(types, untypedProperties, arrayItemNode);
                 fields.addAll(mixinFields);
               }
             } else {
@@ -264,21 +268,26 @@ final class MxmlToModelParser {
         if (extractXType == null || extractXType instanceof String) {
           String extractXTypeToProperty = (String) extractXType;
           ApplyExpr typeCastExpr = (ApplyExpr) value;
-          IdeExpr clazz = (IdeExpr) typeCastExpr.getFun();
-          Expr typeCastArgExpr = typeCastExpr.getArgs().getExpr().getHead();
-          if (typeCastArgExpr instanceof ObjectLiteral) {
-            value = createObjectLiteralTypeAssertion(Collections.singletonList(clazz.getIde()),
-                    (ObjectLiteral) typeCastArgExpr);
-          } // else: it is already a type assertion!
+          value = reduceTypeCastToTypeAssertion(typeCastExpr);
           if (extractXTypeToProperty != null) {
             fields.add(MxmlAstUtils.createObjectField(extractXTypeToProperty,
-                    MxmlAstUtils.createDotExpr(clazz, new Ide("xtype"))));
+                    MxmlAstUtils.createDotExpr((IdeExpr) typeCastExpr.getFun(), new Ide("xtype"))));
           }
         }
       }
     }
     fields.add(createPropertyAssignmentCode(propertyModel, value));
     return fields;
+  }
+
+  static Expr reduceTypeCastToTypeAssertion(ApplyExpr typeCastExpr) {
+    Expr typeCastArgExpr = typeCastExpr.getArgs().getExpr().getHead();
+    if (typeCastArgExpr instanceof ObjectLiteral) {
+      return createObjectLiteralTypeAssertion(Collections.singletonList(new IdeExpr(((IdeExpr) typeCastExpr.getFun()).getIde())),
+              (ObjectLiteral) typeCastArgExpr);
+    }
+    // it is already a type assertion!
+    return typeCastArgExpr;
   }
 
   private static boolean hasArrayLikeType(TypedIdeDeclaration propertyModel) {
@@ -354,9 +363,15 @@ final class MxmlToModelParser {
         valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
       } else  {
         // process attributes and children:
-        List<Ide> types = new ArrayList<>();
-        types.add(typeIde);
-        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(types, objectElement);
+        List<Expr> types = new ArrayList<>();
+        types.add(new IdeExpr(typeIde));
+        List<String> untypedProperties = new ArrayList<>();
+        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(types, untypedProperties, objectElement);
+        if (!untypedProperties.isEmpty()) {
+          types.add(MxmlAstUtils.createArrayLiteral(untypedProperties.stream()
+                  .map(MxmlAstUtils::createStringLiteral)
+                  .collect(Collectors.toList())));
+        }
         if ("Object".equals(className)) {
           valueExpr = configObjectLiteral;
         } else {
@@ -391,12 +406,10 @@ final class MxmlToModelParser {
     return valueExpr;
   }
 
-  private ApplyExpr createObjectLiteralTypeAssertion(List<Ide> types, ObjectLiteral objectLiteral) {
+  private static ApplyExpr createObjectLiteralTypeAssertion(List<Expr> types, ObjectLiteral objectLiteral) {
     return MxmlAstUtils.createApplyExpr(
             new IdeExpr(new Ide(ApplyExpr.TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME)),
-            MxmlAstUtils.createArrayLiteral(types.stream()
-                    .map(IdeExpr::new)
-                    .collect(Collectors.toList())),
+            MxmlAstUtils.createArrayLiteral(types),
             objectLiteral
     );
   }
@@ -595,7 +608,7 @@ final class MxmlToModelParser {
         }
         annotationParameters = annotationParameters.getTail();
       }
-      
+
     }
     return null;
   }

@@ -153,6 +153,9 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
     Expr configFromMxmlExpr = mxmlToModelParser.createExprFromElement(rootNode, true, true);
+    if (configFromMxmlExpr instanceof ApplyExpr) {
+      configFromMxmlExpr = MxmlToModelParser.reduceTypeCastToTypeAssertion((ApplyExpr) configFromMxmlExpr);
+    }
     // Only apply config onto config-from-MXML if the latter is not empty, otherwise use config in super() directly,
     // but not if super class needs an (empty) config object:
     Expr superConfigExpr = !(config == null && useSuperConfig) && isSuperConfigEmpty(configFromMxmlExpr)
@@ -176,7 +179,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private static boolean isSuperConfigEmpty(Expr configFromMxmlExpr) {
     Expr superConfigObject = configFromMxmlExpr instanceof ApplyExpr
-            ? ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getHead()
+            ? ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getTail().getHead()
             : configFromMxmlExpr;
     return superConfigObject instanceof ObjectLiteral && ((ObjectLiteral) superConfigObject).getFields() == null;
   }

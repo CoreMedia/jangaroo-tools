@@ -1027,36 +1027,45 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
-    if (applyExpr.isTypeCast()) {
+    if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
+      // it is an object literal type check call: transform
+      // __typeCheckObjectLiteral__([t1, ..., tn], { O }) -> AS3._<t1 & ... & tn>({ O })
+      CommaSeparatedList<Expr> typesAndObjectLiteral = applyExpr.getArgs().getExpr();
+      ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
+      Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
+      writeSymbolReplacement(applyExpr.getFun().getSymbol(), "AS3._");
+      writeSymbolReplacement(typesArray.getLParen(), "<");
+      for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
+        Expr typeExpr = current.getHead();
+        if (typeExpr instanceof IdeExpr) {
+          out.write(((IdeExpr) typeExpr).getIde().getName() + "._");
+        } else {
+          ArrayLiteral untypedProperties = (ArrayLiteral) typeExpr;
+          writeSymbolReplacement(untypedProperties.getLParen(), "{");
+          for (CommaSeparatedList<Expr> currentProperty = untypedProperties.getExpr();
+               currentProperty != null;
+               currentProperty = currentProperty.getTail()) {
+            String propertyName = (String) ((LiteralExpr) currentProperty.getHead()).getValue().getJooValue();
+            out.write(Ide.isValidIdentifier(propertyName) ? propertyName : CompilerUtils.quote(propertyName));
+            writeOptSymbol(currentProperty.getSymComma());
+          }
+          writeSymbolReplacement(untypedProperties.getRParen(), "}");
+        }
+        if (current.getSymComma() != null) {
+          writeSymbolReplacement(current.getSymComma(), "&");
+        }
+      }
+      writeSymbolReplacement(typesArray.getRParen(), ">");
+      out.writeSymbol(applyExpr.getArgs().getLParen());
+      objectLiteral.visit(this);
+      out.writeSymbol(applyExpr.getArgs().getRParen());
+    } else if (applyExpr.isTypeCast()) {
       ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
       Expr typeCastedExpr = args.getExpr().getHead();
-      if (isConfigFactory(typeCastedExpr)) {
+      if (typeCastedExpr instanceof ObjectLiteral) {
         out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
         out.write("._"); // use config factory function instead of the class itself!
-        out.writeSymbol(args.getLParen());
-        if (typeCastedExpr instanceof ObjectLiteral) {
-          typeCastedExpr.visit(this);
-        } else {
-          // it is an object literal type check call: transform
-          // __typeCheckObjectLiteral__([t1, ..., tn], { O }) -> AS3._<t1 & ... & tn>({ O })
-          ApplyExpr applyTypeCheckExpr = (ApplyExpr) typeCastedExpr;
-          CommaSeparatedList<Expr> typesAndObjectLiteral = applyTypeCheckExpr.getArgs().getExpr();
-          ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
-          Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
-          writeSymbolReplacement(applyTypeCheckExpr.getFun().getSymbol(), "AS3._");
-          writeSymbolReplacement(typesArray.getLParen(), "<");
-          for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
-            out.write(((IdeExpr) current.getHead()).getIde().getName() + "._");
-            if (current.getSymComma() != null) {
-              writeSymbolReplacement(current.getSymComma(), "&");
-            }
-          }
-          writeSymbolReplacement(typesArray.getRParen(), ">");
-          out.writeSymbol(applyTypeCheckExpr.getArgs().getLParen());
-          objectLiteral.visit(this);
-          out.writeSymbol(applyTypeCheckExpr.getArgs().getRParen());
-        }
-        out.writeSymbol(args.getRParen());
+        args.visit(this);
       } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
         // Since in TypeScript, Ext.apply() hands through the types of its parameters, it
@@ -1078,10 +1087,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else {
       super.visitApplyExpr(applyExpr);
     }
-  }
-
-  static boolean isConfigFactory(Expr arg) {
-    return arg instanceof ObjectLiteral || arg instanceof ApplyExpr && ((ApplyExpr) arg).isTypeCheckObjectLiteralFunctionCall();
   }
 
   private static boolean isExtApply(Expr expr) {

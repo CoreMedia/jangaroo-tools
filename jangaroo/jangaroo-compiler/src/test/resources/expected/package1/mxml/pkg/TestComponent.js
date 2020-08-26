@@ -6,14 +6,14 @@ Ext.define("package1.mxml.pkg.TestComponent", function(TestComponent) {/*public 
     public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;config =net.jangaroo.ext.Exml.apply({
     property_1: "withDefault"
     },config);
-    this.super$6zW8( net.jangaroo.ext.Exml.apply( AS3.cast(package1.mxml.pkg.TestComponentBase,{
+    this.super$6zW8( net.jangaroo.ext.Exml.apply({
     emptyText: net.jangaroo.ext.Exml.asString( '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>'),
     letters: [
               'a',
               'b',
               'c'
              ]
-    }),config));
+    },config));
   }/*
 
     [Bindable]

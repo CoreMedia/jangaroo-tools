@@ -5,11 +5,11 @@ import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public class AInstantiatesB extends Panel{
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
-    this.super$2Olv(net.jangaroo.ext.Exml.apply( AS3.cast(ext.Panel,{
+    this.super$2Olv(net.jangaroo.ext.Exml.apply({
     items:[ new package1.mxml.BDeclaresA({
     someProperty: "yes"
     })]
-    }),config));
+    },config));
   }/*}}
 
 ============================================== Jangaroo part ==============================================*/
