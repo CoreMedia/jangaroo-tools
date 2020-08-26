@@ -39,26 +39,22 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     this.super$5_bR( net.jangaroo.ext.Exml.apply( AS3.cast(package1.ConfigClass,{
     foo: "bar",
     number: 1 < 2  ? 1 + 1 : 3,
-    listeners: {
-    [package1.someOtherPackage.SomeEvent.CLICK]: AS3.bind(this, "$on_config_$1_click$5_bR")
-    },
     defaultType: package1.someOtherPackage.SomeOtherClass.xtype,
-    defaults: AS3.cast(package1.someOtherPackage.SomeOtherClass,{
+    defaults: AS3._(package1.someOtherPackage.SomeOtherClass,{
     bla: 99,
     "known-unknown": true
     }),
     items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     bla: 23
     })), new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
-    listeners: {
-    [package1.someOtherPackage.SomeEvent.CLICK_CLACK]: AS3.bind(this, "$on_other$ns_SomeOtherClass_55_5_$1_clickClack$5_bR")
-    },
-    bla: 1
-    })), new package1.someOtherPackage.SomeOtherClass(net.jangaroo.ext.Exml.apply(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
-    bla: 42
-    }), AS3.cast(package1.ConfigClass, {
+    bla: 1,
+    listeners:{
+    clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))
+    }
+    })), new package1.someOtherPackage.SomeOtherClass(AS3._([package1.someOtherPackage.SomeOtherClass,package1.ConfigClass],{
+    bla: 42,
     number: 24
-    }))), new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
+    })), new package1.ConfigClass(AS3.cast(package1.ConfigClass,{
     items:[ new package1.someOtherPackage.SomeOtherClass(AS3.cast(package1.someOtherPackage.SomeOtherClass,{
     doodle: "non-bound",
     bla: AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed")
@@ -73,7 +69,10 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     })))],
     items$at:net.jangaroo.ext.Exml.APPEND
     }))],
-    items$at:net.jangaroo.ext.Exml.APPEND
+    items$at:net.jangaroo.ext.Exml.APPEND,
+    listeners:{
+    click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))
+    }
     }),config));
   }/*
 
@@ -132,11 +131,9 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
 
     [Bindable]
     public var other:package1.someOtherPackage.SomeOtherClass;
-private*/ function $on_config_$1_click (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-
+private*/ function $on_click_14_20 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
     var result/*:String*/ = 'gotcha!';}/*
-private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-
+private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
     var test=0;}/*
 
         [Bindable]
@@ -151,8 +148,8 @@ private*/ function $on_other$ns_SomeOtherClass_55_5_$1_clickClack (event/*:packa
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       blub$5_bR: undefined,
-      $on_config_$1_click$5_bR: $on_config_$1_click,
-      $on_other$ns_SomeOtherClass_55_5_$1_clickClack$5_bR: $on_other$ns_SomeOtherClass_55_5_$1_clickClack,
+      $on_click_14_20$5_bR: $on_click_14_20,
+      $on_clickClack_55_41$5_bR: $on_clickClack_55_41,
       config: {
         list: null,
         bar: null,

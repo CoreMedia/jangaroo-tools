@@ -71,7 +71,7 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private List<ObjectField> processAttributes(XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectField> processAttributes(List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
     List<ObjectField> fields = new ArrayList<>();
@@ -93,7 +93,7 @@ final class MxmlToModelParser {
           if (propertyModel == null) {
             Annotation eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
-              //createEventHandlerCode(variable, value, eventModel);
+              listenerFields.add(createEventHandlerCode(value, eventModel));
               continue;
             }
           }
@@ -143,15 +143,20 @@ final class MxmlToModelParser {
 
   private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(XmlElement objectNode) {
     List<ObjectField> fields = new ArrayList<>();
+    List<ObjectField> listenerFields = new ArrayList<>();
     if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
       CompilationUnit type = getCompilationUnitModel(objectNode);
-      fields.addAll(processAttributes(objectNode, type));
-      fields.addAll(processChildNodes(objectNode, type));
+      fields.addAll(processAttributes(listenerFields, objectNode, type));
+      fields.addAll(processChildNodes(listenerFields, objectNode, type));
+    }
+    if (!listenerFields.isEmpty()) {
+      fields.add(MxmlAstUtils.createObjectField("listeners",
+              MxmlAstUtils.createObjectLiteral(listenerFields)));
     }
     return fields;
   }
 
-  private List<ObjectField> processChildNodes(XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectField> processChildNodes(List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
@@ -164,14 +169,14 @@ final class MxmlToModelParser {
         if (objectNode.getNamespaceURI().equals(element.getNamespaceURI())) {
           if (classModel != null) {
             propertyModel = findPropertyModel(classModel, propertyName);
-//            if (propertyModel == null) {
-//              Annotation eventModel = findEvent(classModel, propertyName);
-//              if (eventModel != null) {
-//                JooSymbol textContent = getTextContent(element);
-//                createEventHandlerCode(variable, textContent, eventModel);
-//                continue;
-//              }
-//            }
+            if (propertyModel == null) {
+              Annotation eventModel = findEvent(classModel, propertyName);
+              if (eventModel != null) {
+                JooSymbol textContent = getTextContent(element);
+                listenerFields.add(createEventHandlerCode(textContent, eventModel));
+                continue;
+              }
+            }
           }
         }
         if (propertyModel == null && defaultPropertyModel != null) {
@@ -444,39 +449,31 @@ final class MxmlToModelParser {
     return defaultValue;
   }
 
-  private void createEventHandlerCode(@Nonnull Ide ide, @Nonnull JooSymbol value, @Nonnull Annotation event) {
+  private ObjectField createEventHandlerCode(@Nonnull JooSymbol value, @Nonnull Annotation event) {
     Map<String, Object> eventPropertiesByName = event.getPropertiesByName();
     Object eventType = eventPropertiesByName.get("type");
-    String eventTypeStr;
-    if (eventType instanceof String) {
-      eventTypeStr = (String) eventType;
-      compilationUnit.addImport(eventTypeStr);
-    } else {
-      eventTypeStr = "Object";
-    }
+    Ide eventTypeIde = compilationUnit.addImport(eventType instanceof String ? (String) eventType : "Object");
     Object eventNameModel = eventPropertiesByName.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
     String eventName = (String) (eventNameModel != null ? eventNameModel : eventPropertiesByName.get(null));
     if (eventName.startsWith("on")) {
       eventName = eventName.substring(2);
     }
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
-    String variable = ide.getName();
-    String eventHandlerName = "$on_" + variable + "_" + eventName.replace('-', '_');
-    StringBuilder classBodyCode = new StringBuilder();
-    classBodyCode
-            .append("private function ").append(eventHandlerName)
-            .append(" (").append("event").append(':').append(eventTypeStr).append(") :void {\n")
-            .append("\n    ").append(value.getJooValue())
-            .append('}');
-    classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode.toString())).getDirectives());
+    String eventHandlerName = "$on_" + eventName.replace('-', '_')
+            + "_" + value.getLine() + "_" + value.getColumn();
+    String classBodyCode = "private function " + eventHandlerName +
+            " (" + "event" + ':' + eventTypeIde.getQualifiedNameStr() + ") :void {\n" +
+            "    " + value.getJooValue() +
+            "}";
+    classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode)).getDirectives());
 
-    StringBuilder constructorCode = new StringBuilder();
-    constructorCode.append("    ").append(variable).append("." + MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME + "(").append(eventTypeStr)
-            .append(".").append(eventNameConstant)
-            .append(", ")
-            .append(eventHandlerName)
-            .append(");");
-    constructorBodyDirectives.addAll(mxmlParserHelper.parseConstructorBody(constructorCode.toString()));
+    return MxmlAstUtils.createObjectField(eventName,
+            MxmlAstUtils.createApplyExpr(
+                    MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), "eventHandler"),
+                    MxmlAstUtils.createDotExpr(eventTypeIde, eventNameConstant),
+                    new IdeExpr(eventTypeIde),
+                    new IdeExpr(new Ide(eventHandlerName))
+            ));
   }
 
   private ObjectField createPropertyAssignmentCode(@Nonnull TypedIdeDeclaration propertyModel, @Nonnull Expr value) {

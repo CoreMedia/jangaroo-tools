@@ -12,5 +12,7 @@ public class Exml {
 
   public static native function asString(value:*):String;
 
+  public static native function eventHandler(flexEventName:String, flexEventClass:Class, flexEventHandler:Function):Function;
+
 }
 }
