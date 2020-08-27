@@ -512,6 +512,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
         // very special case jangaroo-runtime -> joo
         npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
+      } else if (npmPackageName.startsWith("com.coremedia")) {
+        npmPackageName = npmPackageName.replaceFirst("^com[.]coremedia[^_]*__", "@coremedia/");
       }
       // prepend target npm package in front
       moduleName = npmPackageName + "/" + moduleName;
