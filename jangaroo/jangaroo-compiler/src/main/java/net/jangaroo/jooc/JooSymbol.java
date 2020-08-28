@@ -78,6 +78,16 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
     return whitespace;
   }
 
+  /**
+   * Use only for symbols that have just been created!
+   * Especially the MXML compiler often creates AST sub-trees and wants to copy over the white-space
+   * from the MXML element afterwards.
+   * @param whitespace the white-space to inject into this symbol
+   */
+  public void setWhitespace(String whitespace) {
+    this.whitespace = whitespace;
+  }
+
   public String getSourceCode() {
     return whitespace + text;
   }

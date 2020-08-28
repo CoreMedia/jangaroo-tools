@@ -8,6 +8,8 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -17,6 +19,7 @@ import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
@@ -86,7 +89,9 @@ final class MxmlToModelParser {
           if (propertyModel == null) {
             Annotation eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
-              listenerFields.add(createEventHandlerCode(value, eventModel));
+              ObjectField eventHandlerCode = createEventHandlerCode(value, eventModel);
+              transferWhitespace(eventHandlerCode, attribute);
+              listenerFields.add(eventHandlerCode);
               continue;
             }
           }
@@ -100,11 +105,17 @@ final class MxmlToModelParser {
         String className = getTypeAsClassName(propertyModel);
         Expr valueExpr = createValueExprFromTextSymbol(value, className);
         if (valueExpr != null) {
-          fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
+          ObjectField propertyAssignmentCode = createPropertyAssignmentCode(propertyModel, valueExpr);
+          transferWhitespace(propertyAssignmentCode, attribute);
+          fields.add(propertyAssignmentCode);
         }
       }
     }
     return fields;
+  }
+
+  private static String convertMxmlWhitespace(JooSymbol symbol) {
+    return MxmlUtils.toASDoc(symbol.getWhitespace());
   }
 
   private static String getTypeAsClassName(TypedIdeDeclaration propertyModel) {
@@ -146,8 +157,10 @@ final class MxmlToModelParser {
       fields.addAll(processChildNodes(types, untypedProperties, listenerFields, objectNode, type));
     }
     if (!listenerFields.isEmpty()) {
-      fields.add(MxmlAstUtils.createObjectField("listeners",
-              MxmlAstUtils.createObjectLiteral(listenerFields)));
+      ObjectField listeners = MxmlAstUtils.createObjectField("listeners",
+              MxmlAstUtils.createObjectLiteral(listenerFields));
+      listeners.getSymbol().setWhitespace(MxmlAstUtils.INDENT_4);
+      fields.add(listeners);
     }
     return fields;
   }
@@ -190,7 +203,9 @@ final class MxmlToModelParser {
               valueExpr = MxmlAstUtils.createArrayLiteral(Collections.emptyList());
             }
             if (valueExpr != null) {
-              fields.add(createPropertyAssignmentCode(propertyModel, valueExpr));
+              ObjectField propertyAssignmentCode = createPropertyAssignmentCode(propertyModel, valueExpr);
+              transferWhitespace(propertyAssignmentCode, element);
+              fields.add(propertyAssignmentCode);
             }
           } else {
             if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
@@ -200,8 +215,10 @@ final class MxmlToModelParser {
                 fields.addAll(mixinFields);
               }
             } else {
-              fields.addAll(createChildElementsPropertyAssignmentCode(childElements, propertyModel,
-                      getConfigMode(element, propertyModel)));
+              List<ObjectField> childElementsPropertyAssignmentCode = createChildElementsPropertyAssignmentCode(childElements, propertyModel,
+                      getConfigMode(element, propertyModel));
+              childElementsPropertyAssignmentCode.forEach(field -> transferWhitespace(field, element));
+              fields.addAll(childElementsPropertyAssignmentCode);
             }
           }
         }
@@ -211,6 +228,51 @@ final class MxmlToModelParser {
       fields.addAll(createChildElementsPropertyAssignmentCode(defaultPropertyValues, defaultPropertyModel, ""));
     }
     return fields;
+  }
+
+  private static void transferWhitespace(AstNode node, AstNode element) {
+    node.getSymbol().setWhitespace(convertMxmlWhitespace(element.getSymbol()));
+    if (element instanceof XmlElement) {
+      JooSymbol lastSymbol = findLastSymbol(node);
+      if (lastSymbol != null) {
+        lastSymbol.setWhitespace(convertMxmlWhitespace(((XmlElement) element).getLastSymbol()));
+      }
+    }
+  }
+
+  private static JooSymbol findLastSymbol(AstNode node) {
+    JooSymbol lastSymbol = getLastSymbol(node);
+    if (lastSymbol != null) {
+      return lastSymbol;
+    }
+    if (node instanceof ObjectField) {
+      lastSymbol = findLastSymbol(((ObjectField) node).getValue());
+    } else if (node instanceof AssignmentOpExpr) {
+      lastSymbol = findLastSymbol(((AssignmentOpExpr) node).getArg2());
+    } else if (node instanceof NewExpr) {
+      lastSymbol = findLastSymbol(((NewExpr) node).getApplyConstructor());
+    } else if (node instanceof ApplyExpr) {
+      CommaSeparatedList<Expr> args = ((ApplyExpr) node).getArgs().getExpr();
+      if (args != null) {
+        while (args.getTail() != null) {
+          args = args.getTail();
+        }
+        lastSymbol = findLastSymbol(args.getHead());
+      }
+    }
+    if (lastSymbol == null && node instanceof ApplyExpr) {
+      return ((ApplyExpr) node).getArgs().getRParen();
+    }
+    return lastSymbol;
+  }
+
+  private static JooSymbol getLastSymbol(AstNode node) {
+    if (node instanceof ArrayLiteral) {
+      return ((ArrayLiteral) node).getRParen();
+    } else if (node instanceof ObjectLiteral) {
+      return ((ObjectLiteral) node).getRBrace();
+    }
+    return null;
   }
 
   private static String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
@@ -323,7 +385,7 @@ final class MxmlToModelParser {
 
       VariableDeclaration variableDeclaration = compilationUnit.getVariables().get(id);
       if (null == variableDeclaration) {
-        String asDoc = MxmlUtils.toASDoc(objectElement.getSymbol().getWhitespace());
+        String asDoc = convertMxmlWhitespace(objectElement.getSymbol());
         int i = asDoc.lastIndexOf('\n');
         additionalDeclaration = asDoc +
                 '[' + Jooc.BINDABLE_ANNOTATION_NAME + ']' +
@@ -393,7 +455,10 @@ final class MxmlToModelParser {
     }
     if (id != null && valueExpr != null) {
       valueExpr = MxmlAstUtils.createAssignmentOpExpr(MxmlAstUtils.createDotExpr(
-              new Ide(new JooSymbol(Ide.THIS).withWhitespace(MxmlAstUtils.INDENT_4)), id), valueExpr);
+              new Ide(new JooSymbol(Ide.THIS)), id), valueExpr);
+    }
+    if (valueExpr != null) {
+      transferWhitespace(valueExpr, objectElement);
     }
     return valueExpr;
   }

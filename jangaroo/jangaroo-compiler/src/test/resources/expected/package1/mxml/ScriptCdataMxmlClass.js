@@ -16,8 +16,8 @@ Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) 
       }
     }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){if(arguments.length<=0)config=null;
     this.super$5omj(net.jangaroo.ext.Exml.apply({
-    foo: "bar"
-    },config));
+             foo: "bar"
+},config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

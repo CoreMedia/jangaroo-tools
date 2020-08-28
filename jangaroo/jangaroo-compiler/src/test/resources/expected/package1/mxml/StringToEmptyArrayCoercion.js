@@ -3,8 +3,8 @@ import ext.*;
 import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.StringToEmptyArrayCoercion", function(StringToEmptyArrayCoercion) {/*public class StringToEmptyArrayCoercion extends Panel{public*/function StringToEmptyArrayCoercion$(config/*:StringToEmptyArrayCoercion=null*/){if(arguments.length<=0)config=null;
     this.super$4x7N(net.jangaroo.ext.Exml.apply({
-    items:[]
-    },config));
+  items:[]
+},config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

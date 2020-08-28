@@ -38,56 +38,80 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     }/*
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
+  
     this.myVar3$6tZL = new ext.config.button({
-    text: "Foo"
-    });
-    this.myVar4$6tZL =[{
-    header: "a",
-    sortable: false,
-    menuDisabled: true
-    },{
-    header: "b",
-    sortable: true,
-    menuDisabled: false
-    }];
+            text: "Foo"});
+  
+    this.myVar4$6tZL =[
+      { header: "a", sortable: false, menuDisabled: true},
+      { header: "b", sortable: true, menuDisabled: false}
+    ];
     this.super$6tZL( net.jangaroo.ext.Exml.apply({
-    title: "I am a panel",
-    layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
-    mixins:[ AS3.cast(ext.config.someMixin,{
-    someList: net.jangaroo.ext.Exml.append([ AS3.cast(ext.config.button,{
-    text: "click me!",
-    id: "myId",
-    baseAction: new ext.Action({
-    })
-    })])
-    })],
-    layoutConfig:{
-    bla: "blub",
-    anchor: "test",
-    border: "solid"
+           title: "I am a panel",
+           layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
+
+    /* define some attributes through a typed mixin: */
+    mixins:[
+      AS3.cast(ext.config.someMixin,{
+        someList: net.jangaroo.ext.Exml.append([
+          AS3.cast(ext.config.button,{ text: "click me!", id: "myId",
+            baseAction:
+              new ext.Action({
+            })
+          })
+        ])
+      })
+    ],
+
+    /* attribute*/
+    layoutConfig:
+      { bla: "blub", anchor: "test", border: "solid"
     },
-    items:[ AS3.cast(ext.config.button,{
-    text: "Save",
-    handler: function()/*:void*/ {
+
+    /* array with component
+    items:{xtype:"testAll", ...}
+     */
+    items:[
+      AS3.cast(ext.config.button,{ text: "Save",
+        handler: function()/*:void*/ {
           ext.MessageBox.alert('gotcha!');
         }
-    }), {xtype: "editortreepanel"},{
-    }],
-    menu:[ AS3.cast(ext.config.menuitem,{
-    text: "juhu1"
-    }), AS3.cast(ext.config.menuitem,{
-    text: "juhu2"
-    }), AS3.cast(ext.config.menuitem,{
-    text: "juhu3"
-    })],
+      }),
+      {xtype: "editortreepanel"},
+      {}
+    ],
+
+
+    /* array
+    menu:[
+      {...},
+      {...}
+    ]
+     */
+    menu:[
+      AS3.cast(ext.config.menuitem,{ text: "juhu1"}),
+      AS3.cast(ext.config.menuitem,{ text: "juhu2"}),
+      AS3.cast(ext.config.menuitem,{ text: "juhu3"})
+    ],
+
     tools:[
-    AS3.setBindable(this,"gear" ,{
-    handler: function(x){return ''+x;}
-    })],
-    plugins:[ AS3.cast(ext.config.aplugin,{
-    }), AS3.cast(ext.config.aplugin,{
-    })]
-    },config));
+      /*
+      anonymous object in array:
+
+      tools:[
+        {id:"gear",
+        handler:function(){} }
+      ]
+       */
+      AS3.setBindable(this,"gear" ,{ handler: function(x){return ''+x;}})
+    ],
+
+    plugins:[
+      AS3.cast(ext.config.aplugin,{}),
+      AS3.cast(ext.config.aplugin,{})
+    ]
+
+},config));
   }/*
 
       /*

@@ -11,67 +11,60 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
     public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
-    this.blub$5_bR ={
-    name: "Kuno"
-    };config = net.jangaroo.ext.Exml.apply({
+    this.blub$5_bR ={ name: "Kuno"};
+    config = net.jangaroo.ext.Exml.apply({
     bar: "FOO & BAR!",
     computed:net.jangaroo.ext.Exml.asString( 'B' + 'AR!'),
+    /**
+     Some number.
+     */
     num: 123,
     someFlag2: false,
     anotherFlag2: true,
     someFlag3: false,
     anotherFlag3: true,
-    joe: { name: "Joe" },
-    list:[{
-    name: "Joe"
-    }, new package1.ConfigClass({
-    items:[ new package1.someOtherPackage.SomeOtherClass({
-    bla: 123
-    })]
-    })],
+    joe: { name: "Joe"},
+    list: [
+      { name: "Joe"},
+      new package1.ConfigClass({items:[
+        new package1.someOtherPackage.SomeOtherClass({ bla: 123})
+      ]})
+    ],
     otherByExpression: { foo: 'bar'},
-    other: new package1.someOtherPackage.SomeOtherClass({
-    bla: 3,
-    blubb_config: 'blub config expression',
-    blubb_accessor: 'blub accessor expression'
-    })
+    other: new package1.someOtherPackage.SomeOtherClass({ bla: 3,
+                          blubb_config: 'blub config expression',
+                          blubb_accessor: 'blub accessor expression'})
     },config);
     this.super$5_bR( net.jangaroo.ext.Exml.apply({
-    foo: "bar",
-    number: 1 < 2  ? 1 + 1 : 3,
-    defaultType: package1.someOtherPackage.SomeOtherClass.xtype,
-    defaults:{
-    bla: 99,
-    "known-unknown": true
-    },
-    items: net.jangaroo.ext.Exml.append([ new package1.someOtherPackage.SomeOtherClass({
-    bla: 23
-    }), new package1.someOtherPackage.SomeOtherClass({
-    bla: 1,
-    listeners:{
-    clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))
-    }
-    }), new package1.someOtherPackage.SomeOtherClass({
-    bla: 42,
-    number: 24
-    }), new package1.ConfigClass({
-    items:[ new package1.someOtherPackage.SomeOtherClass({
-    doodle: "non-bound",
-    bla: AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed")
-    })],
-    number: 12
-    }), new package1.ConfigClass({
-    items: net.jangaroo.ext.Exml.prepend([ new package1.someOtherPackage.SomeOtherClass({
-    bla: 12
+             foo: "bar",
+             number: 1 < 2  ? 1 + 1 : 3,
+  defaultType:
+    package1.someOtherPackage.SomeOtherClass.xtype,
+  defaults:{ bla: 99,
+                          "known-unknown": true
+  },
+  items: net.jangaroo.ext.Exml.append([
+    new package1.someOtherPackage.SomeOtherClass({ bla: 23}),
+    new package1.someOtherPackage.SomeOtherClass({ bla: 1,
+    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))}}),
+    new package1.someOtherPackage.SomeOtherClass({ bla: 42, number: 24
     }),
-    AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass({
-    bla: 13
-    }))])
-    })]),
+    new package1.ConfigClass({
+      items:[
+        new package1.someOtherPackage.SomeOtherClass({ doodle: "non-bound", bla: AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed")})
+      ],
+      number: 12
+    }),
+    new package1.ConfigClass({
+      items: net.jangaroo.ext.Exml.prepend([
+        new package1.someOtherPackage.SomeOtherClass({ bla: 12}),
+        AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass({ bla: 13}))
+      ])
+    })
+  ]),
     listeners:{
-    click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))
-    }
-    },config));
+             click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))}
+},config));
   }/*
 
     private var blub:*;*/function static$0(){

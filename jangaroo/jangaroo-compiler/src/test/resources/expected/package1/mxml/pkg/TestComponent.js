@@ -3,17 +3,19 @@ import package1.mxml.pkg.*;
 import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.pkg.TestComponent", function(TestComponent) {/*public class TestComponent extends TestComponentBase{
 
-    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;config =net.jangaroo.ext.Exml.apply({
+    public*/function TestComponent$(config/*:TestComponent = null*/){if(arguments.length<=0)config=null;
+    config =net.jangaroo.ext.Exml.apply({
     property_1: "withDefault"
     },config);
     this.super$6zW8( net.jangaroo.ext.Exml.apply({
-    emptyText: net.jangaroo.ext.Exml.asString( '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>'),
-    letters: [
+        emptyText: net.jangaroo.ext.Exml.asString( '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>'),
+        letters: [
               'a',
               'b',
               'c'
              ]
-    },config));
+
+},config));
   }/*
 
     [Bindable]

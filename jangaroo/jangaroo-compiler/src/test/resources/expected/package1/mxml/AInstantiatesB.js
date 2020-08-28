@@ -6,10 +6,11 @@ Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public cl
 
     public*/function AInstantiatesB$(config/*:AInstantiatesB = null*/){if(arguments.length<=0)config=null;
     this.super$2Olv(net.jangaroo.ext.Exml.apply({
-    items:[ new package1.mxml.BDeclaresA({
-    someProperty: "yes"
-    })]
-    },config));
+
+  items:[
+    new package1.mxml.BDeclaresA({ someProperty: "yes"})
+  ]
+},config));
   }/*}}
 
 ============================================== Jangaroo part ==============================================*/

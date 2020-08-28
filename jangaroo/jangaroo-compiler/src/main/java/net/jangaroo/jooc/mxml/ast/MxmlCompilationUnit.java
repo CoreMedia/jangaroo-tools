@@ -75,7 +75,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.SYM_LBRACE, new LinkedList<>(), null, MxmlAstUtils.SYM_RBRACE, Collections.<IdeDeclaration>emptyList());
+    super(null, MxmlAstUtils.sym_lbrace(), new LinkedList<>(), null, MxmlAstUtils.sym_rbrace(), Collections.<IdeDeclaration>emptyList());
     this.source = source;
     this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
@@ -148,7 +148,8 @@ public class MxmlCompilationUnit extends CompilationUnit {
         MxmlAstUtils.createVariableDeclaration(config, classDeclaration.getIde(), defaultsConfig);
       } else {
         ApplyExpr applyOntoDefaultsExpr = createExmlApply(defaultsConfig, new IdeExpr(config));
-        AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(new IdeExpr(config), MxmlAstUtils.SYM_EQ.withWhitespace(" "), applyOntoDefaultsExpr);
+        AssignmentOpExpr assignmentOpExpr = new AssignmentOpExpr(new IdeExpr(new Ide(MxmlUtils.CONFIG)), MxmlAstUtils.sym_eq().withWhitespace(" "), applyOntoDefaultsExpr);
+        assignmentOpExpr.getSymbol().setWhitespace(MxmlAstUtils.INDENT_4);
         constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
       }
     }
@@ -235,7 +236,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
       if(null != constructorParam && initMethod.getParams() != null) {
         args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
       }
-      DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.SYM_DOT, new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
+      DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.sym_dot(), new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
       Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
       constructorBodyDirectives.add(directive);
     }
@@ -257,12 +258,17 @@ public class MxmlCompilationUnit extends CompilationUnit {
           if (valueExpr instanceof AssignmentOpExpr) {
             constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(valueExpr));
           } else {
-            defaults.add(MxmlAstUtils.createObjectField((String) fieldNameSym.getValue().getJooValue(), valueExpr));
+            ObjectField objectField = MxmlAstUtils.createObjectField((String) fieldNameSym.getValue().getJooValue(), valueExpr);
+            objectField.getSymbol().setWhitespace(valueExpr.getSymbol().getWhitespace());
+            valueExpr.getSymbol().setWhitespace(" ");
+            defaults.add(objectField);
           }
         }
       }
     }
-    return MxmlAstUtils.createObjectLiteral(defaults);
+    ObjectLiteral defaultsObjectLiteral = MxmlAstUtils.createObjectLiteral(defaults);
+    defaultsObjectLiteral.getRBrace().setWhitespace(MxmlAstUtils.INDENT_4);
+    return defaultsObjectLiteral;
   }
 
   List<Directive> getClassBodyDirectives() {

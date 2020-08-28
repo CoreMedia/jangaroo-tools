@@ -5,8 +5,8 @@ Ext.define("package1.mxml.WhitespaceAroundBindingExpression", function(Whitespac
 
     import ext.layout.ContainerLayout;public*/function WhitespaceAroundBindingExpression$(config/*:WhitespaceAroundBindingExpression=null*/){if(arguments.length<=0)config=null;
     this.super$TIEI(net.jangaroo.ext.Exml.apply({
-    layout: new ext.layout.ContainerLayout()
-    },config));
+  layout: new ext.layout.ContainerLayout()
+},config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

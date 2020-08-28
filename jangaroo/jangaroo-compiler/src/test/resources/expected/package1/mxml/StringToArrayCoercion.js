@@ -3,8 +3,8 @@ import ext.*;
 import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.StringToArrayCoercion", function(StringToArrayCoercion) {/*public class StringToArrayCoercion extends Panel{public*/function StringToArrayCoercion$(config/*:StringToArrayCoercion=null*/){if(arguments.length<=0)config=null;
     this.super$Sy5g(net.jangaroo.ext.Exml.apply({
-    items: ["just a joke"]
-    },config));
+           items: ["just a joke"]
+},config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
