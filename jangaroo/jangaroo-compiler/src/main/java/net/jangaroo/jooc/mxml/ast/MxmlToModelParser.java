@@ -540,8 +540,9 @@ final class MxmlToModelParser {
     try {
       return jangarooParser.resolveCompilationUnit(fullClassName);
     } catch (CompilerError e) {
-      // ugly to catch-and-rethrow, I know, but we need to add position information here...
-      throw JangarooParser.error(element, e.getMessage());
+      // ugly to catch-and-rethrow, I know, but we need to log the source error first:
+      jangarooParser.getLog().error(element.getSymbol(), "While trying to resolve element <" + element.getName() + ">:");
+      throw e;
     }
   }
 
