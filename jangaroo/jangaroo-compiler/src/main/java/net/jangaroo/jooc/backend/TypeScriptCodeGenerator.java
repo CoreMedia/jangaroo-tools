@@ -1035,7 +1035,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<Expr> typesAndObjectLiteral = applyExpr.getArgs().getExpr();
       ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
       Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
-      writeSymbolReplacement(applyExpr.getFun().getSymbol(), "AS3._");
+      writeSymbolReplacement(applyExpr.getSymbol(), "AS3._");
       writeSymbolReplacement(typesArray.getLParen(), "<");
       for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
         Expr typeExpr = current.getHead();
@@ -1065,8 +1065,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
       Expr typeCastedExpr = args.getExpr().getHead();
       if (typeCastedExpr instanceof ObjectLiteral) {
-        out.writeSymbol(((IdeExpr)applyExpr.getFun()).getIde().getIde());
-        out.write("._"); // use config factory function instead of the class itself!
+        // use config factory function instead of the class itself:
+        writeSymbolReplacement(applyExpr.getSymbol(), ((IdeExpr)applyExpr.getFun()).getIde().getIde().getText() + "._");
         args.visit(this);
       } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
