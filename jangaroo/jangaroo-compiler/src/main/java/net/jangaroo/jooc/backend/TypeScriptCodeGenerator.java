@@ -549,7 +549,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     for (InputSource swcPkgFile : swcPkgFiles) {
       String swcPkgFileName = swcPkgFile.getName();
       if (swcPkgFileName.endsWith(".json") && !swcPkgFileName.equals("package.json")
-              && !swcPkgFileName.endsWith("-overrides.json")) {
+              && !swcPkgFileName.contains("-overrides")) {
         npmPackageName = CompilerUtils.removeExtension(swcPkgFileName);
         break;
       }
