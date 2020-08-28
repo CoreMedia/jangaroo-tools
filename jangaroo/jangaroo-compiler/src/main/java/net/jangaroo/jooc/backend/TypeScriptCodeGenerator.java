@@ -321,17 +321,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("\ndeclare namespace ");
         out.write(classDeclaration.getName());
         out.write(" {\n");
-        List<String> configExtends = new ArrayList<>();
+        out.write("  export class _");
         ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-        if (superTypeDeclaration != null) {
-          configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
+        if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
+          out.write(" extends " + compilationUnitAccessCode(superTypeDeclaration) + "._");
         }
-        configExtends.addAll(configMixins);
+        out.write(" {\n");
+        out.write("    constructor(config?: _);\n");
+        out.write("  }\n");
+        List<String> configExtends = new ArrayList<>(configMixins);
         if (ownConfigsClassName != null) {
           configExtends.add(ownConfigsClassName);
         }
-        out.write(String.format("  export interface _ extends %s {}\n", String.join(", ", configExtends)));
-        out.write("  export function _(config?: _):_;\n");
+        if (!configExtends.isEmpty()) {
+          out.write(String.format("  export interface _ extends %s {}\n", String.join(", ", configExtends)));
+        }
         out.write("}\n\n");
       }
     }
@@ -1076,7 +1080,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Expr typeCastedExpr = args.getExpr().getHead();
       if (typeCastedExpr instanceof ObjectLiteral) {
         // use config factory function instead of the class itself:
-        writeSymbolReplacement(applyExpr.getSymbol(), ((IdeExpr)applyExpr.getFun()).getIde().getIde().getText() + "._");
+        writeSymbolReplacement(applyExpr.getSymbol(), "new " + ((IdeExpr)applyExpr.getFun()).getIde().getIde().getText() + "._");
         args.visit(this);
       } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
