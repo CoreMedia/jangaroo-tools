@@ -50,6 +50,7 @@ import net.jangaroo.jooc.input.ZipEntryInputSource;
 import net.jangaroo.jooc.input.ZipFileInputSource;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -415,10 +416,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
-    if (typeRelation.getParentNode() instanceof IdeDeclaration) {
+    AstNode parentNode = typeRelation.getParentNode();
+    if (parentNode instanceof FunctionExpr) {
+      parentNode = parentNode.getParentNode();
+    }
+    if (parentNode instanceof IdeDeclaration) {
+      IdeDeclaration ideDeclaration =  (IdeDeclaration) parentNode;
       out.writeSymbol(typeRelation.getSymbol());
-      IdeDeclaration ideDeclaration = (IdeDeclaration) typeRelation.getParentNode();
       ExpressionType expressionType = ideDeclaration.getIde().getScope().getExpressionType(ideDeclaration);
+      // a non-getter-setter function declaration returns its function signature, but we are just interested 
+      // in its return value, which is contained in the type parameter:
+      if (expressionType instanceof FunctionSignature) {
+        expressionType = expressionType.getTypeParameter();
+      }
       String tsType = getTypeScriptTypeForActionScriptType(expressionType);
       if ("config".equals(ideDeclaration.getName())) {
         TypeDeclaration maybeExtConfigClassDeclaration = expressionType.getDeclaration();
