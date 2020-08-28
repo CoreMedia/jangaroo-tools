@@ -59,7 +59,15 @@ public class XmlTag extends NodeImplBase {
 
   @Override
   public JooSymbol getSymbol() {
+    return getSymLt();
+  }
+
+  public JooSymbol getSymLt() {
     return lt;
+  }
+
+  public JooSymbol getSymGt() {
+    return gt;
   }
 
   @Override

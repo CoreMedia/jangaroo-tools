@@ -57,6 +57,10 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getSymbol();
   }
 
+  public JooSymbol getLastSymbol() {
+    return closingMxmlTag == null ? openingMxmlTag.getSymGt() : closingMxmlTag.getSymbol();
+  }
+
   @Override
   public List<? extends AstNode> getChildren() {
     //noinspection unchecked
