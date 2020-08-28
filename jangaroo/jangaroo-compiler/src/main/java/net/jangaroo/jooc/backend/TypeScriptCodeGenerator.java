@@ -883,7 +883,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               && functionDeclaration.getClassDeclaration().notExtendsObject()) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("\n    super();"));
       }
-      if (functionDeclaration.isThisAliased()) {
+      if (functionDeclaration.isThisAliased() && !functionDeclaration.isContainsSuperConstructorCall()) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
