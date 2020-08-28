@@ -140,8 +140,7 @@ public class IdeExpr extends Expr {
   }
 
   public JooSymbol getSymbol() {
-    Expr normalizedExpr = getNormalizedExpr();
-    if (normalizedExpr != this) {
+    if (normalizedExpr != null && normalizedExpr != this) {
       return normalizedExpr.getSymbol();
     }
     return getIde().getSymbol();
