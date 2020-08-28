@@ -519,26 +519,6 @@ final class MxmlToModelParser {
     return MxmlAstUtils.createObjectField(getConfigOptionName(propertyModel), value);
   }
 
-  @Nonnull
-  private Directive createPropertyAssigment(@Nonnull Ide variable, @Nonnull TypedIdeDeclaration propertyModel, @Nonnull JooSymbol value, boolean generatingConfig) {
-    TypeRelation typeRelation = propertyModel.getOptTypeRelation();
-    String propertyType = typeRelation == null ? null : typeRelation.getType().getIde().getName();
-    boolean untyped = UNTYPED_MARKER.equals(propertyType);
-    String attributeValueAsString = MxmlUtils.valueToString(MxmlUtils.getAttributeValue((String) value.getJooValue(), untyped ? null : propertyType));
-
-    String propertyName = generatingConfig ? getConfigOptionName(propertyModel) : propertyModel.getName();
-    boolean untypedAccess = untyped || !propertyName.equals(propertyModel.getName());
-
-    Expr rightHandSide = mxmlParserHelper.parseExpression(value.replacingSymAndTextAndJooValue(value.sym, attributeValueAsString, attributeValueAsString));
-    // special case: String properties auto-cast any right-hand-side into a String:
-    if ("String".equals(propertyType) && !(rightHandSide instanceof LiteralExpr && ((LiteralExpr)rightHandSide).getValue().getJooValue() instanceof String)) {
-      rightHandSide = MxmlAstUtils.createApplyExpr(
-              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), "asString"),
-              rightHandSide);
-    }
-    return MxmlAstUtils.createPropertyAssignment(variable, rightHandSide, propertyName, untypedAccess);
-  }
-
   private static String getConfigOptionName(TypedIdeDeclaration propertyModel) {
     TypedIdeDeclaration setter = propertyModel instanceof PropertyDeclaration ? ((PropertyDeclaration) propertyModel).getSetter() : propertyModel;
     if (setter != null) { // should actually be there, or the assignment would not work!
