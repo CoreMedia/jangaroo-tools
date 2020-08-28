@@ -56,7 +56,6 @@ final class MxmlToModelParser {
   private final MxmlParserHelper mxmlParserHelper;
   private final MxmlCompilationUnit compilationUnit;
 
-  private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
@@ -618,10 +617,6 @@ final class MxmlToModelParser {
   private static JooSymbol getTextContent(XmlElement element) {
     //noinspection ConstantConditions
     return Iterables.getFirst(element.getTextNodes(), new JooSymbol(""));
-  }
-
-  Collection<Directive> getConstructorBodyDirectives() {
-    return constructorBodyDirectives;
   }
 
   Collection<Directive> getClassBodyDirectives() {
