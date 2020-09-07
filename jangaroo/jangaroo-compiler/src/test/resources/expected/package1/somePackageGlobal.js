@@ -3,6 +3,7 @@ Ext.define("package1.somePackageGlobal", function(somePackageGlobal) {/*package 
 import package1.someOtherPackage.SomeOtherClass;
 
 // This comment to vanish in API
+[Lazy]
 /**
  * Some package-global documentation;
  * /
@@ -13,7 +14,7 @@ public var somePackageGlobal:SomeOtherClass
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      __factory__: somePackageGlobal_,
+      __lazyFactory__: somePackageGlobal_,
       requires: ["package1.someOtherPackage.SomeOtherClass"]
     };
 });
