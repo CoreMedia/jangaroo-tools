@@ -131,6 +131,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
 
   @Test
   public void testMxmlPropertiesAccess() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/PropertiesAccessBase", ".as");
     assertCompilationResult("package1/mxml/pkg/PropertiesAccess", ".mxml");
   }
 

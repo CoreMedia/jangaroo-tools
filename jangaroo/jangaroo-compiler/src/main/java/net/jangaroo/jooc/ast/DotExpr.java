@@ -79,9 +79,12 @@ public class DotExpr extends PostfixOpExpr {
       } else {
         if (memberDeclaration instanceof PropertyDeclaration) {
           // It may make a difference whether we read or write:
-          if (parentNode instanceof AssignmentOpExpr && ((AssignmentOpExpr)parentNode).getArg1() == this) {
-            // We are the left-hand-side of an assignment: Use setter's type!
-            memberDeclaration = ((PropertyDeclaration)memberDeclaration).getSetter();
+          if (parentNode instanceof AssignmentOpExpr) {
+            Expr arg1 = ((AssignmentOpExpr) parentNode).getArg1();
+            if (arg1 == this || arg1 instanceof IdeExpr && ((IdeExpr) arg1).getNormalizedExpr() == this) {
+              // We are the left-hand-side of an assignment: Use setter's type!
+              memberDeclaration = ((PropertyDeclaration) memberDeclaration).getSetter();
+            }
           }
           // Otherwise, keep the PropertyDeclaration, as it already uses the type of the getter.
         }
