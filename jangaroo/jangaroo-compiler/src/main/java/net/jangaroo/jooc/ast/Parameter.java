@@ -59,7 +59,9 @@ public class Parameter extends IdeDeclaration implements Typed {
     super.scope(scope);
     if (isRest() && getOptTypeRelation() == null) {
       // ...rest parameter implicitly has Array type:
-      optTypeRelation = new TypeRelation(new JooSymbol(":"), new Type(new JooSymbol("Array")));
+      JooSymbol symRelation = new JooSymbol(":");
+      symRelation.setVirtual(true);
+      optTypeRelation = new TypeRelation(symRelation, new Type(new JooSymbol("Array")));
     }
     if (getOptTypeRelation() != null) {
       getOptTypeRelation().scope(scope);

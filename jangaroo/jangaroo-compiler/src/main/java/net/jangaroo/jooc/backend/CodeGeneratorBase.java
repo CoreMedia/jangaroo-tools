@@ -719,7 +719,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   void visitParameterTypeRelation(Parameter parameter) throws IOException {
     TypeRelation typeRelation = parameter.getOptTypeRelation();
     // only visit non-synthesized rest parameter's type relation:
-    if (typeRelation != null && !(parameter.isRest() && typeRelation.getSymRelation().getLine() == -1)) {
+    if (typeRelation != null && !typeRelation.getSymRelation().isVirtual()) {
       typeRelation.visit(this);
     }
   }

@@ -91,8 +91,8 @@ public class IdeExpr extends Expr {
           dotExpr = new DotExpr(new IdeExpr(classIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
         }
         if (dotExpr != null) {
-          dotExpr.setOriginal(this);
           normalizedExpr = dotExpr;
+          dotExpr.setOriginal(this);
         }
       }
     }

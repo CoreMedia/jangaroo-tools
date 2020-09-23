@@ -60,7 +60,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.EXT_PRIVATE_ANNOTATION_NAME,
           Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME,
           Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
-          Jooc.EVENT_ANNOTATION_NAME
+          Jooc.EVENT_ANNOTATION_NAME,
+          Jooc.LAZY_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
@@ -280,7 +281,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         classDefinition = createClassDefinition((ClassDeclaration) declaration);
       } else {
         classDefinition = new JsonObject();
-        classDefinition.set("__factory__", JsonObject.code(factory));
+        boolean isLazy = declaration.getAnnotation(Jooc.LAZY_ANNOTATION_NAME) != null;
+        classDefinition.set(isLazy ? "__lazyFactory__" : "__factory__", JsonObject.code(factory));
       }
       fillClassDefinition(classDefinition, classDefinitionBuilder);
     }
