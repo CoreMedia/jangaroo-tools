@@ -1186,9 +1186,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private void internalVisitDotExpr(DotExpr dotExpr) throws IOException {
     Expr arg = dotExpr.getArg();
-    if (arg instanceof IdeExpr) {
-      arg = ((IdeExpr)arg).getNormalizedExpr();
-    }
     ExpressionType type = arg.getType();
     if (type != null) {
       Ide ide = dotExpr.getIde();

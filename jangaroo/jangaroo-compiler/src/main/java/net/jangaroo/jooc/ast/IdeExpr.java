@@ -99,6 +99,12 @@ public class IdeExpr extends Expr {
     return normalizedExpr;
   }
 
+  @Override
+  public ExpressionType getType() {
+    Expr normalizedExpr = getNormalizedExpr();
+    return normalizedExpr == this ? super.getType() : normalizedExpr.getType();
+  }
+
   private void setThisDeclaration(Ide thisIde) {
     Scope scope = ide.getScope();
     while (scope != null && scope.getFunctionExpr() != null) {
