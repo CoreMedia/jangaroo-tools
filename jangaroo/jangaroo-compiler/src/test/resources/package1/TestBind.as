@@ -25,6 +25,7 @@ public class TestBind {
   }
 
   public function getState() : String {
+    this.boundField.call();
     return state;
   }
 

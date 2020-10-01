@@ -25,6 +25,7 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
   }/*
 
   public*/ function getState()/* : String*/ {
+    this.boundField.call( null);
     return this.state$JrNo;
   }/*
 

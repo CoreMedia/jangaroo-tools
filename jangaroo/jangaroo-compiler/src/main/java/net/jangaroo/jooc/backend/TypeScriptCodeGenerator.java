@@ -1043,10 +1043,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
       // it is an object literal type check call: transform
       // __typeCheckObjectLiteral__([t1, ..., tn], { O }) -> AS3._<t1 & ... & tn>({ O })
-      CommaSeparatedList<Expr> typesAndObjectLiteral = applyExpr.getArgs().getExpr();
+      CommaSeparatedList<Expr> typesAndObjectLiteral = args.getExpr();
       ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
       Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
       writeSymbolReplacement(applyExpr.getSymbol(), "AS3._");
@@ -1072,11 +1073,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       writeSymbolReplacement(typesArray.getRParen(), ">");
-      out.writeSymbol(applyExpr.getArgs().getLParen());
+      out.writeSymbol(args.getLParen());
       objectLiteral.visit(this);
-      out.writeSymbol(applyExpr.getArgs().getRParen());
+      out.writeSymbol(args.getRParen());
     } else if (applyExpr.isTypeCast()) {
-      ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
       Expr typeCastedExpr = args.getExpr().getHead();
       if (typeCastedExpr instanceof ObjectLiteral) {
         // use config factory function instead of the class itself:

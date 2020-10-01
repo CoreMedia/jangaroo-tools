@@ -81,12 +81,16 @@ import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected final CompilationUnitResolver compilationUnitModelResolver;
@@ -436,7 +440,92 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
     applyExpr.getFun().visit(this);
-    applyExpr.getArgs().visit(this);
+    visitApplyExprArguments(applyExpr);
+  }
+
+  public void visitApplyExprArguments(ApplyExpr applyExpr) throws IOException {
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
+    if (args != null) {
+      List<Expr> defaultValues = getArgumentDefaultValues(applyExpr);
+      if (defaultValues.isEmpty()) {
+        args.visit(this);
+      } else {
+        writeArgumentsAndDefaultValues(args, defaultValues);
+      }
+    }
+  }
+
+  private static List<Expr> getArgumentDefaultValues(ApplyExpr applyExpr) {
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
+    Expr fun = applyExpr.getFun();
+    if (fun instanceof IdeExpr) {
+      fun = ((IdeExpr) fun).getNormalizedExpr();
+    }
+    if (fun instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) fun;
+      ExpressionType type = dotExpr.getArg().getType();
+      if (type != null) {
+        IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(dotExpr.getIde().getName());
+        if (memberDeclaration instanceof FunctionDeclaration) {
+          return getArgumentDefaultValues(args, (FunctionDeclaration) memberDeclaration);
+        }
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  private static List<Expr> getArgumentDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args, FunctionDeclaration methodDeclaration) {
+    Collection<Annotation> parameterAnnotations = methodDeclaration.getAnnotations(Jooc.PARAMETER_ANNOTATION_NAME);
+    List<Expr> defaultValues = new ArrayList<>();
+    if (!parameterAnnotations.isEmpty()) {
+      CommaSeparatedList<Expr> arguments = args.getExpr();
+      Parameters params = methodDeclaration.getParams();
+      while (params != null) {
+        if (arguments == null) {
+          // too few arguments? check whether next parameter is optional in AS3, but required in TS:
+          Parameter parameter = params.getHead();
+          Initializer parameterInitializer = parameter.getOptInitializer();
+          // parameter is not optional but argument is missing: this is a signature mismatch in AS3, bail out
+          if (parameterInitializer == null) {
+            break;
+          }
+          Optional<Annotation> parameterAnnotation = parameterAnnotations.stream()
+                  .filter(someParameterAnnotation -> parameter.getName().equals(someParameterAnnotation.getPropertiesByName().get(null)))
+                  .findAny();
+          if (parameterAnnotation.isPresent()) {
+            if (!parameterAnnotation.get().getPropertiesByName().containsKey(Jooc.PARAMETER_ANNOTATION_REQUIRED_PROPERTY)) {
+              // parameter is not required in TypeScript: bail out, too
+              break;
+            } else {
+              defaultValues.add(parameterInitializer.getValue());
+            }
+          }
+        }
+        params = params.getTail();
+        if (arguments != null) {
+          arguments = arguments.getTail();
+        }
+      }
+    }
+    return defaultValues;
+  }
+
+  private void writeArgumentsAndDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args, Collection<Expr> defaultValues) throws IOException {
+    out.writeSymbol(args.getLParen());
+    CommaSeparatedList<Expr> arguments = args.getExpr();
+    boolean writeComma = false;
+    if (arguments != null) {
+      arguments.visit(this);
+      writeComma = true;
+    }
+    for (Expr defaultArgument : defaultValues) {
+      if (writeComma) {
+        out.write(",");
+      }
+      defaultArgument.visit(this);
+      writeComma = true;
+    }
+    out.writeSymbol(args.getRParen());
   }
 
   @Override

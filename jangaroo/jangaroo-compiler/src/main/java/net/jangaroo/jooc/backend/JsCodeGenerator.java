@@ -61,7 +61,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME,
           Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
           Jooc.EVENT_ANNOTATION_NAME,
-          Jooc.LAZY_ANNOTATION_NAME
+          Jooc.LAZY_ANNOTATION_NAME,
+          Jooc.PARAMETER_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
@@ -938,7 +939,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (args != null && applyExpr.getFun() instanceof IdeExpr && ((IdeExpr) applyExpr.getFun()).getIde().isQualifiedBySuper()) {
         generateSuperCallParameters(args);
       } else {
-        visitIfNotNull(args);
+        visitApplyExprArguments(applyExpr);
       }
     }
   }

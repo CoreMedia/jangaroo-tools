@@ -78,6 +78,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String EVENT_ANNOTATION_NAME = "Event";
   public static final String EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME = "name";
   public static final String LAZY_ANNOTATION_NAME = "Lazy";
+  public static final String PARAMETER_ANNOTATION_NAME = "Parameter";
+  public static final String PARAMETER_ANNOTATION_REQUIRED_PROPERTY = "required";
 
   private List<FileInputSource> compileQueue = new ArrayList<>();
 
