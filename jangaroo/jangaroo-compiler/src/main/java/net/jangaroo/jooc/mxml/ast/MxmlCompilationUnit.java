@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mxml.ast;
 
-import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
@@ -47,7 +46,6 @@ import java.util.Map;
  */
 public class MxmlCompilationUnit extends CompilationUnit {
 
-  static final String DEFAULTS = "defaults";
   static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
   static final String APPLY = "apply";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
@@ -68,14 +66,13 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private FunctionDeclaration initMethod;
   private Parameter constructorParam;
-  private Scope constructorScope;
 
   private MxmlToModelParser mxmlToModelParser;
   private final Map<String, VariableDeclaration> classVariablesByName = new LinkedHashMap<>();
 
   public MxmlCompilationUnit(@Nonnull InputSource source, @Nullable XmlHeader optXmlHeader, @Nonnull XmlElement rootNode, @Nonnull MxmlParserHelper mxmlParserHelper) {
     // no secondary declarations: https://issues.apache.org/jira/browse/FLEX-21373
-    super(null, MxmlAstUtils.sym_lbrace(), new LinkedList<>(), null, MxmlAstUtils.sym_rbrace(), Collections.<IdeDeclaration>emptyList());
+    super(null, MxmlAstUtils.sym_lbrace(), new LinkedList<>(), null, MxmlAstUtils.sym_rbrace(), Collections.emptyList());
     this.source = source;
     this.optXmlHeader = optXmlHeader;
     this.rootNode = rootNode;
@@ -88,7 +85,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
     packageDeclaration = mxmlParserHelper.parsePackageDeclaration(classQName);
 
     JangarooParser parser = scope.getCompiler();
-    constructorScope = new DeclarationScope(this, null, parser);
     mxmlToModelParser = new MxmlToModelParser(parser, mxmlParserHelper, this);
 
     rootElementProcessor.process(rootNode);
@@ -189,10 +185,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
     return MxmlAstUtils.createApplyExpr(MxmlAstUtils.createDotExpr(addImport(NET_JANGAROO_EXT_EXML), APPLY), targetObject, sourceObject);
   }
 
-  Ide createAuxVar(String name) {
-    return constructorScope.createAuxVar(name);
-  }
-
   void preProcessClassBodyDirectives() {
     boolean hasNativeConstructor = false;
     for (int i = 0; i < classBodyDirectives.size(); i++) {
@@ -234,7 +226,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
     if(null != initMethod) {
       CommaSeparatedList<Expr> args = null;
       if(null != constructorParam && initMethod.getParams() != null) {
-        args = new CommaSeparatedList<Expr>(new IdeExpr(constructorParam.getIde()));
+        args = new CommaSeparatedList<>(new IdeExpr(constructorParam.getIde()));
       }
       DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.sym_dot(), new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
       Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
@@ -284,10 +276,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
   public boolean isClass() {
     // MXML files do not have a primary declaration before scoping, but are known to denote classes.
     return true;
-  }
-
-  XmlTag getOptXmlHeader() {
-    return optXmlHeader;
   }
 
   XmlElement getRootNode() {
