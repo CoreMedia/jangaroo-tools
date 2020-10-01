@@ -2,9 +2,9 @@
 import ext.*;
 import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.StringToEmptyArrayCoercion", function(StringToEmptyArrayCoercion) {/*public class StringToEmptyArrayCoercion extends Panel{public*/function StringToEmptyArrayCoercion$(config/*:StringToEmptyArrayCoercion=null*/){if(arguments.length<=0)config=null;
-    this.super$4x7N(net.jangaroo.ext.Exml.apply({
+    this.super$4x7N(net.jangaroo.ext.Exml.apply(AS3.cast(StringToEmptyArrayCoercion,{
   items:[]
-},config));
+}),config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

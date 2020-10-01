@@ -150,21 +150,25 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
     }
     Expr configFromMxmlExpr = mxmlToModelParser.createExprFromElement(rootNode, true, true);
-    if (configFromMxmlExpr instanceof ApplyExpr) {
-      configFromMxmlExpr = MxmlToModelParser.reduceTypeCastToTypeAssertion((ApplyExpr) configFromMxmlExpr);
-    }
-    // Only apply config onto config-from-MXML if the latter is not empty, otherwise use config in super() directly,
-    // but not if super class needs an (empty) config object:
-    Expr superConfigExpr = !(config == null && useSuperConfig) && isSuperConfigEmpty(configFromMxmlExpr)
-            ? config == null ? null : new IdeExpr(config)
-            : config == null ? configFromMxmlExpr : createExmlApply(configFromMxmlExpr, new IdeExpr(config));
     if (useSuperConfig) {
-      constructorBodyDirectives.add(superConfigExpr == null
-              ? MxmlAstUtils.createSuperConstructorCall()
-              : MxmlAstUtils.createSuperConstructorCall(superConfigExpr));
-    } else if (superConfigExpr != null) {
-      constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(
-              createExmlApply(MxmlAstUtils.createThisExpr(), superConfigExpr)));
+      // replace type cast to super (config) class by type cast to this (config) class:
+      if (configFromMxmlExpr instanceof ApplyExpr) {
+        configFromMxmlExpr = MxmlAstUtils.createApplyExpr(
+                new IdeExpr(new Ide(classDeclaration.getName())),
+                ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getHead());
+      }
+      Expr superConfigExpr = config == null ? configFromMxmlExpr : createExmlApply(configFromMxmlExpr, new IdeExpr(config));
+      constructorBodyDirectives.add(MxmlAstUtils.createSuperConstructorCall(superConfigExpr));
+    } else {
+      // Only apply config onto config-from-MXML if the latter is not empty, otherwise use config in super() directly,
+      // but not if super class needs an (empty) config object:
+      Expr superConfigExpr = isSuperConfigEmpty(configFromMxmlExpr)
+              ? config == null ? null : new IdeExpr(config)
+              : config == null ? configFromMxmlExpr : createExmlApply(configFromMxmlExpr, new IdeExpr(config));
+      if (superConfigExpr != null) {
+        constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(
+                createExmlApply(MxmlAstUtils.createThisExpr(), superConfigExpr)));
+      }
     }
 
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
@@ -176,7 +180,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   private static boolean isSuperConfigEmpty(Expr configFromMxmlExpr) {
     Expr superConfigObject = configFromMxmlExpr instanceof ApplyExpr
-            ? ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getTail().getHead()
+            ? ((ApplyExpr) configFromMxmlExpr).getArgs().getExpr().getHead()
             : configFromMxmlExpr;
     return superConfigObject instanceof ObjectLiteral && ((ObjectLiteral) superConfigObject).getFields() == null;
   }

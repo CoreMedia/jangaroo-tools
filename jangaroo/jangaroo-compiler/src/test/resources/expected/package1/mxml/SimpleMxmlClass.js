@@ -35,7 +35,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
                           blubb_config: 'blub config expression',
                           blubb_accessor: 'blub accessor expression'})
     },config);
-    this.super$5_bR( net.jangaroo.ext.Exml.apply({
+    this.super$5_bR( net.jangaroo.ext.Exml.apply(AS3.cast(SimpleMxmlClass,{
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,
   defaultType:
@@ -64,7 +64,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
   ]),
     listeners:{
              click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))}
-},config));
+}),config));
   }/*
 
     private var blub:*;*/function static$0(){

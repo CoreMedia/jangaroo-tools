@@ -15,9 +15,9 @@ Ext.define("package1.mxml.ScriptCdataMxmlClass", function(ScriptCdataMxmlClass) 
         throw "cannot do it with " + v;
       }
     }/*public*/function ScriptCdataMxmlClass$(config/*:ScriptCdataMxmlClass=null*/){if(arguments.length<=0)config=null;
-    this.super$5omj(net.jangaroo.ext.Exml.apply({
+    this.super$5omj(net.jangaroo.ext.Exml.apply(AS3.cast(ScriptCdataMxmlClass,{
              foo: "bar"
-},config));
+}),config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/

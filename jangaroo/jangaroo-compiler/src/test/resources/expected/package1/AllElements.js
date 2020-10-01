@@ -46,7 +46,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       { header: "a", sortable: false, menuDisabled: true},
       { header: "b", sortable: true, menuDisabled: false}
     ];
-    this.super$6tZL( net.jangaroo.ext.Exml.apply({
+    this.super$6tZL( net.jangaroo.ext.Exml.apply(AS3.cast(AllElements,{
            title: "I am a panel",
            layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
 
@@ -111,7 +111,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       AS3.cast(ext.config.aplugin,{})
     ]
 
-},config));
+}),config));
   }/*
 
       /*

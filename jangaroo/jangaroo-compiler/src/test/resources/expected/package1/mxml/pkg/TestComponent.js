@@ -7,7 +7,7 @@ Ext.define("package1.mxml.pkg.TestComponent", function(TestComponent) {/*public 
     config =net.jangaroo.ext.Exml.apply({
     property_1: "withDefault"
     },config);
-    this.super$6zW8( net.jangaroo.ext.Exml.apply({
+    this.super$6zW8( net.jangaroo.ext.Exml.apply(AS3.cast(TestComponent,{
         emptyText: net.jangaroo.ext.Exml.asString( '<div class=\'widget-content-list-empty\'>' + package1.mxml.pkg.TestComponentBase.DEFAULT + '</div>'),
         letters: [
               'a',
@@ -15,7 +15,7 @@ Ext.define("package1.mxml.pkg.TestComponent", function(TestComponent) {/*public 
               'c'
              ]
 
-},config));
+}),config));
   }/*
 
     [Bindable]

@@ -1,5 +1,6 @@
 /*package package1.mxml{
 import package1.*;
+import net.jangaroo.ext.Exml;
 
     /**
      * Let's have a class with two annotations.
@@ -8,7 +9,8 @@ import package1.*;
     [ThisIsJustATest]
     [Deprecated (replacement='use.this.please')]*/
 Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlClass) {/*public class MetadataCdataMxmlClass extends ConfigClass{public*/function MetadataCdataMxmlClass$(config/*:MetadataCdataMxmlClass=null*/){if(arguments.length<=0)config=null;
-    this.super$3$jH(config);
+    this.super$3$jH(net.jangaroo.ext.Exml.apply(AS3.cast(MetadataCdataMxmlClass,{
+}),config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
@@ -26,6 +28,7 @@ Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlCla
       super$3$jH: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
-      requires: ["package1.ConfigClass"]
+      requires: ["package1.ConfigClass"],
+      uses: ["net.jangaroo.ext.Exml"]
     };
 });
