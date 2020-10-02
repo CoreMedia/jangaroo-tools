@@ -175,7 +175,8 @@ public abstract class AbstractScope implements Scope {
   }
 
   private ExpressionType getExpressionType(AS3Type as3Type, ExpressionType typeParameter) {
-    return new ExpressionType(getClassDeclaration(as3Type.name), typeParameter);
+    return AS3Type.VOID.equals(as3Type) || AS3Type.ANY.equals(as3Type) ? null
+            : new ExpressionType(getClassDeclaration(as3Type.name), typeParameter);
   }
 
   @Override

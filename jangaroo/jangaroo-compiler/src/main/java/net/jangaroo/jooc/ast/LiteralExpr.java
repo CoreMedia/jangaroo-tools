@@ -17,6 +17,8 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 
@@ -26,6 +28,7 @@ import java.io.IOException;
 public class LiteralExpr extends Expr {
 
   private JooSymbol value;
+  private Scope scope;
 
   public LiteralExpr(JooSymbol value) {
     this.setValue(value);
@@ -38,6 +41,31 @@ public class LiteralExpr extends Expr {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
+  }
+
+  private AS3Type getLiteralType() {
+    switch (getValue().sym) {
+      case sym.INT_LITERAL:
+        return AS3Type.INT;
+      case sym.FLOAT_LITERAL:
+        return AS3Type.NUMBER;
+      case sym.STRING_LITERAL:
+        return AS3Type.STRING;
+      case sym.BOOL_LITERAL:
+        return AS3Type.BOOLEAN;
+      case sym.REGEXP_LITERAL:
+        return AS3Type.REG_EXP;
+      case sym.NULL_LITERAL:
+        return AS3Type.ANY; // TODO: should be a special Null type
+    }
+    throw new IllegalStateException("Encountered LiteralExpr with sym " + getValue());
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    setType(scope.getExpressionType(getLiteralType()));
   }
 
   public JooSymbol getSymbol() {
