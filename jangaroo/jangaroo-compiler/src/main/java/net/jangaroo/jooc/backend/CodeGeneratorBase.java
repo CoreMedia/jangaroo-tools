@@ -86,11 +86,9 @@ import net.jangaroo.jooc.types.ExpressionType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected final CompilationUnitResolver compilationUnitModelResolver;
@@ -446,84 +444,72 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public void visitApplyExprArguments(ApplyExpr applyExpr) throws IOException {
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (args != null) {
-      List<Expr> defaultValues = getArgumentDefaultValues(applyExpr);
-      if (defaultValues.isEmpty()) {
-        args.visit(this);
-      } else {
-        writeArgumentsAndDefaultValues(args, defaultValues);
+      Expr fun = applyExpr.getFun();
+      if (fun instanceof IdeExpr) {
+        fun = ((IdeExpr) fun).getNormalizedExpr();
       }
-    }
-  }
-
-  private static List<Expr> getArgumentDefaultValues(ApplyExpr applyExpr) {
-    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
-    Expr fun = applyExpr.getFun();
-    if (fun instanceof IdeExpr) {
-      fun = ((IdeExpr) fun).getNormalizedExpr();
-    }
-    if (fun instanceof DotExpr) {
-      DotExpr dotExpr = (DotExpr) fun;
-      ExpressionType type = dotExpr.getArg().getType();
-      if (type != null) {
-        IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(dotExpr.getIde().getName());
-        if (memberDeclaration instanceof FunctionDeclaration) {
-          return getArgumentDefaultValues(args, (FunctionDeclaration) memberDeclaration);
-        }
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  private static List<Expr> getArgumentDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args, FunctionDeclaration methodDeclaration) {
-    Collection<Annotation> parameterAnnotations = methodDeclaration.getAnnotations(Jooc.PARAMETER_ANNOTATION_NAME);
-    List<Expr> defaultValues = new ArrayList<>();
-    if (!parameterAnnotations.isEmpty()) {
-      CommaSeparatedList<Expr> arguments = args.getExpr();
-      Parameters params = methodDeclaration.getParams();
-      while (params != null) {
-        if (arguments == null) {
-          // too few arguments? check whether next parameter is optional in AS3, but required in TS:
-          Parameter parameter = params.getHead();
-          Initializer parameterInitializer = parameter.getOptInitializer();
-          // parameter is not optional but argument is missing: this is a signature mismatch in AS3, bail out
-          if (parameterInitializer == null) {
-            break;
-          }
-          Optional<Annotation> parameterAnnotation = parameterAnnotations.stream()
-                  .filter(someParameterAnnotation -> parameter.getName().equals(someParameterAnnotation.getPropertiesByName().get(null)))
-                  .findAny();
-          if (parameterAnnotation.isPresent()) {
-            if (!parameterAnnotation.get().getPropertiesByName().containsKey(Jooc.PARAMETER_ANNOTATION_REQUIRED_PROPERTY)) {
-              // parameter is not required in TypeScript: bail out, too
-              break;
-            } else {
-              defaultValues.add(parameterInitializer.getValue());
-            }
+      if (fun instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) fun;
+        ExpressionType type = dotExpr.getArg().getType();
+        if (type != null) {
+          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(dotExpr.getIde().getName());
+          if (memberDeclaration instanceof FunctionDeclaration) {
+            writeArgumentsWithOptCoercesAndDefaultValues(args, (FunctionDeclaration) memberDeclaration);
+            return;
           }
         }
-        params = params.getTail();
-        if (arguments != null) {
-          arguments = arguments.getTail();
-        }
       }
+      args.visit(this);
     }
-    return defaultValues;
   }
 
-  private void writeArgumentsAndDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args, Collection<Expr> defaultValues) throws IOException {
+  private void writeArgumentsWithOptCoercesAndDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args,
+                                                            FunctionDeclaration methodDeclaration) throws IOException {
     out.writeSymbol(args.getLParen());
+    Collection<Annotation> parameterAnnotations = methodDeclaration.getAnnotations(Jooc.PARAMETER_ANNOTATION_NAME);
     CommaSeparatedList<Expr> arguments = args.getExpr();
-    boolean writeComma = false;
-    if (arguments != null) {
-      arguments.visit(this);
-      writeComma = true;
-    }
-    for (Expr defaultArgument : defaultValues) {
-      if (writeComma) {
-        out.write(",");
+    Parameters params = methodDeclaration.getParams();
+    boolean first = true;
+    while (params != null || arguments != null) {
+      Parameter parameter = params == null ? null : params.getHead();
+      Annotation parameterAnnotation = parameter == null || parameterAnnotations == null ? null
+              : parameterAnnotations.stream()
+              .filter(someParameterAnnotation -> parameter.getName().equals(someParameterAnnotation.getPropertiesByName().get(null)))
+              .findAny().orElse(null);
+      if (arguments != null) {
+        Object coerceTo = parameterAnnotation == null ? null
+                : parameterAnnotation.getPropertiesByName().get(Jooc.PARAMETER_ANNOTATION_COERCE_TO_PROPERTY);
+        boolean doCoerce = false;
+        if (coerceTo instanceof String) {
+          ExpressionType type = arguments.getHead().getType();
+          if (type == null || !type.getAS3Type().toString().equals(coerceTo)) {
+            doCoerce = true;
+            out.write(coerceTo + "(");
+          }
+        }
+        arguments.getHead().visit(this);
+        if (doCoerce) {
+          out.write(")");
+        }
+        writeOptSymbol(arguments.getSymComma());
+        arguments = arguments.getTail();
+      } else {
+        if (parameterAnnotation != null) {
+          // too few arguments? check whether next parameter is optional in AS3, but required in TS:
+          Initializer parameterInitializer = parameter.getOptInitializer();
+          if (parameterInitializer != null && parameterAnnotation.getPropertiesByName().containsKey(Jooc.PARAMETER_ANNOTATION_REQUIRED_PROPERTY)) {
+            // parameter is optional in ActionScript, but required in TypeScript: add default value
+            if (!first) {
+              out.write(",");
+            }
+            parameterInitializer.getValue().visit(this);
+          }
+        }
       }
-      defaultArgument.visit(this);
-      writeComma = true;
+      if (params != null) {
+        params = params.getTail();
+      }
+      first = false;
     }
     out.writeSymbol(args.getRParen());
   }

@@ -24,8 +24,13 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
     var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$JrNo");
   }/*
 
+  [Parameter("shouldBeString", coerceTo="String")]
+  private*/ function testCoerce(shouldBeString/*: Object*/)/*:void*/ {}/*
+
   public*/ function getState()/* : String*/ {
     this.boundField.call( null);
+    this.testCoerce$JrNo(String(1));
+    this.testCoerce$JrNo("1");
     return this.state$JrNo;
   }/*
 
@@ -44,6 +49,7 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
       super$JrNo: function() {
         boundField_.call(this);
       },
+      testCoerce$JrNo: testCoerce,
       getState: getState,
       getStatePrivate$JrNo: getStatePrivate,
       state$JrNo: null

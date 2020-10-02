@@ -24,8 +24,13 @@ public class TestBind {
     var bound:Function = getStatePrivate;
   }
 
+  [Parameter("shouldBeString", coerceTo="String")]
+  private function testCoerce(shouldBeString: Object):void {}
+
   public function getState() : String {
     this.boundField.call();
+    this.testCoerce(1);
+    this.testCoerce("1");
     return state;
   }
 
