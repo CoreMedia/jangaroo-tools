@@ -62,7 +62,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
           Jooc.EVENT_ANNOTATION_NAME,
           Jooc.LAZY_ANNOTATION_NAME,
-          Jooc.PARAMETER_ANNOTATION_NAME
+          Jooc.PARAMETER_ANNOTATION_NAME,
+          Jooc.RETURN_ANNOTATION_NAME
   );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
@@ -726,7 +727,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   public void generateFunTailCode(FunctionExpr functionExpr) throws IOException {
-    generateSignatureJsCode(functionExpr);
+    generateFunctionExprSignature(functionExpr);
     if (functionExpr.hasBody()) {
       functionExpr.getBody().visit(this);
     }
@@ -834,13 +835,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     } finally {
       out.setSuppressWhitespace(false);
     }
-  }
-
-  public void generateSignatureJsCode(FunctionExpr functionExpr) throws IOException {
-    out.writeSymbol(functionExpr.getLParen());
-    visitIfNotNull(functionExpr.getParams());
-    out.writeSymbol(functionExpr.getRParen());
-    visitIfNotNull(functionExpr.getOptTypeRelation());
   }
 
   @Override
@@ -1320,7 +1314,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
         writeOptSymbol(functionDeclaration.getSymGetOrSet());
         functionDeclaration.getIde().visit(this);
-        generateSignatureJsCode(functionDeclaration.getFun());
+        generateFunctionExprSignature(functionDeclaration.getFun());
         writeOptSymbol(functionDeclaration.getOptSymSemicolon());
         out.endComment();
       } else {

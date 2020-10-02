@@ -876,7 +876,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
       if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter()) {
-        visitIfNotNull(functionExpr.getOptTypeRelation());
+        generateFunctionExprReturnTypeRelation(functionExpr);
       }
       if (functionDeclaration.isConstructor()
               && !functionDeclaration.containsSuperConstructorCall()
@@ -909,6 +909,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         functionExpr.visit(this);
         writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
       }
+    }
+  }
+
+  void generateFunctionExprReturnTypeRelation(FunctionExpr functionExpr) throws IOException {
+    TypeRelation optTypeRelation = functionExpr.getOptTypeRelation();
+    String returnTypeFromAnnotation = getReturnTypeFromAnnotation(functionExpr.getFunctionDeclaration());
+    if (returnTypeFromAnnotation != null) {
+      writeOptSymbol(optTypeRelation == null ? null : optTypeRelation.getSymRelation(), ": ");
+      out.write(returnTypeFromAnnotation);
+    } else {
+      visitIfNotNull(optTypeRelation);
     }
   }
 

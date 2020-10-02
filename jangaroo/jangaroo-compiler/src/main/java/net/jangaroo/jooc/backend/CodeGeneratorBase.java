@@ -834,7 +834,33 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(functionExpr.getLParen());
     visitIfNotNull(functionExpr.getParams());
     out.writeSymbol(functionExpr.getRParen());
+    generateFunctionExprReturnTypeRelation(functionExpr);
+  }
+
+  void generateFunctionExprReturnTypeRelation(FunctionExpr functionExpr) throws IOException {
     visitIfNotNull(functionExpr.getOptTypeRelation());
+  }
+
+  String getReturnTypeFromAnnotation(FunctionDeclaration functionDeclaration) {
+    if (functionDeclaration != null) {
+      Annotation returnAnnotation = functionDeclaration.getAnnotation(Jooc.RETURN_ANNOTATION_NAME);
+      if (returnAnnotation == null && functionDeclaration.isClassMember() && !functionDeclaration.isStatic()) {
+        ClassDeclaration superTypeDeclaration = functionDeclaration.getClassDeclaration().getSuperTypeDeclaration();
+        if (superTypeDeclaration != null) {
+          IdeDeclaration methodDeclaration = superTypeDeclaration.resolvePropertyDeclaration(functionDeclaration.getIde().getName(), false);
+          if (methodDeclaration instanceof FunctionDeclaration) {
+            return getReturnTypeFromAnnotation((FunctionDeclaration) methodDeclaration);
+          }
+        }
+      }
+      if (returnAnnotation != null) {
+        Object defaultPropertyValue = returnAnnotation.getPropertiesByName().get(null);
+        if (defaultPropertyValue instanceof String) {
+          return  (String) defaultPropertyValue;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
