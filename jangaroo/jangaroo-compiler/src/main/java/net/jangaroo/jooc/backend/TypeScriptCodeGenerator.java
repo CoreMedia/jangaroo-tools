@@ -914,7 +914,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   void generateFunctionExprReturnTypeRelation(FunctionExpr functionExpr) throws IOException {
     TypeRelation optTypeRelation = functionExpr.getOptTypeRelation();
-    String returnTypeFromAnnotation = getReturnTypeFromAnnotation(functionExpr.getFunctionDeclaration());
+    String returnTypeFromAnnotation = functionExpr.getReturnTypeFromAnnotation();
     if (returnTypeFromAnnotation != null) {
       writeOptSymbol(optTypeRelation == null ? null : optTypeRelation.getSymRelation(), ": ");
       out.write(returnTypeFromAnnotation);
@@ -1010,17 +1010,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         ALIAS_THIS_CODE_GENERATOR.generate(out, false);
       }
     }
-  }
-
-  private static FunctionDeclaration findFunctionDeclaration(AstNode node) {
-    AstNode parent = node;
-    do {
-      parent = parent.getParentNode();
-      if (parent instanceof FunctionDeclaration) {
-        return (FunctionDeclaration) parent;
-      }
-    } while (parent != null);
-    return null;
   }
 
   @Override

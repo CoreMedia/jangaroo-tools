@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
@@ -52,6 +53,7 @@ public class FunctionExpr extends Expr {
   private boolean argumentsUsed = false;
   private boolean argumentsUsedAsArray = false;
   private IdeDeclaration classDeclaration;
+  private Scope bodyScope;
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
                       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
@@ -72,6 +74,29 @@ public class FunctionExpr extends Expr {
       argumentsParameter = new Parameter(null, ARGUMENTS_IDE, null, null);
       implicitParams.add(argumentsParameter);
     }
+  }
+
+  public String getReturnTypeFromAnnotation() {
+    FunctionDeclaration functionDeclaration = getFunctionDeclaration();
+    if (functionDeclaration != null) {
+      Annotation returnAnnotation = functionDeclaration.getAnnotation(Jooc.RETURN_ANNOTATION_NAME);
+      if (returnAnnotation == null && functionDeclaration.isClassMember() && !functionDeclaration.isStatic()) {
+        ClassDeclaration superTypeDeclaration = functionDeclaration.getClassDeclaration().getSuperTypeDeclaration();
+        if (superTypeDeclaration != null) {
+          IdeDeclaration methodDeclaration = superTypeDeclaration.resolvePropertyDeclaration(functionDeclaration.getIde().getName(), false);
+          if (methodDeclaration instanceof FunctionDeclaration) {
+            return ((FunctionDeclaration) methodDeclaration).getFun().getReturnTypeFromAnnotation();
+          }
+        }
+      }
+      if (returnAnnotation != null) {
+        Object defaultPropertyValue = returnAnnotation.getPropertiesByName().get(null);
+        if (defaultPropertyValue instanceof String) {
+          return  (String) defaultPropertyValue;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -130,6 +155,7 @@ public class FunctionExpr extends Expr {
         scope(implicitParams, scope);
         withNewDeclarationScope(FunctionExpr.this, scope, new Scoped() {
           public void run(final Scope scope) {
+            bodyScope = scope;
             if (params != null) {
               params.scope(scope);
             }
@@ -155,6 +181,16 @@ public class FunctionExpr extends Expr {
       optTypeRelation.analyze(this);
     }
     if (optBody != null) {
+      TypeRelation typeRelation = getOptTypeRelation();
+      if (typeRelation != null && AS3Type.VOID.name.equals(typeRelation.getType().getIde().getName()) &&
+              Ide.THIS.equals(getReturnTypeFromAnnotation())) {
+        // complement a final "return this":
+        ReturnStatement returnThis = new ReturnStatement(new JooSymbol(sym.RETURN, "return"),null,
+                new JooSymbol(sym.SEMICOLON, ";"));
+        // "this" expression will be added on render!
+        returnThis.scope(bodyScope);
+        optBody.getDirectives().add(returnThis);
+      }
       optBody.analyze(this);
     }
   }

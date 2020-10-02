@@ -418,6 +418,17 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     arrayIndexExpr.getIndexExpr().visit(this);
   }
 
+  protected static FunctionDeclaration findFunctionDeclaration(AstNode node) {
+    AstNode parent = node;
+    do {
+      parent = parent.getParentNode();
+      if (parent instanceof FunctionDeclaration) {
+        return (FunctionDeclaration) parent;
+      }
+    } while (parent != null);
+    return null;
+  }
+
   @Override
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
     out.writeSymbol(functionExpr.getSymFunction());
@@ -779,7 +790,15 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
     out.writeSymbol(returnStatement.getSymKeyword());
-    visitIfNotNull(returnStatement.getOptStatement());
+    if (returnStatement.getOptStatement() != null) {
+      returnStatement.getOptStatement().visit(this);
+    } else {
+      // check if we need to complement "return this":
+      FunctionDeclaration functionDeclaration = findFunctionDeclaration(returnStatement);
+      if (functionDeclaration != null && Ide.THIS.equals(functionDeclaration.getFun().getReturnTypeFromAnnotation())) {
+        out.writeToken(Ide.THIS);
+      }
+    }
     writeOptSymbol(returnStatement.getOptSymSemicolon());
   }
 
@@ -839,28 +858,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   void generateFunctionExprReturnTypeRelation(FunctionExpr functionExpr) throws IOException {
     visitIfNotNull(functionExpr.getOptTypeRelation());
-  }
-
-  String getReturnTypeFromAnnotation(FunctionDeclaration functionDeclaration) {
-    if (functionDeclaration != null) {
-      Annotation returnAnnotation = functionDeclaration.getAnnotation(Jooc.RETURN_ANNOTATION_NAME);
-      if (returnAnnotation == null && functionDeclaration.isClassMember() && !functionDeclaration.isStatic()) {
-        ClassDeclaration superTypeDeclaration = functionDeclaration.getClassDeclaration().getSuperTypeDeclaration();
-        if (superTypeDeclaration != null) {
-          IdeDeclaration methodDeclaration = superTypeDeclaration.resolvePropertyDeclaration(functionDeclaration.getIde().getName(), false);
-          if (methodDeclaration instanceof FunctionDeclaration) {
-            return getReturnTypeFromAnnotation((FunctionDeclaration) methodDeclaration);
-          }
-        }
-      }
-      if (returnAnnotation != null) {
-        Object defaultPropertyValue = returnAnnotation.getPropertiesByName().get(null);
-        if (defaultPropertyValue instanceof String) {
-          return  (String) defaultPropertyValue;
-        }
-      }
-    }
-    return null;
   }
 
   @Override

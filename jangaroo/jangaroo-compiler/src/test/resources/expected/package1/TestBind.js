@@ -34,6 +34,15 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
     return this.state$JrNo;
   }/*
 
+  [Return("this")]
+  public*/ function chainable()/*: void*/ {
+    if (this.getState()) {
+      this.testCoerce$JrNo("nothing here");
+      return this;
+    }
+    this.testCoerce$JrNo("nothing there");return this;
+  }/*
+
   private*/ function getStatePrivate()/* : String*/ {
     return this.state$JrNo;
   }/*
@@ -51,6 +60,7 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
       },
       testCoerce$JrNo: testCoerce,
       getState: getState,
+      chainable: chainable,
       getStatePrivate$JrNo: getStatePrivate,
       state$JrNo: null
     };

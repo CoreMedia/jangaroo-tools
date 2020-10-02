@@ -34,6 +34,15 @@ public class TestBind {
     return state;
   }
 
+  [Return("this")]
+  public function chainable(): void {
+    if (getState()) {
+      this.testCoerce("nothing here");
+      return;
+    }
+    this.testCoerce("nothing there");
+  }
+
   private function getStatePrivate() : String {
     return state;
   }
