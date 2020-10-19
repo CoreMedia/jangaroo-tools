@@ -79,10 +79,12 @@ public class AppsDeSerializer {
   public static class AppInfo {
     public final String name;
     public final String path;
+    public final List<String> locales;
 
-    public AppInfo(String name, String path) {
+    public AppInfo(String name, String path, List<String> locales) {
       this.name = name;
       this.path = path;
+      this.locales = locales;
     }
   }
 }

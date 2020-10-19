@@ -66,22 +66,29 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
               && rootApp.getGroupId().equals(jangarooApp.mavenProject.getGroupId())
               && rootApp.getArtifactId().equals(jangarooApp.mavenProject.getArtifactId());
       Path appPath = isRootApp ? rootPath : appsPath.resolve(senchaAppName);
-      appInfoList.add(new AppInfo(senchaAppName, rootPath.relativize(appPath).toString().replace('\\', '/')));
+
+      // assuming no bootstrap file has been overridden in an app-overlay for now...
+      final List<String> locales;
+      File appDirOrJar = getAppDirOrJar(jangarooApp.getRootBaseApp().mavenProject);
+      try {
+        locales = AppsDeSerializer.readLocales(getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not read " + SENCHA_APP_FILENAME, e);
+      }
+
+      appInfoList.add(
+              new AppInfo(
+                      senchaAppName,
+                      rootPath.relativize(appPath).toString().replace('\\', '/'),
+                      locales
+              )
+      );
 
       // skip remaining stuff for root app
       if (isRootApp) {
         continue;
       }
 
-      File appDirOrJar = getAppDirOrJar(jangarooApp.mavenProject);
-
-      // assuming no bootstrap file has been overridden in an app-overlay for now...
-      final List<String> locales;
-      try {
-        locales = AppsDeSerializer.readLocales(getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME));
-      } catch (IOException e) {
-        throw new MojoExecutionException("Could not read " + SENCHA_APP_FILENAME, e);
-      }
       for (String locale : locales) {
         FileHelper.ensureDirectory(appPath.toFile());
         try {
@@ -108,11 +115,11 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
     }
   }
 
-  private void writeAppsJson(File folder, List<AppInfo> appNames) throws MojoExecutionException {
+  private void writeAppsJson(File folder, List<AppInfo> apps) throws MojoExecutionException {
     File appsFile = prepareFile(new File(folder, APPS_FILENAME));
 
     try {
-      AppsDeSerializer.writeApps(new FileOutputStream(appsFile), appNames);
+      AppsDeSerializer.writeApps(new FileOutputStream(appsFile), apps);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + appsFile + " resource", e);
     }
