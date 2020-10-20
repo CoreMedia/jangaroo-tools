@@ -22,12 +22,21 @@ import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
@@ -254,6 +263,35 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       return appReactorDir;
     }
     return getArtifactFile(mavenProject);
+  }
+
+  protected InputStream getInputStreamForDirOrJar(File dirOrJar, String relativePathInsideDirOrJar) throws MojoExecutionException {
+    if (dirOrJar.isDirectory()) {
+      try {
+        return new FileInputStream(dirOrJar.toPath().resolve(relativePathInsideDirOrJar).toFile());
+      } catch (FileNotFoundException e) {
+        return null;
+      }
+    } else {
+      URL inputURL;
+      try {
+        String urlString = "jar:" + dirOrJar.toURI().toURL().toString() + "!/" + META_INF_RESOURCES + relativePathInsideDirOrJar;
+        inputURL = new URL(urlString);
+      } catch (MalformedURLException ignored) {
+        // will not happen
+        return null;
+      }
+
+      try {
+        JarURLConnection urlConnection = (JarURLConnection) inputURL.openConnection();
+        if (urlConnection.getJarEntry() == null) {
+          return null;
+        }
+        return urlConnection.getInputStream();
+      } catch (IOException e) {
+        throw new MojoExecutionException("Error reading " + inputURL, e);
+      }
+    }
   }
 
   static class JangarooApp {
