@@ -1,7 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.apprunner.util.DynamicPackagesDeSerializer;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -17,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,6 +62,9 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
             SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
             .collect(Collectors.toSet());
     writeDynamicPackagesJson(overlayPackageNames);
+
+    Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(jangarooAppOverlay.getRootBaseApp().mavenProject, allDynamicPackages);
+    writeAppManifestJsonByLocale(appManifestByLocale);
   }
 
   private void populatePackages(JangarooApp jangarooApp, MavenProject project) throws MojoExecutionException {
@@ -87,6 +92,19 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       DynamicPackagesDeSerializer.writeDynamicPackages(new FileOutputStream(dynamicPackagesFile), dynamicPackageNames);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + dynamicPackagesFile + " resource", e);
+    }
+  }
+
+  private void writeAppManifestJsonByLocale(Map<String, Map<String, Object>> appManifestByLocale) throws MojoExecutionException {
+    for (String locale : appManifestByLocale.keySet()) {
+      String appManifestFileName = getAppManifestFileNameForLocale(locale);
+      File appManifestFile = prepareFile(new File(webResourcesOutputDirectory, appManifestFileName));
+
+      try {
+        AppManifestDeSerializer.writeAppManifest(new FileOutputStream(appManifestFile), appManifestByLocale.get(locale));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not create " + appManifestFile + " resource", e);
+      }
     }
   }
 

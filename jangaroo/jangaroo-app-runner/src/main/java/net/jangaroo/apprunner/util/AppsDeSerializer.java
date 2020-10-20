@@ -7,13 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class AppsDeSerializer {
-
-  private static final String LOCALES_PROPERTY = "locales";
 
   private static final String PATH_PROPERTY = "path";
   private static final String PATHS_PROPERTY = "paths";
@@ -22,8 +19,6 @@ public class AppsDeSerializer {
   private static final String JS_PROPERTY = "js";
   private static final String LOAD_ORDER_PROPERTY = "loadOrder";
 
-  private static final List<String> DEFAULT_LOCALES = Collections.singletonList("en");
-
   public static List<AppInfo> readApps(InputStream appsSource) throws IOException {
     //noinspection unchecked
     return new ObjectMapper().readValue(appsSource, List.class);
@@ -31,16 +26,6 @@ public class AppsDeSerializer {
 
   public static void writeApps(OutputStream output, List<AppInfo> apps) throws IOException {
     new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(new PrintWriter(output), apps);
-  }
-
-  public static List<String> readLocales(InputStream appJsonSource) throws IOException {
-    //noinspection unchecked
-    Map<String, Object> map = new ObjectMapper().readValue(appJsonSource, Map.class);
-    if (map.containsKey(LOCALES_PROPERTY)) {
-      //noinspection unchecked
-      return (List<String>) map.get(LOCALES_PROPERTY);
-    }
-    return DEFAULT_LOCALES;
   }
 
   public static void rewriteBootstrapJsonPaths(InputStream bootstrapJsonSource, OutputStream bootstrapJsonTarget, Map<String, String> pathMapping) throws IOException {

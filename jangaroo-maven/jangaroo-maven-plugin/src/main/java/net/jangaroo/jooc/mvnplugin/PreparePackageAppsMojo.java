@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.ImmutableMap;
+import net.jangaroo.apprunner.util.AppDeSerializer;
 import net.jangaroo.apprunner.util.AppsDeSerializer;
 import net.jangaroo.apprunner.util.AppsDeSerializer.AppInfo;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
@@ -24,6 +25,7 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.EXT_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.PACKAGES_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SEPARATOR;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 /**
  * Generates and prepares packaging of Sencha apps modules.
@@ -64,7 +66,7 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
       final List<String> locales;
       File appDirOrJar = getAppDirOrJar(jangarooApp.getRootBaseApp().mavenProject);
       try {
-        locales = AppsDeSerializer.readLocales(getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME));
+        locales = AppDeSerializer.readLocales(getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME, META_INF_RESOURCES));
       } catch (IOException e) {
         throw new MojoExecutionException("Could not read " + SENCHA_APP_FILENAME, e);
       }
@@ -90,7 +92,7 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
             pathToRoot += SEPARATOR;
           }
           AppsDeSerializer.rewriteBootstrapJsonPaths(
-                  getInputStreamForDirOrJar(appDirOrJar, locale + ".json"),
+                  getInputStreamForDirOrJar(appDirOrJar, locale + ".json", META_INF_RESOURCES),
                   new FileOutputStream(new File(appPath.toFile(), locale + ".json")),
                   ImmutableMap.of(
                           EXT_DIRECTORY_NAME + SEPARATOR, pathToRoot + EXT_DIRECTORY_NAME + SEPARATOR,

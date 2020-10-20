@@ -1,6 +1,9 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.apprunner.util.AppDeSerializer;
+import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
@@ -26,20 +29,32 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DEFAULT_LOCALE;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_PKG;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
+
+  private static final MergeOptions APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY = new MergeOptions(
+          ListStrategy.APPEND, MapStrategy.MERGE
+  );
+  private static final MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeOptions(
+          ListStrategy.MERGE, MapStrategy.MERGE
+  );
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
@@ -265,33 +280,114 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return getArtifactFile(mavenProject);
   }
 
-  protected InputStream getInputStreamForDirOrJar(File dirOrJar, String relativePathInsideDirOrJar) throws MojoExecutionException {
+  protected InputStream getInputStreamForDirOrJar(File dirOrJar, String relativePathInsideDirOrJar, String jarPrefixPath) throws MojoExecutionException {
     if (dirOrJar.isDirectory()) {
       try {
-        return new FileInputStream(dirOrJar.toPath().resolve(relativePathInsideDirOrJar).toFile());
+        File file = dirOrJar.toPath().resolve(relativePathInsideDirOrJar).toFile();
+        if (!file.exists()) {
+          return null;
+        }
+        return new FileInputStream(file);
       } catch (FileNotFoundException e) {
         return null;
       }
     } else {
-      URL inputURL;
       try {
-        String urlString = "jar:" + dirOrJar.toURI().toURL().toString() + "!/" + META_INF_RESOURCES + relativePathInsideDirOrJar;
-        inputURL = new URL(urlString);
-      } catch (MalformedURLException ignored) {
-        // will not happen
-        return null;
-      }
-
-      try {
-        JarURLConnection urlConnection = (JarURLConnection) inputURL.openConnection();
-        if (urlConnection.getJarEntry() == null) {
+        JarFile jarFile = new JarFile(dirOrJar);
+        ZipEntry entry = jarFile.getEntry(jarPrefixPath + relativePathInsideDirOrJar);
+        if (entry == null) {
           return null;
         }
-        return urlConnection.getInputStream();
+        return jarFile.getInputStream(entry);
       } catch (IOException e) {
-        throw new MojoExecutionException("Error reading " + inputURL, e);
+        throw new MojoExecutionException("Error reading " + dirOrJar, e);
       }
     }
+  }
+
+  protected Map<String, Map<String, Object>> prepareAppManifestByLocale(MavenProject appProject, Set<Artifact> packages) throws MojoExecutionException {
+    File appDirOrJar = getAppDirOrJar(appProject);
+    InputStream appJson = getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME, META_INF_RESOURCES);
+    final Set<String> locales;
+    try {
+      locales = new LinkedHashSet<>(AppDeSerializer.readLocales(appJson));
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not read locales", e);
+    }
+
+    // read all available app manifests (no merge yet)
+    Map<String, Map<Artifact, Map<String, Object>>> rawAppManifestByLocaleByArtifact = new HashMap<>();
+    for (String locale : locales) {
+      String appManifestFileName = getAppManifestFileNameForLocale(locale);
+      for (Artifact artifact : packages) {
+        InputStream manifestInputStream = getInputStreamForDirOrJar(artifact.getFile(), appManifestFileName, META_INF_PKG);
+        if (manifestInputStream != null) {
+          final Map<String, Object> localeAppManifest;
+          try {
+            localeAppManifest = AppManifestDeSerializer.readAppManifest(manifestInputStream);
+          } catch (IOException e) {
+            throw new MojoExecutionException("Could not read app manifest", e);
+          }
+          if (!rawAppManifestByLocaleByArtifact.containsKey(locale)) {
+            rawAppManifestByLocaleByArtifact.put(locale, new HashMap<>());
+          }
+          rawAppManifestByLocaleByArtifact.get(locale).put(artifact, localeAppManifest);
+        }
+      }
+    }
+
+    Map<String, Map<String, Object>> appManifestByLocale = new HashMap<>();
+    for (String locale : locales) {
+      Map<String, Object> appManifest = new HashMap<>();
+      String appManifestFileName = getAppManifestFileNameForLocale(locale);
+
+      for (Artifact artifact : packages) {
+        Map<String, Object> localizedPackageAppManifest = new HashMap<>();
+        if (!DEFAULT_LOCALE.equals(locale) && rawAppManifestByLocaleByArtifact.containsKey(DEFAULT_LOCALE) && rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).containsKey(artifact)) {
+          mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+        }
+        if (rawAppManifestByLocaleByArtifact.containsKey(locale) && rawAppManifestByLocaleByArtifact.get(locale).containsKey(artifact)) {
+          mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+        }
+        mergeMapIntoBaseMap(appManifest, localizedPackageAppManifest, APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
+      }
+
+      InputStream inputStreamForDirOrJar = getInputStreamForDirOrJar(appDirOrJar, appManifestFileName, META_INF_RESOURCES);
+      if (inputStreamForDirOrJar != null) {
+        try {
+          mergeMapIntoBaseMap(appManifest, AppManifestDeSerializer.readAppManifest(inputStreamForDirOrJar), APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
+        } catch (IOException e) {
+          throw new MojoExecutionException("Could not read app manifest", e);
+        }
+      }
+
+      appManifestByLocale.put(locale, appManifest);
+    }
+
+    return appManifestByLocale;
+  }
+
+  protected File prepareFile(File file) throws MojoExecutionException {
+    Path relativeFilePath = project.getBasedir().toPath().relativize(file.toPath());
+    getLog().info(String.format("Writing %s for module %s.", relativeFilePath, project.getName()));
+    if (!file.exists()) {
+      FileHelper.ensureDirectory(file.getParentFile());
+    } else {
+      getLog().debug(relativeFilePath + " for module already exists, deleting...");
+      if (!file.delete()) {
+        throw new MojoExecutionException("Could not delete " + relativeFilePath + " file for module");
+      }
+    }
+    return file;
+  }
+
+  @Nonnull
+  protected String getAppManifestFileNameForLocale(String locale) {
+    String appManifestFileName = APP_MANIFEST_FILENAME;
+    if (!DEFAULT_LOCALE.equals(locale)) {
+      appManifestFileName = appManifestFileName.replace(".json", "-" + locale + ".json");
+    }
+    return appManifestFileName;
   }
 
   static class JangarooApp {
@@ -340,6 +436,103 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     JangarooApps(MavenProject mavenProject, Set<JangarooApp> apps) {
       this.mavenProject = mavenProject;
       this.apps = apps;
+    }
+  }
+
+  @SafeVarargs
+  private static <S, T> Map<S, T> mergeMaps(MergeOptions mergeOptions, Map<S, T>... maps) {
+    Map<S, T> result = new HashMap<>();
+
+    for (Map<S, T> map : maps) {
+      mergeMapIntoBaseMap(result, map, mergeOptions);
+    }
+
+    return result;
+  }
+
+  @SafeVarargs
+  private static <S> List<S> mergeLists(MergeOptions mergeOptions, List<S>... lists) {
+    List<S> result = new ArrayList<>();
+
+    for (List<S> list : lists) {
+      mergeListIntoBaseList(result, list, mergeOptions);
+    }
+
+    return result;
+  }
+
+  private static <S, T> void mergeMapIntoBaseMap(Map<S, T> baseMap, Map<S, T> mapToMerge, MergeOptions mergeOptions) {
+    for (S key : mapToMerge.keySet()) {
+      baseMap.put(key, mergeValues(baseMap.get(key), mapToMerge.get(key), mergeOptions));
+    }
+  }
+
+  private static <S> void mergeListIntoBaseList(List<S> baseList, List<S> listToMerge, MergeOptions mergeOptions) {
+    for (int i = 0; i < listToMerge.size(); i++) {
+      while (i >= baseList.size()) {
+        baseList.add(null);
+      }
+      baseList.set(i, mergeValues(baseList.get(i), listToMerge.get(i), mergeOptions));
+    }
+  }
+
+  private static <S, T, U, V> T mergeValues(S value1, T value2, MergeOptions mergeOptions) {
+    if (value2 == null) {
+      return null;
+    }
+    if (value2 instanceof Map) {
+      if (mergeOptions.mapStrategy == MapStrategy.MERGE && value1 instanceof Map) {
+        //noinspection unchecked
+        return (T) mergeMaps(mergeOptions, (Map<U, V>) value1, (Map<U, V>)value2);
+      } else {
+        // calling mergeMaps with a single parameter is like a deep copy
+        //noinspection unchecked
+        return (T) mergeMaps(mergeOptions, (Map<U, V>) value2);
+      }
+    } else if (value2 instanceof List) {
+      if (mergeOptions.listStrategy == ListStrategy.MERGE && value1 instanceof List) {
+        //noinspection unchecked
+        return (T) mergeLists(mergeOptions, (List<U>) value1, (List<U>) value2);
+      } else {
+        // calling mergeLists with a single parameter is like a deep copy
+        //noinspection unchecked
+        List<U> list = mergeLists(mergeOptions, (List<U>) value2);
+        if (mergeOptions.listStrategy == ListStrategy.APPEND && value1 instanceof List) {
+          //noinspection unchecked
+          list.addAll((List<U>) value1);
+        }
+        //noinspection unchecked
+        return (T) list;
+      }
+    } else {
+      return value2;
+    }
+  }
+
+  private enum ListStrategy {
+    REPLACE,
+    MERGE,
+    APPEND
+  }
+
+  private enum MapStrategy {
+    REPLACE,
+    MERGE
+  }
+
+  private static class MergeOptions {
+
+    public final ListStrategy listStrategy;
+    public final MapStrategy mapStrategy;
+
+    public MergeOptions() {
+      this.listStrategy = ListStrategy.REPLACE;
+      this.mapStrategy = MapStrategy.REPLACE;
+    }
+
+    public MergeOptions(ListStrategy listStrategy, MapStrategy mapStrategy) {
+      this.listStrategy = listStrategy;
+      this.mapStrategy = mapStrategy;
     }
   }
 }

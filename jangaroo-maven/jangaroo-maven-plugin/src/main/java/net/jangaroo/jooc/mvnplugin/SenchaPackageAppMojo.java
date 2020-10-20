@@ -1,10 +1,13 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -16,11 +19,18 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
 
 /**
  * Generates and packages Sencha app module.
@@ -31,12 +41,8 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageNam
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
-  private static final String DEFAULT_LOCALE = "en";
-
-  private static final String APP_JSON_FILENAME = "/app.json";
-
   /**
-   * Supported locales in addition to the default locale "{@value DEFAULT_LOCALE}"
+   * Supported locales in addition to the default locale "{@value SenchaUtils#DEFAULT_LOCALE}"
    */
   @Parameter()
   private List<String> additionalLocales = Collections.emptyList();
@@ -102,7 +108,14 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
-    SenchaUtils.writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), APP_JSON_FILENAME, null, getLog());
+    SenchaUtils.writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), SENCHA_APP_FILENAME, null, getLog());
+
+    Set<Artifact> packages = project.getArtifacts().stream().filter(artifact ->
+            !isExtFrameworkArtifact(artifact) &&
+                    isRequiredSenchaDependency(MavenDependencyHelper.fromArtifact(artifact), false))
+            .collect(Collectors.toSet());
+    Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(project, packages);
+    writeAppManifestJsonByLocale(appManifestByLocale);
   }
 
   private void configure(SenchaAppConfigBuilder configBuilder)
@@ -114,7 +127,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   }
 
   private void configureLocales(SenchaAppConfigBuilder configBuilder) {
-    configBuilder.locale(DEFAULT_LOCALE);
+    configBuilder.locale(SenchaUtils.DEFAULT_LOCALE);
     for (String locale : additionalLocales) {
       configBuilder.locale(locale);
     }
@@ -140,7 +153,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     StringBuilder args = new StringBuilder();
     args.append("app build")
             .append(" --").append(buildEnvironment)
-            .append(" --locale " + DEFAULT_LOCALE);
+            .append(" --locale " + SenchaUtils.DEFAULT_LOCALE);
     if (!additionalLocales.isEmpty()) {
       args.append(" then config -prop skip.sass=1 -prop skip.resources=1");
       for (String locale : additionalLocales) {
@@ -156,6 +169,19 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   @Override
   protected SenchaAppConfigBuilder createSenchaConfigBuilder() {
     return new SenchaAppConfigBuilder();
+  }
+
+  private void writeAppManifestJsonByLocale(Map<String, Map<String, Object>> appManifestByLocale) throws MojoExecutionException {
+    for (String locale : appManifestByLocale.keySet()) {
+      String appManifestFileName = getAppManifestFileNameForLocale(locale);
+      File appManifestFile = prepareFile(new File(senchaAppDirectory, appManifestFileName));
+
+      try {
+        AppManifestDeSerializer.writeAppManifest(new FileOutputStream(appManifestFile), appManifestByLocale.get(locale));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not create " + appManifestFile + " resource", e);
+      }
+    }
   }
 
 }
