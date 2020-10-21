@@ -112,7 +112,7 @@ Ext.beforeLoad = function (tags) {
   // setup app manifest
   // only set manifest if index.html doesn't already contain a manifest
   if (!document.head.querySelector("link[rel='manifest']")) {
-    var appManifestFile = `app-manifest${locale !== "en" ? "-" + locale : ""}.json`;
+    var appManifestFile = "app-manifest" + (locale !== "en" ? "-" + locale : "") + ".json";
     /**
      * @type {HTMLLinkElement}
      */
