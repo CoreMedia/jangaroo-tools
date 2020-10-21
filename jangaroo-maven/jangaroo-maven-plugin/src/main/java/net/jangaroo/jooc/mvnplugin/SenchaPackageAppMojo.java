@@ -125,26 +125,26 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(locales, packages);
     for (String locale : appManifestByLocale.keySet()) {
       Map<String, Object> appManifest = appManifestByLocale.get(locale);
-      Map<String, Object> localizedAppManifest = new HashMap<>();
+      Map<String, Object> localizedAppManifestFragment = new HashMap<>();
       if (!DEFAULT_LOCALE.equals(locale)) {
-        File rawAppManifestForDefaultLocale = new File(project.getBasedir(), getAppManifestFileNameForLocale(DEFAULT_LOCALE));
-        if (rawAppManifestForDefaultLocale.exists()) {
+        File appManifestFragmentForDefaultLocale = new File(project.getBasedir(), getAppManifestFragmentFileNameForLocale(DEFAULT_LOCALE));
+        if (appManifestFragmentForDefaultLocale.exists()) {
           try {
-            MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, AppManifestDeSerializer.readAppManifest(new FileInputStream(rawAppManifestForDefaultLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+            MergeHelper.mergeMapIntoBaseMap(localizedAppManifestFragment, AppManifestDeSerializer.readAppManifest(new FileInputStream(appManifestFragmentForDefaultLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
           } catch (IOException e) {
             throw new MojoExecutionException("Could not read app manifest", e);
           }
         }
       }
-      File rawAppManifestForLocale = new File(project.getBasedir(), getAppManifestFileNameForLocale(locale));
-      if (rawAppManifestForLocale.exists()) {
+      File appManifestFragmentForLocale = new File(project.getBasedir(), getAppManifestFragmentFileNameForLocale(locale));
+      if (appManifestFragmentForLocale.exists()) {
         try {
-          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, AppManifestDeSerializer.readAppManifest(new FileInputStream(rawAppManifestForLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifestFragment, AppManifestDeSerializer.readAppManifest(new FileInputStream(appManifestFragmentForLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
         } catch (IOException e) {
           throw new MojoExecutionException("Could not read app manifest", e);
         }
       }
-      MergeHelper.mergeMapIntoBaseMap(appManifest, localizedAppManifest, APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY);
+      MergeHelper.mergeMapIntoBaseMap(appManifest, localizedAppManifestFragment, APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY);
     }
 
     writeAppManifestJsonByLocale(appManifestByLocale);

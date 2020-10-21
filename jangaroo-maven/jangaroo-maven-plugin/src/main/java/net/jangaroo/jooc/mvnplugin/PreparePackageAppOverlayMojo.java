@@ -77,7 +77,7 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       throw new MojoExecutionException("Could not read locales", e);
     }
 
-    List<Artifact> artifacts = new ArrayList<>(allDynamicPackages);
+    List<Artifact> artifacts = new ArrayList<>(jangarooAppOverlay.packages);
     artifacts.add(getArtifact(jangarooAppOverlay.getRootBaseApp().mavenProject));
     writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, artifacts));
   }

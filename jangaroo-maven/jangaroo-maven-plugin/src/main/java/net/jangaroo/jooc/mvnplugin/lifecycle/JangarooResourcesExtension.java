@@ -22,7 +22,7 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
   private static final String DEFAULT_JOO_TEST_SOURCE_DIR = "src/test/joo";
   private static final String DEFAULT_SENCHA_RESOURCES_DIR = "src/main/sencha";
   private static final String DEFAULT_SENCHA_TEST_RESOURCES_DIR = "src/test/sencha";
-  private static final String DEFAULT_APP_MANIFEST_PATH = "app-manifest*.json";
+  private static final String DEFAULT_APP_MANIFEST_PATH = "app-manifest-fragment*.json";
 
   @Override
   public void afterProjectsRead(MavenSession session) {
@@ -70,14 +70,12 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
           project.addTestCompileSourceRoot(DEFAULT_JOO_TEST_SOURCE_DIR);
         }
 
-        if (Type.JANGAROO_SWC_PACKAGING.equals(project.getPackaging())) {
-          Resource appManifestResource = new Resource();
-          appManifestResource.setDirectory(".");
-          appManifestResource.setIncludes(ImmutableList.of(DEFAULT_APP_MANIFEST_PATH));
-          appManifestResource.setTargetPath(targetPath);
-          appManifestResource.setFiltering(false);
-          project.addResource(appManifestResource);
-        }
+        Resource appManifestResource = new Resource();
+        appManifestResource.setDirectory(".");
+        appManifestResource.setIncludes(ImmutableList.of(DEFAULT_APP_MANIFEST_PATH));
+        appManifestResource.setTargetPath(targetPath);
+        appManifestResource.setFiltering(false);
+        project.addResource(appManifestResource);
 
       }
     }

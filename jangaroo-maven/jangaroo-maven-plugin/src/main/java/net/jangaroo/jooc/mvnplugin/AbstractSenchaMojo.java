@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FRAGMENT_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DEFAULT_LOCALE;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_PKG;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
@@ -307,7 +308,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     // read all available app manifests (no merge yet)
     Map<String, Map<Artifact, Map<String, Object>>> rawAppManifestByLocaleByArtifact = new HashMap<>();
     for (String locale : locales) {
-      String appManifestFileName = getAppManifestFileNameForLocale(locale);
+      String appManifestFileName = getAppManifestFragmentFileNameForLocale(locale);
       for (Artifact artifact : artifacts) {
         String jarPrefixPath = Type.SWC_EXTENSION.equals(artifact.getType()) ? META_INF_PKG : META_INF_RESOURCES;
         InputStream manifestInputStream = getInputStreamForDirOrJar(artifact.getFile(), appManifestFileName, jarPrefixPath);
@@ -362,6 +363,14 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Nonnull
   protected String getAppManifestFileNameForLocale(String locale) {
     String appManifestFileName = APP_MANIFEST_FILENAME;
+    if (!DEFAULT_LOCALE.equals(locale)) {
+      appManifestFileName = appManifestFileName.replace(".json", "-" + locale + ".json");
+    }
+    return appManifestFileName;
+  }
+
+  protected String getAppManifestFragmentFileNameForLocale(String locale) {
+    String appManifestFileName = APP_MANIFEST_FRAGMENT_FILENAME;
     if (!DEFAULT_LOCALE.equals(locale)) {
       appManifestFileName = appManifestFileName.replace(".json", "-" + locale + ".json");
     }
