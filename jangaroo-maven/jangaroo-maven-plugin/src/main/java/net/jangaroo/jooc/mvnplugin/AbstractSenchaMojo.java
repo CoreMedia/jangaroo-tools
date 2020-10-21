@@ -1,6 +1,5 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import net.jangaroo.apprunner.util.AppDeSerializer;
 import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
@@ -42,17 +41,16 @@ import java.util.zip.ZipEntry;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DEFAULT_LOCALE;
-import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_PKG;
 import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
 
-  private static final MergeHelper.MergeOptions APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+  protected static final MergeHelper.MergeOptions APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY = new MergeHelper.MergeOptions(
           MergeHelper.ListStrategy.APPEND, MergeHelper.MapStrategy.MERGE
   );
-  private static final MergeHelper.MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+  protected static final MergeHelper.MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeHelper.MergeOptions(
           MergeHelper.ListStrategy.MERGE, MergeHelper.MapStrategy.MERGE
   );
 
@@ -305,22 +303,14 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     }
   }
 
-  protected Map<String, Map<String, Object>> prepareAppManifestByLocale(MavenProject appProject, Set<Artifact> packages) throws MojoExecutionException {
-    File appDirOrJar = getAppDirOrJar(appProject);
-    InputStream appJson = getInputStreamForDirOrJar(appDirOrJar, SENCHA_APP_FILENAME, META_INF_RESOURCES);
-    final Set<String> locales;
-    try {
-      locales = new LinkedHashSet<>(AppDeSerializer.readLocales(appJson));
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not read locales", e);
-    }
-
+  protected Map<String, Map<String, Object>> prepareAppManifestByLocale(Set<String> locales, List<Artifact> artifacts) throws MojoExecutionException {
     // read all available app manifests (no merge yet)
     Map<String, Map<Artifact, Map<String, Object>>> rawAppManifestByLocaleByArtifact = new HashMap<>();
     for (String locale : locales) {
       String appManifestFileName = getAppManifestFileNameForLocale(locale);
-      for (Artifact artifact : packages) {
-        InputStream manifestInputStream = getInputStreamForDirOrJar(artifact.getFile(), appManifestFileName, META_INF_PKG);
+      for (Artifact artifact : artifacts) {
+        String jarPrefixPath = Type.SWC_EXTENSION.equals(artifact.getType()) ? META_INF_PKG : META_INF_RESOURCES;
+        InputStream manifestInputStream = getInputStreamForDirOrJar(artifact.getFile(), appManifestFileName, jarPrefixPath);
         if (manifestInputStream != null) {
           final Map<String, Object> localeAppManifest;
           try {
@@ -339,28 +329,16 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     Map<String, Map<String, Object>> appManifestByLocale = new HashMap<>();
     for (String locale : locales) {
       Map<String, Object> appManifest = new HashMap<>();
-      String appManifestFileName = getAppManifestFileNameForLocale(locale);
-
-      for (Artifact artifact : packages) {
-        Map<String, Object> localizedPackageAppManifest = new HashMap<>();
+      for (Artifact artifact : artifacts) {
+        Map<String, Object> localizedAppManifest = new HashMap<>();
         if (!DEFAULT_LOCALE.equals(locale) && rawAppManifestByLocaleByArtifact.containsKey(DEFAULT_LOCALE) && rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).containsKey(artifact)) {
-          MergeHelper.mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
         }
         if (rawAppManifestByLocaleByArtifact.containsKey(locale) && rawAppManifestByLocaleByArtifact.get(locale).containsKey(artifact)) {
-          MergeHelper.mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
         }
-        MergeHelper.mergeMapIntoBaseMap(appManifest, localizedPackageAppManifest, APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
+        MergeHelper.mergeMapIntoBaseMap(appManifest, localizedAppManifest, APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY);
       }
-
-      InputStream inputStreamForDirOrJar = getInputStreamForDirOrJar(appDirOrJar, appManifestFileName, META_INF_RESOURCES);
-      if (inputStreamForDirOrJar != null) {
-        try {
-          MergeHelper.mergeMapIntoBaseMap(appManifest, AppManifestDeSerializer.readAppManifest(inputStreamForDirOrJar), APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
-        } catch (IOException e) {
-          throw new MojoExecutionException("Could not read app manifest", e);
-        }
-      }
-
       appManifestByLocale.put(locale, appManifest);
     }
 

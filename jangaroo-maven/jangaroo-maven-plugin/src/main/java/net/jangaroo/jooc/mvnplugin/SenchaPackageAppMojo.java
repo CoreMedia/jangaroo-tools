@@ -6,6 +6,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import net.jangaroo.jooc.mvnplugin.util.MergeHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -19,15 +20,19 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DEFAULT_LOCALE;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.getSenchaPackageName;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
@@ -110,11 +115,38 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
     configure(senchaConfigBuilder);
     SenchaUtils.writeFile(senchaConfigBuilder, senchaAppDirectory.getPath(), SENCHA_APP_FILENAME, null, getLog());
 
-    Set<Artifact> packages = project.getArtifacts().stream().filter(artifact ->
+    Set<String> locales = new HashSet<>();
+    locales.add(DEFAULT_LOCALE);
+    locales.addAll(additionalLocales);
+    List<Artifact> packages = project.getArtifacts().stream().filter(artifact ->
             !isExtFrameworkArtifact(artifact) &&
                     isRequiredSenchaDependency(MavenDependencyHelper.fromArtifact(artifact), false))
-            .collect(Collectors.toSet());
-    Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(project, packages);
+            .collect(Collectors.toList());
+    Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(locales, packages);
+    for (String locale : appManifestByLocale.keySet()) {
+      Map<String, Object> appManifest = appManifestByLocale.get(locale);
+      Map<String, Object> localizedAppManifest = new HashMap<>();
+      if (!DEFAULT_LOCALE.equals(locale)) {
+        File rawAppManifestForDefaultLocale = new File(project.getBasedir(), getAppManifestFileNameForLocale(DEFAULT_LOCALE));
+        if (rawAppManifestForDefaultLocale.exists()) {
+          try {
+            MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, AppManifestDeSerializer.readAppManifest(new FileInputStream(rawAppManifestForDefaultLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          } catch (IOException e) {
+            throw new MojoExecutionException("Could not read app manifest", e);
+          }
+        }
+      }
+      File rawAppManifestForLocale = new File(project.getBasedir(), getAppManifestFileNameForLocale(locale));
+      if (rawAppManifestForLocale.exists()) {
+        try {
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, AppManifestDeSerializer.readAppManifest(new FileInputStream(rawAppManifestForLocale)), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+        } catch (IOException e) {
+          throw new MojoExecutionException("Could not read app manifest", e);
+        }
+      }
+      MergeHelper.mergeMapIntoBaseMap(appManifest, localizedAppManifest, APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY);
+    }
+
     writeAppManifestJsonByLocale(appManifestByLocale);
   }
 

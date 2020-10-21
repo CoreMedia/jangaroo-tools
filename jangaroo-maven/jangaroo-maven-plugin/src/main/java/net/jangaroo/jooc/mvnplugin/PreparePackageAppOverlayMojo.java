@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.apprunner.util.AppDeSerializer;
 import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.apprunner.util.DynamicPackagesDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
@@ -16,14 +17,19 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.SENCHA_APP_FILENAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDependency;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 /**
  * Generates and prepares packaging of Sencha app modules.
@@ -63,8 +69,17 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
             .collect(Collectors.toSet());
     writeDynamicPackagesJson(overlayPackageNames);
 
-    Map<String, Map<String, Object>> appManifestByLocale = prepareAppManifestByLocale(jangarooAppOverlay.getRootBaseApp().mavenProject, allDynamicPackages);
-    writeAppManifestJsonByLocale(appManifestByLocale);
+    InputStream appJson = getInputStreamForDirOrJar(getArtifactFile(jangarooAppOverlay.getRootBaseApp().mavenProject), SENCHA_APP_FILENAME, META_INF_RESOURCES);
+    final Set<String> locales;
+    try {
+      locales = new LinkedHashSet<>(AppDeSerializer.readLocales(appJson));
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not read locales", e);
+    }
+
+    List<Artifact> artifacts = new ArrayList<>(allDynamicPackages);
+    artifacts.add(getArtifact(jangarooAppOverlay.getRootBaseApp().mavenProject));
+    writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, artifacts));
   }
 
   private void populatePackages(JangarooApp jangarooApp, MavenProject project) throws MojoExecutionException {
