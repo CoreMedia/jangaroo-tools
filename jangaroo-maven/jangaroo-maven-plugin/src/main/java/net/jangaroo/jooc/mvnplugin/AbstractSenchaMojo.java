@@ -5,6 +5,7 @@ import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import net.jangaroo.jooc.mvnplugin.util.MergeHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -30,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,11 +49,11 @@ import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOUR
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
 
-  private static final MergeOptions APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY = new MergeOptions(
-          ListStrategy.APPEND, MapStrategy.MERGE
+  private static final MergeHelper.MergeOptions APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+          MergeHelper.ListStrategy.APPEND, MergeHelper.MapStrategy.MERGE
   );
-  private static final MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeOptions(
-          ListStrategy.MERGE, MapStrategy.MERGE
+  private static final MergeHelper.MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+          MergeHelper.ListStrategy.MERGE, MergeHelper.MapStrategy.MERGE
   );
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
@@ -344,18 +344,18 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       for (Artifact artifact : packages) {
         Map<String, Object> localizedPackageAppManifest = new HashMap<>();
         if (!DEFAULT_LOCALE.equals(locale) && rawAppManifestByLocaleByArtifact.containsKey(DEFAULT_LOCALE) && rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).containsKey(artifact)) {
-          mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
         }
         if (rawAppManifestByLocaleByArtifact.containsKey(locale) && rawAppManifestByLocaleByArtifact.get(locale).containsKey(artifact)) {
-          mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(localizedPackageAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
         }
-        mergeMapIntoBaseMap(appManifest, localizedPackageAppManifest, APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
+        MergeHelper.mergeMapIntoBaseMap(appManifest, localizedPackageAppManifest, APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
       }
 
       InputStream inputStreamForDirOrJar = getInputStreamForDirOrJar(appDirOrJar, appManifestFileName, META_INF_RESOURCES);
       if (inputStreamForDirOrJar != null) {
         try {
-          mergeMapIntoBaseMap(appManifest, AppManifestDeSerializer.readAppManifest(inputStreamForDirOrJar), APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
+          MergeHelper.mergeMapIntoBaseMap(appManifest, AppManifestDeSerializer.readAppManifest(inputStreamForDirOrJar), APP_MANIFEST_CROSS_PACKAGE_MERGE_STRATEGY);
         } catch (IOException e) {
           throw new MojoExecutionException("Could not read app manifest", e);
         }
@@ -439,100 +439,4 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     }
   }
 
-  @SafeVarargs
-  private static <S, T> Map<S, T> mergeMaps(MergeOptions mergeOptions, Map<S, T>... maps) {
-    Map<S, T> result = new HashMap<>();
-
-    for (Map<S, T> map : maps) {
-      mergeMapIntoBaseMap(result, map, mergeOptions);
-    }
-
-    return result;
-  }
-
-  @SafeVarargs
-  private static <S> List<S> mergeLists(MergeOptions mergeOptions, List<S>... lists) {
-    List<S> result = new ArrayList<>();
-
-    for (List<S> list : lists) {
-      mergeListIntoBaseList(result, list, mergeOptions);
-    }
-
-    return result;
-  }
-
-  private static <S, T> void mergeMapIntoBaseMap(Map<S, T> baseMap, Map<S, T> mapToMerge, MergeOptions mergeOptions) {
-    for (S key : mapToMerge.keySet()) {
-      baseMap.put(key, mergeValues(baseMap.get(key), mapToMerge.get(key), mergeOptions));
-    }
-  }
-
-  private static <S> void mergeListIntoBaseList(List<S> baseList, List<S> listToMerge, MergeOptions mergeOptions) {
-    for (int i = 0; i < listToMerge.size(); i++) {
-      while (i >= baseList.size()) {
-        baseList.add(null);
-      }
-      baseList.set(i, mergeValues(baseList.get(i), listToMerge.get(i), mergeOptions));
-    }
-  }
-
-  private static <S, T, U, V> T mergeValues(S value1, T value2, MergeOptions mergeOptions) {
-    if (value2 == null) {
-      return null;
-    }
-    if (value2 instanceof Map) {
-      if (mergeOptions.mapStrategy == MapStrategy.MERGE && value1 instanceof Map) {
-        //noinspection unchecked
-        return (T) mergeMaps(mergeOptions, (Map<U, V>) value1, (Map<U, V>)value2);
-      } else {
-        // calling mergeMaps with a single parameter is like a deep copy
-        //noinspection unchecked
-        return (T) mergeMaps(mergeOptions, (Map<U, V>) value2);
-      }
-    } else if (value2 instanceof List) {
-      if (mergeOptions.listStrategy == ListStrategy.MERGE && value1 instanceof List) {
-        //noinspection unchecked
-        return (T) mergeLists(mergeOptions, (List<U>) value1, (List<U>) value2);
-      } else {
-        // calling mergeLists with a single parameter is like a deep copy
-        //noinspection unchecked
-        List<U> list = mergeLists(mergeOptions, (List<U>) value2);
-        if (mergeOptions.listStrategy == ListStrategy.APPEND && value1 instanceof List) {
-          //noinspection unchecked
-          list.addAll((List<U>) value1);
-        }
-        //noinspection unchecked
-        return (T) list;
-      }
-    } else {
-      return value2;
-    }
-  }
-
-  private enum ListStrategy {
-    REPLACE,
-    MERGE,
-    APPEND
-  }
-
-  private enum MapStrategy {
-    REPLACE,
-    MERGE
-  }
-
-  private static class MergeOptions {
-
-    public final ListStrategy listStrategy;
-    public final MapStrategy mapStrategy;
-
-    public MergeOptions() {
-      this.listStrategy = ListStrategy.REPLACE;
-      this.mapStrategy = MapStrategy.REPLACE;
-    }
-
-    public MergeOptions(ListStrategy listStrategy, MapStrategy mapStrategy) {
-      this.listStrategy = listStrategy;
-      this.mapStrategy = mapStrategy;
-    }
-  }
 }
