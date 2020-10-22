@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -77,9 +78,18 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       throw new MojoExecutionException("Could not read locales", e);
     }
 
-    List<Artifact> artifacts = new ArrayList<>(jangarooAppOverlay.packages);
+    Set<Artifact> artifacts = new HashSet<>();
+    JangarooApp current = jangarooAppOverlay;
+    while (current != null) {
+      artifacts.addAll(current.packages);
+      if (current instanceof JangarooAppOverlay) {
+        current = ((JangarooAppOverlay) current).baseApp;
+      } else {
+        current = null;
+      }
+    }
     artifacts.add(getArtifact(jangarooAppOverlay.getRootBaseApp().mavenProject));
-    writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, artifacts));
+    writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, new ArrayList<>(artifacts)));
   }
 
   private void populatePackages(JangarooApp jangarooApp, MavenProject project) throws MojoExecutionException {
