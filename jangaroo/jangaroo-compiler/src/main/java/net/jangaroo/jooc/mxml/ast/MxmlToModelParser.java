@@ -28,6 +28,8 @@ import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -496,6 +498,9 @@ final class MxmlToModelParser {
     if (textContent.isEmpty()) {
       if (PRIMITIVE_TYPE_NAMES.contains(className)) {
         return new IdeExpr(new Ide("undefined"));
+      }
+      if (AS3Type.ANY.name.equals(className) || AS3Type.STRING.name.equals(className)) {
+        return new LiteralExpr(new JooSymbol(sym.STRING_LITERAL, "", -1, -1, "", "\"\"", ""));
       }
       return null;
     }
