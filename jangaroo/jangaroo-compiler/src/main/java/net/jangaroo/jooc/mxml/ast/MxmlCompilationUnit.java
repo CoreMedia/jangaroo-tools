@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public class MxmlCompilationUnit extends CompilationUnit {
 
-  static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
+  public static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
   static final String APPLY = "apply";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
 

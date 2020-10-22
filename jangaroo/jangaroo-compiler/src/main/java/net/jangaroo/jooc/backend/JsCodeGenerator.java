@@ -14,6 +14,7 @@ import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.util.MessageFormat;
@@ -846,6 +847,48 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeSymbol(vectorLiteral.getSymGt());
     out.endComment();
     vectorLiteral.getArrayLiteral().visit(this);
+  }
+
+  @Override
+  public void visitObjectField(ObjectField objectField) throws IOException {
+    DotExpr exmlAppendOrPrepend = getExmlAppendOrPrepend(objectField.getValue());
+    if (exmlAppendOrPrepend != null) {
+      JooSymbol propertySymbol = objectField.getLabel().getSymbol();
+      out.writeTokenForSymbol(propertySymbol.getText() + "$at", propertySymbol);
+      out.write(":");
+      // net.jangaroo.ext.Exml:
+      exmlAppendOrPrepend.getArg().visit(this);
+      // '.'
+      out.writeSymbol(exmlAppendOrPrepend.getOp());
+      JooSymbol appendOrPrependSymbol = exmlAppendOrPrepend.getIde().getSymbol();
+      // append -> APPEND, prepend -> PREPEND
+      out.writeTokenForSymbol(appendOrPrependSymbol.getText().toUpperCase(), appendOrPrependSymbol);
+      out.write(", ");
+      objectField.getLabel().visit(this);
+      out.writeSymbol(objectField.getSymColon());
+      // suppress the Exml.append / prepend function name, only render its argument (leave the unnecessary parenthesis):
+      ((ApplyExpr) objectField.getValue()).getArgs().visit(this);
+    } else {
+      super.visitObjectField(objectField);
+    }
+  }
+
+  private DotExpr getExmlAppendOrPrepend(Expr value) {
+    if (value instanceof ApplyExpr) {
+      ApplyExpr applyExpr = (ApplyExpr) value;
+      if (applyExpr.getFun() instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) applyExpr.getFun();
+        String methodName = dotExpr.getIde().getName();
+        if (methodName.equals("append") || methodName.equals("prepend") && dotExpr.getArg() instanceof IdeExpr) {
+          IdeExpr ideExpr = (IdeExpr) dotExpr.getArg();
+          IdeDeclaration declaration = ideExpr.getIde().getDeclaration(false);
+          if (MxmlCompilationUnit.NET_JANGAROO_EXT_EXML.equals(declaration.getQualifiedNameStr())) {
+            return dotExpr;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @Override

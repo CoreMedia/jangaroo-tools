@@ -52,8 +52,8 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
 
     /* define some attributes through a typed mixin: */
     mixins:[
-      AS3.cast(ext.config.someMixin,{
-        someList: net.jangaroo.ext.Exml.append([
+      AS3.cast(ext.config.someMixin,{someList$at: net.jangaroo.ext.Exml.APPEND, 
+        someList:([
           AS3.cast(ext.config.button,{ text: "click me!", id: "myId",
             baseAction:
               new ext.Action({
