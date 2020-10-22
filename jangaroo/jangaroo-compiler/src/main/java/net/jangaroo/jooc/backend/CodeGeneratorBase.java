@@ -431,8 +431,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   private void generateInfixOpExpr(InfixOpExpr infixOpExpr, JooSymbol lParenSym, JooSymbol rParenSym) throws IOException {
     out.writeSymbolWhitespace(lParenSym);
-    out.writeToken("AS3.");
-    out.writeSymbolToken(infixOpExpr.getOp());
+    out.writeToken(builtInIdentifierCode(infixOpExpr.getOp().getText()));
     out.writeSymbol(lParenSym);
     infixOpExpr.getArg1().visit(this);
     out.write(',');
@@ -646,6 +645,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
+  protected abstract String builtInIdentifierCode(String builtInIdentifier);
+
   @Override
   public void visitCatch(Catch aCatch) throws IOException {
     List<Catch> catches = aCatch.getParentTryStatement().getCatches();
@@ -682,7 +683,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       out.writeToken("else");
     }
     if (hasCondition) {
-      out.writeToken("if(AS3.is");
+      out.writeToken("if(" + builtInIdentifierCode("is"));
       out.writeSymbol(aCatch.getLParen());
       out.writeSymbolWhitespace(localErrorVar);
       out.writeSymbolToken(errorVar);

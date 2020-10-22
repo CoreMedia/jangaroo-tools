@@ -12,8 +12,22 @@ import java.io.IOException;
  * @author Frank Wienberg
  */
 public class InfixOpExpr extends BinaryOpExpr {
+  private Scope scope;
+
   protected InfixOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
     super(arg1, op, arg2);
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    super.scope(scope);
+    this.scope = scope;
+  }
+
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    scope.getCompilationUnit().addBuiltInIdentifierUsage(getOp().getText());
   }
 
   @Override

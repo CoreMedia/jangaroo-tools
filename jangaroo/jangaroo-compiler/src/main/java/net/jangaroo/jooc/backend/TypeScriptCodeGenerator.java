@@ -125,10 +125,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
 
+    if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
+      out.write(String.format("import {%s} from '@jangaroo/joo/AS3';\n",
+              String.join(", ", compilationUnit.getUsedBuiltInIdentifiers())));
+    }
+
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
-    if (isModule) {
-      out.write("import * as AS3 from '@jangaroo/joo/AS3';\n");
-    } else {
+    if (!isModule) {
       Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
       // if global namespace, simply leave it out
       if (packageIde != null) {
@@ -314,7 +317,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
               && classDeclaration.getOptImplements() != null
               && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
-        out.write("\nAS3.mixin(" + classDeclaration.getName());
+        out.write("\nmixin(" + classDeclaration.getName());
         out.write(", ");
         classDeclaration.getOptImplements().getSuperTypes().visit(this);
         out.write(");\n");
@@ -1052,7 +1055,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<Expr> typesAndObjectLiteral = args.getExpr();
       ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
       Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
-      writeSymbolReplacement(applyExpr.getSymbol(), "AS3._");
+      writeSymbolReplacement(applyExpr.getSymbol(), "_");
       writeSymbolReplacement(typesArray.getLParen(), "<");
       for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
         Expr typeExpr = current.getHead();
@@ -1094,7 +1097,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbolWhitespace(args.getRParen());
       } else {
         out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
-        out.writeToken("AS3.cast");
+        out.writeToken(builtInIdentifierCode("cast"));
         out.writeSymbol(args.getLParen());
         applyExpr.getFun().visit(this);
         out.writeToken(",");
@@ -1191,7 +1194,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Ide ide = dotExpr.getIde();
     if (ide.isBound()) {
       // found access to a method without applying it immediately: bind!
-      out.writeToken("AS3.bind(");
+      out.writeToken("bind(");
       dotExpr.getArg().visit(this);
       writeSymbolReplacement(dotExpr.getOp(), ",");
       //writeSymbolReplacement(ide.getIde(), CompilerUtils.quote(ide.getName()));
@@ -1406,5 +1409,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken("\n  }");
     }
     out.writeToken(")();");
+  }
+
+  @Override
+  protected String builtInIdentifierCode(String builtInIdentifier) {
+    assert compilationUnit.getUsedBuiltInIdentifiers().contains(builtInIdentifier) : "Usage of built-in identifier '" + builtInIdentifier + "' has not been analyzed.";
+    return builtInIdentifier;
   }
 }

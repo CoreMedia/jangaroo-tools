@@ -379,6 +379,9 @@ public class Ide extends NodeImplBase {
 
   public void setBound(boolean bound) {
     this.bound = bound;
+    if (bound) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("bind");
+    }
   }
 
   public boolean isRewriteThis() {

@@ -21,6 +21,7 @@ import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
@@ -221,6 +222,12 @@ public class ClassDeclaration extends TypeDeclaration {
     }
   }
 
+  public boolean implementsMoreThanOneInterface() {
+    return getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
+            && getOptImplements() != null
+            && (!isInterface() || getOptImplements().getSuperTypes().getTail() != null);
+  }
+
   public void analyze(AstNode parentNode) {
     analyzeSymModifiers();
     super.analyze(parentNode);
@@ -232,6 +239,9 @@ public class ClassDeclaration extends TypeDeclaration {
     }
     if (getOptImplements() != null) {
       getOptImplements().analyze(this);
+    }
+    if (implementsMoreThanOneInterface()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("mixin");
     }
     body.analyze(this);
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {

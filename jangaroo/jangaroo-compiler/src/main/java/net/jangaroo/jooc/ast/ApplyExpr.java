@@ -39,6 +39,7 @@ public class ApplyExpr extends Expr {
 
   private boolean insideNewExpr = false;
   private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Object", "Array", "RegExp", "XML"));
+  private Scope scope;
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
@@ -65,6 +66,7 @@ public class ApplyExpr extends Expr {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
     getFun().scope(scope);
     getArgs().scope(scope);
   }
@@ -106,7 +108,13 @@ public class ApplyExpr extends Expr {
     if (getArgs() != null) {
       getArgs().analyze(this);
     }
-    // TODO: if isTypeCheckObjectLiteralFunctionCall(), type-check the object literal!
+    if (isTypeCast()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
+    }
+    if (isTypeCheckObjectLiteralFunctionCall()) {
+      // TODO: type-check the object literal!
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("_");
+    }
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       setType(type.getTypeParameter());

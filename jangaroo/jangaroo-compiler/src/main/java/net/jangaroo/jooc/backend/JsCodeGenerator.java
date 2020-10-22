@@ -982,6 +982,11 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  protected String builtInIdentifierCode(String builtInIdentifier) {
+    return "AS3." + builtInIdentifier;
+  }
+
+  @Override
   public void visitForInStatement(final ForInStatement forInStatement) throws IOException {
     final Ide exprAuxIde = forInStatement.getExprAuxIde();
     ExpressionType exprType = forInStatement.getExpr().getType();

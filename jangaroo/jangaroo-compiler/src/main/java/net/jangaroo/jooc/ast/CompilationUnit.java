@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Andreas Gawecki
@@ -48,8 +49,8 @@ public class CompilationUnit extends NodeImplBase {
   private List<String> resourceDependencies = new ArrayList<>();
   private Set<String> publicApiDependencies = new LinkedHashSet<>();
   private Map<String, Boolean> usesDependencies = new LinkedHashMap<>();
+  private Set<String> usedBuiltInIdentifiers = new TreeSet<>();
   private Scope scope;
-  private Map<String, String> auxVarsByPackage = new LinkedHashMap<String, String>();
 
   public CompilationUnit(PackageDeclaration packageDeclaration, JooSymbol lBrace, List<Directive> directives, IdeDeclaration primaryDeclaration, JooSymbol rBrace, List<IdeDeclaration> secondaryDeclarations) {
     this.packageDeclaration = packageDeclaration;
@@ -275,5 +276,13 @@ public class CompilationUnit extends NodeImplBase {
 
   public boolean isInSourcePath() {
     return getInputSource().isInSourcePath();
+  }
+
+  public void addBuiltInIdentifierUsage(String builtInIdentifier) {
+    usedBuiltInIdentifiers.add(builtInIdentifier);
+  }
+
+  public Set<String> getUsedBuiltInIdentifiers() {
+    return usedBuiltInIdentifiers;
   }
 }

@@ -33,6 +33,7 @@ public class Catch extends KeywordStatement {
   private JooSymbol rParen;
   private BlockStatement block;
   private TryStatement parentNode;
+  private Scope scope;
 
   public Catch(JooSymbol symCatch, JooSymbol lParen, Parameter param, JooSymbol rParen, BlockStatement block) {
     super(symCatch);
@@ -79,6 +80,7 @@ public class Catch extends KeywordStatement {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
     withNewDeclarationScope(this, scope, new Scoped() {
       @Override
       public void run(final Scope scope) {
@@ -99,6 +101,9 @@ public class Catch extends KeywordStatement {
     if (typeRelation != null) {
       Type type = typeRelation.getType();
       type.getIde().addExternalUsage(false);
+    }
+    if (hasCondition()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("is");
     }
     block.analyze(this);
   }
