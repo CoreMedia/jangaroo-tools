@@ -81,6 +81,7 @@ import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
@@ -268,9 +269,42 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitObjectField(ObjectField objectField) throws IOException {
-    objectField.getLabel().visit(this);
-    out.writeSymbol(objectField.getSymColon());
-    objectField.getValue().visit(this);
+    DotExpr exmlAppendOrPrepend = getExmlAppendOrPrepend(objectField.getValue());
+    if (exmlAppendOrPrepend != null) {
+      handleExmlAppendPrepend(objectField, exmlAppendOrPrepend);
+    } else {
+      objectField.getLabel().visit(this);
+      out.writeSymbol(objectField.getSymColon());
+      objectField.getValue().visit(this);
+    }
+  }
+
+  protected abstract void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException;
+
+  private DotExpr getExmlAppendOrPrepend(Expr value) {
+    if (value instanceof ApplyExpr) {
+      ApplyExpr applyExpr = (ApplyExpr) value;
+      if (applyExpr.getFun() instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) applyExpr.getFun();
+        String methodName = dotExpr.getIde().getName();
+        if ((methodName.equals("append") || methodName.equals("prepend"))
+                && MxmlCompilationUnit.NET_JANGAROO_EXT_EXML.equals(getArgFQN(dotExpr))) {
+          return dotExpr;
+        }
+      }
+    }
+    return null;
+  }
+
+  static String getArgFQN(DotExpr dotExpr) {
+    if (dotExpr.getArg() instanceof IdeExpr) {
+      IdeExpr ideExpr = (IdeExpr) dotExpr.getArg();
+      IdeDeclaration declaration = ideExpr.getIde().getDeclaration(false);
+      if (declaration != null) {
+        return declaration.getQualifiedNameStr();
+      }
+    }
+    return null;
   }
 
   @Override

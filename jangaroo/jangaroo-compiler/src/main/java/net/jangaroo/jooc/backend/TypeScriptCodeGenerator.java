@@ -31,6 +31,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
@@ -48,6 +49,7 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
 import net.jangaroo.jooc.input.ZipFileInputSource;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
@@ -1105,6 +1107,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  @Override
+  protected void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException {
+    JooSymbol propertySymbol = objectField.getLabel().getSymbol();
+    out.writeSymbolWhitespace(propertySymbol);
+    out.writeToken("...");
+    exmlAppendOrPrepend.visit(this);
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = ((ApplyExpr) objectField.getValue()).getArgs();
+    out.writeSymbol(args.getLParen());
+    out.write(CompilerUtils.quote(propertySymbol.getText()));
+    out.writeTokenForSymbol(",", objectField.getSymColon());
+    args.getExpr().getHead().visit(this);
+    out.writeSymbol(args.getRParen());
+  }
+
   private static boolean isExtApply(Expr expr) {
     if (expr instanceof ApplyExpr) {
       ApplyExpr applyExpr = (ApplyExpr) expr;
@@ -1114,8 +1130,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       if (fun instanceof DotExpr) {
         DotExpr dotExpr = (DotExpr) fun;
-        // TODO: Check dotExpr.getExpr() for "ext.Ext" or "net.jangaroo.Exml"!
-        return "apply".equals(dotExpr.getIde().getName());
+        if ("apply".equals(dotExpr.getIde().getName())) {
+          String argFQN = getArgFQN(dotExpr);
+          return MxmlCompilationUnit.NET_JANGAROO_EXT_EXML.equals(argFQN) || "ext.Ext".equals(argFQN);
+        }
       }
     }
     return false;
