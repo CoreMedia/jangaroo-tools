@@ -1112,16 +1112,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   protected void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException {
-    JooSymbol propertySymbol = objectField.getLabel().getSymbol();
-    out.writeSymbolWhitespace(propertySymbol);
+    out.writeSymbolWhitespace(objectField.getSymbol());
     out.writeToken("...");
+    String whitespace = exmlAppendOrPrepend.getSymbol().getWhitespace();
+    exmlAppendOrPrepend.getSymbol().setWhitespace("");
     exmlAppendOrPrepend.visit(this);
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = ((ApplyExpr) objectField.getValue()).getArgs();
-    out.writeSymbol(args.getLParen());
-    out.write(CompilerUtils.quote(propertySymbol.getText()));
-    out.writeTokenForSymbol(",", objectField.getSymColon());
-    args.getExpr().getHead().visit(this);
-    out.writeSymbol(args.getRParen());
+    out.writeTokenForSymbol("({", args.getLParen());
+    objectField.getLabel().visit(this);
+    out.writeSymbol(objectField.getSymColon());
+    out.write(whitespace);
+    args.getExpr().visit(this);
+    out.writeTokenForSymbol("})", args.getRParen());
   }
 
   private static boolean isExtApply(Expr expr) {
