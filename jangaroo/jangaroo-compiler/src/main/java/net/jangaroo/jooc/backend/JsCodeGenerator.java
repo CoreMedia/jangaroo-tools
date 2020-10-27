@@ -14,7 +14,6 @@ import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.jooc.json.JsonObject;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
-import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.util.MessageFormat;
@@ -51,6 +50,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
   public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList(
+          Jooc.NATIVE_ANNOTATION_NAME,
+          Jooc.RENAME_ANNOTATION_NAME,
           Jooc.EMBED_ANNOTATION_NAME,
           Jooc.BINDABLE_ANNOTATION_NAME,
           Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
@@ -342,6 +343,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
 
       List<Annotation> nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotations.isEmpty()) {
+        nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.RENAME_ANNOTATION_NAME);
+      }
       if (nativeAnnotations.isEmpty()) {
         javaScriptName = dependentCUId;
         javaScriptNameToRequire = javaScriptName;
@@ -1503,7 +1507,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (declaration.isPrimaryDeclaration()) {
       out.writeSymbolWhitespace(declaration.getSymbol());
       out.write("Ext.define(");
-      out.write(CompilerUtils.quote(declaration.getQualifiedNameStr()));
+      out.write(CompilerUtils.quote(declaration.getTargetQualifiedNameStr()));
       out.write(", function(" + declaration.getName() + ") {");
     }
   }

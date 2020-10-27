@@ -51,7 +51,8 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
                                         IdeDeclaration primaryDeclaration, final File sourceFile,
                                         final boolean verbose) {
-    final File outFile = getOutputFile(sourceFile, primaryDeclaration.getQualifiedNameStr());
+    final File outFile = getOutputFile(sourceFile,
+            generateApi ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getTargetQualifiedNameStr());
     createOutputDirs(outFile);
 
     return compilationUnit -> {

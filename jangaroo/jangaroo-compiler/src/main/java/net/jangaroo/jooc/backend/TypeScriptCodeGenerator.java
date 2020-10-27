@@ -531,6 +531,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
         // very special case jangaroo-runtime -> joo
         npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
+        // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
+        // by 'joo' for everything else:
+        if (npmPackageName.endsWith("ext-as")) {
+          npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext/") ? "/ext-ts" : "/joo");
+        }
       } else if (npmPackageName.startsWith("com.coremedia")) {
         npmPackageName = npmPackageName.replaceFirst("^com[.]coremedia[^_]*__", "@coremedia/");
       }
@@ -577,17 +582,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeAnnotation == null) {
-      return String.join("/", declaration.getQualifiedName());
+      Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+      if (renameAnnotation != null) {
+        qualifiedName = getNativeAnnotationValue(renameAnnotation);
+      }
     } else {
+      if (getNativeAnnotationRequireValue(nativeAnnotation) == null) {
+        return null;
+      }
       String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
-      if (nativeAnnotationValue == null) {
-        nativeAnnotationValue = qualifiedName;
+      if (nativeAnnotationValue != null) {
+        qualifiedName = nativeAnnotationValue;
       }
-      if (getNativeAnnotationRequireValue(nativeAnnotation) != null) {
-        return nativeAnnotationValue.replace('.', '/');
-      }
-      return null;
     }
+    return qualifiedName.replace('.', '/');
   }
 
   @Override
@@ -656,6 +664,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
     if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
+            Jooc.RENAME_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
             Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
       return;
     }
@@ -1308,6 +1317,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (nativeAnnotation != null && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
       String nativeName = getNativeAnnotationValue(nativeAnnotation);
       return nativeName == null ? declaration.getQualifiedNameStr() : nativeName;
+    }
+    Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+    if (renameAnnotation != null) {
+      String targetName = getNativeAnnotationValue(renameAnnotation);
+      if (targetName != null && !targetName.isEmpty()) {
+        return CompilerUtils.className(targetName);
+      }
     }
     return declaration.getName();
   }

@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.util.List;
@@ -81,6 +82,23 @@ public abstract class IdeDeclaration extends Declaration {
       result[prefixName.length] = getIde().getName();
       return result;
     }
+  }
+
+  public String getTargetQualifiedNameStr() {
+    Annotation nativeAnnotation = getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    String nativeName = null;
+    if (nativeAnnotation != null) {
+      nativeName = (String) nativeAnnotation.getPropertiesByName().get(null);
+    } else {
+      Annotation renameAnnotation = getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+      if (renameAnnotation != null) {
+        nativeName = (String) renameAnnotation.getPropertiesByName().get(null);
+      }
+    }
+    if (nativeName != null && !nativeName.isEmpty()) {
+      return nativeName;
+    }
+    return getQualifiedNameStr();
   }
 
   public String getQualifiedNameStr() {
