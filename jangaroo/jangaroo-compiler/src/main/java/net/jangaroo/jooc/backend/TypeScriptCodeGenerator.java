@@ -894,7 +894,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       if (functionDeclaration.isConstructor()
               && !functionDeclaration.containsSuperConstructorCall()
-              && functionDeclaration.getClassDeclaration().notExtendsObject()) {
+              && functionDeclaration.getClassDeclaration().getOptExtends() != null) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("\n    super();"));
       }
       if (functionDeclaration.isThisAliased() && !functionDeclaration.isContainsSuperConstructorCall()) {
