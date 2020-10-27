@@ -1307,9 +1307,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
     // this can only be "Vector$object", so we can always replace it by "Array":
     writeSymbolReplacement(ideWithTypeParam.getIde(), "Array");
-    writeSymbolReplacement(ideWithTypeParam.getSymDotLt(), "<");
-    ideWithTypeParam.getType().visit(this);
-    out.writeSymbol(ideWithTypeParam.getSymGt());
+//    writeSymbolReplacement(ideWithTypeParam.getSymDotLt(), "<");
+//    ideWithTypeParam.getType().visit(this);
+//    out.writeSymbol(ideWithTypeParam.getSymGt());
   }
 
   private String getDefaultImportName(IdeDeclaration declaration) {
