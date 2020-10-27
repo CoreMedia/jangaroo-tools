@@ -537,7 +537,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
         }
       } else if (npmPackageName.startsWith("com.coremedia")) {
-        npmPackageName = npmPackageName.replaceFirst("^com[.]coremedia[^_]*__", "@coremedia/");
+        //npmPackageName = npmPackageName.replaceFirst("^com[.]coremedia[^_]*__", "@coremedia/");
+        npmPackageName = "@coremedia/" + npmPackageName;
       }
       // prepend target npm package in front
       moduleName = npmPackageName + "/" + moduleName;
