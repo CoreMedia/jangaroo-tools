@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
@@ -88,6 +89,11 @@ public class ApplyExpr extends Expr {
             && TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
   }
 
+  public boolean isAssert() {
+    return getFun() instanceof IdeExpr
+            && SyntacticKeywords.ASSERT.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
+  }
+
   private boolean hasExactlyOneArgument() {
     if (getArgs() != null) {
       CommaSeparatedList<Expr> expr = getArgs().getExpr();
@@ -118,6 +124,8 @@ public class ApplyExpr extends Expr {
     }
     if (isTypeCast()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
+    } else if (isAssert()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
     }
     if (isTypeCheckObjectLiteralFunctionCall()) {
       // TODO: type-check the object literal!

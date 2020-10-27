@@ -878,8 +878,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Ide funIde = ((IdeExpr) applyExpr.getFun()).getIde();
       JooSymbol lParen = applyExpr.getArgs().getLParen();
       CommaSeparatedList<Expr> arguments = applyExpr.getArgs().getExpr();
-      if (SyntacticKeywords.ASSERT.equals(funIde.getName())) {
-        applyExpr.getFun().visit(this);
+      if (applyExpr.isAssert()) {
+        writeSymbolReplacement(funIde.getSymbol(), builtInIdentifierCode(SyntacticKeywords.ASSERT));
         JooSymbol symKeyword = applyExpr.getFun().getSymbol();
         out.writeSymbol(lParen);
         arguments.visit(this);
