@@ -81,6 +81,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String PARAMETER_ANNOTATION_NAME = "Parameter";
   public static final String PARAMETER_ANNOTATION_REQUIRED_PROPERTY = "required";
   public static final String PARAMETER_ANNOTATION_COERCE_TO_PROPERTY = "coerceTo";
+  public static final String COERCE_TO_VALUE_PROPERTIES_CLASS = "PropertiesClass";
   public static final String RETURN_ANNOTATION_NAME = "Return";
 
   private List<FileInputSource> compileQueue = new ArrayList<>();

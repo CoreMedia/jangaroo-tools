@@ -488,27 +488,18 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public void visitApplyExprArguments(ApplyExpr applyExpr) throws IOException {
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (args != null) {
-      Expr fun = applyExpr.getFun();
-      if (fun instanceof IdeExpr) {
-        fun = ((IdeExpr) fun).getNormalizedExpr();
+      FunctionDeclaration functionDeclaration = applyExpr.resolveFunction();
+      if (functionDeclaration != null) {
+        writeArgumentsWithOptCoercesAndDefaultValues(applyExpr, functionDeclaration);
+      } else {
+        args.visit(this);
       }
-      if (fun instanceof DotExpr) {
-        DotExpr dotExpr = (DotExpr) fun;
-        ExpressionType type = dotExpr.getArg().getType();
-        if (type != null) {
-          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(dotExpr.getIde().getName());
-          if (memberDeclaration instanceof FunctionDeclaration) {
-            writeArgumentsWithOptCoercesAndDefaultValues(args, (FunctionDeclaration) memberDeclaration);
-            return;
-          }
-        }
-      }
-      args.visit(this);
     }
   }
 
-  private void writeArgumentsWithOptCoercesAndDefaultValues(ParenthesizedExpr<CommaSeparatedList<Expr>> args,
+  private void writeArgumentsWithOptCoercesAndDefaultValues(ApplyExpr applyExpr,
                                                             FunctionDeclaration methodDeclaration) throws IOException {
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     out.writeSymbol(args.getLParen());
     Collection<Annotation> parameterAnnotations = methodDeclaration.getAnnotations(Jooc.PARAMETER_ANNOTATION_NAME);
     CommaSeparatedList<Expr> arguments = args.getExpr();
@@ -523,17 +514,26 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       if (arguments != null) {
         Object coerceTo = parameterAnnotation == null ? null
                 : parameterAnnotation.getPropertiesByName().get(Jooc.PARAMETER_ANNOTATION_COERCE_TO_PROPERTY);
-        boolean doCoerce = false;
+        boolean coerced = false;
         if (coerceTo instanceof String) {
-          ExpressionType type = arguments.getHead().getType();
-          if (type == null || !type.getAS3Type().toString().equals(coerceTo)) {
-            doCoerce = true;
-            out.write(coerceTo + "(");
+          if (Jooc.COERCE_TO_VALUE_PROPERTIES_CLASS.equals(coerceTo)) {
+            ClassDeclaration propertiesClass = applyExpr.getPropertiesClass(arguments.getHead());
+            if (propertiesClass != null) {
+              coerced = true;
+              out.write(compilationUnitAccessCode(propertiesClass));
+            }
+          } else {
+            ExpressionType type = arguments.getHead().getType();
+            if (type == null || !type.getAS3Type().toString().equals(coerceTo)) {
+              coerced = true;
+              out.write(coerceTo + "(");
+              arguments.getHead().visit(this);
+              out.write(")");
+            }
           }
         }
-        arguments.getHead().visit(this);
-        if (doCoerce) {
-          out.write(")");
+        if (!coerced) {
+          arguments.getHead().visit(this);
         }
         writeOptSymbol(arguments.getSymComma());
         arguments = arguments.getTail();

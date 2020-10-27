@@ -16,15 +16,21 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Andreas Gawecki
@@ -40,6 +46,7 @@ public class ApplyExpr extends Expr {
   private boolean insideNewExpr = false;
   private static final Set<String> COERCE_FUNCTION_NAMES = new HashSet<String>(Arrays.asList("Number", "String", "Boolean", "int", "uint", "Date", "Object", "Array", "RegExp", "XML"));
   private Scope scope;
+  private Map<Expr, ClassDeclaration> argToPropertiesClass = new HashMap<>();
 
   public ApplyExpr(Expr fun, JooSymbol lParen, CommaSeparatedList<Expr> args, JooSymbol rParen) {
     this.fun = fun;
@@ -106,6 +113,7 @@ public class ApplyExpr extends Expr {
     super.analyze(parentNode);
     getFun().analyze(this);
     if (getArgs() != null) {
+      mapPropertiesClassReferences();
       getArgs().analyze(this);
     }
     if (isTypeCast()) {
@@ -119,6 +127,74 @@ public class ApplyExpr extends Expr {
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       setType(type.getTypeParameter());
     }
+  }
+
+  public FunctionDeclaration resolveFunction() {
+    Expr fun = this.getFun();
+    if (fun instanceof IdeExpr) {
+      fun = ((IdeExpr) fun).getNormalizedExpr();
+      if (fun instanceof IdeExpr) {
+        IdeDeclaration declaration = ((IdeExpr) fun).getIde().getDeclaration(false);
+        if (declaration instanceof FunctionDeclaration) {
+          return (FunctionDeclaration) declaration;
+        }
+      }
+    }
+    if (fun instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) fun;
+      ExpressionType type = dotExpr.getArg().getType();
+      if (type != null) {
+        IdeDeclaration declaration = type.resolvePropertyDeclaration(dotExpr.getIde().getName());
+        if (declaration instanceof FunctionDeclaration) {
+          return (FunctionDeclaration) declaration;
+        }
+      }
+    }
+    return null;
+  }
+
+  private void mapPropertiesClassReferences() {
+    FunctionDeclaration functionDeclaration = resolveFunction();
+    if (functionDeclaration != null) {
+      Collection<String> propertyClassReferenceParameterNames =
+              functionDeclaration.getAnnotations(Jooc.PARAMETER_ANNOTATION_NAME)
+              .stream()
+              .map(parameterAnnotation -> parameterAnnotation.getPropertiesByName())
+              .filter(parameterProperties -> Jooc.COERCE_TO_VALUE_PROPERTIES_CLASS
+                      .equals(parameterProperties.get(Jooc.PARAMETER_ANNOTATION_COERCE_TO_PROPERTY)))
+              .map(parameterProperties -> (String) parameterProperties.get(null))
+              .collect(Collectors.toList());
+
+      Parameters params = functionDeclaration.getParams();
+      CommaSeparatedList<Expr> args = this.args.getExpr();
+      while (params != null && args != null) {
+        // did we reach the annotated parameter?
+        if (propertyClassReferenceParameterNames.contains(params.getHead().getName())) {
+          // then we have the argument of that parameter:
+          Expr arg = args.getHead();
+          if (arg instanceof LiteralExpr) {
+            String resourceBundleName = (String) ((LiteralExpr) arg).getValue().getJooValue();
+            String propertiesClassName = resourceBundleName + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
+            CompilationUnit propertiesClass = scope.getCompiler().getCompilationUnit(propertiesClassName);
+            if (propertiesClass == null) {
+              scope.getCompiler().getLog().error(arg.getSymbol(), String.format("Properties class '%s' corresponding to resource bundle '%s' not found.", propertiesClassName, resourceBundleName));
+            } else {
+              if (!scope.getCompilationUnit().isRequiredDependency(propertiesClassName)) {
+                scope.getCompiler().getLog().warning(arg.getSymbol(), String.format("Resource bundle '%s' usage not declared by [ResourceBundle] annotation.", resourceBundleName));
+                scope.getCompilationUnit().addDependency(propertiesClass, true);
+              }
+              argToPropertiesClass.put(arg, (ClassDeclaration) propertiesClass.getPrimaryDeclaration());
+            }
+          }
+        }
+        params = params.getTail();
+        args = args.getTail();
+      }
+    }
+  }
+
+  public ClassDeclaration getPropertiesClass(Expr arg) {
+    return argToPropertiesClass.get(arg);
   }
 
   public JooSymbol getSymbol() {
