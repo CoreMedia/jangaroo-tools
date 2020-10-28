@@ -73,8 +73,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public static final List<AS3Type> TYPES_ALLOWED_AS_INDEX = Arrays.asList(AS3Type.ANY, AS3Type.STRING, AS3Type.NUMBER, AS3Type.INT, AS3Type.UINT);
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
-    // generate TypeScript for almost everything *except* some built-in classes which would fail to compile:
-    return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr());
+    // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
+    // and [Mixin] interfaces:
+    return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())
+            && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
   private CompilationUnit compilationUnit;
