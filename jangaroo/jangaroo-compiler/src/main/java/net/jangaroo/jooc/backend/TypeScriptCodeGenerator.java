@@ -132,12 +132,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
+    String targetNamespace = null;
     if (!isModule) {
-      Ide packageIde = compilationUnit.getPackageDeclaration().getIde();
+      targetNamespace = CompilerUtils.packageName(compilationUnitAccessCode(primaryDeclaration));
       // if global namespace, simply leave it out
-      if (packageIde != null) {
+      if (!targetNamespace.isEmpty()) {
         out.writeToken("namespace");
-        writeSymbolReplacement(packageIde.getSymbol(), packageIde.getQualifiedNameStr());
+        out.writeToken(targetNamespace);
         out.writeSymbol(compilationUnit.getLBrace());
       }
     }
@@ -191,7 +192,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     if (isModule) {
       out.write("\nexport default " + primaryDeclaration.getName() + ";\n");
-    } else if (compilationUnit.getPackageDeclaration().getIde() != null) {
+    } else if (!targetNamespace.isEmpty()) {
       // close namespace:
       out.writeSymbol(compilationUnit.getRBrace());
     }
