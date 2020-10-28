@@ -12,6 +12,7 @@ import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AstNode;
+import net.jangaroo.jooc.ast.BinaryOpExpr;
 import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
@@ -1029,8 +1030,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitFunctionExpr(FunctionExpr functionExpr) throws IOException {
+    boolean needsParenthesis = false;
     if (functionExpr.rewriteToArrowFunction()) {
       out.writeSymbolWhitespace(functionExpr.getFunSymbol());
+      needsParenthesis = functionExpr.getParentNode() instanceof BinaryOpExpr; // TODO: what else?
+      if (needsParenthesis) {
+        out.write("(");
+      }
       out.suppressWhitespace(functionExpr.getLParen());
       // rewrite anonymous function expression that does *not* use "this" to arrow function:
       generateFunctionExprSignature(functionExpr);
@@ -1044,6 +1050,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           Expr expr = ((ReturnStatement) firstStatement).getOptExpr();
           if (expr != null) {
             expr.visit(this);
+            if (needsParenthesis) {
+              out.write(")");
+            }
             return;
           }
         }
@@ -1054,6 +1063,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       generateFunctionExprSignature(functionExpr);
     }
     visitIfNotNull(functionExpr.getBody());
+    if (needsParenthesis) {
+      out.write(")");
+    }
   }
 
   @Override
