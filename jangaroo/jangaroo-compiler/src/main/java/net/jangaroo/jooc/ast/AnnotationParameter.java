@@ -91,6 +91,17 @@ public class AnnotationParameter extends NodeImplBase {
           throw new CompilerError(valueSymbol, "unable to resolve resource bundle " + resourceBundleName);
         }
         scope.getCompilationUnit().addDependency(resourceBundleCompilationUnit, true);
+      } else if (Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(metaName) && getOptName() == null) {
+        if (valueSymbol.sym != sym.STRING_LITERAL) {
+          throw new CompilerError(valueSymbol, "An [ArrayElementType] annotation must specify the element type as its only parameter.");
+        }
+        Scope scope = parentAnnotation.getIde().getScope();
+        String arrayElementType = (String) valueSymbol.getJooValue();
+        CompilationUnit arrayElementTypeCompilationUnit = scope.getCompiler().getCompilationUnit(arrayElementType);
+        if (arrayElementTypeCompilationUnit == null) {
+          throw new CompilerError(valueSymbol, "Unable to resolve array element type " + arrayElementType);
+        }
+        scope.getCompilationUnit().addDependency(arrayElementTypeCompilationUnit, false);
       }
     }
   }
