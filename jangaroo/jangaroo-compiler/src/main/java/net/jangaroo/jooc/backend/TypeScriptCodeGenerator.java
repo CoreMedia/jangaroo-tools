@@ -105,10 +105,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotation != null) {
         if (getNativeAnnotationRequireValue(nativeAnnotation) == null
-                && !declaration.getPackageDeclaration().isTopLevel()) {
+                && declaration.getTargetQualifiedNameStr().contains(".")) {
           out.writeToken("export");
-        }
-        if (!isInterface(declaration)) {
+        } else if (!isInterface(declaration)) {
           out.writeToken("declare");
         }
       }
@@ -136,10 +135,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
     String targetNamespace = null;
     if (!isModule) {
-      targetNamespace = CompilerUtils.packageName(compilationUnitAccessCode(primaryDeclaration));
+      targetNamespace = CompilerUtils.packageName(primaryDeclaration.getTargetQualifiedNameStr());
       // if global namespace, simply leave it out
       if (!targetNamespace.isEmpty()) {
-        out.writeToken("namespace");
+        out.writeToken("declare namespace");
         out.writeToken(targetNamespace);
         out.writeSymbol(compilationUnit.getLBrace());
       }
