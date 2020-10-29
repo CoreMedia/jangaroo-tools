@@ -522,23 +522,26 @@ public abstract class CodeGeneratorBase implements AstVisitor {
           String coerceTo = (String) coerceToObj;
           if (Jooc.COERCE_TO_VALUE_PROPERTIES_CLASS.equals(coerceTo)) {
             ClassDeclaration propertiesClass = applyExpr.getPropertiesClass(argument);
+            String propertiesClassAccessCode = null;
             if (propertiesClass != null) {
               coerced = true;
-              String propertiesClassAccessCode = compilationUnitAccessCode(propertiesClass);
+              propertiesClassAccessCode = compilationUnitAccessCode(propertiesClass);
               out.write(propertiesClassAccessCode);
-              propertiesClassByParamName.put(parameter.getName(), propertiesClassAccessCode);
             }
+            propertiesClassByParamName.put(parameter.getName(), propertiesClassAccessCode);
           } else if (coerceTo.startsWith(Jooc.COERCE_TO_VALUE_KEYOF_PREFIX)) {
             if (!(argument instanceof LiteralExpr)) {
               // a computed key needs a type assertion to be a accepted as a key of the properties class:
               String referencedParam = coerceTo.substring(Jooc.COERCE_TO_VALUE_KEYOF_PREFIX.length());
-              String referencedPropertiesClass = propertiesClassByParamName.get(referencedParam);
-              if (referencedPropertiesClass == null) {
-                throw JangarooParser.error(parameter.getSymbol(),
+              if (!propertiesClassByParamName.containsKey(referencedParam)) {
+                throw JangarooParser.error(argument.getSymbol(),
                         String.format("Referenced properties class parameter name '%s' not found.", referencedParam));
               }
-              coerced = true;
-              generateTypeAssertion(argument, "keyof " + referencedPropertiesClass);
+              String referencedPropertiesClass = propertiesClassByParamName.get(referencedParam);
+              if (referencedPropertiesClass != null) {
+                coerced = true;
+                generateTypeAssertion(argument, "keyof " + referencedPropertiesClass);
+              }
             }
           } else {
             ExpressionType type = argument.getType();
