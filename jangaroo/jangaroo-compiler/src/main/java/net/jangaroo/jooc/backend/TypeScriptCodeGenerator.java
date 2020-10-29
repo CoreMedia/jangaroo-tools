@@ -526,6 +526,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                 new File("/src"));
       } else if (importedInputSource instanceof ZipEntryInputSource) {
         npmPackageName = findSenchaPackageName((ZipEntryInputSource) importedInputSource);
+        if (npmPackageName == null) {
+          return null;
+        }
       } else {
         throw new IllegalStateException("The input source for a compilation unit was not a file");
       }
@@ -571,9 +574,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         npmPackageName = CompilerUtils.removeExtension(swcPkgFileName);
         break;
       }
-    }
-    if (npmPackageName == null) {
-      throw new IllegalStateException("SWC " + zipFileInputSource.getZipFile().getName() + " does not contain a /META-INF/pkg/<package-name>.json file");
     }
     return npmPackageName;
   }
