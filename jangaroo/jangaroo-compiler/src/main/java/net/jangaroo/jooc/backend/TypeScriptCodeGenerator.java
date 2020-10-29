@@ -103,11 +103,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     if (isPrimaryDeclaration) {
       Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      if (nativeAnnotation != null) {
+      if (nativeAnnotation != null && !isInterface(declaration)) {
         if (getNativeAnnotationRequireValue(nativeAnnotation) == null
                 && declaration.getTargetQualifiedNameStr().contains(".")) {
           out.writeToken("export");
-        } else if (!isInterface(declaration)) {
+        } else {
           out.writeToken("declare");
         }
       }
@@ -167,6 +167,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
       String localName = getDefaultImportName(dependentPrimaryDeclaration);
+      boolean isType = false;
       if (requireModuleName != null) {
         if (!isModule) {
           // Non-modules do not allow import directives, or they'd become modules.
@@ -178,6 +179,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           localName = String.format("import('%s').default", requireModuleName);
           requireModuleName = null;
         } else {
+          if (localName.contains(".")) {
+            // only [Native] interface types can have a fully-qualified localName:
+            localName = CompilerUtils.className(localName);
+            isType = true;
+          }
           if (localNameClashes.contains(localName)) {
             localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
           }
@@ -185,7 +191,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
       if (requireModuleName != null) {
-        out.write(String.format("import %s from '%s';\n", localName, requireModuleName));
+        out.write(String.format("import%s %s from '%s';\n", isType ? " type" : "", localName, requireModuleName));
       }
     }
 
@@ -231,10 +237,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbolWhitespace(classDeclaration.getSymClass());
-    if (classDeclaration.isInterface()) {
-      out.writeToken("abstract");
+    if (isAmbientInterface(classDeclaration.getCompilationUnit())) {
+      out.writeToken("interface");
+    } else {
+      if (classDeclaration.isInterface()) {
+        out.writeToken("abstract");
+      }
+      out.writeToken("class");
     }
-    out.writeToken("class");
     classDeclaration.getIde().visit(this);
     String configClassName = null;
     FunctionDeclaration constructor = classDeclaration.getConstructor();
@@ -591,7 +601,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         qualifiedName = getNativeAnnotationValue(renameAnnotation);
       }
     } else {
-      if (getNativeAnnotationRequireValue(nativeAnnotation) == null) {
+      if (!isInterface(declaration) && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
         return null;
       }
       String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
@@ -628,6 +638,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private static boolean isAmbientOrInterface(CompilationUnit compilationUnit) {
     return isAmbient(compilationUnit)
             || isInterface(compilationUnit.getPrimaryDeclaration());
+  }
+
+  private static boolean isAmbientInterface(CompilationUnit compilationUnit) {
+    return isAmbient(compilationUnit)
+            && isInterface(compilationUnit.getPrimaryDeclaration());
+  }
+
+  private static boolean isNonAmbientInterface(CompilationUnit compilationUnit) {
+    return !isAmbient(compilationUnit)
+            && isInterface(compilationUnit.getPrimaryDeclaration());
   }
 
   private static boolean isAmbient(CompilationUnit compilationUnit) {
@@ -670,6 +690,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
             Jooc.RENAME_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
             Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
+      out.writeSymbolWhitespace(annotation.getSymbol());
       return;
     }
     out.beginComment();
@@ -703,7 +724,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // never render [ExtConfig]s in a normal "visit":
         return;
       }
-      if (variableDeclaration.getClassDeclaration().isInterface()) {
+      if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
         out.writeSymbolWhitespace(variableDeclaration.getSymbol());
         out.writeToken("abstract");
       }
@@ -858,7 +879,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         return;
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
-      if (functionDeclaration.getClassDeclaration().isInterface()) {
+      if (isNonAmbientInterface(functionDeclaration.getClassDeclaration().getCompilationUnit())) {
         out.writeSymbolWhitespace(functionDeclaration.getSymbol());
         out.writeToken("abstract");
       }
