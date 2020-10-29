@@ -80,11 +80,11 @@ public class Annotation extends Directive {
   }
 
   public JooSymbol getSymbol() {
-    return getIde().getSymbol();
+    return getLeftBracket();
   }
 
   public String getMetaName() {
-    return getSymbol().getText();
+    return getIde().getName();
   }
 
   public JooSymbol getLeftBracket() {
