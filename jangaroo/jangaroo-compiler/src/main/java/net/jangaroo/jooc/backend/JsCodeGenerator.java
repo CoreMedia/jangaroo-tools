@@ -342,15 +342,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
       IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
 
-      List<Annotation> nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.NATIVE_ANNOTATION_NAME);
-      if (nativeAnnotations.isEmpty()) {
-        nativeAnnotations = primaryDeclaration.getAnnotations(Jooc.RENAME_ANNOTATION_NAME);
-      }
-      if (nativeAnnotations.isEmpty()) {
-        javaScriptName = dependentCUId;
+      Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotation == null) {
+        Annotation renameAnnotation = primaryDeclaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+        javaScriptName = renameAnnotation == null ? null : getNativeAnnotationValue(renameAnnotation);
+        if (javaScriptName == null) {
+          javaScriptName = dependentCUId;
+        }
         javaScriptNameToRequire = javaScriptName;
       } else {
-        Annotation nativeAnnotation = nativeAnnotations.get(0);
         String javaScriptAlias = getNativeAnnotationValue(nativeAnnotation);
         if (javaScriptAlias != null) {
           javaScriptName = javaScriptAlias;
