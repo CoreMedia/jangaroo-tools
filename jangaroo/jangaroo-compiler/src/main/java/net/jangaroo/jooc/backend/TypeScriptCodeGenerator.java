@@ -1135,6 +1135,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  void generateTypeAssertion(Expr argument, String type) throws IOException {
+    argument.visit(this);
+    out.write(" as " + type);
+  }
+
+  @Override
   protected void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException {
     out.writeSymbolWhitespace(objectField.getSymbol());
     out.writeToken("...");

@@ -87,6 +87,7 @@ import net.jangaroo.jooc.types.ExpressionType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -505,6 +506,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     CommaSeparatedList<Expr> arguments = args.getExpr();
     Parameters params = methodDeclaration.getParams();
     boolean first = true;
+    Map<String, String> propertiesClassByParamName = new HashMap<>();
     while (params != null || arguments != null) {
       Parameter parameter = params == null ? null : params.getHead();
       Annotation parameterAnnotation = parameter == null || parameterAnnotations == null ? null
@@ -512,28 +514,44 @@ public abstract class CodeGeneratorBase implements AstVisitor {
               .filter(someParameterAnnotation -> parameter.getName().equals(someParameterAnnotation.getPropertiesByName().get(null)))
               .findAny().orElse(null);
       if (arguments != null) {
-        Object coerceTo = parameterAnnotation == null ? null
+        Object coerceToObj = parameterAnnotation == null ? null
                 : parameterAnnotation.getPropertiesByName().get(Jooc.PARAMETER_ANNOTATION_COERCE_TO_PROPERTY);
         boolean coerced = false;
-        if (coerceTo instanceof String) {
+        Expr argument = arguments.getHead();
+        if (coerceToObj instanceof String) {
+          String coerceTo = (String) coerceToObj;
           if (Jooc.COERCE_TO_VALUE_PROPERTIES_CLASS.equals(coerceTo)) {
-            ClassDeclaration propertiesClass = applyExpr.getPropertiesClass(arguments.getHead());
+            ClassDeclaration propertiesClass = applyExpr.getPropertiesClass(argument);
             if (propertiesClass != null) {
               coerced = true;
-              out.write(compilationUnitAccessCode(propertiesClass));
+              String propertiesClassAccessCode = compilationUnitAccessCode(propertiesClass);
+              out.write(propertiesClassAccessCode);
+              propertiesClassByParamName.put(parameter.getName(), propertiesClassAccessCode);
+            }
+          } else if (coerceTo.startsWith(Jooc.COERCE_TO_VALUE_KEYOF_PREFIX)) {
+            if (!(argument instanceof LiteralExpr)) {
+              // a computed key needs a type assertion to be a accepted as a key of the properties class:
+              String referencedParam = coerceTo.substring(Jooc.COERCE_TO_VALUE_KEYOF_PREFIX.length());
+              String referencedPropertiesClass = propertiesClassByParamName.get(referencedParam);
+              if (referencedPropertiesClass == null) {
+                throw JangarooParser.error(parameter.getSymbol(),
+                        String.format("Referenced properties class parameter name '%s' not found.", referencedParam));
+              }
+              coerced = true;
+              generateTypeAssertion(argument, "keyof " + referencedPropertiesClass);
             }
           } else {
-            ExpressionType type = arguments.getHead().getType();
+            ExpressionType type = argument.getType();
             if (type == null || !type.getAS3Type().toString().equals(coerceTo)) {
               coerced = true;
               out.write(coerceTo + "(");
-              arguments.getHead().visit(this);
+              argument.visit(this);
               out.write(")");
             }
           }
         }
         if (!coerced) {
-          arguments.getHead().visit(this);
+          argument.visit(this);
         }
         writeOptSymbol(arguments.getSymComma());
         arguments = arguments.getTail();
@@ -556,6 +574,11 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       first = false;
     }
     out.writeSymbol(args.getRParen());
+  }
+
+  void generateTypeAssertion(Expr argument, String type) throws IOException {
+    // default: suppress type assertion, only generate argument:
+    argument.visit(this);
   }
 
   @Override
