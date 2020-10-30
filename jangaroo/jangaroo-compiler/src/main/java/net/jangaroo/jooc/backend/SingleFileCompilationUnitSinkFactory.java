@@ -21,6 +21,9 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+
+import static net.jangaroo.jooc.Jooc.NATIVE_ANNOTATION_NAME;
 
 /**
  * Compilation unit sink factory for one compilation unit per output file.
@@ -28,31 +31,37 @@ import java.io.OutputStreamWriter;
 public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUnitSinkFactory {
 
   private final CompilationUnitRegistry compilationUnitRegistry;
-  private String suffix;
-  private boolean generateApi;
+  private final String suffix;
+  private final String nativeSuffix;
+  private final boolean generateApi;
   private final CompilationUnitResolver compilationUnitModelResolver;
 
-  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, CompilationUnitResolver compilationUnitModelResolver, CompilationUnitRegistry compilationUnitRegistry) {
+  public SingleFileCompilationUnitSinkFactory(JoocOptions options, File destinationDir, boolean generateApi, String suffix, String nativeSuffix, CompilationUnitResolver compilationUnitModelResolver, CompilationUnitRegistry compilationUnitRegistry) {
     super(options, destinationDir);
     this.suffix = suffix;
+    this.nativeSuffix = nativeSuffix;
     this.generateApi = generateApi;
     this.compilationUnitModelResolver = compilationUnitModelResolver;
     this.compilationUnitRegistry = compilationUnitRegistry;
   }
 
-  private File getOutputFile(File sourceFile, String qName) {
+  private File getOutputFile(File sourceFile, IdeDeclaration primaryDeclaration) {
     if (getOutputDir() == null) {
       File outputDirectory = sourceFile.getAbsoluteFile().getParentFile();
       return new File(outputDirectory, CompilerUtils.qNameFromFile(outputDirectory, sourceFile) + suffix);
     }
+    String qName = generateApi
+            ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getTargetQualifiedNameStr();
+    String suffix = nativeSuffix != null &&
+            (primaryDeclaration.isNative() || primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) != null)
+            ? nativeSuffix : this.suffix;
     return CompilerUtils.fileFromQName(qName, getOutputDir(), suffix);
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,
                                         IdeDeclaration primaryDeclaration, final File sourceFile,
                                         final boolean verbose) {
-    final File outFile = getOutputFile(sourceFile,
-            generateApi ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getTargetQualifiedNameStr());
+    final File outFile = getOutputFile(sourceFile, primaryDeclaration);
     createOutputDirs(outFile);
 
     return compilationUnit -> {
@@ -61,7 +70,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
       }
 
       try {
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8");
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outFile), StandardCharsets.UTF_8);
         try {
           if (generateApi) {
             ApiModelGenerator apiModelGenerator = new ApiModelGenerator(isExcludeClassByDefault(getOptions()));
@@ -69,6 +78,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
           } else {
             JsWriter out = new JsWriter(writer);
             String codeSuffix = "";
+            //noinspection TryFinallyCanBeTryWithResources
             try {
               out.setOptions(getOptions());
               compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));

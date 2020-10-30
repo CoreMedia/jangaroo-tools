@@ -86,7 +86,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String COERCE_TO_VALUE_KEYOF_PREFIX = "keyof ";
   public static final String RETURN_ANNOTATION_NAME = "Return";
 
-  private List<FileInputSource> compileQueue = new ArrayList<>();
+  private final List<FileInputSource> compileQueue = new ArrayList<>();
 
   public Jooc() {
     this(new JoocConfiguration());
@@ -336,7 +336,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     } else {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
       final String suffix = generateActionScriptApi ? AS_SUFFIX : config.isMigrateToTypeScript() ? ".ts" : OUTPUT_FILE_SUFFIX;
-      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, this, this);
+      final String nativeSuffix = config.isMigrateToTypeScript() ? ".d.ts" : null;
+      codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, nativeSuffix, this, this);
     }
     return codeSinkFactory;
   }
