@@ -330,10 +330,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
               && classDeclaration.getOptImplements() != null
               && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
-        out.write("\nmixin(" + classDeclaration.getName());
-        out.write(", ");
-        classDeclaration.getOptImplements().getSuperTypes().visit(this);
-        out.write(");\n");
+        CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
+        boolean foundNonMixinInterface = false;
+        while (superTypes != null) {
+          if (!isCurrentMixinInterface(superTypes.getHead())) {
+            if (!foundNonMixinInterface) {
+              out.write("\nmixin(" + classDeclaration.getName());
+              foundNonMixinInterface = true;
+            }
+            out.write(", ");
+            superTypes.getHead().visit(this);
+          }
+          superTypes = superTypes.getTail();
+        }
+        if (foundNonMixinInterface) {
+          out.write(");\n");
+        }
       }
       if (configClassName != null) {
         out.write("\ndeclare namespace ");
@@ -359,6 +371,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private boolean isCurrentMixinInterface(Ide head) {
+    return CompilationUnit.mapMixinInterface(head.getDeclaration().getCompilationUnit()).equals(compilationUnit);
+  }
+
   private void visitImplementsFiltered(JooSymbol symImplementsOrExtends,
                                        String additionalIde,
                                        Implements optImplements,
@@ -374,7 +390,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<Ide> current = optImplements.getSuperTypes();
       do {
         Ide head = current.getHead();
-        if (filter.contains(head)) {
+        // head must be included in filter and
+        // must not be a mixin class's mixin interface: 
+        if (filter.contains(head) && !isCurrentMixinInterface(head)) {
           out.writeSymbol(lastSym);
           head.visit(this);
           if (useCfgTypeParameter && useCfgTypeParameter(head)) {
