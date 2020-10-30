@@ -1225,14 +1225,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // Note that it must be polyfilled in IE, even IE11!
         out.writeSymbolWhitespace(forInStatement.getExpr().getSymbol());
         out.write("Object.values");
-        if (declType != null) {
-          out.write("<");
-          declType.visit(this);
-          out.write(">");
-        }
         out.write("(");
         forInStatement.getExpr().visit(this);
         out.write(")");
+        if (declType != null) {
+          out.writeToken(" as");
+          declType.visit(this);
+          out.write("[]");
+        }
       }
     } else {
       out.writeSymbol(forInStatement.getSymIn());
