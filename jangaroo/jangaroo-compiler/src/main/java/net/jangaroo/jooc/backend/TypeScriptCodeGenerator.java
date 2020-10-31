@@ -213,6 +213,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             .filter(TypedIdeDeclaration::isExtConfig)
             .collect(Collectors.toList());
     String ownConfigsClassName = null;
+    String propsFromConfigs = null;
     if (!configs.isEmpty()) {
       ownConfigsClassName = classDeclaration.getName() + "Configs";
       out.write(String.format("class %s {", ownConfigsClassName));
@@ -220,8 +221,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         visitAsConfig(configDeclaration);
       }
       out.write("}\n");
-      out.write(String.format("type PropsFromConfigs = Required<%s>;", ownConfigsClassName));
-      mixins.add(new Ide("PropsFromConfigs"));
+      propsFromConfigs = String.format("Required<%s>", ownConfigsClassName);
+      mixins.add(new Ide(propsFromConfigs));
       needsCompanionInterface = true;
     }
     for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
@@ -310,10 +311,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     if (needsCompanionInterface) {
       out.write("\ninterface " + classDeclaration.getName() + configTypeParameterDeclaration);
-      // output "extends <mixin-interfaces>[, PropsFromConfigs]"
+      // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
-              configs.isEmpty() ? null : "PropsFromConfigs",
+              propsFromConfigs,
               classDeclaration.getOptImplements(),
               configClassName != null,
               mixins);
