@@ -858,8 +858,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return varOrFunDeclaration.isStatic()
             || !varOrFunDeclaration.isNative()
             && (varOrFunDeclaration instanceof PropertyDeclaration
-            || varOrFunDeclaration instanceof FunctionDeclaration
-            && ((FunctionDeclaration) varOrFunDeclaration).isGetterOrSetter());
+            || varOrFunDeclaration instanceof FunctionDeclaration);
   }
 
   @Override
