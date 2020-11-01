@@ -131,23 +131,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return memberDeclaration.getClassDeclaration() == null || memberDeclaration.getClassDeclaration().isPrimaryDeclaration() ? primaryClassDefinitionBuilder : secondaryClassDefinitionBuilder;
   }
 
-  private static boolean isAssignmentLHS(Ide ide) {
-    AstNode parentNode = ide.getParentNode();
-    if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == ide)) {
-      AstNode containingExpr = parentNode.getParentNode();
-      if (containingExpr instanceof AssignmentOpExpr) {
-        Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
-        if (arg1 instanceof IdeExpr) {
-          arg1 = ((IdeExpr) arg1).getNormalizedExpr();
-        }
-        if (arg1 == parentNode) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   String compilationUnitAccessCode(IdeDeclaration primaryDeclaration) {
     CompilationUnit otherUnit = primaryDeclaration.getCompilationUnit();
     if (otherUnit == compilationUnit) {
@@ -624,69 +607,14 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private TypedIdeDeclaration findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
-    String memberName = qIde.getIde().getText();
-    TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
-//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
-//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member != null) {
-      List<Annotation> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
-      if (bindableAnnotations.size() > 0) {
-        return member;
-      }
-    }
-    return null;
-  }
-
-  private static Map<String, Object> getBindablePropertiesByName(TypedIdeDeclaration member) {
-    return member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).get(0).getPropertiesByName();
-  }
-
   private String resolveBindable(Ide qIde, MethodType methodType, ClassDeclaration typeDeclaration) throws IOException {
     TypedIdeDeclaration member = findMemberWithBindableAnnotation(qIde, methodType, typeDeclaration);
     return member == null ? null : getBindablePropertyName(methodType, member);
   }
 
-  private static String getBindablePropertyName(MethodType methodType, TypedIdeDeclaration member) {
-    Object bindableAnnotationValue = getBindablePropertiesByName(member).get(null);
-    if (bindableAnnotationValue == null) {
-      return methodType + MxmlUtils.capitalize(member.getName());
-    } else {
-      return (String) bindableAnnotationValue;
-    }
-  }
-
   private static String getBindableEventName(TypedIdeDeclaration member) {
     Object eventAnnotation = getBindablePropertiesByName(member).get("event");
     return eventAnnotation instanceof String ? (String) eventAnnotation : null;
-  }
-
-
-  private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
-                                                        MethodType methodType) throws IOException {
-    TypedIdeDeclaration member = classDeclaration.getMemberDeclaration(memberName);
-    if (member instanceof PropertyDeclaration) {
-      member = ((PropertyDeclaration) member).getAccessor(methodType == MethodType.SET);
-    }
-    if (member instanceof VariableDeclaration) {
-      if (((VariableDeclaration) member).isConst() && methodType == MethodType.SET) {
-        // cannot write a const:
-        member = null;
-      }
-    } else if (member instanceof FunctionDeclaration) {
-      FunctionDeclaration method = (FunctionDeclaration) member;
-      MethodType foundMethodType = method.isGetter() ? MethodType.GET : method.isSetter() ? MethodType.SET : null;
-      if (methodType != foundMethodType) {
-        member = null;
-      }
-    }
-    if (member == null) {
-      ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (superDeclaration != null) {
-        member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
-      }
-    }
-    return member;
   }
 
   @Override

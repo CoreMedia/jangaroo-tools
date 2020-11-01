@@ -50,6 +50,7 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
 import net.jangaroo.jooc.input.ZipFileInputSource;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -1298,6 +1299,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           Object nativeMemberName = nativeAnnotation.getPropertiesByName().get(null);
           if (nativeMemberName instanceof String) {
             memberName = (String) nativeMemberName;
+          }
+        }
+        if (false && !isAssignmentLHS(ide)) { // TODO: only if type is in config mode!
+          TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+          if (getter != null) {
+            // found usage of an [Bindable]-annotated property: replace property access by get method invocation
+            memberName = getBindablePropertyName(MethodType.GET, getter) + "()";
           }
         }
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
