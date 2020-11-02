@@ -226,6 +226,60 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       mixins.add(new Ide(propsFromConfigs));
       needsCompanionInterface = true;
     }
+    String configClassName = null;
+    FunctionDeclaration constructor = classDeclaration.getConstructor();
+    if (constructor != null && constructor.getParams() != null) {
+      Parameter firstParam = constructor.getParams().getHead();
+      if (firstParam.getType() != null && firstParam.getType().isConfigType()) {
+        TypeDeclaration declaration = firstParam.getOptTypeRelation().getType().getDeclaration();
+        if (!classDeclaration.equals(declaration)) {
+          // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+          configClassName = compilationUnitAccessCode(declaration) + "._";
+        }
+      }
+    }
+    if (configClassName == null && classDeclaration.hasAnyExtConfig()) {
+      configClassName = classDeclaration.getName() + "_";
+    }
+
+    List<String> configMixins = new ArrayList<>();
+    List<Ide> realInterfaces = new ArrayList<>();
+    if (classDeclaration.getOptImplements() != null) {
+      CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
+      do {
+        ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
+        CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
+        if (mixinCompilationUnit != null
+                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+          mixins.add(superTypes.getHead());
+          if (maybeMixinDeclaration.hasAnyExtConfig()) {
+            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
+          }
+        } else {
+          realInterfaces.add(superTypes.getHead());
+        }
+        superTypes = superTypes.getTail();
+      } while (superTypes != null);
+    }
+
+    if (configClassName != null) {
+      List<String> configExtends = new ArrayList<>(configMixins);
+      ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+      if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
+        configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
+      }
+      configExtends.addAll(configMixins);
+      if (ownConfigsClassName != null) {
+        configExtends.add(ownConfigsClassName);
+      }
+      out.write("interface " + classDeclaration.getName() + "_");
+      if (!configExtends.isEmpty()) {
+        out.write(" extends " + String.join(", ", configExtends));
+      }
+      out.write(" {\n");
+      out.write("}\n\n");
+    }
+
     for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
       if (member.isPrivate()) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
@@ -248,17 +302,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken("class");
     }
     classDeclaration.getIde().visit(this);
-    String configClassName = null;
-    FunctionDeclaration constructor = classDeclaration.getConstructor();
-    if (constructor != null && constructor.getParams() != null) {
-      Parameter firstParam = constructor.getParams().getHead();
-      if (firstParam.getType() != null && firstParam.getType().isConfigType()) {
-        configClassName = compilationUnitAccessCode(firstParam.getOptTypeRelation().getType().getDeclaration()) + "._";
-      }
-    }
-    if (configClassName == null && classDeclaration.hasAnyExtConfig()) {
-      configClassName = classDeclaration.getName() + "._";
-    }
     String configTypeParameterDeclaration = "";
     if (configClassName != null) {
       configTypeParameterDeclaration = String.format("<Cfg extends %s = %s>", configClassName, configClassName);
@@ -272,25 +315,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    List<String> configMixins = new ArrayList<>();
-    List<Ide> realInterfaces = new ArrayList<>();
     if (classDeclaration.getOptImplements() != null) {
-      CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
-      do {
-        ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
-        CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
-        if (mixinCompilationUnit != null
-                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
-          mixins.add(superTypes.getHead());
-          if (maybeMixinDeclaration.hasAnyExtConfig()) {
-            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
-          }
-        } else {
-          realInterfaces.add(superTypes.getHead());
-        }
-        superTypes = superTypes.getTail();
-      } while (superTypes != null);
-
       JooSymbol extendsOrImplements;
       if (classDeclaration.isInterface() && classDeclaration.getOptImplements().getSuperTypes().getTail() != null) {
         extendsOrImplements = new JooSymbol("implements");
@@ -349,24 +374,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       if (configClassName != null) {
-        out.write("\ndeclare namespace ");
-        out.write(classDeclaration.getName());
-        out.write(" {\n");
-        out.write("  export class _");
-        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-        if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
-          out.write(" extends " + compilationUnitAccessCode(superTypeDeclaration) + "._");
-        }
-        out.write(" {\n");
-        out.write("    constructor(config?: _);\n");
-        out.write("  }\n");
-        List<String> configExtends = new ArrayList<>(configMixins);
-        if (ownConfigsClassName != null) {
-          configExtends.add(ownConfigsClassName);
-        }
-        if (!configExtends.isEmpty()) {
-          out.write(String.format("  export interface _ extends %s {}\n", String.join(", ", configExtends)));
-        }
+        out.write(String.format("\ndeclare namespace %s {\n", classDeclaration.getName()));
+        out.write(String.format("  export type _ = %s_;\n", classDeclaration.getName()));
+        out.write("  export const _: { new(config?: _): _; };\n");
         out.write("}\n\n");
       }
     }
