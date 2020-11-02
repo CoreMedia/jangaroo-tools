@@ -210,7 +210,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode); // computes modifiers
     // always compute method signature, so that possible errors are logged:
     FunctionSignature methodSignature = getMethodSignature();
-    setType(methodSignature);
+    setType(isGetterOrSetter() ? methodSignature.getTypeParameter() : methodSignature);
     fun.analyze(this);
 
     if (isOverride()) {
