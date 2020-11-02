@@ -95,7 +95,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-      ExpressionType expressionType = getIde().getScope().getExpressionType(optTypeRelation);
+      ExpressionType expressionType = optTypeRelation.getType().getIde().getScope().getExpressionType(optTypeRelation);
       if (getName().toLowerCase().endsWith("config")) {
         expressionType.markAsConfigTypeIfPossible();
       }
