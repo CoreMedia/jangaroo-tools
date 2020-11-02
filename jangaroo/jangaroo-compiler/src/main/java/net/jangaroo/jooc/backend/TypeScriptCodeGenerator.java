@@ -252,8 +252,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     FunctionDeclaration constructor = classDeclaration.getConstructor();
     if (constructor != null && constructor.getParams() != null) {
       Parameter firstParam = constructor.getParams().getHead();
-      if ("config".equals(firstParam.getName()) && firstParam.getOptTypeRelation() != null
-              && classDeclaration.getName().startsWith(firstParam.getOptTypeRelation().getType().getIde().getName())) {
+      if (firstParam.getType() != null && firstParam.getType().isConfigType()) {
         configClassName = compilationUnitAccessCode(firstParam.getOptTypeRelation().getType().getDeclaration()) + "._";
       }
     }
@@ -373,6 +372,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isCurrentMixinInterface(Ide head) {
     return CompilationUnit.mapMixinInterface(head.getDeclaration().getCompilationUnit()).equals(compilationUnit);
   }
@@ -448,12 +448,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private boolean useCfgTypeParameter(Ide superType) {
     IdeDeclaration declaration = superType.getDeclaration();
-    if (declaration instanceof ClassDeclaration) {
-      if (((ClassDeclaration) declaration).hasAnyExtConfig()) {
-        return true;
-      }
-    }
-    return false;
+    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfig();
   }
 
   @Override
@@ -463,22 +458,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       parentNode = parentNode.getParentNode();
     }
     if (parentNode instanceof IdeDeclaration) {
-      IdeDeclaration ideDeclaration =  (IdeDeclaration) parentNode;
       out.writeSymbol(typeRelation.getSymbol());
-      ExpressionType expressionType = ideDeclaration.getIde().getScope().getExpressionType(ideDeclaration);
+      ExpressionType expressionType = ((IdeDeclaration) parentNode).getType();
       // a non-getter-setter function declaration returns its function signature, but we are just interested 
       // in its return value, which is contained in the type parameter:
       if (expressionType instanceof FunctionSignature) {
         expressionType = expressionType.getTypeParameter();
       }
       String tsType = getTypeScriptTypeForActionScriptType(expressionType);
-      if ("config".equals(ideDeclaration.getName())) {
-        TypeDeclaration maybeExtConfigClassDeclaration = expressionType.getDeclaration();
-        if (maybeExtConfigClassDeclaration instanceof ClassDeclaration
-                && ((ClassDeclaration) maybeExtConfigClassDeclaration).hasAnyExtConfig()) {
-          tsType += "._"; // use config class instead!
-        }
-      }
       writeSymbolReplacement(typeRelation.getType().getSymbol(), tsType);
     } else {
       super.visitTypeRelation(typeRelation);
@@ -505,7 +492,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           return as3Type.name;
         }
         // use class name:
-        return getLocalName(declaration, true);
+        String tsType = getLocalName(declaration, true);
+        return expressionType.isConfigType() ? tsType + "._" : tsType;
       case ANY:
         return "any";
       case VECTOR:
@@ -1301,10 +1289,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             memberName = (String) nativeMemberName;
           }
         }
-        if (false && !isAssignmentLHS(ide)) { // TODO: only if type is in config mode!
+        if (false && !isAssignmentLHS(ide)) { // TODO: if type is not a config type: false -> !type.isConfigType()
           TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
           if (getter != null) {
-            // found usage of an [Bindable]-annotated property: replace property access by get method invocation
+            // found usage of a [Bindable]-annotated property: replace property access by get method invocation
             memberName = getBindablePropertyName(MethodType.GET, getter) + "()";
           }
         }
@@ -1442,6 +1430,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (declaration instanceof VariableDeclaration && !((VariableDeclaration) declaration).isConst()
                 && getRequireModuleName(declaration) != null) {
+          // Modifiable singleton access:
           localName += "._";
         }
       }

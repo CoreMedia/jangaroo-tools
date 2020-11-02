@@ -208,10 +208,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   public void analyze(AstNode parentNode) {
     analyzeSymModifiers();
     super.analyze(parentNode); // computes modifiers
-    fun.analyze(this);
-
     // always compute method signature, so that possible errors are logged:
     FunctionSignature methodSignature = getMethodSignature();
+    setType(methodSignature);
+    fun.analyze(this);
+
     if (isOverride()) {
       IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
       CompileLog log = getIde().getScope().getCompiler().getLog();

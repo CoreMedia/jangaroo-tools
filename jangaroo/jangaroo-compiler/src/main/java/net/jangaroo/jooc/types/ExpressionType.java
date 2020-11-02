@@ -19,6 +19,7 @@ public class ExpressionType {
   private AS3Type as3Type;
   private TypeDeclaration declaration;
   private ExpressionType typeParameter;
+  private boolean isConfigType;
 
   public ExpressionType(@Nonnull Type type) {
     this.type = type;
@@ -31,6 +32,16 @@ public class ExpressionType {
   public ExpressionType(@Nonnull TypeDeclaration declaration, @Nullable ExpressionType typeParameter) {
     this.declaration = declaration;
     this.typeParameter = typeParameter;
+  }
+
+  public boolean isConfigType() {
+    return isConfigType;
+  }
+
+  public void markAsConfigTypeIfPossible() {
+    if (getDeclaration() instanceof ClassDeclaration && ((ClassDeclaration) getDeclaration()).hasAnyExtConfig()) {
+      isConfigType = true;
+    }
   }
 
   @Nullable

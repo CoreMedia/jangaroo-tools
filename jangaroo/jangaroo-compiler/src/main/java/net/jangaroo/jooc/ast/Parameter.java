@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -80,6 +81,11 @@ public class Parameter extends IdeDeclaration implements Typed {
         //todo replace that condition with real Array definition lookup
         throw JangarooParser.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
       }
+      ExpressionType expressionType = getIde().getScope().getExpressionType(getOptTypeRelation());
+      if (getName().toLowerCase().endsWith("config")) {
+        expressionType.markAsConfigTypeIfPossible();
+      }
+      setType(expressionType);
     }
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);

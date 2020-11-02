@@ -139,9 +139,23 @@ public class IdeExpr extends Expr {
             && !ide.isDeclared()) {
       ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "undeclared identifier '" + ide.getName() + "'.");
     }
-    ExpressionType type = normalizedExpr != this
-            ? normalizedExpr.getType()
-            : ide.getScope().getExpressionType(ide.getDeclaration(false));
+    ExpressionType type = null;
+    if (normalizedExpr != this) {
+      type = normalizedExpr.getType();
+    } else {
+      IdeDeclaration declaration = ide.getDeclaration(false);
+      if (declaration != null) {
+        type = declaration.getType();
+        // TODO: remove the following assertion when it has proven to work:
+        ExpressionType oldType = ide.getScope().getExpressionType(declaration);
+        if (oldType != null && type != null && !oldType.equals(type)) {
+          throw Jooc.error(getSymbol(), "internal error: inconsistent type");
+        }
+        if (type == null) {
+          type = oldType;
+        }
+      }
+    }
     setType(type);
   }
 
