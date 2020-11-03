@@ -448,14 +448,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(optSymSemicolon, ";");
   }
 
-  @Override
-  public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
-    super.visitClassBodyDirectives(!companionInterfaceMode ? classBodyDirectives
-            : classBodyDirectives.stream()
-            .filter(FunctionDeclaration.class::isInstance)
-            .collect(Collectors.toList()));
-  }
-
   private boolean useCfgTypeParameter(Ide superType) {
     IdeDeclaration declaration = superType.getDeclaration();
     return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfig();
@@ -737,6 +729,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    if (companionInterfaceMode) {
+      if (variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null) {
+        out.write("\n  " + getBindablePropertyName(MethodType.GET, variableDeclaration) + "()");
+        visitIfNotNull(variableDeclaration.getOptTypeRelation());
+        out.write(";");
+        out.write("\n  " + getBindablePropertyName(MethodType.SET, variableDeclaration) + "(value");
+        visitIfNotNull(variableDeclaration.getOptTypeRelation());
+        out.write("): this;\n\n");
+      }
+      return;
+    }
     if (variableDeclaration.isClassMember()) {
       if (variableDeclaration.isExtConfig()) {
         // never render [ExtConfig]s in a normal "visit":
@@ -873,15 +876,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     FunctionExpr functionExpr = functionDeclaration.getFun();
     if (functionDeclaration.isClassMember()) {
-      if (functionDeclaration.isExtConfig()) {
-        // never render [ExtConfig]s in a normal "visit":
-        return;
-      }
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);
-      if (convertToProperty && functionDeclaration.isSetter()) {
-        // completely suppress native setter class members!
+      if (convertToProperty && (functionDeclaration.isSetter() || functionDeclaration.isExtConfig())) {
+        // completely suppress native setter class members, for configs even native getters!
         return;
       }
       // any other native members in a non-ambient/interface compilation unit are moved
@@ -902,12 +901,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
+      boolean convertAccessorToMethod = false;
       if (convertToProperty) {
         if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
           writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
         }
       } else {
-        writeOptSymbol(functionDeclaration.getSymGetOrSet());
+        convertAccessorToMethod = functionDeclaration.isGetterOrSetter()
+                && functionDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
+        if (!convertAccessorToMethod) {
+          writeOptSymbol(functionDeclaration.getSymGetOrSet());
+        }
       }
       if (functionDeclaration.isConstructor()) {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
@@ -917,6 +921,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (!useSymbolForPrivateMember(functionDeclaration)) {
             out.writeToken("=");
           }
+        } else if (convertAccessorToMethod) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),
+                  getBindablePropertyName(functionDeclaration.isGetter() ? MethodType.GET : MethodType.SET,
+                          functionDeclaration));
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -1299,7 +1307,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             memberName = (String) nativeMemberName;
           }
         }
-        if (false && !isAssignmentLHS(ide)) { // TODO: if type is not a config type: false -> !type.isConfigType()
+        if (!type.isConfigType() && !isAssignmentLHS(ide)) { // TODO: if type is not a config type: false -> !type.isConfigType()
           TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
           if (getter != null) {
             // found usage of a [Bindable]-annotated property: replace property access by get method invocation
