@@ -23,6 +23,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
@@ -334,6 +335,9 @@ public class ClassDeclaration extends TypeDeclaration {
       }
     }
     do {
+      if (current.getCompilationUnit() instanceof MxmlCompilationUnit) {
+        return true;
+      }
       String qualifiedName = current.getQualifiedNameStr();
       if ("ext.Base".equals(qualifiedName)) {
         // having ExtConfigs only counts if you explicitly inherit from ext.Base or implement ext.Plugin!
