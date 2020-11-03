@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
-import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -88,7 +87,16 @@ public class DotExpr extends PostfixOpExpr {
           }
           // Otherwise, keep the PropertyDeclaration, as it already uses the type of the getter.
         }
-        setType(getIde().getScope().getExpressionType(memberDeclaration));
+        ExpressionType type = memberDeclaration.getType();
+        // TODO: FunctionSignature should really contain MethodType!
+        if (type != null && memberDeclaration instanceof FunctionDeclaration &&
+                ((FunctionDeclaration) memberDeclaration).isGetterOrSetter()) {
+          type = type.getTypeParameter();
+        }
+        if (type == null) {
+          type = getIde().getScope().getExpressionType(memberDeclaration);
+        }
+        setType(type);
       }
     }
   }
