@@ -490,8 +490,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       case OBJECT:
         TypeDeclaration declaration = expressionType.getDeclaration();
         if (as3Type.name.equals(declaration.getQualifiedNameStr())) {
-          // it is really "Object", use TypeScript "Object":
-          return as3Type.name;
+          // it is really "Object", use TypeScript "any":
+          return "any";
         }
         // use class name:
         String tsType = getLocalName(declaration, true);
