@@ -1310,8 +1310,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (!type.isConfigType() && !isAssignmentLHS(ide)) { // TODO: if type is not a config type: false -> !type.isConfigType()
           TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
           if (getter != null) {
-            // found usage of a [Bindable]-annotated property: replace property access by get method invocation
-            memberName = getBindablePropertyName(MethodType.GET, getter) + "()";
+            // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
+            memberName = "getConfig(" + CompilerUtils.quote(ide.getName()) + ")";
           }
         }
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
