@@ -232,7 +232,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
         }
       }
     }
-    throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
+    // no base app, that's okay, you just must tag dependencies as scope provided so that we know what to package:
+    return new JangarooAppOverlay(project, null);
   }
 
   JangarooApps createJangarooApps(MavenProject project) throws MojoExecutionException {
@@ -400,18 +401,23 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
     @Override
     JangarooApp getRootBaseApp() {
-      return baseApp.getRootBaseApp();
+      return baseApp == null ? null : baseApp.getRootBaseApp();
     }
 
     Set<Artifact> getOwnDynamicPackages() {
       LinkedHashSet<Artifact> ownDynamicPackages = new LinkedHashSet<>(packages);
-      ownDynamicPackages.removeAll(baseApp.packages);
+      if (baseApp != null) {
+        ownDynamicPackages.removeAll(baseApp.packages);
+      }
       return ownDynamicPackages;
     }
 
     Set<Artifact> getAllDynamicPackages() {
       LinkedHashSet<Artifact> allDynamicPackages = new LinkedHashSet<>(packages);
-      allDynamicPackages.removeAll(getRootBaseApp().packages);
+      JangarooApp rootBaseApp = getRootBaseApp();
+      if (rootBaseApp != null) {
+        allDynamicPackages.removeAll(rootBaseApp.packages);
+      }
       return allDynamicPackages;
     }
   }

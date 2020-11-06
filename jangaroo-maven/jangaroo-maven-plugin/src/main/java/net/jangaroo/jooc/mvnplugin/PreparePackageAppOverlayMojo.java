@@ -70,26 +70,29 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
             .collect(Collectors.toSet());
     writeDynamicPackagesJson(overlayPackageNames);
 
-    InputStream appJson = getInputStreamForDirOrJar(getArtifactFile(jangarooAppOverlay.getRootBaseApp().mavenProject), SENCHA_APP_FILENAME, META_INF_RESOURCES);
-    final Set<String> locales;
-    try {
-      locales = new LinkedHashSet<>(AppDeSerializer.readLocales(appJson));
-    } catch (IOException e) {
-      throw new MojoExecutionException("Could not read locales", e);
-    }
-
-    Set<Artifact> artifacts = new HashSet<>();
-    JangarooApp current = jangarooAppOverlay;
-    while (current != null) {
-      artifacts.addAll(current.packages);
-      if (current instanceof JangarooAppOverlay) {
-        current = ((JangarooAppOverlay) current).baseApp;
-      } else {
-        current = null;
+    JangarooApp rootBaseApp = jangarooAppOverlay.getRootBaseApp();
+    if (rootBaseApp != null) {
+      InputStream appJson = getInputStreamForDirOrJar(getArtifactFile(rootBaseApp.mavenProject), SENCHA_APP_FILENAME, META_INF_RESOURCES);
+      final Set<String> locales;
+      try {
+        locales = new LinkedHashSet<>(AppDeSerializer.readLocales(appJson));
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not read locales", e);
       }
+
+      Set<Artifact> artifacts = new HashSet<>();
+      JangarooApp current = jangarooAppOverlay;
+      while (current != null) {
+        artifacts.addAll(current.packages);
+        if (current instanceof JangarooAppOverlay) {
+          current = ((JangarooAppOverlay) current).baseApp;
+        } else {
+          current = null;
+        }
+      }
+      artifacts.add(getArtifact(rootBaseApp.mavenProject));
+      writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, new ArrayList<>(artifacts)));
     }
-    artifacts.add(getArtifact(jangarooAppOverlay.getRootBaseApp().mavenProject));
-    writeAppManifestJsonByLocale(prepareAppManifestByLocale(locales, new ArrayList<>(artifacts)));
   }
 
   private void populatePackages(JangarooApp jangarooApp, MavenProject project) throws MojoExecutionException {
@@ -99,7 +102,8 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
       if (isRequiredSenchaDependency(dependency, false) || Type.POM_PACKAGING.equals(dependency.getType())
               || (Type.JAR_EXTENSION.equals(dependency.getType()) && Artifact.SCOPE_RUNTIME.equals(dependency.getScope()))) {
         MavenProject mavenProject = getProjectFromDependency(project, dependency);
-        if (jangarooAppOverlay != null && jangarooAppOverlay.baseApp.mavenProject.equals(mavenProject)) {
+        if (jangarooAppOverlay != null && jangarooAppOverlay.baseApp != null
+                && jangarooAppOverlay.baseApp.mavenProject.equals(mavenProject)) {
           populatePackages(jangarooAppOverlay.baseApp, mavenProject);
         } else {
           if (!SenchaUtils.isSenchaDependency(dependency.getType()) || jangarooApp.packages.add(getArtifact(dependency))) {

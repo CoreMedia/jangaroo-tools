@@ -142,7 +142,9 @@ public class RunMojo extends AbstractSenchaMojo {
         JangarooApp jangarooApp = createJangarooApp(project);
         while (jangarooApp instanceof JangarooAppOverlay) {
           jangarooApp = ((JangarooAppOverlay) jangarooApp).baseApp;
-          addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
+          if (jangarooApp != null) {
+            addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
+          }
         }
 
         staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
