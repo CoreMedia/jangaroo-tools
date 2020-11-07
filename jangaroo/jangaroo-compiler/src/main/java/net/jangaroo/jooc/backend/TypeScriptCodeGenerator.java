@@ -1095,14 +1095,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (statements.size() == 1) {
         Directive firstStatement = statements.get(0);
         if (firstStatement instanceof ReturnStatement) {
-          Expr expr = ((ReturnStatement) firstStatement).getOptExpr();
+          out.writeSymbolWhitespace(functionExpr.getBody().getLBrace());
+          ReturnStatement returnStatement = (ReturnStatement) firstStatement;
+          out.writeSymbolWhitespace(returnStatement.getSymbol());
+          Expr expr = returnStatement.getOptExpr();
           if (expr != null) {
             expr.visit(this);
-            if (needsParenthesis) {
-              out.write(")");
-            }
-            return;
+          } else {
+            // a sole return without and value should be a rare case, but who knows:
+            out.writeToken("undefined");
           }
+          out.writeSymbolWhitespace(functionExpr.getBody().getRBrace());
+          if (needsParenthesis) {
+            out.write(")");
+          }
+          return;
         }
       }
     } else {
