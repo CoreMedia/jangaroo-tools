@@ -1297,7 +1297,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Ide ide = dotExpr.getIde();
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
       if (memberDeclaration == null) {
-        if (!AS3Type.ANY.equals(type.getAS3Type())) {
+        if (!"any".equals(getTypeScriptTypeForActionScriptType(type))) {
           // dynamic property access on typed objects must be converted to ["<ide>"] in TypeScript:
           arg.visit(this);
           writeSymbolReplacement(dotExpr.getOp(), "[");
