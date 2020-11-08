@@ -485,7 +485,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   private String computeQualifiedNameHash() {
-    int hashCode = getQualifiedNameStr().hashCode();
+    int hashCode = getTargetQualifiedNameStr().hashCode();
     return  base64Char(hashCode >>> 18) +
             base64Char(hashCode >>> 12) +
             base64Char(hashCode >>> 6) +
