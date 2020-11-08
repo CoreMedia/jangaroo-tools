@@ -81,11 +81,7 @@ public class Parameter extends IdeDeclaration implements Typed {
         //todo replace that condition with real Array definition lookup
         throw JangarooParser.error(getOptTypeRelation().getSymbol(), "Rest parameter must have Array type.");
       }
-      ExpressionType expressionType = getIde().getScope().getExpressionType(getOptTypeRelation());
-      if (getName().toLowerCase().endsWith("config")) {
-        expressionType.markAsConfigTypeIfPossible();
-      }
-      setType(expressionType);
+      setType(getIde().getScope().getExpressionType(this));
     }
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);

@@ -29,6 +29,7 @@ import java.util.List;
  * @author Andreas Gawecki
  * @author Frank Wienberg
  */
+@SuppressWarnings({"FieldMayBeFinal", "Convert2Lambda"})
 public class FunctionExpr extends Expr {
 
   public static final String ARGUMENTS = "arguments";
@@ -45,7 +46,7 @@ public class FunctionExpr extends Expr {
   private JooSymbol rParen;
   private BlockStatement optBody;
 
-  private List<Parameter> implicitParams = new LinkedList<Parameter>();
+  private List<Parameter> implicitParams = new LinkedList<>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
   private boolean thisDefined = false;
   private boolean explicitThisUsed = false;
@@ -169,7 +170,8 @@ public class FunctionExpr extends Expr {
         });
       }
     });
-    setType(scope.getFunctionSignature(params, scope.getExpressionType(optTypeRelation)));
+    setType(scope.getFunctionSignature(functionDeclaration != null ? functionDeclaration.getMethodType() : null,
+            params, scope.getExpressionType(optTypeRelation)));
   }
 
   public void analyze(AstNode parentNode) {

@@ -186,7 +186,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       separatorToken = ",";
       memberName = CompilerUtils.quote(memberName);
       closingToken = ")";
-    } else if (memberDeclaration != null && !isAssignmentLHS(ide)) {
+    } else if (memberDeclaration != null && !ide.isAssignmentLHS()) {
       TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (getter != null) {
         // found usage of an [Bindable]-annotated get function: call it via AS3.getBindable()!

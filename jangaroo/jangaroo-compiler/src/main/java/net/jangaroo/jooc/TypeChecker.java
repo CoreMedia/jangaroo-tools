@@ -82,7 +82,7 @@ public class TypeChecker extends AstVisitorBase {
       if (classToConstruct != null && classToConstruct.getDeclaration() instanceof ClassDeclaration) {
         FunctionDeclaration constructor = ((ClassDeclaration) classToConstruct.getDeclaration()).getConstructor();
         Scope scope = type.getDeclaration().getIde().getScope();
-        type = scope.getFunctionSignature(constructor == null ? null : constructor.getParams(), type);
+        type = scope.getFunctionSignature(null, constructor == null ? null : constructor.getParams(), type);
       }
     }
     if (type instanceof FunctionSignature) {

@@ -77,21 +77,14 @@ public class DotExpr extends PostfixOpExpr {
         }
       } else {
         if (memberDeclaration instanceof PropertyDeclaration) {
-          // It may make a difference whether we read or write:
-          if (parentNode instanceof AssignmentOpExpr) {
-            Expr arg1 = ((AssignmentOpExpr) parentNode).getArg1();
-            if (arg1 == this || arg1 instanceof IdeExpr && ((IdeExpr) arg1).getNormalizedExpr() == this) {
-              // We are the left-hand-side of an assignment: Use setter's type!
-              memberDeclaration = ((PropertyDeclaration) memberDeclaration).getSetter();
-            }
-          }
-          // Otherwise, keep the PropertyDeclaration, as it already uses the type of the getter.
+          PropertyDeclaration propertyDeclaration = (PropertyDeclaration) memberDeclaration;
+          // It makes a difference whether we read or write.
+          // If we are the left-hand-side of an assignment, use setter, else, use getter:
+          memberDeclaration = ide.isAssignmentLHS() ? propertyDeclaration.getSetter() : propertyDeclaration.getGetter();
         }
         ExpressionType type = memberDeclaration.getType();
-        // TODO: FunctionSignature should really contain MethodType!
-        if (type != null && memberDeclaration instanceof FunctionDeclaration &&
-                ((FunctionDeclaration) memberDeclaration).isGetterOrSetter()) {
-          type = type.getTypeParameter();
+        if (type != null) {
+          type = type.getEvalType();
         }
         if (type == null) {
           type = getIde().getScope().getExpressionType(memberDeclaration);

@@ -146,13 +146,11 @@ public class IdeExpr extends Expr {
       IdeDeclaration declaration = ide.getDeclaration(false);
       if (declaration != null) {
         type = declaration.getType();
-        // TODO: remove the following assertion when it has proven to work:
-        ExpressionType oldType = ide.getScope().getExpressionType(declaration);
-        if (oldType != null && type != null && !type.isAssignableTo(oldType)) {
-          throw Jooc.error(getSymbol(), "internal error: inconsistent type");
-        }
         if (type == null) {
-          type = oldType;
+          type = ide.getScope().getExpressionType(declaration);
+        }
+        if (type != null) {
+          type = type.getEvalType();
         }
       }
     }

@@ -25,7 +25,6 @@ import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.LabeledStatement;
 import net.jangaroo.jooc.ast.LoopStatement;
@@ -37,6 +36,7 @@ import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
@@ -180,7 +180,7 @@ public abstract class AbstractScope implements Scope {
   }
 
   @Override
-  public FunctionSignature getFunctionSignature(Parameters params, ExpressionType returnType) {
+  public FunctionSignature getFunctionSignature(MethodType methodType, Parameters params, ExpressionType returnType) {
     List<ExpressionType> parameterTypes = new ArrayList<>();
     int minArgumentCount = 0;
     boolean hasRest = false;
@@ -206,7 +206,8 @@ public abstract class AbstractScope implements Scope {
         }
       }
     }
-    return new FunctionSignature(getClassDeclaration(AS3Type.FUNCTION.name), minArgumentCount, hasRest,
+    return new FunctionSignature(getClassDeclaration(AS3Type.FUNCTION.name),
+            methodType, minArgumentCount, hasRest,
             parameterTypes, returnType);
   }
 
@@ -220,10 +221,11 @@ public abstract class AbstractScope implements Scope {
     if (declaration instanceof TypeDeclaration) {
       return getExpressionType(AS3Type.CLASS, new ExpressionType((TypeDeclaration) declaration));
     }
+    ExpressionType expressionType = null;
     if (declaration instanceof Typed) {
       TypeRelation typeRelation = ((Typed) declaration).getOptTypeRelation();
       if (typeRelation != null) {
-        ExpressionType expressionType = getExpressionType(typeRelation.getType());
+        expressionType = getExpressionType(typeRelation.getType());
         if (expressionType != null) {
           if (expressionType.getAS3Type() == AS3Type.ARRAY) {
             TypeDeclaration typeDeclaration = findArrayElementType(declaration);
@@ -231,20 +233,23 @@ public abstract class AbstractScope implements Scope {
               expressionType = new ExpressionType(typeRelation.getType().getDeclaration(), new ExpressionType(typeDeclaration));
             }
           }
-          if (declaration instanceof FunctionDeclaration) {
-            FunctionDeclaration functionDeclaration = (FunctionDeclaration) declaration;
-            if (functionDeclaration.isSetter()) {
-              return getExpressionType(functionDeclaration.getParams().getHead().getOptTypeRelation());
-            }
-            if (!functionDeclaration.isGetterOrSetter()) {
-              return getFunctionSignature(functionDeclaration.getParams(), expressionType);
-            }
-          }
-          return expressionType;
         }
       }
+      ExpressionType ideType = expressionType;
+      if (declaration instanceof FunctionDeclaration) {
+        FunctionDeclaration functionDeclaration = (FunctionDeclaration) declaration;
+        FunctionSignature functionSignature = getFunctionSignature(functionDeclaration.getMethodType(),
+                functionDeclaration.getParams(), expressionType);
+        expressionType = functionSignature;
+        if (functionDeclaration.isSetter()) {
+          ideType = functionSignature.getParameterTypes().get(0);
+        }
+      }
+      if (ideType != null && declaration.getIde().getName().toLowerCase().endsWith("config")) {
+        ideType.markAsConfigTypeIfPossible();
+      }
     }
-    return null;
+    return expressionType;
   }
 
   private ExpressionType getExpressionType(Type type) {

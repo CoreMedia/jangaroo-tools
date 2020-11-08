@@ -49,6 +49,10 @@ public class ExpressionType {
     return type;
   }
 
+  public ExpressionType getEvalType() {
+    return this;
+  }
+
   @Nonnull
   public AS3Type getAS3Type() {
     if (as3Type == null) {
@@ -170,8 +174,21 @@ public class ExpressionType {
     return result;
   }
 
+  @Override
+  public String toString() {
+    String name = getDeclaration().getQualifiedNameStr();
+    ExpressionType typeParameter = getTypeParameter();
+    if (typeParameter != null) {
+      name += "<" + typeParameter.toString() + ">";
+    }
+    return name;
+  }
+
   public static boolean isNumber(AS3Type type) {
     return AS3Type.NUMBER.equals(type) || AS3Type.INT.equals(type) || AS3Type.UINT.equals(type);
   }
 
+  public static String toString(ExpressionType type) {
+    return type == null ? "*" : type.toString();
+  }
 }

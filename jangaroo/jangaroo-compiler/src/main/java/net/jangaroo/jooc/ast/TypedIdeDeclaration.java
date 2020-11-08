@@ -29,6 +29,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   private Ide namespace;
   private TypeRelation optTypeRelation;
+  private Scope scope;
 
   TypedIdeDeclaration(AnnotationsAndModifiers am, Ide ide, TypeRelation optTypeRelation) {
     super(am, ide);
@@ -61,6 +62,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   @Override
   public void scope(Scope scope) {
+    this.scope = scope;
     if (namespace != null) {
       namespace.scope(scope);
     }
@@ -95,12 +97,17 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-      ExpressionType expressionType = optTypeRelation.getType().getIde().getScope().getExpressionType(optTypeRelation);
-      if (getName().toLowerCase().endsWith("config")) {
-        expressionType.markAsConfigTypeIfPossible();
-      }
-      setType(expressionType);
     }
+  }
+
+  @Override
+  public ExpressionType getType() {
+    ExpressionType type = super.getType();
+    if (type == null && scope != null) {
+      type = scope.getExpressionType(this);
+      setType(type);
+    }
+    return type;
   }
 
   @Override

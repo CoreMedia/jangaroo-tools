@@ -797,23 +797,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
-  protected static boolean isAssignmentLHS(Ide ide) {
-    AstNode parentNode = ide.getParentNode();
-    if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == ide)) {
-      AstNode containingExpr = parentNode.getParentNode();
-      if (containingExpr instanceof AssignmentOpExpr) {
-        Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
-        if (arg1 instanceof IdeExpr) {
-          arg1 = ((IdeExpr) arg1).getNormalizedExpr();
-        }
-        if (arg1 == parentNode) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   abstract String compilationUnitAccessCode(IdeDeclaration declaration);
 
   private static class VarCodeGenerator implements CodeGenerator {
