@@ -11,6 +11,7 @@ import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
 import net.jangaroo.jooc.ast.BlockStatement;
@@ -843,7 +844,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (initializer == null
                 || isAmbientOrInterface(compilationUnit)
                 || initializer.getValue().getType() == null
-                || !initializer.getValue().getType().equals(new ExpressionType(typeRelation.getType()))) {
+                || !initializer.getValue().getType().equals(variableDeclaration.getType())) {
           typeRelation.visit(this);
         }
       }
@@ -1342,6 +1343,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     super.visitDotExpr(dotExpr);
+  }
+
+  @Override
+  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+    Expr lhs = assignmentOpExpr.getArg1();
+    if (lhs instanceof IdeExpr) {
+      lhs = ((IdeExpr) lhs).getNormalizedExpr();
+    }
+    if (lhs instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) lhs;
+      Expr arg = dotExpr.getArg();
+      ExpressionType type = arg.getType();
+      if (type != null && !type.isConfigType()) {
+        Ide ide = dotExpr.getIde();
+        IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
+        if (memberDeclaration != null) {
+          TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
+          if (setter != null) {
+            // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
+            arg.visit(this);
+            out.writeSymbol(dotExpr.getOp());
+            out.write("setConfig(");
+            writeSymbolReplacement(ide.getSymbol(), CompilerUtils.quote(ide.getName()));
+            writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
+            assignmentOpExpr.getArg2().visit(this);
+            out.write( ")");
+            return;
+          }
+        }
+      }
+    }
+    super.visitAssignmentOpExpr(assignmentOpExpr);
   }
 
   @Override

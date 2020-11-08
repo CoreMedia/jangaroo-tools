@@ -247,11 +247,19 @@ public abstract class AbstractScope implements Scope {
           ideType = functionSignature.getParameterTypes().get(0);
         }
       }
-      if (ideType != null && declaration.getIde().getName().toLowerCase().endsWith("config")) {
+      if (ideType != null &&
+              (declaration instanceof VariableDeclaration && hasInitializerWithConfigType((VariableDeclaration) declaration)
+                      || declaration.getIde().getName().toLowerCase().endsWith("config"))) {
         ideType.markAsConfigTypeIfPossible();
       }
     }
     return expressionType;
+  }
+
+  private boolean hasInitializerWithConfigType(VariableDeclaration declaration) {
+    return declaration.getOptInitializer() != null &&
+            declaration.getOptInitializer().getValue().getType() != null &&
+            declaration.getOptInitializer().getValue().getType().isConfigType();
   }
 
   private ExpressionType getExpressionType(Type type) {
