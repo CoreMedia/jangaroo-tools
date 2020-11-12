@@ -172,6 +172,13 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
 
     if (memberDeclaration != null) {
+      Annotation nativeAnnotation = memberDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+      if (nativeAnnotation != null) {
+        Object nativeMemberName = nativeAnnotation.getPropertiesByName().get(null);
+        if (nativeMemberName instanceof String) {
+          memberName = (String) nativeMemberName;
+        }
+      }
       if (memberDeclaration.isPrivate()) {
         memberName = memberName + "$" + ide.getScope().getClassDeclaration().getQualifiedNameHash();
       }
