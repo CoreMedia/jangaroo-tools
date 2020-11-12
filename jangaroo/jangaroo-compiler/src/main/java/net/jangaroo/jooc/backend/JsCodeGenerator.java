@@ -197,7 +197,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         separatorToken = ",";
         closingToken = ")";
         String bindableEvent = getBindableEventName(getter);
-        if (bindableEvent != null) {
+        if (bindableEvent != null && !"DUMMY".equals(bindableEvent)) {
           closingToken = "," + CompilerUtils.quote(bindableEvent) + closingToken;
         }
       }
