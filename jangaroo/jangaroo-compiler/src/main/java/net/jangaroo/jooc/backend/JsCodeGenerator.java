@@ -193,7 +193,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       separatorToken = ",";
       memberName = CompilerUtils.quote(memberName);
       closingToken = ")";
-    } else if (memberDeclaration != null && !ide.isAssignmentLHS()) {
+    } else if (memberDeclaration != null && !type.isConfigType() && !ide.isAssignmentLHS()) {
       TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
       if (getter != null) {
         // found usage of an [Bindable]-annotated get function: call it via AS3.getBindable()!
@@ -579,7 +579,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         dotExprArg = dotExpr.getArg();
         symDot = dotExpr.getOp();
       }
-      if (setter != null && dotExprArg != null) {
+      if (setter != null && dotExprArg != null && !leftHandSide.getType().isConfigType()) {
         out.writeSymbolWhitespace(dotExprArg.getSymbol());
         out.write("AS3.setBindable(");
         visitInExpressionMode(dotExprArg);
