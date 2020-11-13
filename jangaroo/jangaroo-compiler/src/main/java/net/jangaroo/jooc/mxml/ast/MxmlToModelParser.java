@@ -401,7 +401,7 @@ final class MxmlToModelParser {
         variableDeclaration = (VariableDeclaration) directiveIterator.next();
         classBodyDirectives.add(variableDeclaration);
       }
-      if (generatingConfig && variableDeclaration.isExtConfig() && isMxmlDeclarations(objectElement.getParentNode())) {
+      if (generatingConfig && variableDeclaration.isExtConfigOrBindable() && isMxmlDeclarations(objectElement.getParentNode())) {
         // default values are applied through the config object, not directly on 'this':
         id = null;
       }

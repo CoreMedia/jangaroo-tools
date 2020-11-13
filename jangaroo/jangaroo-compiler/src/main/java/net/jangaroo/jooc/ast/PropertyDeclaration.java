@@ -3,7 +3,6 @@ package net.jangaroo.jooc.ast;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Virtual AST node that is created to aggregate a complementing get and set accessor.
@@ -59,6 +58,11 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
   @Override
   public boolean isExtConfig() {
     return getter != null && getter.isExtConfig() || setter != null && setter.isExtConfig();
+  }
+
+  @Override
+  public boolean isBindable() {
+    return getter != null && getter.isBindable() || setter != null && setter.isBindable();
   }
 
   @Override

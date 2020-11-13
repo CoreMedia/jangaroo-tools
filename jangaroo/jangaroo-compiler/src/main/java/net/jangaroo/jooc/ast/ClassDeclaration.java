@@ -314,18 +314,18 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  public boolean hasOwnExtConfig() {
+  public boolean hasOwnExtConfigOrBindable() {
     String qualifiedName = getQualifiedNameStr();
     if ("ext.mixin.Observable".equals(qualifiedName)) {
       // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
       // but do not define any other [ExtConfig]s, must not be treated as using the config system.
       return false;
     }
-    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig);
+    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfigOrBindable);
   }
 
-  public boolean hasAnyExtConfig() {
-    boolean hasAnyExtConfig = false;
+  public boolean hasAnyExtConfigOrBindable() {
+    boolean hasAnyExtConfigOrBindable = false;
     ClassDeclaration current = this;
     // for Mixins, start a Mixin class, not this interface:
     if (isInterface()) {
@@ -341,10 +341,10 @@ public class ClassDeclaration extends TypeDeclaration {
       String qualifiedName = current.getQualifiedNameStr();
       if ("ext.Base".equals(qualifiedName)) {
         // having ExtConfigs only counts if you explicitly inherit from ext.Base or implement ext.Plugin!
-        return hasAnyExtConfig;
+        return hasAnyExtConfigOrBindable;
       }
-      if (!hasAnyExtConfig) {
-        hasAnyExtConfig = current.hasOwnExtConfig();
+      if (!hasAnyExtConfigOrBindable) {
+        hasAnyExtConfigOrBindable = current.hasOwnExtConfigOrBindable();
       }
       current = current.getSuperTypeDeclaration();
     } while (current != null);

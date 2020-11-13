@@ -211,11 +211,26 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
-    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+    List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
             .filter(TypedIdeDeclaration::isExtConfig)
             .collect(Collectors.toList());
+    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+            .filter(TypedIdeDeclaration::isBindable)
+            .collect(Collectors.toList());
+    String ownPropertiesClassName = null;
     String ownConfigsClassName = null;
-    String propsFromConfigs = null;
+    String configsFromProps = null;
+    if (!properties.isEmpty()) {
+      ownPropertiesClassName = classDeclaration.getName() + "Properties";
+      out.write(String.format("class %s {", ownPropertiesClassName));
+      for (TypedIdeDeclaration propertiesDeclaration : properties) {
+        visitAsConfig(propertiesDeclaration);
+      }
+      out.write("}\n");
+      configsFromProps = String.format("Partial<%s>", ownPropertiesClassName);
+      mixins.add(new Ide(ownPropertiesClassName));
+      needsCompanionInterface = true;
+    }
     if (!configs.isEmpty()) {
       ownConfigsClassName = classDeclaration.getName() + "Configs";
       out.write(String.format("class %s {", ownConfigsClassName));
@@ -223,9 +238,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         visitAsConfig(configDeclaration);
       }
       out.write("}\n");
-      propsFromConfigs = String.format("Required<%s>", ownConfigsClassName);
-      mixins.add(new Ide(propsFromConfigs));
-      needsCompanionInterface = true;
     }
     String configClassName = null;
     FunctionDeclaration constructor = classDeclaration.getConstructor();
@@ -239,7 +251,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     }
-    if (configClassName == null && classDeclaration.hasAnyExtConfig()) {
+    if (configClassName == null && classDeclaration.hasAnyExtConfigOrBindable()) {
       configClassName = classDeclaration.getName() + "_";
     }
 
@@ -253,7 +265,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (mixinCompilationUnit != null
                 && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
           mixins.add(superTypes.getHead());
-          if (maybeMixinDeclaration.hasAnyExtConfig()) {
+          if (maybeMixinDeclaration.hasAnyExtConfigOrBindable()) {
             configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
           }
         } else {
@@ -270,6 +282,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
       }
       configExtends.addAll(configMixins);
+      if (configsFromProps != null) {
+        configExtends.add(configsFromProps);
+      }
       if (ownConfigsClassName != null) {
         configExtends.add(ownConfigsClassName);
       }
@@ -340,7 +355,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
-              propsFromConfigs,
+              ownPropertiesClassName,
               classDeclaration.getOptImplements(),
               configClassName != null,
               mixins);
@@ -433,8 +448,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // output all comments & white-space:
     visitDeclarationAnnotationsAndModifiers(configDeclaration);
     configDeclaration.getIde().visit(this);
-    // we want all configs optional (even those documented as "required"):
-    out.write("?");
+    if (configDeclaration.isBindable()) {
+      // we want all configs optional (even those documented as "required"):
+      out.write("?");
+    }
     visitIfNotNull(configDeclaration.getOptTypeRelation());
     if (configDeclaration instanceof VariableDeclaration) {
       VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
@@ -451,7 +468,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private boolean useCfgTypeParameter(Ide superType) {
     IdeDeclaration declaration = superType.getDeclaration();
-    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfig();
+    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable();
   }
 
   @Override
@@ -731,18 +748,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
     if (companionInterfaceMode) {
-      if (variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null) {
-        out.write("\n  " + getBindablePropertyName(MethodType.GET, variableDeclaration) + "()");
-        visitIfNotNull(variableDeclaration.getOptTypeRelation());
-        out.write(";");
-        out.write("\n  " + getBindablePropertyName(MethodType.SET, variableDeclaration) + "(value");
-        visitIfNotNull(variableDeclaration.getOptTypeRelation());
-        out.write("): this;\n\n");
-      }
       return;
     }
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isExtConfig()) {
+      if (variableDeclaration.isExtConfigOrBindable()) {
         // never render [ExtConfig]s in a normal "visit":
         return;
       }
@@ -880,7 +889,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);
-      if (convertToProperty && (functionDeclaration.isSetter() || functionDeclaration.isExtConfig())) {
+      if (convertToProperty && (functionDeclaration.isSetter() || functionDeclaration.isExtConfigOrBindable())) {
         // completely suppress native setter class members, for configs even native getters!
         return;
       }
@@ -931,7 +940,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       if (convertToProperty) {
-        if (functionDeclaration.isExtConfig()) {
+        if (functionDeclaration.isExtConfigOrBindable()) {
           out.write("?");
         }
       } else {

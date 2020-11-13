@@ -125,9 +125,16 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     return optTypeRelation;
   }
 
+  public boolean isExtConfigOrBindable() {
+    return isExtConfig() || isBindable();
+  }
+
   public boolean isExtConfig() {
-    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null
-            || getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
+    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null;
+  }
+
+  public boolean isBindable() {
+    return getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
   }
 
 }
