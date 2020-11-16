@@ -74,7 +74,7 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
       appInfoList.add(
               new AppInfo(
                       senchaAppName,
-                      rootPath.relativize(appPath).toString().replace('\\', '/'),
+                      appPath,
                       locales
               )
       );
@@ -106,15 +106,15 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
     }
 
     for (AppInfo appInfo : appInfoList) {
-      writeAppsJson(webResourcesOutputDirectory.toPath().resolve(appInfo.path).toFile(), appInfoList);
+      writeAppsJson(webResourcesOutputDirectory.toPath().resolve(appInfo.path).toFile(), appInfo.path, appInfoList);
     }
   }
 
-  private void writeAppsJson(File folder, List<AppInfo> apps) throws MojoExecutionException {
+  private void writeAppsJson(File folder, Path rootPath, List<AppInfo> apps) throws MojoExecutionException {
     File appsFile = prepareFile(new File(folder, APPS_FILENAME));
 
     try {
-      AppsDeSerializer.writeApps(new FileOutputStream(appsFile), apps);
+      AppsDeSerializer.writeApps(new FileOutputStream(appsFile), rootPath, apps);
     } catch (IOException e) {
       throw new MojoExecutionException("Could not create " + appsFile + " resource", e);
     }

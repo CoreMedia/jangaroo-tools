@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class AppsDeSerializer {
 
@@ -19,13 +22,27 @@ public class AppsDeSerializer {
   private static final String JS_PROPERTY = "js";
   private static final String LOAD_ORDER_PROPERTY = "loadOrder";
 
-  public static List<AppInfo> readApps(InputStream appsSource) throws IOException {
+  public static List<AppInfo> readApps(InputStream appsSource, Path rootPath) throws IOException {
+    @SuppressWarnings("unchecked") List<Map<String, Object>> appMaps = new ObjectMapper().readValue(appsSource, List.class);
     //noinspection unchecked
-    return new ObjectMapper().readValue(appsSource, List.class);
+    return appMaps.stream().map(appMap -> new AppInfo(
+            (String) appMap.get("name"),
+            rootPath.resolve((String) appMap.get("path")),
+            (List<String>) appMap.get("locales"))
+    ).collect(Collectors.toList());
   }
 
-  public static void writeApps(OutputStream output, List<AppInfo> apps) throws IOException {
-    new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(new PrintWriter(output), apps);
+  public static void writeApps(OutputStream output, Path rootPath, List<AppInfo> apps) throws IOException {
+    new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(
+            new PrintWriter(output),
+            apps.stream().map(appInfo -> {
+              Map<String, Object> appMap = new HashMap<>();
+              appMap.put("name", appInfo.name);
+              appMap.put("path", rootPath.relativize(appInfo.path).toString().replace('\\', '/'));
+              appMap.put("locales", appInfo.locales);
+              return appMap;
+            }).collect(Collectors.toList())
+    );
   }
 
   public static void rewriteBootstrapJsonPaths(InputStream bootstrapJsonSource, OutputStream bootstrapJsonTarget, Map<String, String> pathMapping) throws IOException {
@@ -63,10 +80,10 @@ public class AppsDeSerializer {
 
   public static class AppInfo {
     public final String name;
-    public final String path;
+    public final Path path;
     public final List<String> locales;
 
-    public AppInfo(String name, String path, List<String> locales) {
+    public AppInfo(String name, Path path, List<String> locales) {
       this.name = name;
       this.path = path;
       this.locales = locales;
