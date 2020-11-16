@@ -180,23 +180,32 @@ public final class FileHelper {
                                               JarArchiver archiver,
                                               ArtifactHandlerManager artifactHandlerManager,
                                               String senchaAppBuild) throws MojoExecutionException {
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, senchaAppBuild, null);
+    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, senchaAppBuild, false);
   }
 
-  public static void createAppOrAppOverlayJar(MavenSession session,
-                                              JarArchiver archiver,
-                                              ArtifactHandlerManager artifactHandlerManager,
-                                              String senchaAppBuild,
-                                              File appDir) throws MojoExecutionException {
+  public static void createPluginZip(MavenSession session,
+                                     JarArchiver archiver,
+                                     ArtifactHandlerManager artifactHandlerManager) throws MojoExecutionException {
+    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, null, true);
+  }
+
+  private static void createAppOrAppOverlayJar(MavenSession session,
+                                               JarArchiver archiver,
+                                               ArtifactHandlerManager artifactHandlerManager,
+                                               String senchaAppBuild,
+                                               boolean zipMode) throws MojoExecutionException {
 
     MavenProject project = session.getCurrentProject();
-    appDir = appDir != null ? appDir : new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
+    File appDir = new File(project.getBuild().getDirectory() + SenchaUtils.APP_TARGET_DIRECTORY);
 
-    File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".jar");
+    File jarFile = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + (zipMode ? ".zip" : ".jar"));
 
     if (senchaAppBuild == null || SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)) {
       // add the Jangaroo compiler resources to the resulting JAR
-      DefaultFileSet fileSet = fileSet(appDir).prefixed(MavenPluginHelper.META_INF_RESOURCES);
+      DefaultFileSet fileSet = fileSet(appDir);
+      if (!zipMode) {
+        fileSet = fileSet.prefixed(MavenPluginHelper.META_INF_RESOURCES);
+      }
       fileSet.setExcludes(new String[]{
               "**/build/temp/**",
               "**/" + PACKAGES_DIRECTORY_NAME + SEPARATOR + getSenchaPackageName(SENCHA_APP_TEMPLATE_GROUP_ID, SENCHA_APP_TEMPLATE_ARTIFACT_ID) + "/**",
@@ -218,8 +227,8 @@ public final class FileHelper {
     }
     Artifact mainArtifact = project.getArtifact();
     mainArtifact.setFile(jarFile);
-    // workaround for MNG-1682: force maven to install artifact using the "jar" handler
-    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(Type.JAR_EXTENSION));
+    // workaround for MNG-1682: force maven to install artifact using the "jar"/"zip" handler
+    mainArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(zipMode ? Type.ZIP_EXTENSION : Type.JAR_EXTENSION));
   }
 
   public static void createAppsJar(MavenSession session,

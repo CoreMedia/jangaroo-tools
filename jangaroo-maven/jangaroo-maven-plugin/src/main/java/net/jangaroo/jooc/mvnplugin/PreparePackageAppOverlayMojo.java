@@ -49,10 +49,10 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     if (!Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app-overlay\"");
     }
-    packageAppOverlay();
+    packageAppOverlay(false);
   }
 
-  private void packageAppOverlay() throws MojoExecutionException {
+  void packageAppOverlay(boolean addOwnPackage) throws MojoExecutionException {
     File overlayPackagesDir = new File(webResourcesOutputDirectory, SenchaUtils.PACKAGES_DIRECTORY_NAME);
     FileHelper.ensureDirectory(overlayPackagesDir);
     Path packagesPath = overlayPackagesDir.toPath().normalize();
@@ -65,6 +65,13 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     createSymbolicLinksForArtifacts(ownDynamicPackages, packagesPath, remotePackagesDir);
 
     Set<Artifact> allDynamicPackages = jangarooAppOverlay.getAllDynamicPackages();
+    if (addOwnPackage) {
+      allDynamicPackages.add(project.getArtifact());
+      String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+      File swcPackageDir = new File(project.getBuild().getDirectory(), SenchaUtils.getPackagesPath(project));
+      Path swcPackagePath = swcPackageDir.toPath().normalize();
+      createSymbolicLinkToPackage(overlayPackagesDir.toPath(), senchaPackageName, swcPackagePath);
+    }
     Set<String> overlayPackageNames = allDynamicPackages.stream().map(artifact ->
             SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()))
             .collect(Collectors.toSet());
@@ -99,16 +106,26 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
     List<Dependency> dependencies = project.getDependencies();
     JangarooAppOverlay jangarooAppOverlay = jangarooApp instanceof JangarooAppOverlay ? (JangarooAppOverlay) jangarooApp : null;
     for (Dependency dependency : dependencies) {
-      if (isRequiredSenchaDependency(dependency, false) || Type.POM_PACKAGING.equals(dependency.getType())
-              || (Type.JAR_EXTENSION.equals(dependency.getType()) && Artifact.SCOPE_RUNTIME.equals(dependency.getScope()))) {
+      Artifact artifact = getArtifact(dependency);
+      String scope = dependency.getScope();
+      if (artifact != null) { // transitive "provided" dependencies are not part of the project
+        scope = artifact.getScope();
+      }
+      if (!Artifact.SCOPE_PROVIDED.equals(scope) && !Artifact.SCOPE_TEST.equals(scope) &&
+              (SenchaUtils.isSenchaDependency(dependency) || Type.POM_PACKAGING.equals(dependency.getType())
+              || (Type.JAR_EXTENSION.equals(dependency.getType()) && Artifact.SCOPE_RUNTIME.equals(scope)))) {
         MavenProject mavenProject = getProjectFromDependency(project, dependency);
         if (jangarooAppOverlay != null && jangarooAppOverlay.baseApp != null
                 && jangarooAppOverlay.baseApp.mavenProject.equals(mavenProject)) {
           populatePackages(jangarooAppOverlay.baseApp, mavenProject);
         } else {
-          if (!SenchaUtils.isSenchaDependency(dependency.getType()) || jangarooApp.packages.add(getArtifact(dependency))) {
-            populatePackages(jangarooApp, mavenProject);
+          if (artifact != null && SenchaUtils.isSenchaDependency(dependency)) {
+            // artifact must be added:
+            if (!jangarooApp.packages.add(artifact)) {
+              continue; // already added
+            }
           }
+          populatePackages(jangarooApp, mavenProject);
         }
       }
     }

@@ -102,8 +102,10 @@ public class RunMojo extends AbstractSenchaMojo {
     boolean isAppPackaging = Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging());
     boolean isAppOverlayPackaging = Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging());
     boolean isAppsPackaging = Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging());
+    boolean isProxyRootPath = JettyWrapper.ROOT_PATH_SPEC.equals(jooProxyPathSpec);
 
-    File baseDir = isAppPackaging || isAppOverlayPackaging ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
+    File baseDir = isAppPackaging || isAppOverlayPackaging || (isSwcPackaging && isProxyRootPath)
+            ? new File(project.getBuild().getDirectory(), APP_DIRECTORY_NAME)
             : isSwcPackaging ? new File(project.getBuild().getTestOutputDirectory())
             : isAppsPackaging ? new File(project.getBuild().getDirectory(), APPS_DIRECTORY_NAME)
             : null;
@@ -118,40 +120,42 @@ public class RunMojo extends AbstractSenchaMojo {
     jettyWrapper.setWebAppContextClass(JettyWebAppContext.class);
 
     List<StaticResourcesServletConfig> staticResourcesServletConfigs = new ArrayList<>(jooStaticResourcesServletConfigs);
+    String senchaPackageName = null;
     if (isSwcPackaging) {
-      String senchaPackageName = SenchaUtils.getSenchaPackageName(project);
+      senchaPackageName = SenchaUtils.getSenchaPackageName(project);
       staticResourcesServletConfigs.add(new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + senchaPackageName + SEPARATOR + "*"));
-    } else if (isAppOverlayPackaging) {
-      if (JettyWrapper.ROOT_PATH_SPEC.equals(jooProxyPathSpec)) {
-        // If root path, the developer wants to proxy-in the base app, so all static resources are already there.
-        // We just need to add all overlay packages as static resource folders:
-        File[] packageDirs = new File(baseDir, PACKAGES_DIRECTORY_NAME).listFiles(File::isDirectory);
-        if (packageDirs != null) {
-          List<String> packageNames = Arrays.stream(packageDirs).map(File::getName).collect(Collectors.toList());
-          for (String packageName : packageNames) {
+    }
+    if ((isAppOverlayPackaging || isSwcPackaging) && isProxyRootPath) {
+      // If root path, the developer wants to proxy-in the base app, so all static resources are already there.
+      // We just need to add all overlay packages as static resource folders:
+      File[] packageDirs = new File(baseDir, PACKAGES_DIRECTORY_NAME).listFiles(File::isDirectory);
+      if (packageDirs != null) {
+        List<String> packageNames = Arrays.stream(packageDirs).map(File::getName).collect(Collectors.toList());
+        for (String packageName : packageNames) {
+          if (!packageName.equals(senchaPackageName)) {
             staticResourcesServletConfigs.add(new StaticResourcesServletConfig(LOCAL_PACKAGES_PATH + packageName + SEPARATOR + "*", SEPARATOR));
           }
-          jettyWrapper.setAdditionalServlets(Collections.singletonMap(SEPARATOR + DYNAMIC_PACKAGES_FILENAME,
-                  new AddDynamicPackagesServlet(jooProxyTargetUri + DYNAMIC_PACKAGES_FILENAME, packageNames)
-          ));
         }
-      } else {
-        // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
-
-        // Add base app and all app overlays
-        JangarooApp jangarooApp = createJangarooApp(project);
-        while (jangarooApp instanceof JangarooAppOverlay) {
-          jangarooApp = ((JangarooAppOverlay) jangarooApp).baseApp;
-          if (jangarooApp != null) {
-            addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
-          }
-        }
-
-        staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
+        jettyWrapper.setAdditionalServlets(Collections.singletonMap(SEPARATOR + DYNAMIC_PACKAGES_FILENAME,
+                new AddDynamicPackagesServlet(jooProxyTargetUri + DYNAMIC_PACKAGES_FILENAME, packageNames)
+        ));
       }
+    } else if (isAppOverlayPackaging) {
+      // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
+
+      // Add base app and all app overlays
+      JangarooApp jangarooApp = createJangarooApp(project);
+      while (jangarooApp instanceof JangarooAppOverlay) {
+        jangarooApp = ((JangarooAppOverlay) jangarooApp).baseApp;
+        if (jangarooApp != null) {
+          addAppToResources(jettyWrapper, jangarooApp.mavenProject, ROOT_PATH, "");
+        }
+      }
+
+      staticResourcesServletConfigs.add(new StaticResourcesServletConfig(JettyWrapper.ROOT_PATH_SPEC, SEPARATOR));
     } else if (isAppsPackaging) {
       JangarooApps jangarooApps = createJangarooApps(project);
-      if (JettyWrapper.ROOT_PATH_SPEC.equals(jooProxyPathSpec)) {
+      if (isProxyRootPath) {
         throw new MojoExecutionException("Not supported yet!");
       } else {
         // if any other or no proxy path spec, we have to set up the static resources of the required base app and possibly the required overlay app.
