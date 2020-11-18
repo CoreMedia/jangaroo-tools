@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin.lifecycle;
 import net.jangaroo.jooc.mvnplugin.Type;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
-import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
@@ -24,7 +23,7 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
   private static final String DEFAULT_SENCHA_TEST_RESOURCES_DIR = "src/test/sencha";
 
   @Override
-  public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+  public void afterProjectsRead(MavenSession session) {
     for (MavenProject project : session.getProjects()) {
       if (Type.containsJangarooSources(project)) {
 

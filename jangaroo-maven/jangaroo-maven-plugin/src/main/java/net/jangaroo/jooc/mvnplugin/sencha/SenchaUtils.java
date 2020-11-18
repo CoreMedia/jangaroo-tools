@@ -75,6 +75,7 @@ public class SenchaUtils {
    *    - SENCHA_CLASS_PATH.length - 4 (Separator)
    */
   public static final String SENCHA_LOCALE_PATH = "locale";
+  public static final String DEFAULT_LOCALE = "en";
   public static final String SENCHA_RESOURCES_PATH = "resources";
   public static final String SENCHA_BUNDLED_RESOURCES_PATH = "bundledResources";
   public static final String PRODUCTION_PROFILE = "production";
@@ -96,6 +97,8 @@ public class SenchaUtils {
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
   public static final String DYNAMIC_PACKAGES_FILENAME = "dynamic-packages.json";
+  public static final String APP_MANIFEST_FILENAME = "app-manifest.json";
+  public static final String APP_MANIFEST_FRAGMENT_FILENAME = "app-manifest-fragment.json";
   public static final String APPS_FILENAME = "apps.json";
 
   public static final String SENCHA_TEST_APP_TEMPLATE_ARTIFACT_ID = "sencha-test-app-template";

@@ -1,7 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.apprunner.util.AppManifestDeSerializer;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import net.jangaroo.jooc.mvnplugin.util.MergeHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -22,15 +25,35 @@ import org.apache.maven.project.ProjectBuildingResult;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_MANIFEST_FRAGMENT_FILENAME;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DEFAULT_LOCALE;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_PKG;
+import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOURCES;
 
 
 public abstract class AbstractSenchaMojo extends AbstractMojo {
+
+  protected static final MergeHelper.MergeOptions APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+          MergeHelper.ListStrategy.APPEND, MergeHelper.MapStrategy.MERGE
+  );
+  protected static final MergeHelper.MergeOptions APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY = new MergeHelper.MergeOptions(
+          MergeHelper.ListStrategy.MERGE, MergeHelper.MapStrategy.MERGE
+  );
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   protected MavenProject project;
@@ -209,7 +232,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
         }
       }
     }
-    throw new MojoExecutionException("Module of type " + Type.JANGAROO_APP_OVERLAY_PACKAGING +" must have a dependency on a module of type " + Type.JANGAROO_APP_PACKAGING + " or " + Type.JANGAROO_APP_OVERLAY_PACKAGING + ".");
+    // no base app, that's okay, you just must tag dependencies as scope provided so that we know what to package:
+    return new JangarooAppOverlay(project, null);
   }
 
   JangarooApps createJangarooApps(MavenProject project) throws MojoExecutionException {
@@ -256,6 +280,104 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     return getArtifactFile(mavenProject);
   }
 
+  protected InputStream getInputStreamForDirOrJar(File dirOrJar, String relativePathInsideDirOrJar, String jarPrefixPath) throws MojoExecutionException {
+    if (dirOrJar.isDirectory()) {
+      try {
+        File file = dirOrJar.toPath().resolve(relativePathInsideDirOrJar).toFile();
+        if (!file.exists()) {
+          return null;
+        }
+        return new FileInputStream(file);
+      } catch (FileNotFoundException e) {
+        return null;
+      }
+    } else {
+      try {
+        JarFile jarFile = new JarFile(dirOrJar);
+        ZipEntry entry = jarFile.getEntry(jarPrefixPath + relativePathInsideDirOrJar);
+        if (entry == null) {
+          return null;
+        }
+        return jarFile.getInputStream(entry);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Error reading " + dirOrJar, e);
+      }
+    }
+  }
+
+  protected Map<String, Map<String, Object>> prepareAppManifestByLocale(Set<String> locales, List<Artifact> artifacts) throws MojoExecutionException {
+    // read all available app manifests (no merge yet)
+    Map<String, Map<Artifact, Map<String, Object>>> rawAppManifestByLocaleByArtifact = new HashMap<>();
+    for (String locale : locales) {
+      String appManifestFileName = getAppManifestFragmentFileNameForLocale(locale);
+      for (Artifact artifact : artifacts) {
+        String jarPrefixPath = Type.SWC_EXTENSION.equals(artifact.getType()) ? META_INF_PKG : META_INF_RESOURCES;
+        InputStream manifestInputStream = getInputStreamForDirOrJar(artifact.getFile(), appManifestFileName, jarPrefixPath);
+        if (manifestInputStream != null) {
+          final Map<String, Object> localeAppManifest;
+          try {
+            localeAppManifest = AppManifestDeSerializer.readAppManifest(manifestInputStream);
+          } catch (IOException e) {
+            throw new MojoExecutionException("Could not read app manifest", e);
+          }
+          if (!rawAppManifestByLocaleByArtifact.containsKey(locale)) {
+            rawAppManifestByLocaleByArtifact.put(locale, new HashMap<>());
+          }
+          rawAppManifestByLocaleByArtifact.get(locale).put(artifact, localeAppManifest);
+        }
+      }
+    }
+
+    Map<String, Map<String, Object>> appManifestByLocale = new HashMap<>();
+    for (String locale : locales) {
+      Map<String, Object> appManifest = new HashMap<>();
+      for (Artifact artifact : artifacts) {
+        Map<String, Object> localizedAppManifest = new HashMap<>();
+        if (!DEFAULT_LOCALE.equals(locale) && rawAppManifestByLocaleByArtifact.containsKey(DEFAULT_LOCALE) && rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).containsKey(artifact)) {
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, rawAppManifestByLocaleByArtifact.get(DEFAULT_LOCALE).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+        }
+        if (rawAppManifestByLocaleByArtifact.containsKey(locale) && rawAppManifestByLocaleByArtifact.get(locale).containsKey(artifact)) {
+          MergeHelper.mergeMapIntoBaseMap(localizedAppManifest, rawAppManifestByLocaleByArtifact.get(locale).get(artifact), APP_MANIFEST_LOCALIZATION_MERGE_STRATEGY);
+        }
+        MergeHelper.mergeMapIntoBaseMap(appManifest, localizedAppManifest, APP_MANIFEST_CROSS_MODULE_MERGE_STRATEGY);
+      }
+      appManifestByLocale.put(locale, appManifest);
+    }
+
+    return appManifestByLocale;
+  }
+
+  protected File prepareFile(File file) throws MojoExecutionException {
+    Path relativeFilePath = project.getBasedir().toPath().relativize(file.toPath());
+    getLog().info(String.format("Writing %s for module %s.", relativeFilePath, project.getName()));
+    if (!file.exists()) {
+      FileHelper.ensureDirectory(file.getParentFile());
+    } else {
+      getLog().debug(relativeFilePath + " for module already exists, deleting...");
+      if (!file.delete()) {
+        throw new MojoExecutionException("Could not delete " + relativeFilePath + " file for module");
+      }
+    }
+    return file;
+  }
+
+  @Nonnull
+  protected String getAppManifestFileNameForLocale(String locale) {
+    String appManifestFileName = APP_MANIFEST_FILENAME;
+    if (!DEFAULT_LOCALE.equals(locale)) {
+      appManifestFileName = appManifestFileName.replace(".json", "-" + locale + ".json");
+    }
+    return appManifestFileName;
+  }
+
+  protected String getAppManifestFragmentFileNameForLocale(String locale) {
+    String appManifestFileName = APP_MANIFEST_FRAGMENT_FILENAME;
+    if (!DEFAULT_LOCALE.equals(locale)) {
+      appManifestFileName = appManifestFileName.replace(".json", "-" + locale + ".json");
+    }
+    return appManifestFileName;
+  }
+
   static class JangarooApp {
     final MavenProject mavenProject;
     Set<Artifact> packages = new LinkedHashSet<>();
@@ -279,18 +401,23 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
     @Override
     JangarooApp getRootBaseApp() {
-      return baseApp.getRootBaseApp();
+      return baseApp == null ? null : baseApp.getRootBaseApp();
     }
 
     Set<Artifact> getOwnDynamicPackages() {
       LinkedHashSet<Artifact> ownDynamicPackages = new LinkedHashSet<>(packages);
-      ownDynamicPackages.removeAll(baseApp.packages);
+      if (baseApp != null) {
+        ownDynamicPackages.removeAll(baseApp.packages);
+      }
       return ownDynamicPackages;
     }
 
     Set<Artifact> getAllDynamicPackages() {
       LinkedHashSet<Artifact> allDynamicPackages = new LinkedHashSet<>(packages);
-      allDynamicPackages.removeAll(getRootBaseApp().packages);
+      JangarooApp rootBaseApp = getRootBaseApp();
+      if (rootBaseApp != null) {
+        allDynamicPackages.removeAll(rootBaseApp.packages);
+      }
       return allDynamicPackages;
     }
   }
@@ -304,4 +431,5 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
       this.apps = apps;
     }
   }
+
 }
