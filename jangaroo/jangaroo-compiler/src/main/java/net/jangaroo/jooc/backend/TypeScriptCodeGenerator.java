@@ -1414,7 +1414,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             out.writeSymbolWhitespace(indexedExpr.getSymbol());
             out.write("(");
             indexedExpr.visit(this);
-            out.write(" as object)");
+            out.write(" as unknown)");
             indexExpr.visit(this);
             return;
           }
