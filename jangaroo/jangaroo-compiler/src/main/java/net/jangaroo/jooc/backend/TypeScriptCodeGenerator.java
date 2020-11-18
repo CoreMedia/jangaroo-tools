@@ -486,10 +486,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         expressionType = expressionType.getTypeParameter();
       }
       String tsType = getTypeScriptTypeForActionScriptType(expressionType);
+      if ("any".equals(tsType)
+              && parentNode instanceof VariableDeclaration
+              && hasObjectLiteralInitializer((VariableDeclaration) parentNode)) {
+        tsType = "Record<string,any>";
+      }
       writeSymbolReplacement(typeRelation.getType().getSymbol(), tsType);
     } else {
       super.visitTypeRelation(typeRelation);
     }
+  }
+
+  private boolean hasObjectLiteralInitializer(VariableDeclaration variableDeclaration) {
+    return variableDeclaration.getOptInitializer() != null
+            && variableDeclaration.getOptInitializer().getValue() instanceof ObjectLiteral;
   }
 
   @Override
@@ -852,6 +862,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (initializer == null
                 || isAmbientOrInterface(compilationUnit)
                 || initializer.getValue().getType() == null
+                || initializer.getValue() instanceof ObjectLiteral   // do not suppress type for object literals
                 || !initializer.getValue().getType().equals(variableDeclaration.getType())) {
           typeRelation.visit(this);
         }
