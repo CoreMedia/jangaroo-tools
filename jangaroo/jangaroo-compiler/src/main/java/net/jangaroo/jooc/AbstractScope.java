@@ -271,7 +271,7 @@ public abstract class AbstractScope implements Scope {
     Annotation annotation = declaration.getAnnotation(ARRAY_ELEMENT_TYPE_ANNOTATION_NAME);
     Ide declarationIde = declaration.getIde();
     if (annotation == null) {
-      if (!declaration.isStatic() && declarationIde != null) {
+      if (declaration.isClassMember() && !declaration.isStatic() && declarationIde != null) {
         // depth-first search for [ArrayElementType] annotation in all super types:
         ClassDeclaration classDeclaration = declaration.getClassDeclaration();
         if (classDeclaration != null) {
