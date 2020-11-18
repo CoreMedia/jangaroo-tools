@@ -318,6 +318,21 @@ public class Ide extends NodeImplBase {
     return false;
   }
 
+  public boolean isAssignmentLHS() {
+    AstNode parentNode = getParentNode();
+    if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == this)) {
+      AstNode containingExpr = parentNode.getParentNode();
+      if (containingExpr instanceof AssignmentOpExpr) {
+        Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
+        if (arg1 instanceof IdeExpr) {
+          arg1 = ((IdeExpr) arg1).getNormalizedExpr();
+        }
+        return arg1 == parentNode;
+      }
+    }
+    return false;
+  }
+
   public IdeDeclaration getMemberDeclaration() {
     IdeDeclaration ideDeclaration = getDeclaration(false);
     if (ideDeclaration != null && ideDeclaration.isClassMember()) {
@@ -336,6 +351,7 @@ public class Ide extends NodeImplBase {
             exprParent instanceof CommaSeparatedList ||
             exprParent instanceof Initializer ||
             exprParent instanceof AsExpr ||
+            exprParent instanceof BinaryOpExpr &&
             exprParent.getClass().equals(BinaryOpExpr.class) ||
             exprParent instanceof ObjectField ||
             exprParent instanceof ReturnStatement ||

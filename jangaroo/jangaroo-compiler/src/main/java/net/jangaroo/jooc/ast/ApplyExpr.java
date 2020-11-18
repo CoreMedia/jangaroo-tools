@@ -122,7 +122,8 @@ public class ApplyExpr extends Expr {
       mapPropertiesClassReferences();
       getArgs().analyze(this);
     }
-    if (isTypeCast()) {
+    boolean isTypeCast = isTypeCast();
+    if (isTypeCast) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
     } else if (isAssert()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
@@ -133,7 +134,11 @@ public class ApplyExpr extends Expr {
     }
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
-      setType(type.getTypeParameter());
+      ExpressionType classType = type.getTypeParameter();
+      if (classType != null && isTypeCast && getArgs().getExpr().getHead() instanceof ObjectLiteral) {
+        classType.markAsConfigTypeIfPossible();
+      }
+      setType(classType);
     }
   }
 

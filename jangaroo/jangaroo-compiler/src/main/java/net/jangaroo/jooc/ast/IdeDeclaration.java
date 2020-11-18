@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ public abstract class IdeDeclaration extends Declaration {
   private static final Pattern PRIVATE_MEMBER_NAME = Pattern.compile("[^$]\\$[0-9]+$");
 
   private Ide ide;
+  private ExpressionType type;
 
   protected IdeDeclaration(AnnotationsAndModifiers am, Ide ide) {
     super(am.getAnnotations(), toSymbolArray(am.getModifiers()));
@@ -103,6 +105,14 @@ public abstract class IdeDeclaration extends Declaration {
 
   public String getQualifiedNameStr() {
     return QualifiedIde.constructQualifiedNameStr(getQualifiedName(), ".");
+  }
+
+  public ExpressionType getType() {
+    return type;
+  }
+
+  void setType(final ExpressionType type) {//TODO compute type in more subclasses during analyze()
+    this.type = type;
   }
 
   @Override

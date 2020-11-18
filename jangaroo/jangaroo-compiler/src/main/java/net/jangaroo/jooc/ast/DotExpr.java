@@ -18,7 +18,6 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
-import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -78,17 +77,19 @@ public class DotExpr extends PostfixOpExpr {
         }
       } else {
         if (memberDeclaration instanceof PropertyDeclaration) {
-          // It may make a difference whether we read or write:
-          if (parentNode instanceof AssignmentOpExpr) {
-            Expr arg1 = ((AssignmentOpExpr) parentNode).getArg1();
-            if (arg1 == this || arg1 instanceof IdeExpr && ((IdeExpr) arg1).getNormalizedExpr() == this) {
-              // We are the left-hand-side of an assignment: Use setter's type!
-              memberDeclaration = ((PropertyDeclaration) memberDeclaration).getSetter();
-            }
-          }
-          // Otherwise, keep the PropertyDeclaration, as it already uses the type of the getter.
+          PropertyDeclaration propertyDeclaration = (PropertyDeclaration) memberDeclaration;
+          // It makes a difference whether we read or write.
+          // If we are the left-hand-side of an assignment, use setter, else, use getter:
+          memberDeclaration = ide.isAssignmentLHS() ? propertyDeclaration.getSetter() : propertyDeclaration.getGetter();
         }
-        setType(getIde().getScope().getExpressionType(memberDeclaration));
+        ExpressionType type = memberDeclaration.getType();
+        if (type != null) {
+          type = type.getEvalType();
+        }
+        if (type == null) {
+          type = getIde().getScope().getExpressionType(memberDeclaration);
+        }
+        setType(type);
       }
     }
   }

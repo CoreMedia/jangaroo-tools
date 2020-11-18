@@ -67,6 +67,7 @@ import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.PostfixOpExpr;
 import net.jangaroo.jooc.ast.PredefinedTypeDeclaration;
 import net.jangaroo.jooc.ast.PrefixOpExpr;
+import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
@@ -76,11 +77,15 @@ import net.jangaroo.jooc.ast.SwitchStatement;
 import net.jangaroo.jooc.ast.ThrowStatement;
 import net.jangaroo.jooc.ast.TryStatement;
 import net.jangaroo.jooc.ast.Type;
+import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.UseNamespaceDirective;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.ast.WhileStatement;
+import net.jangaroo.jooc.model.MethodType;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.ExpressionType;
 
@@ -183,6 +188,60 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     if (commaSeparatedList.getSymComma() != null) {
       out.writeSymbol(commaSeparatedList.getSymComma());
       visitIfNotNull(commaSeparatedList.getTail());
+    }
+  }
+
+  protected TypedIdeDeclaration findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
+    String memberName = qIde.getIde().getText();
+    TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
+//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
+//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
+    if (member != null) {
+      List<Annotation> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
+      if (bindableAnnotations.size() > 0) {
+        return member;
+      }
+    }
+    return null;
+  }
+
+  private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
+                                                        MethodType methodType) throws IOException {
+    TypedIdeDeclaration member = classDeclaration.getMemberDeclaration(memberName);
+    if (member instanceof PropertyDeclaration) {
+      member = ((PropertyDeclaration) member).getAccessor(methodType == MethodType.SET);
+    }
+    if (member instanceof VariableDeclaration) {
+      if (((VariableDeclaration) member).isConst() && methodType == MethodType.SET) {
+        // cannot write a const:
+        member = null;
+      }
+    } else if (member instanceof FunctionDeclaration) {
+      FunctionDeclaration method = (FunctionDeclaration) member;
+      MethodType foundMethodType = method.isGetter() ? MethodType.GET : method.isSetter() ? MethodType.SET : null;
+      if (methodType != foundMethodType) {
+        member = null;
+      }
+    }
+    if (member == null) {
+      ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
+      if (superDeclaration != null) {
+        member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
+      }
+    }
+    return member;
+  }
+
+  protected static Map<String, Object> getBindablePropertiesByName(TypedIdeDeclaration member) {
+    return member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).get(0).getPropertiesByName();
+  }
+
+  protected static String getBindablePropertyName(MethodType methodType, TypedIdeDeclaration member) {
+    Object bindableAnnotationValue = CodeGeneratorBase.getBindablePropertiesByName(member).get(null);
+    if (bindableAnnotationValue == null) {
+      return methodType + MxmlUtils.capitalize(member.getName());
+    } else {
+      return (String) bindableAnnotationValue;
     }
   }
 

@@ -18,6 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   private Ide namespace;
   private TypeRelation optTypeRelation;
+  private Scope scope;
 
   TypedIdeDeclaration(AnnotationsAndModifiers am, Ide ide, TypeRelation optTypeRelation) {
     super(am, ide);
@@ -60,6 +62,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
 
   @Override
   public void scope(Scope scope) {
+    this.scope = scope;
     if (namespace != null) {
       namespace.scope(scope);
     }
@@ -98,6 +101,16 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   }
 
   @Override
+  public ExpressionType getType() {
+    ExpressionType type = super.getType();
+    if (type == null && scope != null) {
+      type = scope.getExpressionType(this);
+      setType(type);
+    }
+    return type;
+  }
+
+  @Override
   boolean allowDuplicates(Scope scope) {
     // allow package members to clash with imports:
     return scope.getClassDeclaration() == null || super.allowDuplicates(scope);
@@ -112,9 +125,16 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     return optTypeRelation;
   }
 
+  public boolean isExtConfigOrBindable() {
+    return isExtConfig() || isBindable();
+  }
+
   public boolean isExtConfig() {
-    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null
-            || getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
+    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null;
+  }
+
+  public boolean isBindable() {
+    return getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
   }
 
 }

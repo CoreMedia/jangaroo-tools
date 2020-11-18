@@ -29,6 +29,7 @@ import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.Statement;
 import net.jangaroo.jooc.ast.TypeRelation;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
@@ -83,7 +84,7 @@ public interface Scope {
 
   ExpressionType getExpressionType(AS3Type as3Type);
 
-  FunctionSignature getFunctionSignature(Parameters params, ExpressionType returnType);
+  FunctionSignature getFunctionSignature(MethodType methodType, Parameters params, ExpressionType returnType);
 
   ExpressionType getExpressionType(TypeRelation typeRelation);
 

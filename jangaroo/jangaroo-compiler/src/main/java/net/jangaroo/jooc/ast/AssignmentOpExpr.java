@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 
@@ -31,7 +32,14 @@ public class AssignmentOpExpr extends BinaryOpExpr {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    setType(getArg1().getType());
+    ExpressionType rhsType = getArg2().getType();
+    ExpressionType lhsType = getArg1().getType();
+    if (lhsType == null) {
+      lhsType = rhsType;
+    } else if (rhsType != null && rhsType.isConfigType()) {
+      lhsType.markAsConfigTypeIfPossible();
+    }
+    setType(lhsType);
   }
 
   @Override

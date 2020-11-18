@@ -11,6 +11,7 @@ import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
 import net.jangaroo.jooc.ast.ArrayLiteral;
+import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
 import net.jangaroo.jooc.ast.BlockStatement;
@@ -50,6 +51,7 @@ import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
 import net.jangaroo.jooc.input.ZipFileInputSource;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -209,11 +211,26 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
-    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+    List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
             .filter(TypedIdeDeclaration::isExtConfig)
             .collect(Collectors.toList());
+    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+            .filter(TypedIdeDeclaration::isBindable)
+            .collect(Collectors.toList());
+    String ownPropertiesClassName = null;
     String ownConfigsClassName = null;
-    String propsFromConfigs = null;
+    String configsFromProps = null;
+    if (!properties.isEmpty()) {
+      ownPropertiesClassName = classDeclaration.getName() + "Properties";
+      out.write(String.format("class %s {", ownPropertiesClassName));
+      for (TypedIdeDeclaration propertiesDeclaration : properties) {
+        visitAsConfig(propertiesDeclaration);
+      }
+      out.write("}\n");
+      configsFromProps = String.format("Partial<%s>", ownPropertiesClassName);
+      mixins.add(new Ide(ownPropertiesClassName));
+      needsCompanionInterface = true;
+    }
     if (!configs.isEmpty()) {
       ownConfigsClassName = classDeclaration.getName() + "Configs";
       out.write(String.format("class %s {", ownConfigsClassName));
@@ -221,10 +238,64 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         visitAsConfig(configDeclaration);
       }
       out.write("}\n");
-      propsFromConfigs = String.format("Required<%s>", ownConfigsClassName);
-      mixins.add(new Ide(propsFromConfigs));
-      needsCompanionInterface = true;
     }
+    String configClassName = null;
+    FunctionDeclaration constructor = classDeclaration.getConstructor();
+    if (constructor != null && constructor.getParams() != null) {
+      Parameter firstParam = constructor.getParams().getHead();
+      if (firstParam.getType() != null && firstParam.getType().isConfigType()) {
+        TypeDeclaration declaration = firstParam.getOptTypeRelation().getType().getDeclaration();
+        if (!classDeclaration.equals(declaration)) {
+          // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+          configClassName = compilationUnitAccessCode(declaration) + "._";
+        }
+      }
+    }
+    if (configClassName == null && classDeclaration.hasAnyExtConfigOrBindable()) {
+      configClassName = classDeclaration.getName() + "_";
+    }
+
+    List<String> configMixins = new ArrayList<>();
+    List<Ide> realInterfaces = new ArrayList<>();
+    if (classDeclaration.getOptImplements() != null) {
+      CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
+      do {
+        ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
+        CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
+        if (mixinCompilationUnit != null
+                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+          mixins.add(superTypes.getHead());
+          if (maybeMixinDeclaration.hasAnyExtConfigOrBindable()) {
+            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
+          }
+        } else {
+          realInterfaces.add(superTypes.getHead());
+        }
+        superTypes = superTypes.getTail();
+      } while (superTypes != null);
+    }
+
+    if (configClassName != null) {
+      List<String> configExtends = new ArrayList<>(configMixins);
+      ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+      if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
+        configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
+      }
+      configExtends.addAll(configMixins);
+      if (configsFromProps != null) {
+        configExtends.add(configsFromProps);
+      }
+      if (ownConfigsClassName != null) {
+        configExtends.add(ownConfigsClassName);
+      }
+      out.write("interface " + classDeclaration.getName() + "_");
+      if (!configExtends.isEmpty()) {
+        out.write(" extends " + String.join(", ", configExtends));
+      }
+      out.write(" {\n");
+      out.write("}\n\n");
+    }
+
     for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
       if (member.isPrivate()) {
         out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
@@ -247,18 +318,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken("class");
     }
     classDeclaration.getIde().visit(this);
-    String configClassName = null;
-    FunctionDeclaration constructor = classDeclaration.getConstructor();
-    if (constructor != null && constructor.getParams() != null) {
-      Parameter firstParam = constructor.getParams().getHead();
-      if ("config".equals(firstParam.getName()) && firstParam.getOptTypeRelation() != null
-              && classDeclaration.getName().startsWith(firstParam.getOptTypeRelation().getType().getIde().getName())) {
-        configClassName = compilationUnitAccessCode(firstParam.getOptTypeRelation().getType().getDeclaration()) + "._";
-      }
-    }
-    if (configClassName == null && classDeclaration.hasAnyExtConfig()) {
-      configClassName = classDeclaration.getName() + "._";
-    }
     String configTypeParameterDeclaration = "";
     if (configClassName != null) {
       configTypeParameterDeclaration = String.format("<Cfg extends %s = %s>", configClassName, configClassName);
@@ -272,25 +331,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    List<String> configMixins = new ArrayList<>();
-    List<Ide> realInterfaces = new ArrayList<>();
     if (classDeclaration.getOptImplements() != null) {
-      CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
-      do {
-        ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
-        CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
-        if (mixinCompilationUnit != null
-                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
-          mixins.add(superTypes.getHead());
-          if (maybeMixinDeclaration.hasAnyExtConfig()) {
-            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
-          }
-        } else {
-          realInterfaces.add(superTypes.getHead());
-        }
-        superTypes = superTypes.getTail();
-      } while (superTypes != null);
-
       JooSymbol extendsOrImplements;
       if (classDeclaration.isInterface() && classDeclaration.getOptImplements().getSuperTypes().getTail() != null) {
         extendsOrImplements = new JooSymbol("implements");
@@ -314,7 +355,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
-              propsFromConfigs,
+              ownPropertiesClassName,
               classDeclaration.getOptImplements(),
               configClassName != null,
               mixins);
@@ -349,29 +390,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       if (configClassName != null) {
-        out.write("\ndeclare namespace ");
-        out.write(classDeclaration.getName());
-        out.write(" {\n");
-        out.write("  export class _");
-        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-        if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
-          out.write(" extends " + compilationUnitAccessCode(superTypeDeclaration) + "._");
-        }
-        out.write(" {\n");
-        out.write("    constructor(config?: _);\n");
-        out.write("  }\n");
-        List<String> configExtends = new ArrayList<>(configMixins);
-        if (ownConfigsClassName != null) {
-          configExtends.add(ownConfigsClassName);
-        }
-        if (!configExtends.isEmpty()) {
-          out.write(String.format("  export interface _ extends %s {}\n", String.join(", ", configExtends)));
-        }
+        out.write(String.format("\ndeclare namespace %s {\n", classDeclaration.getName()));
+        out.write(String.format("  export type _ = %s_;\n", classDeclaration.getName()));
+        out.write("  export const _: { new(config?: _): _; };\n");
         out.write("}\n\n");
       }
     }
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isCurrentMixinInterface(Ide head) {
     return CompilationUnit.mapMixinInterface(head.getDeclaration().getCompilationUnit()).equals(compilationUnit);
   }
@@ -395,13 +422,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // must not be a mixin class's mixin interface: 
         if (filter.contains(head) && !isCurrentMixinInterface(head)) {
           out.writeSymbol(lastSym);
+          lastSym = current.getSymComma();
           head.visit(this);
           if (useCfgTypeParameter && useCfgTypeParameter(head)) {
             // hand through my Config class type parameter:
             out.write("<Cfg>");
           }
         }
-        lastSym = current.getSymComma();
         current = current.getTail();
       } while (current != null);
     }
@@ -421,8 +448,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // output all comments & white-space:
     visitDeclarationAnnotationsAndModifiers(configDeclaration);
     configDeclaration.getIde().visit(this);
-    // we want all configs optional (even those documented as "required"):
-    out.write("?");
+    if (configDeclaration.isBindable()) {
+      // we want all configs optional (even those documented as "required"):
+      out.write("?");
+    }
     visitIfNotNull(configDeclaration.getOptTypeRelation());
     if (configDeclaration instanceof VariableDeclaration) {
       VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
@@ -437,22 +466,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(optSymSemicolon, ";");
   }
 
-  @Override
-  public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
-    super.visitClassBodyDirectives(!companionInterfaceMode ? classBodyDirectives
-            : classBodyDirectives.stream()
-            .filter(FunctionDeclaration.class::isInstance)
-            .collect(Collectors.toList()));
-  }
-
   private boolean useCfgTypeParameter(Ide superType) {
     IdeDeclaration declaration = superType.getDeclaration();
-    if (declaration instanceof ClassDeclaration) {
-      if (((ClassDeclaration) declaration).hasAnyExtConfig()) {
-        return true;
-      }
-    }
-    return false;
+    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable();
   }
 
   @Override
@@ -462,22 +478,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       parentNode = parentNode.getParentNode();
     }
     if (parentNode instanceof IdeDeclaration) {
-      IdeDeclaration ideDeclaration =  (IdeDeclaration) parentNode;
       out.writeSymbol(typeRelation.getSymbol());
-      ExpressionType expressionType = ideDeclaration.getIde().getScope().getExpressionType(ideDeclaration);
+      ExpressionType expressionType = ((IdeDeclaration) parentNode).getType();
       // a non-getter-setter function declaration returns its function signature, but we are just interested 
       // in its return value, which is contained in the type parameter:
       if (expressionType instanceof FunctionSignature) {
         expressionType = expressionType.getTypeParameter();
       }
       String tsType = getTypeScriptTypeForActionScriptType(expressionType);
-      if ("config".equals(ideDeclaration.getName())) {
-        TypeDeclaration maybeExtConfigClassDeclaration = expressionType.getDeclaration();
-        if (maybeExtConfigClassDeclaration instanceof ClassDeclaration
-                && ((ClassDeclaration) maybeExtConfigClassDeclaration).hasAnyExtConfig()) {
-          tsType += "._"; // use config class instead!
-        }
-      }
       writeSymbolReplacement(typeRelation.getType().getSymbol(), tsType);
     } else {
       super.visitTypeRelation(typeRelation);
@@ -500,11 +508,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       case OBJECT:
         TypeDeclaration declaration = expressionType.getDeclaration();
         if (as3Type.name.equals(declaration.getQualifiedNameStr())) {
-          // it is really "Object", use TypeScript "Object":
-          return as3Type.name;
+          // it is really "Object", use TypeScript "any":
+          return "any";
         }
         // use class name:
-        return getLocalName(declaration, true);
+        String tsType = getLocalName(declaration, true);
+        return expressionType.isConfigType() ? tsType + "._" : tsType;
       case ANY:
         return "any";
       case VECTOR:
@@ -737,8 +746,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+    if (companionInterfaceMode) {
+      return;
+    }
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isExtConfig()) {
+      if (variableDeclaration.isExtConfigOrBindable()) {
         // never render [ExtConfig]s in a normal "visit":
         return;
       }
@@ -840,7 +852,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (initializer == null
                 || isAmbientOrInterface(compilationUnit)
                 || initializer.getValue().getType() == null
-                || !initializer.getValue().getType().equals(new ExpressionType(typeRelation.getType()))) {
+                || !initializer.getValue().getType().equals(variableDeclaration.getType())) {
           typeRelation.visit(this);
         }
       }
@@ -857,8 +869,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return varOrFunDeclaration.isStatic()
             || !varOrFunDeclaration.isNative()
             && (varOrFunDeclaration instanceof PropertyDeclaration
-            || varOrFunDeclaration instanceof FunctionDeclaration
-            && ((FunctionDeclaration) varOrFunDeclaration).isGetterOrSetter());
+            || varOrFunDeclaration instanceof FunctionDeclaration);
   }
 
   @Override
@@ -874,15 +885,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     FunctionExpr functionExpr = functionDeclaration.getFun();
     if (functionDeclaration.isClassMember()) {
-      if (functionDeclaration.isExtConfig()) {
-        // never render [ExtConfig]s in a normal "visit":
-        return;
-      }
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);
-      if (convertToProperty && functionDeclaration.isSetter()) {
-        // completely suppress native setter class members!
+      if (convertToProperty && (functionDeclaration.isSetter() || functionDeclaration.isExtConfigOrBindable())) {
+        // completely suppress native setter class members, for configs even native getters!
         return;
       }
       // any other native members in a non-ambient/interface compilation unit are moved
@@ -903,12 +910,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
+      boolean convertAccessorToMethod = false;
       if (convertToProperty) {
         if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
           writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
         }
       } else {
-        writeOptSymbol(functionDeclaration.getSymGetOrSet());
+        convertAccessorToMethod = functionDeclaration.isGetterOrSetter()
+                && functionDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
+        if (!convertAccessorToMethod) {
+          writeOptSymbol(functionDeclaration.getSymGetOrSet());
+        }
       }
       if (functionDeclaration.isConstructor()) {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
@@ -918,12 +930,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (!useSymbolForPrivateMember(functionDeclaration)) {
             out.writeToken("=");
           }
+        } else if (convertAccessorToMethod) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),
+                  getBindablePropertyName(functionDeclaration.isGetter() ? MethodType.GET : MethodType.SET,
+                          functionDeclaration));
         } else {
           functionDeclaration.getIde().visit(this);
         }
       }
       if (convertToProperty) {
-        if (functionDeclaration.isExtConfig()) {
+        if (functionDeclaration.isExtConfigOrBindable()) {
           out.write("?");
         }
       } else {
@@ -984,7 +1000,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (!(body.usesInstanceThis()
             && body.getParentNode() instanceof FunctionExpr
             && body.getParentNode().getParentNode() instanceof FunctionDeclaration
-            && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall())) {
+            && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall()
+            && ((FunctionDeclaration) body.getParentNode().getParentNode()).getClassDeclaration().notExtendsObject())) {
       super.visitBlockStatementDirectives(body);
       return;
     }
@@ -1088,14 +1105,29 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (statements.size() == 1) {
         Directive firstStatement = statements.get(0);
         if (firstStatement instanceof ReturnStatement) {
-          Expr expr = ((ReturnStatement) firstStatement).getOptExpr();
+          out.writeSymbolWhitespace(functionExpr.getBody().getLBrace());
+          ReturnStatement returnStatement = (ReturnStatement) firstStatement;
+          out.writeSymbolWhitespace(returnStatement.getSymbol());
+          Expr expr = returnStatement.getOptExpr();
           if (expr != null) {
+            boolean needsInnerParenthesis = expr instanceof ObjectLiteral;
+            if (needsInnerParenthesis) {
+              out.writeSymbolWhitespace(expr.getSymbol());
+              out.write("(");
+            }
             expr.visit(this);
-            if (needsParenthesis) {
+            if (needsInnerParenthesis) {
               out.write(")");
             }
-            return;
+          } else {
+            // a sole return without and value should be a rare case, but who knows:
+            out.writeToken("undefined");
           }
+          out.writeSymbolWhitespace(functionExpr.getBody().getRBrace());
+          if (needsParenthesis) {
+            out.write(")");
+          }
+          return;
         }
       }
     } else {
@@ -1148,7 +1180,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Expr typeCastedExpr = args.getExpr().getHead();
       if (typeCastedExpr instanceof ObjectLiteral) {
         // use config factory function instead of the class itself:
-        writeSymbolReplacement(applyExpr.getSymbol(), "new " + ((IdeExpr)applyExpr.getFun()).getIde().getIde().getText() + "._");
+        writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(((IdeExpr)applyExpr.getFun()).getIde().getDeclaration()) + "._");
         args.visit(this);
       } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
@@ -1283,7 +1315,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Ide ide = dotExpr.getIde();
       IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
       if (memberDeclaration == null) {
-        if (!AS3Type.ANY.equals(type.getAS3Type())) {
+        if (!"any".equals(getTypeScriptTypeForActionScriptType(type))) {
           // dynamic property access on typed objects must be converted to ["<ide>"] in TypeScript:
           arg.visit(this);
           writeSymbolReplacement(dotExpr.getOp(), "[");
@@ -1298,6 +1330,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           Object nativeMemberName = nativeAnnotation.getPropertiesByName().get(null);
           if (nativeMemberName instanceof String) {
             memberName = (String) nativeMemberName;
+          }
+        }
+        if (!type.isConfigType() && !ide.isAssignmentLHS()) {
+          TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
+          if (getter != null) {
+            // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
+            memberName = "getConfig(" + CompilerUtils.quote(ide.getName()) + ")";
           }
         }
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
@@ -1321,6 +1360,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     super.visitDotExpr(dotExpr);
+  }
+
+  @Override
+  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+    Expr lhs = assignmentOpExpr.getArg1();
+    if (lhs instanceof IdeExpr) {
+      lhs = ((IdeExpr) lhs).getNormalizedExpr();
+    }
+    if (lhs instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) lhs;
+      Expr arg = dotExpr.getArg();
+      ExpressionType type = arg.getType();
+      if (type != null && !type.isConfigType()) {
+        Ide ide = dotExpr.getIde();
+        IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
+        if (memberDeclaration != null) {
+          TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
+          if (setter != null) {
+            // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
+            arg.visit(this);
+            out.writeSymbol(dotExpr.getOp());
+            out.write("setConfig(");
+            writeSymbolReplacement(ide.getSymbol(), CompilerUtils.quote(ide.getName()));
+            writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
+            assignmentOpExpr.getArg2().visit(this);
+            out.write( ")");
+            return;
+          }
+        }
+      }
+    }
+    super.visitAssignmentOpExpr(assignmentOpExpr);
   }
 
   @Override
@@ -1434,6 +1505,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (declaration instanceof VariableDeclaration && !((VariableDeclaration) declaration).isConst()
                 && getRequireModuleName(declaration) != null) {
+          // Modifiable singleton access:
           localName += "._";
         }
       }

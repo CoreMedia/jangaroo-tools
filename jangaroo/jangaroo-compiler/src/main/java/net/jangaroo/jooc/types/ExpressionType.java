@@ -19,6 +19,7 @@ public class ExpressionType {
   private AS3Type as3Type;
   private TypeDeclaration declaration;
   private ExpressionType typeParameter;
+  private boolean isConfigType;
 
   public ExpressionType(@Nonnull Type type) {
     this.type = type;
@@ -33,9 +34,23 @@ public class ExpressionType {
     this.typeParameter = typeParameter;
   }
 
+  public boolean isConfigType() {
+    return isConfigType;
+  }
+
+  public void markAsConfigTypeIfPossible() {
+    if (getDeclaration() instanceof ClassDeclaration && ((ClassDeclaration) getDeclaration()).hasAnyExtConfigOrBindable()) {
+      isConfigType = true;
+    }
+  }
+
   @Nullable
   public Type getType() {
     return type;
+  }
+
+  public ExpressionType getEvalType() {
+    return this;
   }
 
   @Nonnull
@@ -159,8 +174,21 @@ public class ExpressionType {
     return result;
   }
 
+  @Override
+  public String toString() {
+    String name = getDeclaration().getQualifiedNameStr();
+    ExpressionType typeParameter = getTypeParameter();
+    if (typeParameter != null) {
+      name += "<" + typeParameter.toString() + ">";
+    }
+    return name;
+  }
+
   public static boolean isNumber(AS3Type type) {
     return AS3Type.NUMBER.equals(type) || AS3Type.INT.equals(type) || AS3Type.UINT.equals(type);
   }
 
+  public static String toString(ExpressionType type) {
+    return type == null ? "*" : type.toString();
+  }
 }

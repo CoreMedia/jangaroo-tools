@@ -23,6 +23,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
@@ -313,18 +314,18 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  public boolean hasOwnExtConfig() {
+  public boolean hasOwnExtConfigOrBindable() {
     String qualifiedName = getQualifiedNameStr();
     if ("ext.mixin.Observable".equals(qualifiedName)) {
       // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
       // but do not define any other [ExtConfig]s, must not be treated as using the config system.
       return false;
     }
-    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfig);
+    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfigOrBindable);
   }
 
-  public boolean hasAnyExtConfig() {
-    boolean hasAnyExtConfig = false;
+  public boolean hasAnyExtConfigOrBindable() {
+    boolean hasAnyExtConfigOrBindable = false;
     ClassDeclaration current = this;
     // for Mixins, start a Mixin class, not this interface:
     if (isInterface()) {
@@ -334,13 +335,16 @@ public class ClassDeclaration extends TypeDeclaration {
       }
     }
     do {
+      if (current.getCompilationUnit() instanceof MxmlCompilationUnit) {
+        return true;
+      }
       String qualifiedName = current.getQualifiedNameStr();
       if ("ext.Base".equals(qualifiedName)) {
         // having ExtConfigs only counts if you explicitly inherit from ext.Base or implement ext.Plugin!
-        return hasAnyExtConfig;
+        return hasAnyExtConfigOrBindable;
       }
-      if (!hasAnyExtConfig) {
-        hasAnyExtConfig = current.hasOwnExtConfig();
+      if (!hasAnyExtConfigOrBindable) {
+        hasAnyExtConfigOrBindable = current.hasOwnExtConfigOrBindable();
       }
       current = current.getSuperTypeDeclaration();
     } while (current != null);
@@ -481,7 +485,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   private String computeQualifiedNameHash() {
-    int hashCode = getQualifiedNameStr().hashCode();
+    int hashCode = getTargetQualifiedNameStr().hashCode();
     return  base64Char(hashCode >>> 18) +
             base64Char(hashCode >>> 12) +
             base64Char(hashCode >>> 6) +
@@ -491,6 +495,22 @@ public class ClassDeclaration extends TypeDeclaration {
   @Override
   public ClassDeclaration getSuperTypeDeclaration() {
     return superType == null ? null : (ClassDeclaration) superType.getDeclaration();
+  }
+
+  public List<ClassDeclaration> getSuperTypeDeclarations() {
+    List<ClassDeclaration> superTypeDeclarations = new ArrayList<>();
+    if (getSuperTypeDeclaration() != null) {
+      superTypeDeclarations.add(getSuperTypeDeclaration());
+    }
+    Implements optImplements = getOptImplements();
+    if (optImplements != null) {
+      CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
+      while (superTypes != null) {
+        superTypeDeclarations.add((ClassDeclaration) getIde().getScope().lookupDeclaration(superTypes.getHead()));
+        superTypes = superTypes.getTail();
+      }
+    }
+    return superTypeDeclarations;
   }
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {

@@ -20,6 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.api.CompileLog;
+import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.io.IOException;
@@ -108,6 +109,10 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   private static boolean isSetter(JooSymbol symGetOrSet) {
     return symGetOrSet != null && SyntacticKeywords.SET.equals(symGetOrSet.getText());
+  }
+
+  public MethodType getMethodType() {
+    return isSetter() ? MethodType.SET : isGetter() ? MethodType.GET : null;
   }
 
   public final boolean isConstructor() {
@@ -210,8 +215,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode); // computes modifiers
     fun.analyze(this);
 
-    // always compute method signature, so that possible errors are logged:
-    FunctionSignature methodSignature = getMethodSignature();
     if (isOverride()) {
       IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
       CompileLog log = getIde().getScope().getCompiler().getLog();
@@ -222,9 +225,10 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
         log.error(getFun().getSymbol(), "Method does not override method from super class");
       } else {
         FunctionDeclaration superMethodDeclaration = (FunctionDeclaration) superDeclaration;
+        FunctionSignature methodSignature = getMethodSignature();
         FunctionSignature superMethodSignature = superMethodDeclaration.getMethodSignature();
         if (!methodSignature.equals(superMethodSignature)) {
-          log.error(getFun().getSymbol(), "Incompatible override, should have signature '" + superMethodDeclaration.getMethodSignatureDescription() + "'");
+          log.error(getFun().getSymbol(), "Incompatible override, should have signature '" + superMethodSignature.toString() + "'");
         }
       }
     }
@@ -247,48 +251,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   public FunctionSignature getMethodSignature() {
-    return scope.getFunctionSignature(getParams(), scope.getExpressionType(getOptTypeRelation()));
-  }
-
-  public String getMethodSignatureDescription() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("(");
-    boolean isFirst = true;
-    for (Parameters parameters = getParams(); parameters != null; parameters = parameters.getTail()) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        builder.append(", ");
-      }
-      Parameter parameter = parameters.getHead();
-      if (parameter.isRest()) {
-        builder.append("...");
-      }
-      builder.append(parameter.getName());
-      appendOptTypeRelation(builder, parameter.getOptTypeRelation());
-      appendOptInitializer(builder, parameter.getOptInitializer());
-    }
-    builder.append(")");
-    appendOptTypeRelation(builder, getOptTypeRelation());
-    return builder.toString();
-  }
-
-  private void appendOptInitializer(StringBuilder builder, Initializer optInitializer) {
-    if (optInitializer != null) {
-      builder.append(" = ").append(optInitializer.getValue().getSymbol().getText());
-    }
-  }
-
-  private static void appendOptTypeRelation(StringBuilder builder, TypeRelation optTypeRelation) {
-    if (optTypeRelation != null) {
-      builder.append(":").append(toString(optTypeRelation.getType().resolveDeclaration()));
-    }
-  }
-
-  private static String toString(TypeDeclaration declaration) {
-    return declaration.getIde() instanceof IdeWithTypeParam
-            ? String.format("Vector.<%s>", toString(((IdeWithTypeParam) declaration.getIde()).getType().resolveDeclaration()))
-            : declaration.getQualifiedNameStr();
+    return (FunctionSignature) getType();
   }
 
   /**
@@ -298,7 +261,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private void analyzeSymModifiers() {
     ClassDeclaration classDeclaration = getClassDeclaration();
     if(null != classDeclaration && classDeclaration.isInterface()) {
-      //noinspection LoopStatementThatDoesntLoop
       for (JooSymbol symModifier : getSymModifiers()) {
         throw JangarooParser.error(symModifier, "illegal modifier: " + symModifier.getText());
       }
@@ -360,6 +322,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   @Override
   public boolean isExtConfig() {
     return isGetterOrSetter() && super.isExtConfig();
+  }
+
+  @Override
+  public boolean isBindable() {
+    return isGetterOrSetter() && super.isBindable();
   }
 
   @Override
