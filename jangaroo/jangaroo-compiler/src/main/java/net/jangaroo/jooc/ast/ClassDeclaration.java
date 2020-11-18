@@ -497,6 +497,22 @@ public class ClassDeclaration extends TypeDeclaration {
     return superType == null ? null : (ClassDeclaration) superType.getDeclaration();
   }
 
+  public List<ClassDeclaration> getSuperTypeDeclarations() {
+    List<ClassDeclaration> superTypeDeclarations = new ArrayList<>();
+    if (getSuperTypeDeclaration() != null) {
+      superTypeDeclarations.add(getSuperTypeDeclaration());
+    }
+    Implements optImplements = getOptImplements();
+    if (optImplements != null) {
+      CommaSeparatedList<Ide> superTypes = optImplements.getSuperTypes();
+      while (superTypes != null) {
+        superTypeDeclarations.add((ClassDeclaration) getIde().getScope().lookupDeclaration(superTypes.getHead()));
+        superTypes = superTypes.getTail();
+      }
+    }
+    return superTypeDeclarations;
+  }
+
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {
     fieldsWithInitializer.add(fieldDeclaration);
   }

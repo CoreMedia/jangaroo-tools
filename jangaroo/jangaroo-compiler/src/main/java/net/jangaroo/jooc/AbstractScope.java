@@ -36,6 +36,8 @@ import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.Typed;
+import net.jangaroo.jooc.ast.TypedIdeDeclaration;
+import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
@@ -259,8 +261,17 @@ public abstract class AbstractScope implements Scope {
   private static TypeDeclaration findArrayElementType(IdeDeclaration declaration) {
     // find [ArrayElementType("...")] annotation:
     Annotation annotation = declaration.getAnnotation(ARRAY_ELEMENT_TYPE_ANNOTATION_NAME);
-    if (annotation != null) {
-      JangarooParser compiler = declaration.getIde().getScope().getCompiler();
+    Ide declarationIde = declaration.getIde();
+    if (annotation == null) {
+      if (!declaration.isStatic() && declarationIde != null) {
+        // depth-first search for [ArrayElementType] annotation in all super types:
+        ClassDeclaration classDeclaration = declaration.getClassDeclaration();
+        if (classDeclaration != null) {
+          return findArrayElementType(declarationIde, classDeclaration);
+        }
+      }
+    } else {
+      JangarooParser compiler = declarationIde.getScope().getCompiler();
       CommaSeparatedList<AnnotationParameter> annotationParameters = annotation.getOptAnnotationParameters();
       if (annotationParameters == null) {
         compiler.getLog().error(declaration.getSymbol(), "[ArrayElementType] must provide a class reference.");
@@ -280,6 +291,24 @@ public abstract class AbstractScope implements Scope {
             }
           }
         }
+      }
+    }
+    return null;
+  }
+
+  private static TypeDeclaration findArrayElementType(Ide declarationIde, ClassDeclaration classDeclaration) {
+    String memberName = declarationIde.getName();
+    for (ClassDeclaration superTypeDeclaration : classDeclaration.getSuperTypeDeclarations()) {
+      TypedIdeDeclaration superDeclaration = superTypeDeclaration.getMemberDeclaration(memberName);
+      if (superDeclaration != null) {
+        TypeDeclaration superArrayElementType = findArrayElementType(superDeclaration);
+        if (superArrayElementType != null) {
+          return superArrayElementType;
+        }
+      }
+      TypeDeclaration superArrayElementType = findArrayElementType(declarationIde, superTypeDeclaration);
+      if (superArrayElementType != null) {
+        return superArrayElementType;
       }
     }
     return null;
