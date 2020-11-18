@@ -1111,7 +1111,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeSymbolWhitespace(returnStatement.getSymbol());
           Expr expr = returnStatement.getOptExpr();
           if (expr != null) {
+            boolean needsInnerParenthesis = expr instanceof ObjectLiteral;
+            if (needsInnerParenthesis) {
+              out.writeSymbolWhitespace(expr.getSymbol());
+              out.write("(");
+            }
             expr.visit(this);
+            if (needsInnerParenthesis) {
+              out.write(")");
+            }
           } else {
             // a sole return without and value should be a rare case, but who knows:
             out.writeToken("undefined");
