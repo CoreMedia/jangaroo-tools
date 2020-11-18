@@ -422,13 +422,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // must not be a mixin class's mixin interface: 
         if (filter.contains(head) && !isCurrentMixinInterface(head)) {
           out.writeSymbol(lastSym);
+          lastSym = current.getSymComma();
           head.visit(this);
           if (useCfgTypeParameter && useCfgTypeParameter(head)) {
             // hand through my Config class type parameter:
             out.write("<Cfg>");
           }
         }
-        lastSym = current.getSymComma();
         current = current.getTail();
       } while (current != null);
     }
