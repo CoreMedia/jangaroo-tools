@@ -1001,7 +1001,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (!(body.usesInstanceThis()
             && body.getParentNode() instanceof FunctionExpr
             && body.getParentNode().getParentNode() instanceof FunctionDeclaration
-            && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall())) {
+            && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall()
+            && ((FunctionDeclaration) body.getParentNode().getParentNode()).getClassDeclaration().notExtendsObject())) {
       super.visitBlockStatementDirectives(body);
       return;
     }
