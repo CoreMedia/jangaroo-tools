@@ -54,7 +54,8 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   /**
    * Choose to create a 'production' build of the Sencha App instead of the standard 'development' build.
-   * Note that when you do a 'mvn install -DsenchaAppBuild=production', the <em>Jangaroo app</em> build will be skipped!
+   * Note that when you do a 'mvn install -DsenchaAppBuild=', the <em>Jangaroo app</em> build will be skipped
+   * and because there must be some artifact for 'install', the pom.xml is installed instead of the JAR.
    */
   @Parameter(property = "senchaAppBuild")
   private String senchaAppBuild = SenchaUtils.DEVELOPMENT_PROFILE;
@@ -93,7 +94,10 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
     }
     if (StringUtils.isEmpty(senchaAppBuild)) {
-      senchaAppBuild = SenchaUtils.DEVELOPMENT_PROFILE;
+      getLog().info("Property 'senchaAppBuild' is empty; skipping package-app execution.");
+      // since install insists of needing an artifact, we give it the pom.xml:
+      project.getArtifact().setFile(project.getFile());
+      return;
     }
     if (!(SenchaUtils.PRODUCTION_PROFILE.equals(senchaAppBuild)
             || SenchaUtils.DEVELOPMENT_PROFILE.equals(senchaAppBuild)
