@@ -18,11 +18,8 @@ public class ZipEntryInputSource implements InputSource {
     this.zipEntry = zipEntry;
     this.relativePath = relativePath;
 
-    name = zipEntry.getName();
-    int lastSlash = name.lastIndexOf('/');
-    if (lastSlash >= 0) {
-      name = name.substring(lastSlash + 1);
-    }
+    String[] parts = zipEntry.getName().split("/");
+    name = parts[parts.length - 1];
   }
 
   public ZipFileInputSource getZipFileInputSource() {

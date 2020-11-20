@@ -611,18 +611,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String findSenchaPackageName(ZipEntryInputSource zipEntryInputSource) {
-    String npmPackageName = null;
     ZipFileInputSource zipFileInputSource = zipEntryInputSource.getZipFileInputSource();
-    List<? extends InputSource> swcPkgFiles = zipFileInputSource.getChild("META-INF/pkg").list();
-    for (InputSource swcPkgFile : swcPkgFiles) {
-      String swcPkgFileName = swcPkgFile.getName();
-      if (swcPkgFileName.endsWith(".json") && !swcPkgFileName.equals("package.json")
-              && !swcPkgFileName.contains("-overrides")) {
-        npmPackageName = CompilerUtils.removeExtension(swcPkgFileName);
-        break;
-      }
+    InputSource groupIdDir = getFirstSubDirectory(zipFileInputSource.getChild("META-INF/maven"));
+    InputSource artifactIdDir = getFirstSubDirectory(groupIdDir);
+    if (groupIdDir != null && artifactIdDir != null) {
+      return groupIdDir.getName() + "__" + artifactIdDir.getName();
     }
-    return npmPackageName;
+    return null;
+  }
+
+  private InputSource getFirstSubDirectory(InputSource directory) {
+    if (directory == null) {
+      return null;
+    }
+    List<? extends InputSource> list = directory.list();
+    return list.size() >= 1 ? list.get(0) : null;
   }
 
   private String getRequireModulePath(IdeDeclaration declaration) {
