@@ -1487,7 +1487,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIde(Ide ide) throws IOException {
-    if (out.isWritingComment()) {
+    if (out.isWritingComment() || ide.getParentNode() == null) { // comment or ObjectField label
       super.visitIde(ide);
     } else {
       writeSymbolReplacement(ide.getIde(), getLocalName(ide, false));
@@ -1525,7 +1525,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           localName += "._";
         }
       }
-    } else if (declaration instanceof Parameter && ((Parameter) declaration).isRest()
+    } else if (declaration instanceof Parameter
             && FunctionExpr.ARGUMENTS.equals(declaration.getName())) {
       // parameter name "arguments" is not allowed in ECMAScript strict to avoid confusion with the built-in
       // "arguments", so let's rename this:

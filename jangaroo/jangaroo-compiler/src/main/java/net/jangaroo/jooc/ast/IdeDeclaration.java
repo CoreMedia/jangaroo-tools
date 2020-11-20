@@ -127,6 +127,12 @@ public abstract class IdeDeclaration extends Declaration {
     }
   }
 
+  @Override
+  public void analyze(AstNode parentNode) {
+    super.analyze(parentNode);
+    getIde().analyze(this);
+  }
+
   public void handleDuplicateDeclaration(Scope scope, AstNode oldNode) {
     String msg = "Duplicate declaration of identifier '" + getName() + "'";
     if (allowDuplicates(scope)) {
