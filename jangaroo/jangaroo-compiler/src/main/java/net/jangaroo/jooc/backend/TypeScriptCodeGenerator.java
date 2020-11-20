@@ -1192,9 +1192,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(args.getRParen());
     } else if (applyExpr.isTypeCast()) {
       Expr typeCastedExpr = args.getExpr().getHead();
-      if (typeCastedExpr instanceof ObjectLiteral) {
+      IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
+      if (typeCastedExpr instanceof ObjectLiteral &&
+              declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable()) {
         // use config factory function instead of the class itself:
-        writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(((IdeExpr)applyExpr.getFun()).getIde().getDeclaration()) + "._");
+        writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
         args.visit(this);
       } else if (isExtApply(typeCastedExpr)) {
         // If you type-cast the result of Ext.apply(), you are surely using config objects.
