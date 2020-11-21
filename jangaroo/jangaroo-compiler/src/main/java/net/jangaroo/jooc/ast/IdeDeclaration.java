@@ -130,7 +130,9 @@ public abstract class IdeDeclaration extends Declaration {
   @Override
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getIde().analyze(this);
+    if (ide != null) {
+      ide.analyze(this);
+    }
   }
 
   public void handleDuplicateDeclaration(Scope scope, AstNode oldNode) {
