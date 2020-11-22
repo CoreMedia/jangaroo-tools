@@ -66,8 +66,7 @@ public class JooParser extends parser {
       report_error("Internal parser error: infinite loop during virtual token insertion: " + scanner.getSymbolAbbreviation(cur_token.sym), cur_token);
       return false;
     }
-    JooSymbol virtualToken = new JooSymbol(token, currentToken.getFileName(), currentToken.getLine(), currentToken.getColumn(), "", text);
-    virtualToken.setVirtual(true);
+    JooSymbol virtualToken = new JooSymbol(token, currentToken.getFileName(), currentToken.getLine(), currentToken.getColumn(), "", text).virtual();
     currentToken.setSemicolonInsertedBefore(token == sym.SEMICOLON);
     cur_token = virtualToken;
     scanner.pushback(currentToken);

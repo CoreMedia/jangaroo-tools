@@ -1487,9 +1487,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitIde(Ide ide) throws IOException {
-    if (out.isWritingComment() || ide.getParentNode() == null) { // comment or ObjectField label
+    if (out.isWritingComment() || ide.getParentNode() == null // comment or ObjectField label
+            || ide.getParentNode() instanceof DotExpr) {      // or property/field
       super.visitIde(ide);
     } else {
+      // "top-level" Ide access: rewrite!
       writeSymbolReplacement(ide.getIde(), getLocalName(ide, false));
     }
   }
@@ -1526,6 +1528,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     } else if (declaration instanceof Parameter
+            && !declaration.getIde().getSymbol().isVirtual() // it is *not* the implicit 'arguments' parameter!
             && FunctionExpr.ARGUMENTS.equals(declaration.getName())) {
       // parameter name "arguments" is not allowed in ECMAScript strict to avoid confusion with the built-in
       // "arguments", so let's rename this:

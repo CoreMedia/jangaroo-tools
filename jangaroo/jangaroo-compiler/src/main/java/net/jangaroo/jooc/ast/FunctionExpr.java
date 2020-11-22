@@ -33,7 +33,7 @@ import java.util.List;
 public class FunctionExpr extends Expr {
 
   public static final String ARGUMENTS = "arguments";
-  public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol(ARGUMENTS));
+  public static final Ide ARGUMENTS_IDE = new Ide(new JooSymbol(ARGUMENTS).virtual());
 
   //todo unify predefined type definitions, they are scattered all over
   public static final Type ANY_TYPE = new Type(new JooSymbol(sym.MUL, "", -1, -1, "", AS3Type.ANY.toString()));

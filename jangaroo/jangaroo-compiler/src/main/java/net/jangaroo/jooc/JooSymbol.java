@@ -115,8 +115,9 @@ public class JooSymbol extends java_cup.runtime.Symbol implements FilePosition {
     return isVirtual;
   }
 
-  public void setVirtual(final boolean virtual) {
-    isVirtual = virtual;
+  public JooSymbol virtual() {
+    isVirtual = true;
+    return this;
   }
 
   public boolean isSemicolonInsertedBefore() {
