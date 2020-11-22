@@ -86,6 +86,25 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String COERCE_TO_VALUE_KEYOF_PREFIX = "keyof ";
   public static final String RETURN_ANNOTATION_NAME = "Return";
 
+  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList(
+          Jooc.NATIVE_ANNOTATION_NAME,
+          Jooc.RENAME_ANNOTATION_NAME,
+          Jooc.EMBED_ANNOTATION_NAME,
+          Jooc.BINDABLE_ANNOTATION_NAME,
+          Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
+          Jooc.EXT_CONFIG_ANNOTATION_NAME,
+          Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
+          Jooc.MIXIN_ANNOTATION_NAME,
+          Jooc.MIXIN_HOOK_ANNOTATION_NAME,
+          Jooc.EXT_PRIVATE_ANNOTATION_NAME,
+          Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME,
+          Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
+          Jooc.EVENT_ANNOTATION_NAME,
+          Jooc.LAZY_ANNOTATION_NAME,
+          Jooc.PARAMETER_ANNOTATION_NAME,
+          Jooc.RETURN_ANNOTATION_NAME
+  );
+
   private final List<FileInputSource> compileQueue = new ArrayList<>();
 
   public Jooc() {

@@ -49,24 +49,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   private static final JooSymbol SYM_RBRACE = new JooSymbol(sym.RBRACE, "}");
   public static final Set<String> PRIMITIVES = new HashSet<String>(4);
   public static final List<String> ANNOTATIONS_TO_TRIGGER_AT_RUNTIME = Arrays.asList("SWF", "ExtConfig"); // TODO: inject / make configurable
-  public static final List<String> ANNOTATIONS_FOR_COMPILER_ONLY = Arrays.asList(
-          Jooc.NATIVE_ANNOTATION_NAME,
-          Jooc.RENAME_ANNOTATION_NAME,
-          Jooc.EMBED_ANNOTATION_NAME,
-          Jooc.BINDABLE_ANNOTATION_NAME,
-          Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME,
-          Jooc.EXT_CONFIG_ANNOTATION_NAME,
-          Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME,
-          Jooc.MIXIN_ANNOTATION_NAME,
-          Jooc.MIXIN_HOOK_ANNOTATION_NAME,
-          Jooc.EXT_PRIVATE_ANNOTATION_NAME,
-          Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME,
-          Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
-          Jooc.EVENT_ANNOTATION_NAME,
-          Jooc.LAZY_ANNOTATION_NAME,
-          Jooc.PARAMETER_ANNOTATION_NAME,
-          Jooc.RETURN_ANNOTATION_NAME
-  );
   public static final String DEFAULT_ANNOTATION_PARAMETER_NAME = "";
   public static final String INIT_STATICS = "__initStatics__";
 
@@ -1735,7 +1717,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     public List<Object> compress(List<Metadata> metadataList) {
       List<Object> compressedMetadataList = new ArrayList<Object>();
       for (Metadata metadata : metadataList) {
-        if (!ANNOTATIONS_FOR_COMPILER_ONLY.contains(metadata.name)) {
+        if (!Jooc.ANNOTATIONS_FOR_COMPILER_ONLY.contains(metadata.name)) {
           compressedMetadataList.add(metadata.name);
           if (!metadata.args.isEmpty()) {
             ArrayList<Object> argNameValues = new ArrayList<Object>();

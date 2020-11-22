@@ -366,11 +366,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write("\n");
     }
 
-    if (classDeclaration.isPrimaryDeclaration()) {
-      visitAll(classDeclaration.getSecondaryDeclarations());
-
-      if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
-              && classDeclaration.getOptImplements() != null
+    if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+      if (classDeclaration.getOptImplements() != null
               && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
         CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
         boolean foundNonMixinInterface = false;
@@ -389,6 +386,45 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.write(");\n");
         }
       }
+
+      List<Annotation> metadata = classDeclaration.getMetadata();
+      if (!metadata.isEmpty()) {
+        out.write("\nmetadata(" + classDeclaration.getName() + ", [");
+        boolean firstAnnotation = true;
+        for (Annotation runtimeAnnotation : metadata) {
+          if (firstAnnotation) {
+            firstAnnotation = false;
+          } else {
+            out.write(",\n    ");
+          }
+          out.write(CompilerUtils.quote(runtimeAnnotation.getMetaName()));
+          CommaSeparatedList<AnnotationParameter> annotationParameters = runtimeAnnotation.getOptAnnotationParameters();
+          if (annotationParameters != null) {
+            out.write(", {");
+            boolean firstParameter = true;
+            while (annotationParameters != null) {
+              AnnotationParameter annotationParameter = annotationParameters.getHead();
+              if (firstParameter) {
+                firstParameter = false;
+              } else {
+                out.write(", ");
+              }
+              visitIfNotNull(annotationParameter.getOptName(), "\"\"");
+              out.write(": ");
+              visitIfNotNull(annotationParameter.getValue(), "true");
+              annotationParameters = annotationParameters.getTail();
+            }
+            out.write("}");
+          }
+          out.write("]");
+        }
+        out.write(");\n");
+      }
+    }
+
+    if (classDeclaration.isPrimaryDeclaration()) {
+      visitAll(classDeclaration.getSecondaryDeclarations());
+
       if (configClassName != null) {
         out.write(String.format("\ndeclare namespace %s {\n", classDeclaration.getName()));
         out.write(String.format("  export type _ = %s_;\n", classDeclaration.getName()));
@@ -727,9 +763,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitAnnotation(Annotation annotation) throws IOException {
-    if (Jooc.NATIVE_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
-            Jooc.RENAME_ANNOTATION_NAME.equals(annotation.getMetaName()) ||
-            Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME.equals(annotation.getMetaName())) {
+    if (Jooc.ANNOTATIONS_FOR_COMPILER_ONLY.contains(annotation.getMetaName())) {
       out.writeSymbolWhitespace(annotation.getSymbol());
       return;
     }
