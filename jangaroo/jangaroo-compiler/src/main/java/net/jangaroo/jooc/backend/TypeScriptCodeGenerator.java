@@ -1371,7 +1371,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             memberName = (String) nativeMemberName;
           }
         }
-        if (!type.isConfigType() && !ide.isAssignmentLHS()) {
+        if (memberDeclaration instanceof VariableDeclaration
+                && memberDeclaration.isClassMember()
+                && memberDeclaration.isPublic()
+                && !type.isConfigType()
+                && !ide.isAssignmentLHS()) {
           TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
           if (getter != null) {
             // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
@@ -1414,7 +1418,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (type != null && !type.isConfigType()) {
         Ide ide = dotExpr.getIde();
         IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
-        if (memberDeclaration != null) {
+        if (memberDeclaration instanceof VariableDeclaration
+                && memberDeclaration.isClassMember()
+                && memberDeclaration.isPublic()) {
           TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
           if (setter != null) {
             // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
