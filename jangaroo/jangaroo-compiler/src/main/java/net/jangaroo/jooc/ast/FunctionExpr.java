@@ -258,9 +258,7 @@ public class FunctionExpr extends Expr {
 
   public boolean rewriteToArrowFunction() {
     return !isExplicitThisUsed() && !argumentsUsed && getBody() != null
-            && (getIde() == null && getFunctionDeclaration() == null
-            || getIde() != null && getFunctionDeclaration() != null
-            && getFunctionDeclaration().isThisAliased() && !getFunctionDeclaration().isClassMember());
+            && getIde() == null && getFunctionDeclaration() == null;
   }
 
   boolean isMyArguments(Parameter maybeArgumentsParameter) {

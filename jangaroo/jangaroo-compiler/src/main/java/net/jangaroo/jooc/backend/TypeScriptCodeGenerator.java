@@ -1017,19 +1017,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (functionDeclaration.isPrimaryDeclaration()) {
         visitDeclarationAnnotationsAndModifiers(functionDeclaration);
       }
-      if (functionExpr.rewriteToArrowFunction()) {
-        // rewrite named function declaration function foo to var foo = () => {}:
-        // (We could use const, but only if there are no forward references.)
-        writeSymbolReplacement(functionDeclaration.getSymbol(), "var");
-        functionDeclaration.getIde().visit(this);
-        out.write(" = ");
-        functionExpr.visit(this);
-        writeOptSymbol(functionDeclaration.getOptSymSemicolon(), ";");
-      } else {
-        // if there is no implicit outer this access, don't bother to rewrite to an arrow function:
-        functionExpr.visit(this);
-        writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
-      }
+      functionExpr.visit(this);
+      writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
     }
   }
 
