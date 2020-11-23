@@ -1371,15 +1371,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             memberName = (String) nativeMemberName;
           }
         }
-        if (memberDeclaration instanceof VariableDeclaration
-                && memberDeclaration.isClassMember()
-                && memberDeclaration.isPublic()
-                && !type.isConfigType()
-                && !ide.isAssignmentLHS()) {
-          TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, memberDeclaration.getClassDeclaration());
-          if (getter != null) {
-            // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
-            memberName = "getConfig(" + CompilerUtils.quote(ide.getName()) + ")";
+        if (!ide.isAssignmentLHS()) {
+          IdeDeclaration bindableConfigDeclarationCandidate = getBindableConfigDeclarationCandidate(type, ide);
+          if (bindableConfigDeclarationCandidate != null) {
+            TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, bindableConfigDeclarationCandidate.getClassDeclaration());
+            if (getter != null) {
+              // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
+              memberName = "getConfig(" + CompilerUtils.quote(ide.getName()) + ")";
+            }
           }
         }
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
@@ -1415,28 +1414,35 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       DotExpr dotExpr = (DotExpr) lhs;
       Expr arg = dotExpr.getArg();
       ExpressionType type = arg.getType();
-      if (type != null && !type.isConfigType()) {
-        Ide ide = dotExpr.getIde();
-        IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration(ide.getName());
-        if (memberDeclaration instanceof VariableDeclaration
-                && memberDeclaration.isClassMember()
-                && memberDeclaration.isPublic()) {
-          TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
-          if (setter != null) {
-            // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
-            arg.visit(this);
-            out.writeSymbol(dotExpr.getOp());
-            out.write("setConfig(");
-            writeSymbolReplacement(ide.getSymbol(), CompilerUtils.quote(ide.getName()));
-            writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
-            assignmentOpExpr.getArg2().visit(this);
-            out.write( ")");
-            return;
-          }
+      Ide ide = dotExpr.getIde();
+      IdeDeclaration memberDeclaration = getBindableConfigDeclarationCandidate(type, ide);
+      if (memberDeclaration != null) {
+        TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
+        if (setter != null) {
+          // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
+          arg.visit(this);
+          out.writeSymbol(dotExpr.getOp());
+          out.write("setConfig(");
+          writeSymbolReplacement(ide.getSymbol(), CompilerUtils.quote(ide.getName()));
+          writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
+          assignmentOpExpr.getArg2().visit(this);
+          out.write( ")");
+          return;
         }
       }
     }
     super.visitAssignmentOpExpr(assignmentOpExpr);
+  }
+
+  private IdeDeclaration getBindableConfigDeclarationCandidate(ExpressionType type, Ide ide) {
+    if (type != null && !type.isConfigType()) {
+      IdeDeclaration memberDeclaration = type.getDeclaration().resolvePropertyDeclaration(ide.getName(), false);
+      if ((memberDeclaration instanceof VariableDeclaration || memberDeclaration instanceof PropertyDeclaration)
+              && memberDeclaration.isPublic()) {
+        return memberDeclaration;
+      }
+    }
+    return null;
   }
 
   @Override
