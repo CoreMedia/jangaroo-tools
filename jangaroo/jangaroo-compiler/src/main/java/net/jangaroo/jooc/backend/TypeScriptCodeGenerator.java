@@ -592,47 +592,46 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     InputSource importedInputSource = declaration.getCompilationUnit().getInputSource();
     FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
-    if (importedInputSource instanceof FileInputSource &&
-            ((FileInputSource) importedInputSource).getSourceDir().equals(currentInputSource.getSourceDir())) {
-      // same input source: relativize against current file
-      moduleName = CompilerUtils.removeExtension(computeRelativeModulePath(currentInputSource.getFile(),
-              new File(currentInputSource.getSourceDir(), moduleName + ".ts")));
-    } else {
-      // compute target npm package name
-      String npmPackageName;
-      if (importedInputSource instanceof FileInputSource) {
-        // When using Maven, only test code uses code from another source directory.
-        // We know that in the target TypeScript workspace, the relative path from the test source root
-        // directory to the source root directory is "../src". This is achieved by creating
-        // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
-        // and one which is just the root directory "/src". The 'modulePath' is added later.
-        npmPackageName = computeRelativeModulePath(new File("/tests/" + currentInputSource.getRelativePath()),
-                new File("/src"));
-      } else if (importedInputSource instanceof ZipEntryInputSource) {
-        npmPackageName = findSenchaPackageName((ZipEntryInputSource) importedInputSource);
-        if (npmPackageName == null) {
-          return null;
-        }
-      } else {
-        throw new IllegalStateException("The input source for a compilation unit was not a file");
+    if (importedInputSource instanceof FileInputSource) {
+      FileInputSource fileInputSource = (FileInputSource) importedInputSource;
+      // All source code from the same Maven module ends up in the same source directory, *but* test code:
+      if (fileInputSource.getSourceDir().equals(currentInputSource.getSourceDir())
+              || !currentInputSource.getSourceDir().getPath().replace(File.separatorChar, '/').endsWith("src/test/joo")) {
+        // same input source or non-test-sources: relativize against current file
+        return CompilerUtils.removeExtension(computeRelativeModulePath(currentInputSource.getFile(),
+                new File(currentInputSource.getSourceDir(), moduleName + ".ts")));
       }
-      if (npmPackageName.startsWith("net.jangaroo__")) {
-        // well-known vendor prefix net.jangaroo -> @jangaroo
-        npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
-        // very special case jangaroo-runtime -> joo
-        npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
-        // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
-        // by 'joo' for everything else:
-        if (npmPackageName.endsWith("ext-as")) {
-          npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
-        }
-      } else if (npmPackageName.startsWith("com.coremedia.")) {
-        npmPackageName = "@coremedia/" + npmPackageName.substring("com.coremedia.".length());
-      }
-      // prepend target npm package in front
-      moduleName = npmPackageName + "/" + moduleName;
+      // Only references from test code to non-test code must be rewritten.
+      // We know that in the target TypeScript workspace, the relative path from the test source root
+      // directory to the source root directory is "../src". This is achieved by creating
+      // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
+      // and one which is just the root directory "/src". Then, the 'modulePath' is added.
+      return computeRelativeModulePath(new File("/tests/" + currentInputSource.getRelativePath()),
+              new File("/src/" + moduleName));
     }
-    return moduleName;
+    if (!(importedInputSource instanceof ZipEntryInputSource)) {
+      throw new IllegalStateException("The input source for a compilation unit was not a file");
+    }
+    // compute target npm package name
+    String npmPackageName = findSenchaPackageName((ZipEntryInputSource) importedInputSource);
+    if (npmPackageName == null) {
+      return null;
+    }
+    if (npmPackageName.startsWith("net.jangaroo__")) {
+      // well-known vendor prefix net.jangaroo -> @jangaroo
+      npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
+      // very special case jangaroo-runtime -> joo
+      npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
+      // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
+      // by 'joo' for everything else:
+      if (npmPackageName.endsWith("ext-as")) {
+        npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
+      }
+    } else if (npmPackageName.startsWith("com.coremedia.")) {
+      npmPackageName = "@coremedia/" + npmPackageName.substring("com.coremedia.".length());
+    }
+    // prepend target npm package in front
+    return npmPackageName + "/" + moduleName;
   }
 
   private String computeRelativeModulePath(File currentFile, File importedFile) {
