@@ -1303,14 +1303,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       Type declType = decl == null || decl.getOptTypeRelation() == null ? null : decl.getOptTypeRelation().getType();
       if (exprType != null && exprType.isArrayLike()) {
         forInStatement.getExpr().visit(this);
-        // as decl cannot have a type, cast to specific Array, but only if the array's element type is not the exact declared type:
-        if (declType != null && !new ExpressionType(declType).equals(exprType.getTypeParameter())) {
-          String tsType = getTypeScriptTypeForActionScriptType(declType);
-          if (!"any".equals(tsType)) {
-            out.write(" as Array<");
-            writeSymbolReplacement(declType.getSymbol(), tsType);
-            out.write(">");
-          }
+        // as decl cannot have a type, cast to specific Array, but not if the array's element type is the exact declared type:
+        if (declType != null && new ExpressionType(declType).equals(exprType.getTypeParameter())) {
+          declType = null;
         }
       } else {
         // If the expression is not iterable, Object.values() must be used.
@@ -1319,11 +1314,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("Object.values");
         out.write("(");
         forInStatement.getExpr().visit(this);
-        out.write(")");
-        if (declType != null) {
-          out.writeToken(" as");
-          declType.visit(this);
-          out.write("[]");
+        out.write(" || {})"); // add empty object default, because Object.values() does not like 'undefined'
+      }
+      if (declType != null) {
+        String tsType = getTypeScriptTypeForActionScriptType(declType);
+        if (!"any".equals(tsType)) {
+          out.write(" as " + tsType + "[]");
         }
       }
     } else {
