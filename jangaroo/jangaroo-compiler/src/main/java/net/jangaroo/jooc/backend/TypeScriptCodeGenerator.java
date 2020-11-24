@@ -5,6 +5,7 @@ import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
@@ -1578,7 +1579,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private static boolean rewriteThis(Ide ide) {
-    return ide.isThis() && ide.isRewriteThis() && !ide.getScope().getFunctionExpr().rewriteToArrowFunction();
+    if (ide.isThis() && ide.isRewriteThis()) {
+      // starting from current scope, look for enclosing non-arrow/non-class-member function:
+      Scope scope = ide.getScope();
+      FunctionExpr functionExpr = scope.getFunctionExpr();
+      while (functionExpr != null &&
+              (functionExpr.getFunctionDeclaration() == null ||
+                      !functionExpr.getFunctionDeclaration().isClassMember())) {
+        if (!functionExpr.rewriteToArrowFunction()) {
+          return true;
+        }
+        scope = scope.getParentScope();
+        functionExpr = scope.getFunctionExpr();
+      }
+    }
+    return false;
   }
 
   private int staticCodeCounter = 0;
