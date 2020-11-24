@@ -1305,9 +1305,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         forInStatement.getExpr().visit(this);
         // as decl cannot have a type, cast to specific Array, but only if the array's element type is not the exact declared type:
         if (declType != null && !new ExpressionType(declType).equals(exprType.getTypeParameter())) {
-          out.write(" as Array<");
-          declType.visit(this);
-          out.write(">");
+          String tsType = getTypeScriptTypeForActionScriptType(declType);
+          if (!"any".equals(tsType)) {
+            out.write(" as Array<");
+            writeSymbolReplacement(declType.getSymbol(), tsType);
+            out.write(">");
+          }
         }
       } else {
         // If the expression is not iterable, Object.values() must be used.
