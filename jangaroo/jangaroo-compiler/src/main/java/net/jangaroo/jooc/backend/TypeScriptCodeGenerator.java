@@ -1215,8 +1215,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(args.getRParen());
     } else if (applyExpr.isTypeCast()) {
       Expr typeCastedExpr = args.getExpr().getHead();
+      Expr argumentExpr = typeCastedExpr;
+      if (argumentExpr instanceof ApplyExpr && ((ApplyExpr) argumentExpr).isTypeCheckObjectLiteralFunctionCall()) {
+        argumentExpr = ((ApplyExpr) argumentExpr).getArgs().getExpr().getTail().getHead();
+      }
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
-      if (typeCastedExpr instanceof ObjectLiteral &&
+      if (argumentExpr instanceof ObjectLiteral &&
               declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable()) {
         // use config factory function instead of the class itself:
         writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
