@@ -377,7 +377,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     String outputFileSuffix = Jooc.AS_SUFFIX;
     if (outputDirectory == null) {
       outputDirectory = getClassesOutputDirectory();
-      outputFileSuffix = isMigrateToTypeScript() ? ".ts" : Jooc.OUTPUT_FILE_SUFFIX;
+      outputFileSuffix = isMigrateToTypeScript() ? Jooc.TS_SUFFIX : Jooc.OUTPUT_FILE_SUFFIX;
     }
     List<File> compileSourceRoots = getCompileSourceRoots();
     List<File> staleFiles = new ArrayList<>();

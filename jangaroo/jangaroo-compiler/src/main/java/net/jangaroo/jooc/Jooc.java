@@ -104,6 +104,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           Jooc.PARAMETER_ANNOTATION_NAME,
           Jooc.RETURN_ANNOTATION_NAME
   );
+  public static final String TS_SUFFIX = ".ts";
+  public static final String D_TS_SUFFIX = ".d" + TS_SUFFIX;
 
   private final List<FileInputSource> compileQueue = new ArrayList<>();
 
@@ -186,11 +188,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         processSource(sourceFile);
       }
 
-      CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), false);
-      CompilationUnitSinkFactory apiSinkFactory = null;
-      if (getConfig().isGenerateApi()) {
-        apiSinkFactory = createSinkFactory(getConfig(), true);
-      }
+      CompilationUnitSinkFactory codeSinkFactory = createSinkFactory(getConfig(), null);
+      CompilationUnitSinkFactory dTsSinkFactory = createSinkFactory(getConfig(), D_TS_SUFFIX);
+      CompilationUnitSinkFactory apiSinkFactory = createSinkFactory(getConfig(), AS_SUFFIX);
       ImplementedMembersAnalyzer implementedMembersAnalyzer = new ImplementedMembersAnalyzer(this);
       for (InputSource inputSource : compileQueue) {
         CompilationUnit unit = importSource(inputSource);
@@ -220,10 +220,18 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           CompilationUnit unit = importSource(source);
           if (unit != null) {
             final IdeDeclaration primaryDeclaration = unit.getPrimaryDeclaration();
-            if (getConfig().isMigrateToTypeScript()
-                    ? TypeScriptCodeGenerator.generatesCode(primaryDeclaration)
-                    : JsCodeGenerator.generatesCode(primaryDeclaration)) {
-              outputFile = writeOutput(sourceFile, unit, codeSinkFactory, getConfig().isVerbose());
+            CompilationUnitSinkFactory currentCodeSinkFactory = codeSinkFactory;
+            boolean generatesCode;
+            if (!getConfig().isMigrateToTypeScript()) {
+              generatesCode = JsCodeGenerator.generatesCode(primaryDeclaration);
+            } else {
+              generatesCode = TypeScriptCodeGenerator.generatesCode(primaryDeclaration);
+              if (generatesCode && TypeScriptCodeGenerator.getNonRequireNativeName(primaryDeclaration) != null) {
+                currentCodeSinkFactory = dTsSinkFactory;
+              }
+            }
+            if (generatesCode) {
+              outputFile = writeOutput(sourceFile, unit, currentCodeSinkFactory, getConfig().isVerbose());
             }
             if (getConfig().isGenerateApi()) {
               writeOutput(sourceFile, unit, apiSinkFactory, getConfig().isVerbose());
@@ -347,15 +355,23 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     return sink.writeOutput(compilationUnit);
   }
 
-  private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, final boolean generateActionScriptApi) {
-    CompilationUnitSinkFactory codeSinkFactory;
+  private CompilationUnitSinkFactory createSinkFactory(JoocConfiguration config, String suffix) {
+    CompilationUnitSinkFactory codeSinkFactory = null;
 
-    if (!generateActionScriptApi && config.isMergeOutput()) {
-      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, config.getOutputFile(), this, this);
-    } else {
+    if (suffix == null) {
+      suffix = config.isMigrateToTypeScript() ? TS_SUFFIX : OUTPUT_FILE_SUFFIX;
+    }
+    boolean generateTypeScriptIndexDTS = D_TS_SUFFIX.equals(suffix);
+    boolean generateActionScriptApi = AS_SUFFIX.equals(suffix);
+
+    if (OUTPUT_FILE_SUFFIX.equals(suffix) && config.isMergeOutput()
+            || generateTypeScriptIndexDTS && config.isMigrateToTypeScript()) {
+      File outputFile = config.isMergeOutput() ? config.getOutputFile()
+              : new File(getConfig().getOutputDirectory(), "index" + D_TS_SUFFIX);
+      codeSinkFactory = new MergedOutputCompilationUnitSinkFactory(config, outputFile, this, this);
+    } else if (!(generateActionScriptApi && !config.isGenerateApi()) && !generateTypeScriptIndexDTS) {
       File outputDirectory = generateActionScriptApi ? config.getApiOutputDirectory() : config.getOutputDirectory();
-      final String suffix = generateActionScriptApi ? AS_SUFFIX : config.isMigrateToTypeScript() ? ".ts" : OUTPUT_FILE_SUFFIX;
-      final String nativeSuffix = !generateActionScriptApi && config.isMigrateToTypeScript() ? ".d.ts" : null;
+      final String nativeSuffix = !generateActionScriptApi && config.isMigrateToTypeScript() ? D_TS_SUFFIX : null;
       codeSinkFactory = new SingleFileCompilationUnitSinkFactory(config, outputDirectory, generateActionScriptApi, suffix, nativeSuffix, this, this);
     }
     return codeSinkFactory;

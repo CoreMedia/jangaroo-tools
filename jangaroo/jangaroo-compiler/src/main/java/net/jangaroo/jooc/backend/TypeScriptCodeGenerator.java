@@ -82,6 +82,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
+  public static String getNonRequireNativeName(IdeDeclaration primaryDeclaration) {
+    Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    if (nativeAnnotation != null && getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "") == null) {
+      String nativeName = getNativeAnnotationValue(nativeAnnotation);
+      if (nativeName == null) {
+        nativeName = primaryDeclaration.getQualifiedNameStr();
+      }
+      if (!"Ext.Base".equals(nativeName)) {
+        return nativeName;
+      }
+    }
+    return null;
+  }
+
   private CompilationUnit compilationUnit;
   private Map<String, String> imports;
   private boolean companionInterfaceMode;
@@ -125,7 +139,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
 
     // initialize with name of current compilation unit:
-    String primaryLocalName = primaryDeclaration.getName();
+    String targetQualifiedNameStr = primaryDeclaration.getTargetQualifiedNameStr();
+    String primaryLocalName = CompilerUtils.className(targetQualifiedNameStr);
     imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
@@ -138,7 +153,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     boolean isModule = getRequireModuleName(primaryDeclaration) != null;
     String targetNamespace = null;
     if (!isModule) {
-      targetNamespace = CompilerUtils.packageName(primaryDeclaration.getTargetQualifiedNameStr());
+      targetNamespace = CompilerUtils.packageName(targetQualifiedNameStr);
       // if global namespace, simply leave it out
       if (!targetNamespace.isEmpty()) {
         out.writeToken("declare namespace");
@@ -201,10 +216,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     primaryDeclaration.visit(this);
 
     if (isModule) {
-      out.write("\nexport default " + primaryDeclaration.getName() + ";\n");
+      out.write("\nexport default " + primaryLocalName + ";\n");
     } else if (!targetNamespace.isEmpty()) {
       // close namespace:
       out.writeSymbol(compilationUnit.getRBrace());
+      out.write("\n");
     }
   }
 
@@ -318,7 +334,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       out.writeToken("class");
     }
-    classDeclaration.getIde().visit(this);
+    writeSymbolReplacement(classDeclaration.getIde().getSymbol(), getLocalName(classDeclaration, false));
     String configTypeParameterDeclaration = "";
     if (configClassName != null) {
       configTypeParameterDeclaration = String.format("<Cfg extends %s = %s>", configClassName, configClassName);
@@ -595,19 +611,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
     if (importedInputSource instanceof FileInputSource) {
       FileInputSource fileInputSource = (FileInputSource) importedInputSource;
+      File currentTargetFile = CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(),
+              currentInputSource.getSourceDir(), Jooc.TS_SUFFIX);
       // All source code from the same Maven module ends up in the same source directory, *but* test code:
       if (fileInputSource.getSourceDir().equals(currentInputSource.getSourceDir())
               || !currentInputSource.getSourceDir().getPath().replace(File.separatorChar, '/').endsWith("src/test/joo")) {
         // same input source or non-test-sources: relativize against current file
-        return CompilerUtils.removeExtension(computeRelativeModulePath(currentInputSource.getFile(),
-                new File(currentInputSource.getSourceDir(), moduleName + ".ts")));
+        return CompilerUtils.removeExtension(computeRelativeModulePath(currentTargetFile,
+                new File(currentInputSource.getSourceDir(), moduleName + Jooc.TS_SUFFIX)));
       }
       // Only references from test code to non-test code must be rewritten.
       // We know that in the target TypeScript workspace, the relative path from the test source root
       // directory to the source root directory is "../src". This is achieved by creating
       // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
       // and one which is just the root directory "/src". Then, the 'modulePath' is added.
-      return computeRelativeModulePath(new File("/tests/" + currentInputSource.getRelativePath()),
+      return computeRelativeModulePath(new File("/tests/" + currentTargetFile.getPath()),
               new File("/src/" + moduleName));
     }
     if (!(importedInputSource instanceof ZipEntryInputSource)) {
@@ -1498,10 +1516,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String getDefaultImportName(IdeDeclaration declaration) {
-    Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    if (nativeAnnotation != null && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
-      String nativeName = getNativeAnnotationValue(nativeAnnotation);
-      return nativeName == null ? declaration.getQualifiedNameStr() : nativeName;
+    String nativeName = getNonRequireNativeName(declaration);
+    if (nativeName != null) {
+      return nativeName;
     }
     Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
     if (renameAnnotation != null) {
