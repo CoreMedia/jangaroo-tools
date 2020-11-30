@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.util.List;
 
@@ -97,6 +98,19 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
+      if (isClassMember() && !isStatic()) {
+        ExpressionType type = getType();
+        if (type instanceof FunctionSignature && this instanceof FunctionDeclaration &&
+                ((FunctionDeclaration) this).isGetterOrSetter()) {
+          type = type.getTypeParameter();
+        }
+        if (type != null && type.isArrayLike() && type.getTypeParameter() != null) {
+          CompilationUnit arrayElementTypeCompilationUnit = type.getTypeParameter().getDeclaration().getCompilationUnit();
+          if (arrayElementTypeCompilationUnit != null) {
+            scope.getCompilationUnit().addDependency(arrayElementTypeCompilationUnit, false);
+          }
+        }
+      }
     }
   }
 

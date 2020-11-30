@@ -308,7 +308,7 @@ public abstract class AbstractScope implements Scope {
     String memberName = declarationIde.getName();
     for (ClassDeclaration superTypeDeclaration : classDeclaration.getSuperTypeDeclarations()) {
       TypedIdeDeclaration superDeclaration = superTypeDeclaration.getMemberDeclaration(memberName);
-      if (superDeclaration != null) {
+      if (superDeclaration != null && !superDeclaration.isPrivate()) {
         TypeDeclaration superArrayElementType = findArrayElementType(superDeclaration);
         if (superArrayElementType != null) {
           return superArrayElementType;
