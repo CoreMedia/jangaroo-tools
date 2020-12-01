@@ -57,12 +57,12 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
 
   @Override
   public boolean isExtConfig() {
-    return getter != null && getter.isExtConfig() || setter != null && setter.isExtConfig();
+    return getGetter() != null && super.isExtConfig(); // must have getter and setter
   }
 
   @Override
   public boolean isBindable() {
-    return getter != null && getter.isBindable() || setter != null && setter.isBindable();
+    return getGetter() != null && super.isBindable(); // must have getter and setter
   }
 
   @Override

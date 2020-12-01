@@ -941,9 +941,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);
-      if (convertToProperty && (functionDeclaration.isSetter() || functionDeclaration.isExtConfigOrBindable())) {
-        // completely suppress native setter class members, for configs even native getters!
-        return;
+      boolean isPartOfExtConfigOrBindable = false;
+      if (convertToProperty) {
+        if (functionDeclaration.isSetter()) {
+          // completely suppress (native) setter class members, they are covered by the writable property declaration
+          return;
+        }
+        if (!functionDeclaration.isStatic() && functionDeclaration.isPublic()) {
+          // may be an Ext Config / Bindable:
+          IdeDeclaration memberDeclaration = functionDeclaration.getClassDeclaration().getMemberDeclaration(functionDeclaration.getName());
+          if (memberDeclaration instanceof PropertyDeclaration && ((PropertyDeclaration) memberDeclaration).isExtConfigOrBindable()) {
+            if (functionDeclaration.isSetter()) {
+              // completely suppress Config setter class members, they are covered by the writable property declaration
+              return;
+            }
+            isPartOfExtConfigOrBindable = true;
+          }
+        }
       }
       // any other native members in a non-ambient/interface compilation unit are moved
       // to its companion interface declaration:
@@ -992,7 +1006,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       if (convertToProperty) {
-        if (functionDeclaration.isExtConfigOrBindable()) {
+        if (isPartOfExtConfigOrBindable) {
           out.write("?");
         }
       } else {
