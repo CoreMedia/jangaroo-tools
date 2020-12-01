@@ -272,11 +272,7 @@ public abstract class AbstractScope implements Scope {
     Ide declarationIde = declaration.getIde();
     if (annotation == null) {
       if (declaration.isClassMember() && !declaration.isStatic() && declarationIde != null) {
-        // depth-first search for [ArrayElementType] annotation in all super types:
-        ClassDeclaration classDeclaration = declaration.getClassDeclaration();
-        if (classDeclaration != null) {
-          return findArrayElementType(declarationIde, classDeclaration);
-        }
+        return findArrayElementTypeInSuperTypes(declaration);
       }
     } else {
       JangarooParser compiler = declarationIde.getScope().getCompiler();
@@ -304,7 +300,12 @@ public abstract class AbstractScope implements Scope {
     return null;
   }
 
-  private static TypeDeclaration findArrayElementType(Ide declarationIde, ClassDeclaration classDeclaration) {
+  public static TypeDeclaration findArrayElementTypeInSuperTypes(IdeDeclaration declaration) {
+    ClassDeclaration classDeclaration = declaration.getClassDeclaration();
+    return classDeclaration != null ? findArrayElementTypeInSuperTypes(declaration.getIde(), classDeclaration) : null;
+  }
+
+  private static TypeDeclaration findArrayElementTypeInSuperTypes(Ide declarationIde, ClassDeclaration classDeclaration) {
     String memberName = declarationIde.getName();
     for (ClassDeclaration superTypeDeclaration : classDeclaration.getSuperTypeDeclarations()) {
       TypedIdeDeclaration superDeclaration = superTypeDeclaration.getMemberDeclaration(memberName);
@@ -314,7 +315,7 @@ public abstract class AbstractScope implements Scope {
           return superArrayElementType;
         }
       }
-      TypeDeclaration superArrayElementType = findArrayElementType(declarationIde, superTypeDeclaration);
+      TypeDeclaration superArrayElementType = findArrayElementTypeInSuperTypes(declarationIde, superTypeDeclaration);
       if (superArrayElementType != null) {
         return superArrayElementType;
       }
