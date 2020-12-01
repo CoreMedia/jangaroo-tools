@@ -144,7 +144,7 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   }
 
   public boolean isExtConfig() {
-    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null;
+    return isPublic() && !isBindable();
   }
 
   public boolean isBindable() {

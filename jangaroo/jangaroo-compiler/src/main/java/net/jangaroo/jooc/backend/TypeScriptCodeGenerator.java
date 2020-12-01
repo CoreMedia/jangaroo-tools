@@ -256,21 +256,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       out.write("}\n");
     }
-    String configClassName = null;
-    FunctionDeclaration constructor = classDeclaration.getConstructor();
-    if (constructor != null && constructor.getParams() != null) {
-      Parameter firstParam = constructor.getParams().getHead();
-      if (firstParam.getType() != null && firstParam.getType().isConfigType()) {
-        TypeDeclaration declaration = firstParam.getOptTypeRelation().getType().getDeclaration();
-        if (!classDeclaration.equals(declaration)) {
-          // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
-          configClassName = compilationUnitAccessCode(declaration) + "._";
-        }
-      }
-    }
-    if (configClassName == null && classDeclaration.hasAnyExtConfigOrBindable()) {
-      configClassName = classDeclaration.getName() + "_";
-    }
+    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
+    String configClassName = configClass != null ? compilationUnitAccessCode(configClass) + "._" : null;
 
     List<String> configMixins = new ArrayList<>();
     List<Ide> realInterfaces = new ArrayList<>();
@@ -282,7 +269,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (mixinCompilationUnit != null
                 && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
           mixins.add(superTypes.getHead());
-          if (maybeMixinDeclaration.hasAnyExtConfigOrBindable()) {
+          if (maybeMixinDeclaration.hasConfigClass()) {
             configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
           }
         } else {
@@ -295,7 +282,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (configClassName != null) {
       List<String> configExtends = new ArrayList<>(configMixins);
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (superTypeDeclaration != null && !superTypeDeclaration.isObject()) {
+      if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
         configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
       }
       configExtends.addAll(configMixins);
@@ -521,7 +508,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private boolean useCfgTypeParameter(Ide superType) {
     IdeDeclaration declaration = superType.getDeclaration();
-    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable();
+    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass();
   }
 
   @Override
@@ -1239,7 +1226,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
       if (argumentExpr instanceof ObjectLiteral &&
-              declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasAnyExtConfigOrBindable()) {
+              declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
         // use config factory function instead of the class itself:
         writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
         args.visit(this);

@@ -39,7 +39,7 @@ public class ExpressionType {
   }
 
   public void markAsConfigTypeIfPossible() {
-    if (getDeclaration() instanceof ClassDeclaration && ((ClassDeclaration) getDeclaration()).hasAnyExtConfigOrBindable()) {
+    if (getDeclaration() instanceof ClassDeclaration && ((ClassDeclaration) getDeclaration()).hasConfigClass()) {
       isConfigType = true;
     }
   }

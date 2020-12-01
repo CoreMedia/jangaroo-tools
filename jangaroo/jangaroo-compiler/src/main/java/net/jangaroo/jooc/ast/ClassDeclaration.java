@@ -23,7 +23,6 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
@@ -324,41 +323,31 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  public boolean hasOwnExtConfigOrBindable() {
-    String qualifiedName = getQualifiedNameStr();
-    if ("ext.mixin.Observable".equals(qualifiedName)) {
-      // ext.mixin.Observable defines "listeners" as an [ExtConfig], but classes that inherit from Observable,
-      // but do not define any other [ExtConfig]s, must not be treated as using the config system.
-      return false;
+  public ClassDeclaration getConfigClassDeclaration() {
+    if ("ext.Base".equals(getQualifiedNameStr())) {
+      return this;
     }
-    return getMembers().stream().anyMatch(TypedIdeDeclaration::isExtConfigOrBindable);
+    FunctionDeclaration constructor = getConstructor();
+    if (constructor != null) {
+      Parameters params = constructor.getParams();
+      while (params != null) {
+        Parameter param = params.getHead();
+        if ("config".equals(param.getName()) && param.getOptTypeRelation() != null) {
+          TypeDeclaration declaration = param.getOptTypeRelation().getType().getDeclaration();
+          if (equals(declaration)
+                  // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+                  || equals(declaration.getSuperTypeDeclaration())) {
+            return (ClassDeclaration) declaration;
+          }
+        }
+        params = params.getTail();
+      }
+    }
+    return null;
   }
 
-  public boolean hasAnyExtConfigOrBindable() {
-    boolean hasAnyExtConfigOrBindable = false;
-    ClassDeclaration current = this;
-    // for Mixins, start a Mixin class, not this interface:
-    if (isInterface()) {
-      CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(this);
-      if (mixinCompilationUnit != null) {
-        current = (ClassDeclaration) mixinCompilationUnit.getPrimaryDeclaration();
-      }
-    }
-    do {
-      if (current.getCompilationUnit() instanceof MxmlCompilationUnit) {
-        return true;
-      }
-      String qualifiedName = current.getQualifiedNameStr();
-      if ("ext.Base".equals(qualifiedName)) {
-        // having ExtConfigs only counts if you explicitly inherit from ext.Base or implement ext.Plugin!
-        return hasAnyExtConfigOrBindable;
-      }
-      if (!hasAnyExtConfigOrBindable) {
-        hasAnyExtConfigOrBindable = current.hasOwnExtConfigOrBindable();
-      }
-      current = current.getSuperTypeDeclaration();
-    } while (current != null);
-    return false;
+  public boolean hasConfigClass() {
+    return getConfigClassDeclaration() != null;
   }
 
   public boolean isSubclassOf(final ClassDeclaration classDeclaration) {
