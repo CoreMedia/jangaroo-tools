@@ -143,7 +143,8 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   }
 
   public boolean isExtConfig() {
-    return !getClassDeclaration().isInterface() && isPublic() && isWritable() && !isStatic() && !isBindable();
+    return !(getClassDeclaration() != null && getClassDeclaration().isInterface())
+            && isPublic() && isWritable() && !isStatic() && !isBindable();
   }
 
   public boolean isBindable() {
