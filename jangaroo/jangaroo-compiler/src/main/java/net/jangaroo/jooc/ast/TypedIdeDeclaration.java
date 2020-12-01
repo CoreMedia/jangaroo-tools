@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.AbstractScope;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -98,14 +99,12 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     }
     if (optTypeRelation != null) {
       optTypeRelation.analyze(this);
-      if (isClassMember() && !isStatic()) {
-        ExpressionType type = getType();
-        if (type instanceof FunctionSignature && this instanceof FunctionDeclaration &&
-                ((FunctionDeclaration) this).isGetterOrSetter()) {
-          type = type.getTypeParameter();
-        }
-        if (type != null && type.isArrayLike() && type.getTypeParameter() != null) {
-          CompilationUnit arrayElementTypeCompilationUnit = type.getTypeParameter().getDeclaration().getCompilationUnit();
+      if (isClassMember() && !isStatic()
+              && getAnnotation(Jooc.ARRAY_ELEMENT_TYPE_ANNOTATION_NAME) == null
+              && "Array".equals(optTypeRelation.getType().getDeclaration().getQualifiedNameStr())) {
+        TypeDeclaration arrayElementTypeInSuperTypes = AbstractScope.findArrayElementTypeInSuperTypes(this);
+        if (arrayElementTypeInSuperTypes != null) {
+          CompilationUnit arrayElementTypeCompilationUnit = arrayElementTypeInSuperTypes.getCompilationUnit();
           if (arrayElementTypeCompilationUnit != null) {
             scope.getCompilationUnit().addDependency(arrayElementTypeCompilationUnit, false);
           }
