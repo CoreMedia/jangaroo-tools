@@ -941,7 +941,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);
-      boolean isPartOfExtConfigOrBindable = false;
       if (convertToProperty) {
         if (functionDeclaration.isSetter()) {
           // completely suppress (native) setter class members, they are covered by the writable property declaration
@@ -951,11 +950,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // may be an Ext Config / Bindable:
           IdeDeclaration memberDeclaration = functionDeclaration.getClassDeclaration().getMemberDeclaration(functionDeclaration.getName());
           if (memberDeclaration instanceof PropertyDeclaration && ((PropertyDeclaration) memberDeclaration).isExtConfigOrBindable()) {
-            if (functionDeclaration.isSetter()) {
-              // completely suppress Config setter class members, they are covered by the writable property declaration
-              return;
-            }
-            isPartOfExtConfigOrBindable = true;
+            // never render [ExtConfig]s in a normal "visit":
+            return;
           }
         }
       }
@@ -1005,11 +1001,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           functionDeclaration.getIde().visit(this);
         }
       }
-      if (convertToProperty) {
-        if (isPartOfExtConfigOrBindable) {
-          out.write("?");
-        }
-      } else {
+      if (!convertToProperty) {
         out.writeSymbol(functionExpr.getLParen());
         visitIfNotNull(functionExpr.getParams());
         out.writeSymbol(functionExpr.getRParen());
@@ -1101,7 +1093,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     // declare as immediately-evaluating function (IEF), so that TypeScript does not complaing about
     // usage of `this` before calling `super()`:
-    out.write("(()=>");
+    out.write("(()");
+    if (superCallParams != null && superCallParams.getTail() != null) {
+      List<String> types = new ArrayList<>();
+      for (CommaSeparatedList<Expr> current = superCallParams; current != null; current = current.getTail()) {
+        types.add("any"); // as the corresponding imports would be complicated to generate, we just use "any"
+      }
+      out.write(":[" + String.join(",", types) + "]");
+    }
+    out.write("=>");
     if (!directivesToWrap.isEmpty()) {
       out.write("{");
       visitAll(directivesToWrap);
