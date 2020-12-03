@@ -612,8 +612,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // directory to the source root directory is "../src". This is achieved by creating
       // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
       // and one which is just the root directory "/src". Then, the 'modulePath' is added.
-      return computeRelativeModulePath(new File("/tests/" + currentTargetFile.getPath()),
-              new File("/src/" + moduleName));
+      return computeRelativeModulePath(currentTargetFile,
+              new File(currentInputSource.getSourceDir(), "../src/" + moduleName));
     }
     if (!(importedInputSource instanceof ZipEntryInputSource)) {
       throw new IllegalStateException("The input source for a compilation unit was not a file");
