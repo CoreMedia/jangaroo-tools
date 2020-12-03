@@ -24,6 +24,11 @@ public class PropertyDeclaration extends TypedIdeDeclaration {
     return new AnnotationsAndModifiers(allAnnotations, Arrays.asList(getter.getSymModifiers()));
   }
 
+  @Override
+  public int getModifiers() {
+    return getGetter() != null ? getGetter().getModifiers() : getSetter().getModifiers();
+  }
+
   public FunctionDeclaration getGetter() {
     return getter;
   }
