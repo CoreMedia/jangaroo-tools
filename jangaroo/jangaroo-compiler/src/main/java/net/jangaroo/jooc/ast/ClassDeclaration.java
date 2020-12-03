@@ -323,8 +323,11 @@ public class ClassDeclaration extends TypeDeclaration {
     return staticMembers.get(memberName);
   }
 
-  private boolean isMixinClass() {
-    if (!isInterface() && getOptImplements() != null) {
+  public boolean isMixin() {
+    if (isInterface()) {
+      return getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) != null;
+    }
+    if (getOptImplements() != null) {
       CommaSeparatedList<Ide> interfaces = getOptImplements().getSuperTypes();
       String myQualifiedName = getQualifiedNameStr();
       while (interfaces != null) {
@@ -343,7 +346,7 @@ public class ClassDeclaration extends TypeDeclaration {
   public ClassDeclaration getConfigClassDeclaration() {
     // special cases: ext.Base and all Mixin implementations use Ext Config system, although
     // they don't have the corresponding constructor
-    if ("ext.Base".equals(getQualifiedNameStr()) || isMixinClass()) {
+    if ("ext.Base".equals(getQualifiedNameStr()) || isMixin()) {
       return this;
     }
     FunctionDeclaration constructor = getConstructor();
