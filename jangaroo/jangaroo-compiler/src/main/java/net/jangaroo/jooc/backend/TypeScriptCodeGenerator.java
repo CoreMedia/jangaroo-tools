@@ -216,36 +216,39 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
-    List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
-            .filter(TypedIdeDeclaration::isExtConfig)
-            .collect(Collectors.toList());
-    List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
-            .filter(TypedIdeDeclaration::isBindable)
-            .collect(Collectors.toList());
+    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
+    String configClassName = null;
     String ownPropertiesClassName = null;
     String ownConfigsClassName = null;
     String configsFromProps = null;
-    if (!properties.isEmpty()) {
-      ownPropertiesClassName = classDeclaration.getName() + "Properties";
-      out.write(String.format("class %s {", ownPropertiesClassName));
-      for (TypedIdeDeclaration propertiesDeclaration : properties) {
-        visitAsConfig(propertiesDeclaration);
+    if (configClass != null) {
+      configClassName = compilationUnitAccessCode(configClass) + "._";
+      List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
+              .filter(TypedIdeDeclaration::isExtConfig)
+              .collect(Collectors.toList());
+      List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+              .filter(TypedIdeDeclaration::isBindable)
+              .collect(Collectors.toList());
+      if (!properties.isEmpty()) {
+        ownPropertiesClassName = classDeclaration.getName() + "Properties";
+        out.write(String.format("class %s {", ownPropertiesClassName));
+        for (TypedIdeDeclaration propertiesDeclaration : properties) {
+          visitAsConfig(propertiesDeclaration);
+        }
+        out.write("}\n");
+        configsFromProps = String.format("Partial<%s>", ownPropertiesClassName);
+        mixins.add(new Ide(ownPropertiesClassName));
+        needsCompanionInterface = true;
       }
-      out.write("}\n");
-      configsFromProps = String.format("Partial<%s>", ownPropertiesClassName);
-      mixins.add(new Ide(ownPropertiesClassName));
-      needsCompanionInterface = true;
-    }
-    if (!configs.isEmpty()) {
-      ownConfigsClassName = classDeclaration.getName() + "Configs";
-      out.write(String.format("class %s {", ownConfigsClassName));
-      for (TypedIdeDeclaration configDeclaration : configs) {
-        visitAsConfig(configDeclaration);
+      if (!configs.isEmpty()) {
+        ownConfigsClassName = classDeclaration.getName() + "Configs";
+        out.write(String.format("class %s {", ownConfigsClassName));
+        for (TypedIdeDeclaration configDeclaration : configs) {
+          visitAsConfig(configDeclaration);
+        }
+        out.write("}\n");
       }
-      out.write("}\n");
     }
-    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
-    String configClassName = configClass != null ? compilationUnitAccessCode(configClass) + "._" : null;
 
     List<String> configMixins = new ArrayList<>();
     List<Ide> realInterfaces = new ArrayList<>();
