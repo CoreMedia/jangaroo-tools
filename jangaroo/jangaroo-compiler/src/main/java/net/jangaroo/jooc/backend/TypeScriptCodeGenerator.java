@@ -168,9 +168,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // generate imports
     // first pass: detect import local name clashes:
     Set<String> localNameClashes = new HashSet<>();
-    if (isModule) {
-      for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
-        CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+    for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
+      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+      if (getRequireModuleName(dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
+              !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
         String localName = getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
         localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
         if (!localNames.add(localName)) {
@@ -185,31 +186,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
       String localName = getDefaultImportName(dependentPrimaryDeclaration);
-      boolean isType = false;
-      if (requireModuleName != null) {
-        if (!isModule) {
-          // Non-modules do not allow import directives, or they'd become modules.
-          // Unfortunately, TypeScript's new "import type" syntax also turns the importing file to a module,
-          // which I consider a (design) bug.
-          // Workaround: use special ad-hoc import syntax. This must be repeated for every usage, because
-          // we cannot define a local type, as in a non-module, there is no "local" scope (at least not in a
-          // top-level non-module, using no namespace).
-          localName = String.format("import('%s').default", requireModuleName);
-          requireModuleName = null;
-        } else {
-          if (localName.contains(".")) {
-            // only [Native] interface types can have a fully-qualified localName:
-            localName = CompilerUtils.className(localName);
-            isType = true;
-          }
-          if (localNameClashes.contains(localName)) {
-            localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
-          }
-        }
+      if (localNameClashes.contains(localName) && requireModuleName != null) {
+        localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
       if (requireModuleName != null) {
-        out.write(String.format("import%s %s from '%s';\n", isType ? " type" : "", localName, requireModuleName));
+        out.write(String.format(isModule ? "import %s from '%s';\n" : "type %s = import('%s').default;\n",
+                localName, requireModuleName));
       }
     }
 
