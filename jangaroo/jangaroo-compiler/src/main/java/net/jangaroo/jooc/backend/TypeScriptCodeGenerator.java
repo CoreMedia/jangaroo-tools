@@ -186,13 +186,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
       String localName = getDefaultImportName(dependentPrimaryDeclaration);
-      if (localNameClashes.contains(localName) && requireModuleName != null) {
-        localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+      if (requireModuleName != null) {
+        if (!isModule) {
+          // import from non-module to module must be inlined:
+          localName = String.format("import('%s').default", requireModuleName);
+        } else if (localNameClashes.contains(localName)) {
+          // resolve name clashes by using transformed fully-qualified name ('.' -> '_'):
+          localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+        }
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
-      if (requireModuleName != null) {
-        out.write(String.format(isModule ? "import %s from '%s';\n" : "type %s = import('%s').default;\n",
-                localName, requireModuleName));
+      if (isModule && requireModuleName != null) {
+        out.write(String.format("import %s from '%s';\n", localName, requireModuleName));
       }
     }
 
@@ -554,6 +559,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         return "Array<" + getTypeScriptTypeForActionScriptType(expressionType.getTypeParameter()) + ">";
       case UINT:
       case INT:
+        // in non-modules, these may be mapped to import('...').default:
+        return imports.get(expressionType.getDeclaration().getQualifiedNameStr());
       case BOOLEAN:
       case NUMBER:
       case STRING:
