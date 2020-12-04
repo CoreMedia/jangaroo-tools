@@ -682,7 +682,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         qualifiedName = getNativeAnnotationValue(renameAnnotation);
       }
     } else {
-      if (!isInterface(declaration) && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
+      if (getNativeAnnotationRequireValue(nativeAnnotation) == null) {
         return null;
       }
       String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
