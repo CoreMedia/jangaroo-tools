@@ -545,9 +545,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     switch (as3Type) {
       case OBJECT:
         TypeDeclaration declaration = expressionType.getDeclaration();
-        if (as3Type.name.equals(declaration.getQualifiedNameStr())) {
+        String qualifiedNameStr = declaration.getQualifiedNameStr();
+        if (as3Type.name.equals(qualifiedNameStr)) {
           // it is really "Object", use TypeScript "any":
           return "any";
+        }
+        // special case: built-in TypeScript 'Promise' type needs a type parameter:
+        if ("js.Promise".equals(qualifiedNameStr)) {
+          return "Promise<any>";
         }
         // use class name:
         String tsType = getLocalName(declaration, true);
