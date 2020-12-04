@@ -581,14 +581,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
     if (importedInputSource instanceof FileInputSource) {
       FileInputSource fileInputSource = (FileInputSource) importedInputSource;
-      File currentTargetFile = CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(),
-              currentInputSource.getSourceDir(), Jooc.TS_SUFFIX);
+      boolean isModule = getRequireModulePath(compilationUnit.getPrimaryDeclaration()) != null;
+      File currentTargetFile = isModule
+              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(),
+              currentInputSource.getSourceDir(), Jooc.TS_SUFFIX)
+              : new File(currentInputSource.getSourceDir(), "index.d.ts");
       // All source code from the same Maven module ends up in the same source directory, *but* test code:
       if (fileInputSource.getSourceDir().equals(currentInputSource.getSourceDir())
               || !currentInputSource.getSourceDir().getPath().replace(File.separatorChar, '/').endsWith("src/test/joo")) {
         // same input source or non-test-sources: relativize against current file
-        return CompilerUtils.removeExtension(computeRelativeModulePath(currentTargetFile,
-                new File(currentInputSource.getSourceDir(), moduleName + Jooc.TS_SUFFIX)));
+        return computeRelativeModulePath(currentTargetFile,
+                new File(currentInputSource.getSourceDir(), moduleName));
       }
       // Only references from test code to non-test code must be rewritten.
       // We know that in the target TypeScript workspace, the relative path from the test source root
