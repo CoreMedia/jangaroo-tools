@@ -486,7 +486,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     visitIfNotNull(configDeclaration.getOptTypeRelation());
     if (configDeclaration instanceof VariableDeclaration) {
       VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
-      visitIfNotNull(variableDeclaration.getOptInitializer());
+      generateInitializer(variableDeclaration);
       optSymSemicolon = variableDeclaration.getOptSymSemicolon();
     } else if (configDeclaration instanceof PropertyDeclaration) {
       PropertyDeclaration propertyDeclaration = (PropertyDeclaration) configDeclaration;
@@ -857,17 +857,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       visitIfNotNull(typeRelation);
       if (!isAmbientOrInterface(compilationUnit)) {
-        if (initializer != null) {
-          initializer.visit(this);
-        } else {
-          // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
-          // so we have to add an explicit initializer to keep semantics:
-          String implicitDefaultValue = VariableDeclaration.getDefaultValue(typeRelation);
-          // no need to explicitly set a field to "undefined":
-          if (!"undefined".equals(implicitDefaultValue)) {
-            out.write(" = " + implicitDefaultValue);
-          }
-        }
+        generateInitializer(variableDeclaration);
       }
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
@@ -911,6 +901,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       visitIfNotNull(initializer);
+    }
+  }
+
+  private void generateInitializer(VariableDeclaration variableDeclaration) throws IOException {
+    Initializer initializer = variableDeclaration.getOptInitializer();
+    if (initializer != null) {
+      initializer.visit(this);
+    } else {
+      // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
+      // so we have to add an explicit initializer to keep semantics:
+      String implicitDefaultValue = VariableDeclaration.getDefaultValue(variableDeclaration.getOptTypeRelation());
+      // no need to explicitly set a field to "undefined":
+      if (!"undefined".equals(implicitDefaultValue)) {
+        out.write(" = " + implicitDefaultValue);
+      }
     }
   }
 
