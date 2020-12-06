@@ -281,7 +281,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         configExtends.add(configsFromProps);
       }
       if (ownConfigsClassName != null) {
-        configExtends.add(ownConfigsClassName);
+        configExtends.add(String.format("Partial<%s>", ownConfigsClassName));
       }
       out.write("interface " + classDeclaration.getName() + "_");
       if (!configExtends.isEmpty()) {
@@ -479,10 +479,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // output all comments & white-space:
     visitDeclarationAnnotationsAndModifiers(configDeclaration);
     configDeclaration.getIde().visit(this);
-    if (configDeclaration.isBindable()) {
-      // we want all configs optional (even those documented as "required"):
-      out.write("?");
-    }
     visitIfNotNull(configDeclaration.getOptTypeRelation());
     if (configDeclaration instanceof VariableDeclaration) {
       VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
