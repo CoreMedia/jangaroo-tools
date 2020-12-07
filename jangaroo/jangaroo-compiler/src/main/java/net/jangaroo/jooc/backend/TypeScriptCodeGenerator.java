@@ -1235,38 +1235,40 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       objectLiteral.visit(this);
       out.writeSymbol(args.getRParen());
     } else if (applyExpr.isTypeCast()) {
-      Expr typeCastedExpr = args.getExpr().getHead();
-      Expr argumentExpr = typeCastedExpr;
-      if (argumentExpr instanceof ApplyExpr && ((ApplyExpr) argumentExpr).isTypeCheckObjectLiteralFunctionCall()) {
-        argumentExpr = ((ApplyExpr) argumentExpr).getArgs().getExpr().getTail().getHead();
-      }
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
-      if (argumentExpr instanceof ObjectLiteral &&
-              declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
-        // use config factory function instead of the class itself:
-        writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
-        args.visit(this);
-      } else if (isExtApply(typeCastedExpr)) {
-        // If you type-cast the result of Ext.apply(), you are surely using config objects.
-        // Since in TypeScript, Ext.apply() hands through the types of its parameters, it
-        // should work without the type cast:
-        out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
-        out.writeSymbolWhitespace(args.getLParen());
-        typeCastedExpr.visit(this);
-        out.writeSymbolWhitespace(args.getRParen());
-      } else {
-        out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
-        out.writeToken(builtInIdentifierCode("cast"));
-        out.writeSymbol(args.getLParen());
-        applyExpr.getFun().visit(this);
-        out.writeToken(",");
-        // isTypeCast() ensures that there is exactly one parameter:
-        typeCastedExpr.visit(this);
-        out.writeSymbol(args.getRParen());
+      if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
+        if (isOfConfigType(args.getExpr().getHead())) {
+          // use config factory function instead of the class itself:
+          writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
+          args.visit(this);
+          return;
+        }
       }
+      out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
+      out.writeToken(builtInIdentifierCode("cast"));
+      out.writeSymbol(args.getLParen());
+      applyExpr.getFun().visit(this);
+      out.writeToken(",");
+      args.getExpr().visit(this);
+      out.writeSymbol(args.getRParen());
     } else {
       super.visitApplyExpr(applyExpr);
     }
+  }
+
+  private static boolean isOfConfigType(Expr expr) {
+    if (expr instanceof ApplyExpr && ((ApplyExpr) expr).isTypeCheckObjectLiteralFunctionCall()) {
+      expr = ((ApplyExpr) expr).getArgs().getExpr().getTail().getHead();
+    }
+    // for the following conditions, the type cast is rewritten to the config class:
+    return expr instanceof ObjectLiteral  // an object literal can only be cast into a config type 
+            || expr.getType() != null && expr.getType().isConfigType() // argument has a config type
+            // Ext.apply() hands-through its argument type(s), so if any is of config type, so is the result:
+            || isExtApply(expr) && isAnyOfConfigType(((ApplyExpr) expr).getArgs().getExpr());
+  }
+
+  private static boolean isAnyOfConfigType(CommaSeparatedList<Expr> expr) {
+    return expr != null && (isOfConfigType(expr.getHead()) || isAnyOfConfigType(expr.getTail()));
   }
 
   @Override
