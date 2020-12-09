@@ -325,11 +325,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  public boolean isBindable() {
-    return false; // an accessor itself is never a config; only a PropertyDeclaration comprised of accessors may be one
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;

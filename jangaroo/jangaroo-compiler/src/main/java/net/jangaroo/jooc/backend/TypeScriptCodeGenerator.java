@@ -1463,8 +1463,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private IdeDeclaration getBindableConfigDeclarationCandidate(ExpressionType type, Ide ide) {
     if (type != null && !type.isConfigType()) {
       IdeDeclaration memberDeclaration = type.getDeclaration().resolvePropertyDeclaration(ide.getName(), false);
-      if ((memberDeclaration instanceof VariableDeclaration || memberDeclaration instanceof PropertyDeclaration)
-              && memberDeclaration.isPublic()) {
+      if ((memberDeclaration instanceof VariableDeclaration
+              || memberDeclaration instanceof PropertyDeclaration
+              || (memberDeclaration instanceof FunctionDeclaration && ((FunctionDeclaration) memberDeclaration).isGetterOrSetter()))
+              && !memberDeclaration.isPrivate() && !memberDeclaration.isProtected()) {
         return memberDeclaration;
       }
     }
