@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.apprunner.proxy.AddDynamicPackagesServlet;
+import net.jangaroo.apprunner.proxy.AdditionalPackagesFromFolderServlet;
 import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.apprunner.util.JettyWrapper.ROOT_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.ADDITIONAL_PACKAGES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
@@ -95,6 +97,16 @@ public class RunMojo extends AbstractSenchaMojo {
    */
   @Parameter
   private List<ProxyServletConfig> jooProxyServletConfigs;
+
+  /**
+   * Set the absolute file path of a folder containing an additional 'packages' folder.
+   * Use this to complement an application with plugins that are developed in a
+   * dedicated workspace available under some local file path.
+   * This is usually the 'target/app' folder of the Jangaroo App  plugin module (the
+   * one that uses the Maven goal 'package-plugin' to produce the plugin ZIP).
+   */
+  @Parameter(property = "additionalPackagesDir")
+  private File additionalPackagesDir;
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -190,6 +202,14 @@ public class RunMojo extends AbstractSenchaMojo {
                 ),
                 SEPARATOR + PACKAGES_DIRECTORY_NAME
         );
+      }
+    }
+
+    if ((isAppPackaging || isAppOverlayPackaging) && !isProxyRootPath) {
+      jettyWrapper.setAdditionalServlets(Collections.singletonMap(ADDITIONAL_PACKAGES_PATH,
+              new AdditionalPackagesFromFolderServlet(additionalPackagesDir)));
+      if (additionalPackagesDir != null) {
+        jettyWrapper.addBaseDir(additionalPackagesDir.toPath(), SEPARATOR);
       }
     }
 

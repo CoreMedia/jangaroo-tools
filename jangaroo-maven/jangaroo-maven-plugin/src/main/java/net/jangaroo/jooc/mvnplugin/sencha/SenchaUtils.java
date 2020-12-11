@@ -97,6 +97,7 @@ public class SenchaUtils {
   public static final String PACKAGE_CONFIG_FILENAME = "packageConfig.js";
   public static final String REQUIRED_CLASSES_FILENAME = "requiredClasses.js";
   public static final String DYNAMIC_PACKAGES_FILENAME = "dynamic-packages.json";
+  public static final String ADDITIONAL_PACKAGES_PATH = "/additional-packages/*";
   public static final String APP_MANIFEST_FILENAME = "app-manifest.json";
   public static final String APP_MANIFEST_FRAGMENT_FILENAME = "app-manifest-fragment.json";
   public static final String APPS_FILENAME = "apps.json";
