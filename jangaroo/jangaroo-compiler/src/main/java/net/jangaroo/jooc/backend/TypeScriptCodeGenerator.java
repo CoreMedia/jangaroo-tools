@@ -111,8 +111,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbolWhitespace(modifier);
       if (!isPrimaryDeclaration && !companionInterfaceMode &&
-              (modifier.sym == sym.PUBLIC
-              || modifier.sym == sym.PROTECTED
+              (modifier.sym == sym.PROTECTED
               || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())
       )) {
         out.writeSymbol(modifier, false);
