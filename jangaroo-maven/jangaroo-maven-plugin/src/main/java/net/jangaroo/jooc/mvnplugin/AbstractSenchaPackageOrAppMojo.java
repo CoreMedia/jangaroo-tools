@@ -165,7 +165,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
       if (!isExtFrameworkDependency(dependency) &&
               !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency) &&
-              SenchaUtils.isRequiredSenchaDependency(dependency, false)) {
+              SenchaUtils.isRequiredSenchaDependency(dependency, false, true)) {
         requiredDependencies.add(senchaPackageNameForArtifact);
       }
     }

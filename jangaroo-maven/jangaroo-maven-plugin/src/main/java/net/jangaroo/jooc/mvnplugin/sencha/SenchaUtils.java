@@ -197,8 +197,14 @@ public class SenchaUtils {
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
+    return isRequiredSenchaDependency(dependency, includeTestDependencies, false);
+  }
+
+  public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,
+                                                   boolean includeTestDependencies,
+                                                   boolean includeProvidedDependencies) {
     return isSenchaDependency(dependency)
-            && !Artifact.SCOPE_PROVIDED.equals(dependency.getScope())
+            && (includeProvidedDependencies || !Artifact.SCOPE_PROVIDED.equals(dependency.getScope()))
             && (includeTestDependencies || !Artifact.SCOPE_TEST.equals(dependency.getScope()));
   }
 
