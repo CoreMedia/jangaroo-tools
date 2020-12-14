@@ -99,14 +99,14 @@ public class RunMojo extends AbstractSenchaMojo {
   private List<ProxyServletConfig> jooProxyServletConfigs;
 
   /**
-   * Set the absolute file path of a folder containing an additional 'packages' folder.
-   * Use this to complement an application with plugins that are developed in a
-   * dedicated workspace available under some local file path.
-   * This is usually the 'target/app' folder of the Jangaroo App  plugin module (the
-   * one that uses the Maven goal 'package-plugin' to produce the plugin ZIP).
+   * Set the list of absolute file paths of folders containing an additional 'packages' folder.
+   * Use this to complement an application with plugins that are developed in
+   * dedicated workspaces available under some local file paths.
+   * For each plugin, this is usually the 'target/app' folder of the Jangaroo App plugin module
+   * (the one that uses the Maven goal 'package-plugin' to produce the plugin ZIP).
    */
-  @Parameter(property = "additionalPackagesDir")
-  private File additionalPackagesDir;
+  @Parameter(property = "additionalPackagesDirs")
+  private File[] additionalPackagesDirs;
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -205,11 +205,19 @@ public class RunMojo extends AbstractSenchaMojo {
       }
     }
 
-    if ((isAppPackaging || isAppOverlayPackaging) && !isProxyRootPath) {
+    if (!isSwcPackaging && !isProxyRootPath) {
       jettyWrapper.setAdditionalServlets(Collections.singletonMap(ADDITIONAL_PACKAGES_PATH,
-              new AdditionalPackagesFromFolderServlet(additionalPackagesDir)));
-      if (additionalPackagesDir != null) {
-        jettyWrapper.addBaseDir(additionalPackagesDir.toPath(), SEPARATOR);
+              new AdditionalPackagesFromFolderServlet(additionalPackagesDirs)));
+      if (additionalPackagesDirs != null) {
+        for (File additionalPackagesDir : additionalPackagesDirs) {
+          if (isAppsPackaging) {
+            // for apps packaging, only map the "packages" subdirectory:
+            jettyWrapper.addBaseDir(additionalPackagesDir.toPath().resolve(PACKAGES_DIRECTORY_NAME), SEPARATOR + PACKAGES_DIRECTORY_NAME);
+          } else {
+            // for app(-overlay) packaging, map the root path, so all packages are "overlaid":
+            jettyWrapper.addBaseDir(additionalPackagesDir.toPath(), SEPARATOR);
+          }
+        }
       }
     }
 
