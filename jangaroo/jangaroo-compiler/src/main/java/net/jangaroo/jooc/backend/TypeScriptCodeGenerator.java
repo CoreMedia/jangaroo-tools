@@ -222,12 +222,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     String configsFromProps = null;
     if (configClass != null) {
       configClassName = compilationUnitAccessCode(configClass) + "._";
-      final boolean classIsNative = isAmbient(classDeclaration.getCompilationUnit());
       List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
-              .filter(typedIdeDeclaration -> (classIsNative || !typedIdeDeclaration.isNative()) && typedIdeDeclaration.isExtConfig())
+              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfig())
               .collect(Collectors.toList());
       List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
-              .filter(typedIdeDeclaration -> (classIsNative || !typedIdeDeclaration.isNative()) && typedIdeDeclaration.isBindable())
+              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isBindable())
               .collect(Collectors.toList());
       if (!properties.isEmpty()) {
         ownPropertiesClassName = classDeclaration.getName() + "Properties";

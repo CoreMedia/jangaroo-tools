@@ -138,6 +138,31 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
     return optTypeRelation;
   }
 
+  public boolean isMixinMemberRedeclaration() {
+    if (isClassMember()
+            && (getClassDeclaration() == null // may happen in MXML compilation units
+            || !getClassDeclaration().isInterface()
+            && getClassDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null)
+            && isNative() && !isPrivate() && !isStatic()) {
+      Implements optImplements = getClassDeclaration().getOptImplements();
+      if (optImplements != null) {
+        String name = getIde().getName();
+        String myQualifiedName = getClassDeclaration().getQualifiedNameStr();
+        CommaSeparatedList<Ide> mixinCandidates = optImplements.getSuperTypes();
+        while (mixinCandidates != null) {
+          ClassDeclaration mixinCandidate = (ClassDeclaration) getIde().getScope().lookupDeclaration(mixinCandidates.getHead());
+          Annotation mixinAnnotation = mixinCandidate.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
+          if (mixinAnnotation != null && !myQualifiedName.equals(mixinAnnotation.getPropertiesByName().get(null))
+                  && mixinCandidate.getMemberDeclaration(name) != null) {
+            return true;
+          }
+          mixinCandidates = mixinCandidates.getTail();
+        }
+      }
+    }
+    return false;
+  }
+
   public boolean isExtConfigOrBindable() {
     return isBindable() || isExtConfig();
   }
