@@ -198,7 +198,7 @@ public class SenchaUtils {
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency, boolean includeTestDependencies) {
-    return isRequiredSenchaDependency(dependency, includeTestDependencies, false);
+    return isRequiredSenchaDependency(dependency, includeTestDependencies, includeTestDependencies);
   }
 
   public static boolean isRequiredSenchaDependency(@Nonnull Dependency dependency,

@@ -6,11 +6,14 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaPackageOrAppConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -165,11 +168,40 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
       if (!isExtFrameworkDependency(dependency) &&
               !MavenDependencyHelper.equalsGroupIdAndArtifactId(dependency,themeDependency) &&
-              SenchaUtils.isRequiredSenchaDependency(dependency, false, true)) {
+              SenchaUtils.isRequiredSenchaDependency(dependency, false, true) &&
+              !isProvidedThemeDependency(dependency)) {
         requiredDependencies.add(senchaPackageNameForArtifact);
       }
     }
     return requiredDependencies;
+  }
+
+  private boolean isProvidedThemeDependency(Dependency dependency) throws MojoExecutionException {
+    if (Artifact.SCOPE_PROVIDED.equals(dependency.getScope()) && Type.JANGAROO_SWC_PACKAGING.equals(dependency.getType())) {
+      // To find out whether the SWC dependency is a theme, we must peek into its POM:
+      MavenProject projectFromDependency = getProjectFromDependency(project, dependency);
+      // find jangaroo-maven-plugin configuration:
+      List<Plugin> plugins = projectFromDependency.getBuildPlugins();
+      for (Plugin plugin : plugins) {
+        if ("net.jangaroo".equals(plugin.getGroupId()) && "jangaroo-maven-plugin".equals(plugin.getArtifactId())) {
+          Object jangarooPluginConfiguration = plugin.getConfiguration();
+          // find packageType configuration:
+          if (jangarooPluginConfiguration instanceof Xpp3Dom) {
+            Xpp3Dom configClassPackageElement = ((Xpp3Dom) jangarooPluginConfiguration).getChild("packageType");
+            if (configClassPackageElement != null) {
+              String packageType = configClassPackageElement.getValue();
+              if (packageType != null) {
+                packageType = packageType.trim();
+                if ("theme".equals(packageType)) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Nonnull
