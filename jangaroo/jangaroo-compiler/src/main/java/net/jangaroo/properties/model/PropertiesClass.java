@@ -3,6 +3,8 @@
  */
 package net.jangaroo.properties.model;
 
+import net.jangaroo.jooc.CompilationUnitResolver;
+import net.jangaroo.jooc.backend.TypeScriptModuleResolver;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.PropertiesConfigurationLayout;
@@ -12,9 +14,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.json.JsonObject.isIdentifier;
 
@@ -26,14 +30,16 @@ public class PropertiesClass {
   private static final String AS3_ANNOTATION_PATTERN = "(^|\\n)\\s*\\*\\s*(\\[[^]]*])";
   private static final String AS3_ANNOTATION_REPLACEMENT = "$1*/ $2 /*";
 
-  private ResourceBundleClass resourceBundle;
-  private Locale locale;
-  private PropertiesConfiguration properties;
+  private final ResourceBundleClass resourceBundle;
+  private final Locale locale;
+  private final PropertiesConfiguration properties;
+  private final CompilationUnitResolver compilationUnitResolver;
 
-  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties) {
+  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties, CompilationUnitResolver compilationUnitResolver) {
     this.resourceBundle = resourceBundle;
     this.locale = locale;
     this.properties = properties;
+    this.compilationUnitResolver = compilationUnitResolver;
   }
 
   public ResourceBundleClass getResourceBundle() {
@@ -59,6 +65,14 @@ public class PropertiesClass {
     return comment.replaceAll(AS3_ANNOTATION_PATTERN, AS3_ANNOTATION_REPLACEMENT);
   }
 
+  /**
+   * takes special care of AS3 annotations
+   */
+  public String getTsComment() {
+    // for now the normal comment as we did not yet introduce decorators in TS
+    return getComment();
+  }
+
   public List<Property> getProps() {
     return getProps(true, true);
   }
@@ -70,21 +84,27 @@ public class PropertiesClass {
     while (keys.hasNext()) {
       String key = keys.next();
       String value = properties.getString(key);
+      String tsValue = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       boolean valueIsResourceReference = matcher.find();
       if (valueIsResourceReference && includeReferences) {
         boolean bundleFirst = "bundle".equals(matcher.group(1));
         String referenceBundleKey = matcher.group(!bundleFirst ? 2 : 4);
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
+        int dotPos = referenceBundleFullClassName.lastIndexOf('.');
+        String className = dotPos > -1 ? referenceBundleFullClassName.substring(dotPos + 1) : referenceBundleFullClassName;
         value = referenceBundleFullClassName + CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
+        tsValue = className + CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
         if (isIdentifier(referenceBundleKey)) {
           value += "." + referenceBundleKey;
+          tsValue += "." + referenceBundleKey;
         } else {
           value += "[\"" + referenceBundleKey + "\"]";
+          tsValue += "[\"" + referenceBundleKey + "\"]";
         }
       }
       if (valueIsResourceReference ? includeReferences : includeStrings) {
-        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value));
+        props.add(new Property(adjustComment(layout.getCanonicalComment(key, true)), key, isIdentifier(key), value, tsValue, valueIsResourceReference));
       }
     }
     return props;
@@ -107,9 +127,9 @@ public class PropertiesClass {
 
   public Set<String> getImports() {
     Set<String> result = new HashSet<>();
-    Iterator keys = properties.getKeys();
+    Iterator<String> keys = properties.getKeys();
     while (keys.hasNext()) {
-      String key = (String)keys.next();
+      String key = keys.next();
       String value = properties.getString(key);
       Matcher matcher = RESOURCE_REFERENCE_PATTERN.matcher(value);
       if (matcher.find()) {
@@ -119,5 +139,16 @@ public class PropertiesClass {
       }
     }
     return result;
+  }
+
+  public Map<String, String> getTsImports() {
+    Set<String> imports = getImports();
+    if (locale != null) {
+      // in TypeScript every module has to be imported, even if it is in the same folder/"package"
+      imports.add(resourceBundle.getFullClassName());
+    }
+    TypeScriptModuleResolver typeScriptModuleResolver = new TypeScriptModuleResolver(compilationUnitResolver);
+    return typeScriptModuleResolver.getDefaultImports(resourceBundle.getFullClassName(), imports).stream()
+            .collect(Collectors.toMap(im -> im.localName, im -> im.source));
   }
 }

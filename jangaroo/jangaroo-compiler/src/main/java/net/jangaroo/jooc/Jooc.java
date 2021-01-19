@@ -165,16 +165,21 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
     Propc propertyClassGenerator;
-    File localizedOutputDirectory = getConfig().getLocalizedOutputDirectory();
-    if (localizedOutputDirectory == null) {
-      // temporary fix until the new configuration option can be used by IDEA Plugin:
-      localizedOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
+    File propertiesOutputDirectory;
+    if (getConfig().isMigrateToTypeScript()) {
+      propertiesOutputDirectory = getConfig().getOutputDirectory();
+    } else {
+      propertiesOutputDirectory = getConfig().getLocalizedOutputDirectory();
+      if (propertiesOutputDirectory == null) {
+        // temporary fix until the new configuration option can be used by IDEA Plugin:
+        propertiesOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
+      }
     }
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
 
-      propertyClassGenerator = new Propc();
+      propertyClassGenerator = new Propc(this);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -215,7 +220,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           String sourceName = source.getName();
           boolean isPropertiesSource = sourceName.endsWith(PROPERTIES_SUFFIX);
           if (isPropertiesSource) {
-            outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), localizedOutputDirectory);
+            outputFile = propertyClassGenerator.compile(sourceFile, getConfig().getSourcePath(), propertiesOutputDirectory, getConfig().isMigrateToTypeScript());
           }
           CompilationUnit unit = importSource(source);
           if (unit != null) {
@@ -226,7 +231,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
               generatesCode = JsCodeGenerator.generatesCode(primaryDeclaration);
             } else {
               generatesCode = TypeScriptCodeGenerator.generatesCode(primaryDeclaration);
-              if (generatesCode && TypeScriptCodeGenerator.getNonRequireNativeName(primaryDeclaration) != null) {
+              if (generatesCode && TypeScriptModuleResolver.getNonRequireNativeName(primaryDeclaration) != null) {
                 currentCodeSinkFactory = dTsSinkFactory;
               }
             }

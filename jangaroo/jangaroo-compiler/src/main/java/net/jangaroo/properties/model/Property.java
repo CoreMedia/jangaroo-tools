@@ -5,16 +5,20 @@ package net.jangaroo.properties.model;
  */
 public class Property {
 
-  private String comment;
-  private String key;
-  private boolean keyIsIdentifier;
-  private String value;
+  private final String comment;
+  private final String key;
+  private final boolean keyIsIdentifier;
+  private final String value;
+  private final String tsValue;
+  private final boolean valueIsReference;
 
-  public Property(String comment, String key, boolean keyIsIdentifier, String value) {
+  public Property(String comment, String key, boolean keyIsIdentifier, String value, String tsValue, boolean valueIsReference) {
     this.comment = comment;
     this.key = key;
     this.keyIsIdentifier = keyIsIdentifier;
     this.value = value;
+    this.tsValue = tsValue;
+    this.valueIsReference = valueIsReference;
   }
 
   public String getComment() {
@@ -33,4 +37,11 @@ public class Property {
     return value;
   }
 
+  public String getTsValue() {
+    return tsValue;
+  }
+
+  public boolean isValueIsReference() {
+    return valueIsReference;
+  }
 }
