@@ -62,8 +62,9 @@ import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
@@ -74,6 +75,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           "Vector$object"
   );
   public static final List<AS3Type> TYPES_ALLOWED_AS_INDEX = Arrays.asList(AS3Type.ANY, AS3Type.STRING, AS3Type.NUMBER, AS3Type.INT, AS3Type.UINT);
+
+  private static final Pattern INDENTATION_PATTERN = Pattern.compile("\n *\\z");
+
+  /**
+   * The TypeScript compiler directive to suppress errors regarding unsupported usage of #private names.
+   * The error number 18022 does not have any effect on the compiler, but we add it to easily identify the
+   * corresponding ts-expect-error lines to remove as soon as the feature is fully supported.
+   */
+  private static final String TS_EXPECT_ERROR_18022 = "//@ts-expect-error 18022";
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
@@ -110,11 +120,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbolWhitespace(modifier);
-      if (!isPrimaryDeclaration && !companionInterfaceMode &&
-              (modifier.sym == sym.PROTECTED
-              || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())
-      )) {
-        out.writeSymbol(modifier, false);
+      if (!isPrimaryDeclaration && !companionInterfaceMode) {
+        if (modifier.sym == sym.PROTECTED
+                || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())) {
+          out.writeSymbol(modifier, false);
+        } else if (modifier.sym == sym.PRIVATE && noSupportForHashPrivate(declaration)) {
+          // As long as tsc does not yet support private members other than instance fields,
+          // insert @ts-expect-error compiler directive, always as a separate line that can easily be removed later.
+          // So repeat the same indentation if possible:
+          Matcher indentationMatcher = INDENTATION_PATTERN.matcher(modifier.getWhitespace());
+          out.write(indentationMatcher.find()
+                  ? TS_EXPECT_ERROR_18022 + indentationMatcher.group()
+                  : "\n  " + TS_EXPECT_ERROR_18022 + "\n");
+        }
       }
     }
     if (isPrimaryDeclaration) {
@@ -288,17 +306,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       out.write(" {\n");
       out.write("}\n\n");
-    }
-
-    for (TypedIdeDeclaration member : classDeclaration.getStaticMembers().values()) {
-      if (member.isPrivate()) {
-        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
-      }
-    }
-    for (TypedIdeDeclaration member : classDeclaration.getMembers()) {
-      if (member.isPrivate() && useSymbolForPrivateMember(member)) {
-        out.write(MessageFormat.format("const ${0} = Symbol(\"{0}\");\n", member.getName()));
-      }
     }
 
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
@@ -846,7 +853,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Ide ide = variableDeclaration.getIde();
     if (variableDeclaration.isClassMember()) {
       if (variableDeclaration.isPrivate()) {
-        writeSymbolReplacement(ide.getSymbol(), getDefinitionName(variableDeclaration));
+        writeSymbolReplacement(ide.getSymbol(), getHashPrivateName(variableDeclaration));
       } else {
         ide.visit(this);
       }
@@ -914,12 +921,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private String getDefinitionName(IdeDeclaration varOrFunDeclaration) {
-    return String.format(useSymbolForPrivateMember(varOrFunDeclaration)
-            ? "[$%s]" : "#%s", varOrFunDeclaration.getIde().getName());
+  private String getHashPrivateName(IdeDeclaration varOrFunDeclaration) {
+    return "#" + varOrFunDeclaration.getIde().getName();
   }
 
-  private boolean useSymbolForPrivateMember(IdeDeclaration varOrFunDeclaration) {
+  private boolean noSupportForHashPrivate(IdeDeclaration varOrFunDeclaration) {
     return varOrFunDeclaration.isStatic()
             || !varOrFunDeclaration.isNative()
             && (varOrFunDeclaration instanceof PropertyDeclaration
@@ -990,10 +996,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
       } else {
         if (functionDeclaration.isPrivate()) {
-          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getDefinitionName(functionDeclaration));
-          if (!useSymbolForPrivateMember(functionDeclaration)) {
-            out.writeToken("=");
-          }
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getHashPrivateName(functionDeclaration));
         } else if (convertAccessorToMethod) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),
                   getBindablePropertyName(functionDeclaration.isGetter() ? MethodType.GET : MethodType.SET,
@@ -1020,9 +1023,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
-      if (functionDeclaration.isPrivate() && !useSymbolForPrivateMember(functionDeclaration)) {
-        out.writeToken("=>");
-      }
       visitIfNotNull(functionExpr.getBody());
       writeOptSymbol(functionDeclaration.getOptSymSemicolon());
     } else {
@@ -1409,14 +1409,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
           arg.visit(this);
           if (memberDeclaration.isPrivate()) {
-            if (useSymbolForPrivateMember(memberDeclaration)) {
-              writeSymbolReplacement(dotExpr.getOp(), "[");
-              writeSymbolReplacement(ide.getSymbol(), "$" + memberName);
-              out.write("]");
-            } else {
-              out.writeSymbol(dotExpr.getOp());
-              writeSymbolReplacement(ide.getSymbol(), "#" + memberName);
-            }
+            out.writeSymbol(dotExpr.getOp());
+            writeSymbolReplacement(ide.getSymbol(), "#" + memberName);
           } else {
             out.writeSymbol(dotExpr.getOp());
             writeSymbolReplacement(ide.getSymbol(), memberName);
