@@ -22,6 +22,10 @@ public enum ModuleType {
    */
   EXT_PKG,
   /**
+   * just use its dependencies
+   */
+  AGGREGATOR,
+  /**
    * it is just there, ignore it (e.g. from npm registry)
    */
   IGNORE,
