@@ -48,10 +48,6 @@ import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
-import net.jangaroo.jooc.input.FileInputSource;
-import net.jangaroo.jooc.input.InputSource;
-import net.jangaroo.jooc.input.ZipEntryInputSource;
-import net.jangaroo.jooc.input.ZipFileInputSource;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
@@ -60,9 +56,16 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -92,27 +95,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
-  public static String getNonRequireNativeName(IdeDeclaration primaryDeclaration) {
-    Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    if (nativeAnnotation != null && getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "") == null) {
-      String nativeName = getNativeAnnotationValue(nativeAnnotation);
-      if (nativeName == null) {
-        nativeName = primaryDeclaration.getQualifiedNameStr();
-      }
-      if (!"Ext.Base".equals(nativeName)) {
-        return nativeName;
-      }
-    }
-    return null;
-  }
-
+  private final TypeScriptModuleResolver typeScriptModuleResolver;
   private CompilationUnit compilationUnit;
   private Map<String, String> imports;
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
 
-  TypeScriptCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
+  TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
+    this.typeScriptModuleResolver = typeScriptModuleResolver;
   }
 
   @Override
@@ -138,7 +129,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (isPrimaryDeclaration) {
       Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotation != null && !isInterface(declaration)) {
-        if (getNativeAnnotationRequireValue(nativeAnnotation) == null
+        if (typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation) == null
                 && declaration.getTargetQualifiedNameStr().contains(".")) {
           out.writeToken("export");
         } else {
@@ -167,7 +158,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               String.join(", ", compilationUnit.getUsedBuiltInIdentifiers())));
     }
 
-    boolean isModule = getRequireModuleName(primaryDeclaration) != null;
+    boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
     String targetNamespace = null;
     if (!isModule) {
       targetNamespace = CompilerUtils.packageName(targetQualifiedNameStr);
@@ -187,9 +178,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Set<String> localNameClashes = new HashSet<>();
     for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
-      if (getRequireModuleName(dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
+      if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
-        String localName = getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
+        String localName = typeScriptModuleResolver.getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
         localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
         if (!localNames.add(localName)) {
           localNameClashes.add(localName);
@@ -201,15 +192,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
-      String requireModuleName = getRequireModuleName(dependentPrimaryDeclaration);
-      String localName = getDefaultImportName(dependentPrimaryDeclaration);
+      String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);
+      String localName = typeScriptModuleResolver.getDefaultImportName(dependentPrimaryDeclaration);
       if (requireModuleName != null) {
         if (!isModule) {
           // import from non-module to module must be inlined:
           localName = String.format("import('%s').default", requireModuleName);
         } else if (localNameClashes.contains(localName)) {
           // resolve name clashes by using transformed fully-qualified name ('.' -> '_'):
-          localName = toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+          localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
         }
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
@@ -581,121 +572,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return as3Type.name;
   }
 
-  protected String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
-    // exception: Ext.Base does not need to be "required", but for TypeScript, it needs to be imported!
-    if ("Ext.Base".equals(getNativeAnnotationValue(nativeAnnotation))) {
-      return "";
-    }
-    return super.getNativeAnnotationRequireValue(nativeAnnotation);
-  }
-
-  private String getRequireModuleName(IdeDeclaration declaration) {
-    String moduleName = getRequireModulePath(declaration);
-    if (moduleName == null) {
-      return null;
-    }
-    InputSource importedInputSource = declaration.getCompilationUnit().getInputSource();
-    FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
-    if (importedInputSource instanceof FileInputSource) {
-      FileInputSource fileInputSource = (FileInputSource) importedInputSource;
-      boolean isModule = getRequireModulePath(compilationUnit.getPrimaryDeclaration()) != null;
-      File currentTargetFile = isModule
-              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(),
-              currentInputSource.getSourceDir(), Jooc.TS_SUFFIX)
-              : new File(currentInputSource.getSourceDir(), "index.d.ts");
-      // All source code from the same Maven module ends up in the same source directory, *but* test code:
-      if (fileInputSource.getSourceDir().equals(currentInputSource.getSourceDir())
-              || !currentInputSource.getSourceDir().getPath().replace(File.separatorChar, '/').endsWith("src/test/joo")) {
-        // same input source or non-test-sources: relativize against current file
-        return computeRelativeModulePath(currentTargetFile,
-                new File(currentInputSource.getSourceDir(), moduleName));
-      }
-      // Only references from test code to non-test code must be rewritten.
-      // We know that in the target TypeScript workspace, the relative path from the test source root
-      // directory to the source root directory is "../src". This is achieved by creating
-      // two absolute paths, one in the dummy root directory "/tests" (name is arbitrary)
-      // and one which is just the root directory "/src". Then, the 'modulePath' is added.
-      return computeRelativeModulePath(currentTargetFile,
-              new File(currentInputSource.getSourceDir(), "../src/" + moduleName));
-    }
-    if (!(importedInputSource instanceof ZipEntryInputSource)) {
-      throw new IllegalStateException("The input source for a compilation unit was not a file");
-    }
-    // compute target npm package name
-    String npmPackageName = findSenchaPackageName((ZipEntryInputSource) importedInputSource);
-    if (npmPackageName == null) {
-      return null;
-    }
-    if (npmPackageName.startsWith("net.jangaroo__")) {
-      // well-known vendor prefix net.jangaroo -> @jangaroo
-      npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
-      // very special case jangaroo-runtime -> joo
-      npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
-      // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
-      // by 'joo' for everything else:
-      if (npmPackageName.endsWith("ext-as")) {
-        npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
-      }
-    } else if (npmPackageName.startsWith("com.coremedia.")) {
-      npmPackageName = "@coremedia/" + npmPackageName.substring("com.coremedia.".length());
-    }
-    // prepend target npm package in front
-    return npmPackageName + "/" + moduleName;
-  }
-
-  private String computeRelativeModulePath(File currentFile, File importedFile) {
-    File currentDir = currentFile.getParentFile();
-    String relativeModulePath = CompilerUtils.getRelativePath(currentDir,
-            importedFile, false);
-    relativeModulePath = relativeModulePath.replace(File.separatorChar, '/');
-    if (!relativeModulePath.startsWith(".")) {
-      relativeModulePath = "./" + relativeModulePath;
-    }
-    return relativeModulePath;
-  }
-
-  private String findSenchaPackageName(ZipEntryInputSource zipEntryInputSource) {
-    ZipFileInputSource zipFileInputSource = zipEntryInputSource.getZipFileInputSource();
-    InputSource groupIdDir = getFirstSubDirectory(zipFileInputSource.getChild("META-INF/maven"));
-    InputSource artifactIdDir = getFirstSubDirectory(groupIdDir);
-    if (groupIdDir != null && artifactIdDir != null) {
-      return groupIdDir.getName() + "__" + artifactIdDir.getName();
-    }
-    return null;
-  }
-
-  private InputSource getFirstSubDirectory(InputSource directory) {
-    if (directory == null) {
-      return null;
-    }
-    List<? extends InputSource> list = directory.list();
-    return list.size() >= 1 ? list.get(0) : null;
-  }
-
-  private String getRequireModulePath(IdeDeclaration declaration) {
-    // exception: In TypeScript, "AS3.Error" is directly mapped to native "Error":
-    String qualifiedName = declaration.getQualifiedNameStr();
-    if ("Error".equals(qualifiedName)) {
-      return null;
-    }
-    Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    if (nativeAnnotation == null) {
-      Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-      if (renameAnnotation != null) {
-        qualifiedName = getNativeAnnotationValue(renameAnnotation);
-      }
-    } else {
-      if (getNativeAnnotationRequireValue(nativeAnnotation) == null) {
-        return null;
-      }
-      String nativeAnnotationValue = getNativeAnnotationValue(nativeAnnotation);
-      if (nativeAnnotationValue != null) {
-        qualifiedName = nativeAnnotationValue;
-      }
-    }
-    return qualifiedName.replace('.', '/');
-  }
-
   @Override
   public void visitParameter(Parameter parameter) throws IOException {
     writeOptSymbol(parameter.getOptSymRest());
@@ -863,7 +739,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
-            && getRequireModuleName(variableDeclaration) != null) {
+            && typeScriptModuleResolver.getRequireModuleName(compilationUnit, variableDeclaration) != null) {
       out.writeSymbol(ide.getSymbol()); // do not rewrite var name (no underscore)!
       if (typeRelation != null) {
         out.writeSymbol(typeRelation.getSymRelation());
@@ -1515,21 +1391,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 //    out.writeSymbol(ideWithTypeParam.getSymGt());
   }
 
-  private String getDefaultImportName(IdeDeclaration declaration) {
-    String nativeName = getNonRequireNativeName(declaration);
-    if (nativeName != null) {
-      return nativeName;
-    }
-    Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-    if (renameAnnotation != null) {
-      String targetName = getNativeAnnotationValue(renameAnnotation);
-      if (targetName != null && !targetName.isEmpty()) {
-        return CompilerUtils.className(targetName);
-      }
-    }
-    return declaration.getName();
-  }
-
   @Override
   public void visitQualifiedIde(QualifiedIde qualifiedIde) throws IOException {
     if (out.isWritingComment()) {
@@ -1560,7 +1421,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         return getLocalName(declaration, useQualifiedName);
       }
     }
-    return useQualifiedName ? toLocalName(ide.getQualifiedName()) : ide.getName();
+    return useQualifiedName ? TypeScriptModuleResolver.toLocalName(ide.getQualifiedName()) : ide.getName();
   }
 
   @Override
@@ -1577,7 +1438,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         System.err.println("*** not found in imports: " + declaration.getQualifiedNameStr());
       } else {
         if (declaration instanceof VariableDeclaration && !((VariableDeclaration) declaration).isConst()
-                && getRequireModuleName(declaration) != null) {
+                && typeScriptModuleResolver.getRequireModuleName(compilationUnit, declaration) != null) {
           // Modifiable singleton access:
           localName += "._";
         }
@@ -1590,13 +1451,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       localName = FunctionExpr.ARGUMENTS + "$";
     }
     if (localName == null) {
-      return useQualifiedName ? toLocalName(declaration.getQualifiedName()) : declaration.getName();
+      return useQualifiedName ? TypeScriptModuleResolver.toLocalName(declaration.getQualifiedName()) : declaration.getName();
     }
     return localName;
-  }
-
-  private static String toLocalName(String[] qualifiedName) {
-    return String.join("_", qualifiedName);
   }
 
   private static boolean rewriteThis(Ide ide) {

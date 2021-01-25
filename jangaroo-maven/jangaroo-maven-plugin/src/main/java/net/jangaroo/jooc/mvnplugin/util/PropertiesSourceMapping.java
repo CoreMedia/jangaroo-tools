@@ -27,7 +27,7 @@ public class PropertiesSourceMapping implements SourceMapping {
     String className = CompilerUtils.qNameFromRelativePath(source);
     String baseClassName = PropcHelper.computeBaseClassName(className);
     Locale locale = PropcHelper.computeLocale(className);
-    File targetFile = PropcHelper.computeGeneratedPropertiesJsFile(targetDir, baseClassName, locale);
+    File targetFile = PropcHelper.computeGeneratedPropertiesFile(targetDir, baseClassName, locale, false);
     return Collections.singleton(targetFile);
   }
 }

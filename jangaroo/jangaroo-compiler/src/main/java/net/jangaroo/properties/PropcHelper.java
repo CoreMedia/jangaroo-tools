@@ -40,9 +40,17 @@ public class PropcHelper {
     return new File(apiOutputDirectory, generatedPropertiesClassFileName);
   }
 
-  public static File computeGeneratedPropertiesJsFile(File outputDirectory, String className, Locale locale) {
-    String localeSubDir = locale == null ? DEFAULT_LOCALE : locale.toString();
-    String generatedPropertiesClassFileName = localeSubDir + '/' + CompilerUtils.fileNameFromQName(className, '/', ".js");
+  public static File computeGeneratedPropertiesFile(File outputDirectory, String className, Locale locale, boolean migrateToTypeScript) {
+    String subDirWithTrailingSlash;
+    String extension;
+    if (migrateToTypeScript) {
+      subDirWithTrailingSlash = "";
+      extension = (locale == null ? "" : "_" + locale.toString()) + ".ts";
+    } else {
+      subDirWithTrailingSlash = (locale == null ? DEFAULT_LOCALE : locale.toString()) + '/';
+      extension = ".js";
+    }
+    String generatedPropertiesClassFileName = subDirWithTrailingSlash + CompilerUtils.fileNameFromQName(className, '/', extension);
     return new File(outputDirectory, generatedPropertiesClassFileName);
   }
 

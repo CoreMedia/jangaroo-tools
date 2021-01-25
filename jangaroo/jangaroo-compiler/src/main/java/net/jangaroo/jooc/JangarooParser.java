@@ -184,7 +184,7 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
   }
 
   public Reader createPropertiesClassReader(InputSource in) throws IOException {
-    Propc propertyClassGenerator = new Propc();
+    Propc propertyClassGenerator = new Propc(this);
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     propertyClassGenerator.generateApi(
             CompilerUtils.qNameFromRelativePath(in.getRelativePath()),

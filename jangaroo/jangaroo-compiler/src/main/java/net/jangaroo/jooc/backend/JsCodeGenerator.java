@@ -76,6 +76,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
+  private final JsModuleResolver jsModuleResolver;
   private boolean expressionMode = false;
   private Map<String,String> imports = new HashMap<String,String>();
   private ClassDefinitionBuilder primaryClassDefinitionBuilder = new ClassDefinitionBuilder();
@@ -100,8 +101,9 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
   };
 
-  public JsCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
+  public JsCodeGenerator(JsWriter out, CompilationUnitResolver compilationUnitModelResolver, JsModuleResolver jsModuleResolver) {
     super(out, compilationUnitModelResolver);
+    this.jsModuleResolver = jsModuleResolver;
   }
 
   private Map<String,PropertyDefinition> membersOrStaticMembers(Declaration memberDeclaration) {
@@ -317,19 +319,19 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotation == null) {
         Annotation renameAnnotation = primaryDeclaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-        javaScriptName = renameAnnotation == null ? null : getNativeAnnotationValue(renameAnnotation);
+        javaScriptName = renameAnnotation == null ? null : ModuleResolverBase.getNativeAnnotationValue(renameAnnotation);
         if (javaScriptName == null) {
           javaScriptName = dependentCUId;
         }
         javaScriptNameToRequire = javaScriptName;
       } else {
-        String javaScriptAlias = getNativeAnnotationValue(nativeAnnotation);
+        String javaScriptAlias = ModuleResolverBase.getNativeAnnotationValue(nativeAnnotation);
         if (javaScriptAlias != null) {
           javaScriptName = javaScriptAlias;
         } else {
           javaScriptName = dependentCUId;
         }
-        javaScriptNameToRequire = getNativeAnnotationRequireValue(nativeAnnotation);
+        javaScriptNameToRequire = jsModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
         if ("".equals(javaScriptNameToRequire)) {
           javaScriptNameToRequire = javaScriptName;
         }

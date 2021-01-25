@@ -95,7 +95,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected final CompilationUnitResolver compilationUnitModelResolver;
@@ -387,26 +386,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     if (primaryDeclaration instanceof ClassDeclaration) {
       visitAll(((ClassDeclaration) primaryDeclaration).getSecondaryDeclarations());
     }
-  }
-
-  protected String getNativeAnnotationRequireValue(Annotation nativeAnnotation) {
-    return (String) getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "");
-  }
-
-  protected static String getNativeAnnotationValue(Annotation nativeAnnotation) {
-    return (String) getAnnotationParameterValue(nativeAnnotation, null, null);
-  }
-
-  protected static Object getAnnotationParameterValue(Annotation nativeAnnotation, String name,
-                                                      Object defaultValue) {
-    Map<String, Object> propertiesByName = nativeAnnotation.getPropertiesByName();
-    for (Map.Entry<String, Object> entry : propertiesByName.entrySet()) {
-      if (Objects.equals(entry.getKey(), name)) {
-        String stringValue = (String) entry.getValue();
-        return stringValue == null ? defaultValue : stringValue;
-      }
-    }
-    return null;
   }
 
   @Override
