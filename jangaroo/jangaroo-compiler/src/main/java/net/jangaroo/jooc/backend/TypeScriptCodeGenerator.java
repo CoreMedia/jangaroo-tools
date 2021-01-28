@@ -92,6 +92,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
     // and [Mixin] interfaces:
     return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())
+            && !primaryDeclaration.getName().endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
