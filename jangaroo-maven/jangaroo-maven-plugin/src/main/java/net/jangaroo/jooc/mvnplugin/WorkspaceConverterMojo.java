@@ -143,7 +143,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if ("ext".equals(packageJson.get().getName())) {
           Stream.of("classic/classic", "classic/theme-triton", "packages/charts")
                   .forEach(subdirectory -> {
-                    //todo: properly implement this
                     String additionalExtPkgFile = filePath.replace("/package.json", subdirectory.concat("/package.json"));
                     Optional<PackageJsonData> additionalJsonData = readPackageJson(additionalExtPkgFile);
                     additionalJsonData.ifPresent(packageJsonData -> additionalPackages.put(calculatePackageNameFromExtModuleName(packageJsonData.getName()),
