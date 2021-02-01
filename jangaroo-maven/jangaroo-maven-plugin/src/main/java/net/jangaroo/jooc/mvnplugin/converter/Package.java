@@ -10,17 +10,20 @@ public class Package {
   private String name;
   private String version;
   private List<Package> dependencies;
+  private List<Package> devDependencies;
 
-  public Package(String name, String version, List<Package> dependencies) {
+  public Package(String name, String version, List<Package> dependencies, List<Package> devDependencies) {
     this.name = name;
     this.version = version;
     this.dependencies = dependencies;
+    this.devDependencies = devDependencies;
   }
 
   public Package(String name, String version) {
     this.name = name;
     this.version = version;
     this.dependencies = new ArrayList<>();
+    this.devDependencies = new ArrayList<>();
   }
 
   public String getName() {
@@ -35,12 +38,24 @@ public class Package {
     return dependencies;
   }
 
+  public List<Package> getDevDependencies() {
+    return devDependencies;
+  }
+
   public void addAllDependencies(List<Package> newDependencies) {
     this.dependencies.addAll(newDependencies);
   }
 
   public void addDependency(Package newDependency) {
     dependencies.add(newDependency);
+  }
+
+  public void setDevDependencies(List<Package> devDependencies) {
+    this.devDependencies = devDependencies;
+  }
+
+  public void addDevDependencie(Package devDependency) {
+    this.dependencies.add(devDependency);
   }
 
   public Optional<Package> findDependency(@Nonnull String name, @Nonnull String version) {
@@ -50,8 +65,23 @@ public class Package {
             .findFirst();
   }
 
+  public Optional<Package> findDevDependency(@Nonnull String name, @Nonnull String version) {
+    return devDependencies.stream()
+            .filter(aPackage -> name.equals(aPackage.getName()))
+            .filter(aPackage -> version.equals(aPackage.getVersion()))
+            .findFirst();
+  }
+
   public void removeDependency(@Nonnull String name,@Nonnull String version) {
     List<Package> matchingDependencies = dependencies.stream()
+            .filter(aPackage -> name.equals(aPackage.getName()))
+            .filter(aPackage -> version.equals(aPackage.getVersion()))
+            .collect(Collectors.toList());
+    matchingDependencies.forEach(dependencies::remove);
+  }
+
+  public void removeDevDependency(@Nonnull String name, @Nonnull String version) {
+    List<Package> matchingDependencies = devDependencies.stream()
             .filter(aPackage -> name.equals(aPackage.getName()))
             .filter(aPackage -> version.equals(aPackage.getVersion()))
             .collect(Collectors.toList());
