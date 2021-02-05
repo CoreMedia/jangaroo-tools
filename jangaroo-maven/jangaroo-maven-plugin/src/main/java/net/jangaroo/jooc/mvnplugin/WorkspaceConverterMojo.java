@@ -1,10 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.gson.Gson;
-import net.jangaroo.jooc.mvnplugin.converter.ExtModule;
 import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.Module;
-import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJsonData;
 import org.apache.maven.model.Model;
@@ -19,7 +17,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -36,8 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Mojo(name = "workspaceConverter",
         defaultPhase = LifecyclePhase.COMPILE,
@@ -54,6 +49,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Parameter(property = "sudio.app.package.name")
   private String appPackageName = "";
+
+  @Parameter(property = "activeProfiles", defaultValue = "${session.request.activeProfiles}")
+  protected List<String> activeProfiles;
 
   private Gson gson = new Gson();
 
@@ -74,6 +72,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     Map<String, Module> moduleMappings = loadMavenModules(studioNpmMavenRoot);
     getOrCreatePackage(packageRegistry, appPackageName, null, moduleMappings);
+    System.out.println("test");
   }
 
   private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, Module> moduleMappings) {
@@ -96,9 +95,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       switch (module.getModuleType()) {
         case IGNORE:
           return Optional.empty();
-        case EXT_PKG:
-          newPackageVersion = calculatePackageVersionFromExtModuleVersion(module.getVersion());
-
+        default:
       }
       return Optional.of(new Package(newPackageName, newPackageVersion, newDependencies, newDevDependencies));
     }
@@ -126,6 +123,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Model model = reader.read(new FileReader(basePath + "/pom.xml"));
       List<String> childModules = model.getModules();
       model.getProfiles().stream()
+              .filter(profile -> isProfileActive(profile.getId()))
               .flatMap(profile -> profile.getModules().stream())
               .forEach(childModules::add);
       if (!childModules.isEmpty()) {
@@ -138,6 +136,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       logger.debug(String.format("pom does not exist in directory %s", basePath));
     }
     return modules;
+  }
+
+  private boolean isProfileActive(String profileId) {
+    return true;
+    // todo: use this
+    //return activeProfiles.contains(profileId);
   }
 
   private String calculateMavenName(Model model) {
@@ -198,47 +202,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             "net.jangaroo__jooflexframework",
             "net.jangaroo__joounit"};
     return Arrays.asList(ingoreNames).contains(packageName);
-  }
-
-  private String calculatePackageNameFromExtModuleName(String name) {
-    if ("ext".equals(name)) {
-      return "@coremedia/sencha-ext";
-    }
-    if ("ext-classic".equals(name)) {
-      return "@coremedia/sencha-ext-classic";
-    }
-    if ("charts".equals(name)) {
-      return "@coremedia/sencha-ext-charts";
-    }
-    if (name.startsWith("theme-")) {
-      return "@coremedia/sencha-ext-classic-" + name;
-    }
-    if (name.startsWith("net.jangaroo__")) {
-      String suffix = name.replace("net.jangaroo__", "");
-      if ("jangaroo-net".equals(suffix)) {
-        return "@jangaroo/jangaroo-net";
-      }
-      if ("jangaroo-runtime".equals(suffix)) {
-        return "@jangaroo/joo";
-      }
-      if ("jooflash-core".equals(suffix)) {
-        return "@jangaroo/jooflash-core";
-      }
-      if ("jooflexframework".equals(suffix)) {
-        return "@jangaroo/jooflexframework";
-      }
-      if ("joounit".equals(suffix)) {
-        return "@jangaroo/joounit";
-      }
-      if ("ext-as".equals(suffix)) {
-        return "@jangaroo/ext-ts";
-      }
-    }
-    return name;
-  }
-
-  private String calculatePackageVersionFromExtModuleVersion(String version) {
-    return isValidVersion(version) ? version : "7.2.0";
   }
 
   private boolean isValidVersion(String version) {
