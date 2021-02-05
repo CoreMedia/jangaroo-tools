@@ -1,14 +1,15 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
-public class PackageIdentity {
+public class PackageJsonData {
   private String name;
   private String version;
+  private Object sencha;
 
 
-  public PackageIdentity() {
+  public PackageJsonData() {
   }
 
-  public PackageIdentity(String name, String version) {
+  public PackageJsonData(String name, String version) {
     this.name = name;
     this.version = version;
   }
@@ -27,5 +28,13 @@ public class PackageIdentity {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public Object getSencha() {
+    return sencha;
+  }
+
+  public void setSencha(Object sencha) {
+    this.sencha = sencha;
   }
 }

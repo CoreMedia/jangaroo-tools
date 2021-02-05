@@ -58,14 +58,14 @@ public class Package {
     this.dependencies.add(devDependency);
   }
 
-  public Optional<Package> findDependency(@Nonnull String name, @Nonnull String version) {
+  public Optional<Package> findDependency(String name, String version) {
     return dependencies.stream()
             .filter(aPackage -> name.equals(aPackage.getName()))
             .filter(aPackage -> version.equals(aPackage.getVersion()))
             .findFirst();
   }
 
-  public Optional<Package> findDevDependency(@Nonnull String name, @Nonnull String version) {
+  public Optional<Package> findDevDependency(String name, String version) {
     return devDependencies.stream()
             .filter(aPackage -> name.equals(aPackage.getName()))
             .filter(aPackage -> version.equals(aPackage.getVersion()))
@@ -86,5 +86,9 @@ public class Package {
             .filter(aPackage -> version.equals(aPackage.getVersion()))
             .collect(Collectors.toList());
     matchingDependencies.forEach(dependencies::remove);
+  }
+
+  public boolean matches(String name, String version) {
+    return this.name.equals(name) && this.version.equals(version);
   }
 }

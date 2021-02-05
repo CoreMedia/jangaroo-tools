@@ -4,7 +4,7 @@ import org.apache.maven.model.Model;
 
 import java.io.File;
 
-public class Module {
+public abstract class Module {
   private ModuleType moduleType;
   private File directory;
   private Object data;
@@ -53,5 +53,7 @@ public class Module {
   public Object getData() {
     return data;
   }
+
+  public abstract String getVersion();
 }
 

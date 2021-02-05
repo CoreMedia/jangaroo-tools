@@ -1,9 +1,12 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.gson.Gson;
+import net.jangaroo.jooc.mvnplugin.converter.ExtModule;
+import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.Module;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
+import net.jangaroo.jooc.mvnplugin.converter.PackageJsonData;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.AbstractMojo;
@@ -33,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Mojo(name = "workspaceConverter",
@@ -51,6 +55,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter(property = "studio.npm.target")
   private String studioNpmTarget = "../created_stuff";
 
+  @Parameter(property = "sudio.app.package.name")
+  private String appPackageName = "";
+
+  private Gson gson = new Gson();
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     List<Package> packageRegistry = new ArrayList<>();
@@ -59,30 +68,60 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@coremedia/sencha-ext", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext-classic", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext-classic-theme-triton", "7.2.0"));
-    // this module will be ignored
-    packageRegistry.add(new Package("@coremedia/com.coremedia.sencha__ext-js-pkg", "7.2.0"));
+    packageRegistry.add(new Package("@jangaroo/joo", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/jangaroo-net", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/jooflash-core", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/jooflexframework", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/joounit", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
 
-
-    Map<String, Module> modules = loadMavenModules(studioNpmMavenRoot);
-    modules.putAll(loadExtModules(studioNpmRemotePackages));
-    modules.forEach((key, value) -> {
-      System.out.println("module " + key + " found!");
-      /*
-      try {
-        FileUtils.copyDirectory(new File(value.getDirectory().getPath() + "/target/packages"), new File(studioNpmTarget));
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-       */
-    });
+    Map<String, Module> moduleMappings = loadMavenModules(studioNpmMavenRoot);
+    moduleMappings.putAll(loadExtModules(studioNpmRemotePackages));
+    getOrCreatePackage(packageRegistry, appPackageName, null, moduleMappings);
   }
 
-  private void getOrCreatePackge(List<Package> packageRegistry) {
+  private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, Module> moduleMappings) {
+    Optional<Package> matchingPackage = packageRegistry.stream()
+            .filter(aPackage -> aPackage.matches(packageName, packageVersion))
+            .findFirst();
+    if (matchingPackage.isPresent()) {
+      return matchingPackage;
+    } else {
+      String newPackageName = null;
+      String newPackageVersion = null;
+      List<Package> newDependencies = new ArrayList<>();
+      List<Package> newDevDependencies = new ArrayList<>();
 
+      Module module = moduleMappings.get(packageName);
+      if (module == null) {
+        logger.error("could not find module {}", packageName);
+        return Optional.empty();
+      }
+      switch (module.getModuleType()) {
+        case IGNORE:
+          return Optional.empty();
+        case EXT_PKG:
+          newPackageVersion = calculatePackageVersionFromExtModuleVersion(module.getVersion());
+
+      }
+      return Optional.of(new Package(newPackageName, newPackageVersion, newDependencies, newDevDependencies));
+    }
   }
 
   private void copyStaticPackages() {
   }
+
+  public String fundPackageNameByReference(String reference, Map<String, Map> moduleMappings) {
+    String packageName = null;
+    String[] split = reference.split(":");
+    if (split.length == 2 & split[0] != null && split[1] != null) {
+
+    } else {
+
+    }
+    return packageName;
+  }
+
 
   private Map<String, Module> loadMavenModules(String basePath) {
     MavenXpp3Reader reader = new MavenXpp3Reader();
@@ -90,17 +129,32 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     try {
       Model model = reader.read(new FileReader(basePath + "/pom.xml"));
       List<String> childModules = model.getModules();
+      model.getProfiles().stream()
+              .flatMap(profile -> profile.getModules().stream())
+              .forEach(childModules::add);
       if (!childModules.isEmpty()) {
         for (String moduleName : childModules) {
           modules.putAll(loadMavenModules(basePath + "/" + moduleName));
         }
-      } else {
-        modules.put(model.getGroupId()+ "__" + model.getArtifactId(), new Module(basePath, model));
       }
+      modules.put(calculateMavenName(model), new MavenModule(basePath, model));
     } catch (IOException | XmlPullParserException e) {
       logger.debug(String.format("pom does not exist in directory %s", basePath));
     }
     return modules;
+  }
+
+  private String calculateMavenName(Model model) {
+    if ("com.coremedia.sencha".equals(model.getGroupId()) && "ext-js-pkg".equals(model.getArtifactId())) {
+      return "ext";
+    } else {
+      String groupId = model.getGroupId();
+      if (groupId == null) {
+        groupId = model.getParent().getGroupId();
+      }
+      return groupId + "__" + model.getArtifactId();
+    }
+
   }
 
   private List<String> match(String glob, String location) {
@@ -146,11 +200,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                     String additionalExtPkgFile = filePath.replace("/package.json", subdirectory.concat("/package.json"));
                     Optional<PackageJsonData> additionalJsonData = readPackageJson(additionalExtPkgFile);
                     additionalJsonData.ifPresent(packageJsonData -> additionalPackages.put(calculatePackageNameFromExtModuleName(packageJsonData.getName()),
-                            new Module(ModuleType.IGNORE, new File(additionalExtPkgFile), packageJsonData.getSencha())));
+                            new ExtModule(ModuleType.IGNORE, new File(additionalExtPkgFile), (PackageJsonData) packageJsonData.getSencha())));
                   });
         }
         moduleMappings.put(calculatePackageNameFromExtModuleName(packageJson.get().getName()),
-                new Module(moduleType, new File(filePath), null));
+                new ExtModule(moduleType, new File(filePath), null));
       }
     }
     return moduleMappings;
@@ -159,7 +213,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   public Optional<PackageJsonData> readPackageJson(String filePath) {
     PackageJsonData packageJsonData = null;
     try (FileReader fileReader = new FileReader(filePath)) {
-      Gson gson = new Gson();
       packageJsonData = gson.fromJson(fileReader, PackageJsonData.class);
     } catch (IOException e) {
       logger.debug(String.format("package.json oes not exist in %s", filePath));
@@ -222,27 +275,5 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private boolean isValidVersion(String version) {
     //todo: implement this
     return true;
-  }
-
-
-  private class PackageJsonData {
-    private String name;
-    private Object sencha;
-
-    public String getName() {
-      return name;
-    }
-
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    public Object getSencha() {
-      return sencha;
-    }
-
-    public void setSencha(Object sencha) {
-      this.sencha = sencha;
-    }
   }
 }
