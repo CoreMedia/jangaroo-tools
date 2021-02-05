@@ -18,10 +18,6 @@ public enum ModuleType {
    */
   JANGAROO_APPS,
   /**
-   * used for a package (old ext pkg format)
-   */
-  EXT_PKG,
-  /**
    * just use its dependencies
    */
   AGGREGATOR,

@@ -24,9 +24,6 @@ public abstract class Module {
       case "jangaroo-apps":
         moduleType = ModuleType.JANGAROO_APPS;
         break;
-      case "EXT_PKG":
-        moduleType = ModuleType.EXT_PKG;
-        break;
       case "AGGREGATOR":
         moduleType = ModuleType.AGGREGATOR;
         break;

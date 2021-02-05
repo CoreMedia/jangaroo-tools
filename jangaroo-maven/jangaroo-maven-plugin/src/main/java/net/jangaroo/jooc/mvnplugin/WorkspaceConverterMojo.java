@@ -49,9 +49,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private String studioNpmMavenRoot = "/home/fwellers/dev/cms/apps/studio-client";
 
 
-  @Parameter(property = "studio.npm.remote.packages")
-  private String studioNpmRemotePackages = "/home/fwellers/dev/cms/.remote-packages";
-
   @Parameter(property = "studio.npm.target")
   private String studioNpmTarget = "../created_stuff";
 
@@ -76,7 +73,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
 
     Map<String, Module> moduleMappings = loadMavenModules(studioNpmMavenRoot);
-    moduleMappings.putAll(loadExtModules(studioNpmRemotePackages));
     getOrCreatePackage(packageRegistry, appPackageName, null, moduleMappings);
   }
 
@@ -181,33 +177,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       e.printStackTrace();
     }
     return matchingFilePaths;
-  }
-
-  private Map<String, Module> loadExtModules(String basePath) {
-    List<String> filePaths = match("glob:**package.json", basePath);
-    Map<String, Module> moduleMappings = new HashMap<>();
-    for (String filePath : filePaths) {
-      ModuleType moduleType = ModuleType.EXT_PKG;
-      Optional<PackageJsonData> packageJson = readPackageJson(filePath);
-      if (packageJson.isPresent()) {
-        if (ignorePackage(packageJson.get().getName())) {
-          moduleType = ModuleType.IGNORE;
-        }
-        Map<String, Module> additionalPackages = new HashMap<>();
-        if ("ext".equals(packageJson.get().getName())) {
-          Stream.of("classic/classic", "classic/theme-triton", "packages/charts")
-                  .forEach(subdirectory -> {
-                    String additionalExtPkgFile = filePath.replace("/package.json", subdirectory.concat("/package.json"));
-                    Optional<PackageJsonData> additionalJsonData = readPackageJson(additionalExtPkgFile);
-                    additionalJsonData.ifPresent(packageJsonData -> additionalPackages.put(calculatePackageNameFromExtModuleName(packageJsonData.getName()),
-                            new ExtModule(ModuleType.IGNORE, new File(additionalExtPkgFile), (PackageJsonData) packageJsonData.getSencha())));
-                  });
-        }
-        moduleMappings.put(calculatePackageNameFromExtModuleName(packageJson.get().getName()),
-                new ExtModule(moduleType, new File(filePath), null));
-      }
-    }
-    return moduleMappings;
   }
 
   public Optional<PackageJsonData> readPackageJson(String filePath) {
