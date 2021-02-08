@@ -3,8 +3,9 @@ package net.jangaroo.jooc.mvnplugin;
 import com.google.gson.Gson;
 import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.Module;
+import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
-import net.jangaroo.jooc.mvnplugin.converter.PackageJsonData;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.AbstractMojo;
@@ -19,20 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Mojo(name = "workspaceConverter",
         defaultPhase = LifecyclePhase.COMPILE,
@@ -48,7 +45,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private String studioNpmTarget = "../created_stuff";
 
   @Parameter(property = "sudio.app.package.name")
-  private String appPackageName = "";
+  private String appPackageName = "com.coremedia.blueprint__studio-resources";
 
   @Parameter(property = "activeProfiles", defaultValue = "${session.request.activeProfiles}")
   protected List<String> activeProfiles;
@@ -70,24 +67,23 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/joounit", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
 
-    Map<String, Module> moduleMappings = loadMavenModules(studioNpmMavenRoot);
-    getOrCreatePackage(packageRegistry, appPackageName, null, moduleMappings);
+    Map<String, MavenModule> moduleMappings = loadMavenModules(studioNpmMavenRoot);
+    getOrCreatePackage(packageRegistry, findPackageNameByReference(appPackageName, moduleMappings), null, moduleMappings);
     System.out.println("test");
   }
 
-  private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, Module> moduleMappings) {
+  private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, MavenModule> moduleMappings) {
     Optional<Package> matchingPackage = packageRegistry.stream()
             .filter(aPackage -> aPackage.matches(packageName, packageVersion))
             .findFirst();
     if (matchingPackage.isPresent()) {
       return matchingPackage;
     } else {
-      String newPackageName = null;
       String newPackageVersion = null;
       List<Package> newDependencies = new ArrayList<>();
       List<Package> newDevDependencies = new ArrayList<>();
 
-      Module module = moduleMappings.get(packageName);
+      MavenModule module = moduleMappings.get(packageName);
       if (module == null) {
         logger.error("could not find module {}", packageName);
         return Optional.empty();
@@ -96,29 +92,74 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         case IGNORE:
           return Optional.empty();
         default:
+          newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
+          module.getData().getDependencies().stream()
+                  .filter(dependency -> !"test".equals(dependency.getScope()))
+                  .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
+          module.getData().getDependencies().stream()
+                  .filter(dependency -> "test".equals(dependency.getScope()))
+                  .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
       }
-      return Optional.of(new Package(newPackageName, newPackageVersion, newDependencies, newDevDependencies));
+      Package newPackage = new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
+      packageRegistry.add(newPackage);
+      return Optional.of(newPackage);
+    }
+  }
+
+  private void addToDependencies(Dependency dependency, List<Package> dependencies, Map<String, MavenModule> moduleMappings, List<Package> packageRegistry) {
+    String internalPackageName = findPackageNameByReference(calculateMavenName(dependency), moduleMappings);
+    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, internalPackageName, dependency.getVersion(), moduleMappings);
+    if (optionalPackage.isPresent()) {
+      if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+        dependencies.add(optionalPackage.get());
+      } else {
+        dependencies.addAll(optionalPackage.get().getDependencies());
+      }
     }
   }
 
   private void copyStaticPackages() {
   }
 
-  public String fundPackageNameByReference(String reference, Map<String, Map> moduleMappings) {
-    String packageName = null;
-    String[] split = reference.split(":");
-    if (split.length == 2 & split[0] != null && split[1] != null) {
-
+  public String findPackageNameByReference(String reference, Map<String, MavenModule> moduleMappings) {
+    Optional<String> packageName;
+    String[] splitName = reference.split(":");
+    if (splitName.length == 2 && splitName[0] != null && splitName[1] != null) {
+      packageName = moduleMappings.entrySet().stream()
+              .filter(moduleEntry -> hasCorrectModuleType(moduleEntry.getValue().getModuleType()))
+              .filter(moduleEntry -> splitName[0].equals(((MavenModule) moduleEntry.getValue()).getData().getGroupId()))
+              .filter(moduleEntry -> splitName[1].equals(((MavenModule) moduleEntry.getValue()).getData().getArtifactId()))
+              .map(Map.Entry::getKey)
+              .findFirst();
     } else {
-
+      packageName = moduleMappings.entrySet().stream()
+              .map(moduleEntry -> {
+                if (ModuleType.IGNORE.equals(moduleEntry.getValue().getModuleType())) {
+                  return new AbstractMap.SimpleEntry<>(moduleEntry.getKey(), moduleEntry.getValue().getData().getName());
+                } else {
+                  return new AbstractMap.SimpleEntry<>(moduleEntry.getKey(), calculateMavenName(moduleEntry.getValue().getData()));
+                }
+              })
+              .filter(entry -> reference.equals(entry.getValue()))
+              .map(Map.Entry::getKey)
+              .findFirst();
     }
-    return packageName;
+    if (!packageName.isPresent()) {
+      logger.error("Could not resolve reference ${ref}. No suitable module was found.");
+      return null;
+    }
+    return packageName.get();
+  }
+
+  private boolean hasCorrectModuleType(ModuleType moduleType) {
+    List<ModuleType> validModuleTypes = Arrays.asList(ModuleType.SWC, ModuleType.JANGAROO_APP, ModuleType.JANGAROO_APP_OVERLAY, ModuleType.JANGAROO_APPS);
+    return validModuleTypes.contains(moduleType);
   }
 
 
-  private Map<String, Module> loadMavenModules(String basePath) {
+  private Map<String, MavenModule> loadMavenModules(String basePath) {
     MavenXpp3Reader reader = new MavenXpp3Reader();
-    Map<String, Module> modules = new HashMap<>();
+    Map<String, MavenModule> modules = new HashMap<>();
     try {
       Model model = reader.read(new FileReader(basePath + "/pom.xml"));
       List<String> childModules = model.getModules();
@@ -154,55 +195,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       return groupId + "__" + model.getArtifactId();
     }
-
   }
 
-  private List<String> match(String glob, String location) {
-    final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
-            glob);
-    List<String> matchingFilePaths = new ArrayList<>();
-
-    try {
-      Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-          if (pathMatcher.matches(path)) {
-            matchingFilePaths.add(path.toString());
-          }
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) {
-          return FileVisitResult.CONTINUE;
-        }
-      });
-    } catch (IOException e) {
-      e.printStackTrace();
+  private String calculateMavenName(Dependency dependency) {
+    if ("com.coremedia.sencha".equals(dependency.getGroupId()) && "ext-js-pkg".equals(dependency.getArtifactId())) {
+      return "ext";
+    } else {
+      return dependency.getGroupId() + "__" + dependency.getArtifactId();
     }
-    return matchingFilePaths;
+
   }
 
-  public Optional<PackageJsonData> readPackageJson(String filePath) {
-    PackageJsonData packageJsonData = null;
-    try (FileReader fileReader = new FileReader(filePath)) {
-      packageJsonData = gson.fromJson(fileReader, PackageJsonData.class);
-    } catch (IOException e) {
-      logger.debug(String.format("package.json oes not exist in %s", filePath));
-    }
-    return Optional.ofNullable(packageJsonData);
-  }
-
-  private boolean ignorePackage(String packageName) {
-    String[] ingoreNames = {"net.jangaroo__jangaroo-browser",
-            "net.jangaroo__ext-as",
-            "net.jangaroo__jangaroo-net",
-            "net.jangaroo__jangaroo-runtime",
-            "net.jangaroo__jooflash-core",
-            "net.jangaroo__jooflexframework",
-            "net.jangaroo__joounit"};
-    return Arrays.asList(ingoreNames).contains(packageName);
-  }
 
   private boolean isValidVersion(String version) {
     //todo: implement this

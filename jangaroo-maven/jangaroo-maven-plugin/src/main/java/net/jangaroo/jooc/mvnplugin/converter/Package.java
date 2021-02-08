@@ -89,6 +89,6 @@ public class Package {
   }
 
   public boolean matches(String name, String version) {
-    return this.name.equals(name) && this.version.equals(version);
+    return this.name.equals(name);
   }
 }
