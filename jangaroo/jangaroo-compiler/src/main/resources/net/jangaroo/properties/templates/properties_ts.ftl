@@ -10,9 +10,8 @@ import ${identifier} from "${tsImports[identifier]}";
 ${tsComment}
  */
 </#if>
-class ${resourceBundle.className}<#if locale??>_${locale} extends ${resourceBundle.className}</#if> {
-  static INSTANCE: ${resourceBundle.className};
-
+<#if !locale??>
+interface ${resourceBundle.className} extends ResourceBundleProperties {
 <#list props as property>
   <#assign keyQuote=property.keyIsIdentifier?then("", "\"") />
   <#assign valueQuote=property.valueIsReference?then("", "\"") />
@@ -21,8 +20,27 @@ class ${resourceBundle.className}<#if locale??>_${locale} extends ${resourceBund
   ${property.comment}
    */
   </#if>
-  ${keyQuote}${property.key?json_string}${keyQuote} = ${valueQuote}${property.tsValue?json_string}${valueQuote};
+  ${keyQuote}${property.key?json_string}${keyQuote}: string;
 </#list>
 }
 
-export default ${resourceBundle.className}<#if locale??>_${locale}</#if>;
+</#if>
+<#if locale??>
+ResourceBundleUtil.override(${resourceBundle.className}, {
+<#else>
+const ${resourceBundle.className}: ${resourceBundle.className} = {
+</#if>
+<#list props as property>
+  <#assign keyQuote=property.keyIsIdentifier?then("", "\"") />
+  <#assign valueQuote=property.valueIsReference?then("", "\"") />
+  ${keyQuote}${property.key?json_string}${keyQuote}: ${valueQuote}${property.tsValue?json_string}${valueQuote},
+</#list>
+<#if locale??>
+});
+<#else>
+};
+</#if>
+<#if !locale??>
+
+export default ${resourceBundle.className};
+</#if>
