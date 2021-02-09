@@ -17,7 +17,7 @@ interface ${resourceBundle.className} extends ResourceBundleProperties {
   <#assign valueQuote=property.valueIsReference?then("", "\"") />
   <#if property.comment??>
   /**
-  ${property.comment}
+  ${property.comment?replace("\n", "\n  ")}
    */
   </#if>
   ${keyQuote}${property.key?json_string}${keyQuote}: string;
