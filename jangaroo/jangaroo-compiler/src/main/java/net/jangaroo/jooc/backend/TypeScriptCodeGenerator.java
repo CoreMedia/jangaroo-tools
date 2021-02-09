@@ -88,6 +88,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
    */
   private static final String TS_EXPECT_ERROR_18022 = "//@ts-expect-error 18022";
 
+  private static final String I_RESOURCE_MANAGER_QUALIFIED_NAME = "mx.resources.IResourceManager";
+  private static final String GET_STRING_METHOD_NAME = "getString";
+
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
     // and [Mixin] interfaces:
@@ -1145,10 +1148,47 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken(",");
       args.getExpr().visit(this);
       out.writeSymbol(args.getRParen());
+    } else if (isIResourceManager_getString(applyExpr)) {
+      out.writeSymbolWhitespace(applyExpr.getSymbol());
+      CommaSeparatedList<Expr> argExpressions = args.getExpr();
+      ClassDeclaration propertiesClass = applyExpr.getPropertiesClass(argExpressions.getHead());
+      out.write(compilationUnitAccessCode(propertiesClass));
+      Expr propertyKey = argExpressions.getTail().getHead();
+      String key = null;
+      if (propertyKey instanceof LiteralExpr) {
+        Object jooValue = propertyKey.getSymbol().getJooValue();
+        if (jooValue instanceof String && Ide.isValidIdentifier((String) jooValue)) {
+          key  = (String) jooValue;
+        }
+      }
+      if (key != null) {
+        out.write("." + key);
+      } else {
+        out.writeToken("[");
+        out.suppressWhitespace(propertyKey.getSymbol());
+        propertyKey.visit(this);
+        out.writeToken("]");
+      }
     } else {
       super.visitApplyExpr(applyExpr);
     }
   }
+
+  private static boolean isIResourceManager_getString(ApplyExpr applyExpr) {
+    Expr fun = applyExpr.getFun();
+    if (fun instanceof IdeExpr) {
+      fun = ((IdeExpr) fun).getNormalizedExpr();
+    }
+    if (fun instanceof DotExpr && GET_STRING_METHOD_NAME.equals(((DotExpr) fun).getIde().getName())) {
+      ExpressionType type = ((DotExpr) fun).getArg().getType();
+      CommaSeparatedList<Expr> argsExpressions = applyExpr.getArgs().getExpr();
+      return type != null && I_RESOURCE_MANAGER_QUALIFIED_NAME.equals(type.getDeclaration().getQualifiedNameStr())
+              && argsExpressions != null && argsExpressions.getTail() != null && argsExpressions.getTail().getTail() == null // call uses exactly 2 arguments
+              && applyExpr.getPropertiesClass(argsExpressions.getHead()) != null; // bundle name resolves to properties class
+    }
+    return false;
+  }
+
 
   private static boolean isOfConfigType(Expr expr) {
     if (expr instanceof ApplyExpr && ((ApplyExpr) expr).isTypeCheckObjectLiteralFunctionCall()) {
@@ -1283,6 +1323,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           return;
         }
       } else {
+        if ("INSTANCE".equals(ide.getName()) && type.getAS3Type() == AS3Type.CLASS &&
+                type.getTypeParameter() != null &&
+                type.getTypeParameter().getDeclaration().getName().endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)) {
+          arg.visit(this);
+          // *_properties classes become objects in TypeScript, thus suppress .INSTANCE:
+          out.writeSymbolWhitespace(dotExpr.getOp());
+          out.writeSymbolWhitespace(dotExpr.getIde().getIde());
+          return;
+        }
         Annotation nativeAnnotation = memberDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
         String memberName = ide.getName();
         if (nativeAnnotation != null) {
