@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.google.gson.Gson;
 import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
-import net.jangaroo.jooc.mvnplugin.converter.Module;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import org.apache.maven.model.Dependency;
@@ -26,10 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Mojo(name = "workspaceConverter",
         defaultPhase = LifecyclePhase.COMPILE,
@@ -42,7 +38,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
 
   @Parameter(property = "studio.npm.target")
-  private String studioNpmTarget = "../created_stuff";
+  private String studioNpmTarget = "../created_workspace";
 
   @Parameter(property = "sudio.app.package.name")
   private String appPackageName = "com.coremedia.blueprint__studio-resources";
@@ -55,6 +51,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     List<Package> packageRegistry = new ArrayList<>();
+    boolean cleanBuild = true;
 
     packageRegistry.add(new Package("@coremedia/sencha-ext-charts", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext", "7.2.0"));
@@ -69,6 +66,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     Map<String, MavenModule> moduleMappings = loadMavenModules(studioNpmMavenRoot);
     getOrCreatePackage(packageRegistry, findPackageNameByReference(appPackageName, moduleMappings), null, moduleMappings);
+    if (cleanBuild) {
+
+    }
     System.out.println("test");
   }
 
