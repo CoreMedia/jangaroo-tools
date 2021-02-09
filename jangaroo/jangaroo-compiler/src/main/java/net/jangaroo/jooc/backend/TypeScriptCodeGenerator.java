@@ -223,6 +223,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    // pull out private static VariableDeclarations so that they can be used in Properties / Config class
+    // initializers, too:
+    for (TypedIdeDeclaration staticMember : classDeclaration.getStaticMembers().values()) {
+      if (staticMember.isPrivate() && staticMember.isDeclaringStandAloneConstant()) {
+        visitPrivateStaticVarWithSimpleInitializer((VariableDeclaration) staticMember);
+      }
+    }
+
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
     ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
@@ -240,7 +248,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               .collect(Collectors.toList());
       if (!properties.isEmpty()) {
         ownPropertiesClassName = classDeclaration.getName() + "Properties";
-        out.write(String.format("class %s {", ownPropertiesClassName));
+        out.write(String.format("\nclass %s {", ownPropertiesClassName));
         for (TypedIdeDeclaration propertiesDeclaration : properties) {
           visitAsConfig(propertiesDeclaration);
         }
@@ -251,7 +259,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       if (!configs.isEmpty()) {
         ownConfigsClassName = classDeclaration.getName() + "Configs";
-        out.write(String.format("class %s {", ownConfigsClassName));
+        out.write(String.format("\nclass %s {", ownConfigsClassName));
         for (TypedIdeDeclaration configDeclaration : configs) {
           visitAsConfig(configDeclaration);
         }
@@ -425,6 +433,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.write("}\n\n");
       }
     }
+  }
+
+  private void visitPrivateStaticVarWithSimpleInitializer(VariableDeclaration privateStaticVar) throws IOException {
+    out.writeSymbolWhitespace(privateStaticVar.getSymbol());
+    out.writeSymbol(privateStaticVar.getOptSymConstOrVar());
+    privateStaticVar.getIde().visit(this);
+    visitIfNotNull(privateStaticVar.getOptTypeRelation());
+    generateInitializer(privateStaticVar);
+    writeOptSymbol(privateStaticVar.getOptSymSemicolon());
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -682,8 +699,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isExtConfigOrBindable()) {
-        // never render [ExtConfig]s in a normal "visit":
+      if (variableDeclaration.isExtConfigOrBindable() ||
+              variableDeclaration.isPrivateStatic() && variableDeclaration.isDeclaringStandAloneConstant()) {
+        // never render [ExtConfig]s or private statics with "simple" initializers in a normal "visit":
         return;
       }
       if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
@@ -969,7 +987,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // use spread operator on the returned array:
       out.write("...");
     }
-    // declare as immediately-evaluating function (IEF), so that TypeScript does not complaing about
+    // declare as immediately-evaluating function (IEF), so that TypeScript does not complain about
     // usage of `this` before calling `super()`:
     out.write("(()");
     if (superCallParams != null && superCallParams.getTail() != null) {
@@ -1272,6 +1290,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (nativeMemberName instanceof String) {
             memberName = (String) nativeMemberName;
           }
+        }
+        if (memberDeclaration.isPrivateStatic() && memberDeclaration.isDeclaringStandAloneConstant()) {
+          // suppress "<Class>." (and do not use "#" prefix) for private statics with simple initializer:
+          out.writeSymbolWhitespace(arg.getSymbol());
+          out.writeSymbolWhitespace(dotExpr.getOp());
+          out.writeSymbol(dotExpr.getIde().getIde());
+          return;
         }
         if (!ide.isAssignmentLHS()) {
           IdeDeclaration bindableConfigDeclarationCandidate = getBindableConfigDeclarationCandidate(type, ide);
