@@ -33,6 +33,11 @@ const ${resourceBundle.className}: ${resourceBundle.className} = {
 <#list props as property>
   <#assign keyQuote=property.keyIsIdentifier?then("", "\"") />
   <#assign valueQuote=property.valueIsReference?then("", "\"") />
+  <#if locale?? && property.comment??>
+  /**
+  ${property.comment?replace("\n", "\n  ")}
+   */
+  </#if>
   ${keyQuote}${property.key?json_string}${keyQuote}: ${valueQuote}${property.tsValue?json_string}${valueQuote},
 </#list>
 <#if locale??>
