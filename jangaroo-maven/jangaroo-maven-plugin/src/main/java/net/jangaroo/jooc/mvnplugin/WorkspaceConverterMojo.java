@@ -88,17 +88,34 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         logger.error("could not find module {}", packageName);
         return Optional.empty();
       }
-      switch (module.getModuleType()) {
-        case IGNORE:
-          return Optional.empty();
-        default:
-          newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
-          module.getData().getDependencies().stream()
-                  .filter(dependency -> !"test".equals(dependency.getScope()))
-                  .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
-          module.getData().getDependencies().stream()
-                  .filter(dependency -> "test".equals(dependency.getScope()))
-                  .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
+      if (module.getModuleType() == ModuleType.IGNORE) {
+        return Optional.empty();
+      } else {
+        newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
+        module.getData().getDependencies().stream()
+                .filter(dependency -> !"test".equals(dependency.getScope()))
+                .map(dependency -> {
+                  if ("${project.groupId}".equals(dependency.getGroupId())) {
+                    dependency.setGroupId(module.getData().getGroupId());
+                  }
+                  if ("${project.version}".equals(dependency.getVersion())) {
+                    dependency.setVersion(module.getVersion());
+                  }
+                  return dependency;
+                })
+                .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
+        module.getData().getDependencies().stream()
+                .filter(dependency -> "test".equals(dependency.getScope()))
+                .map(dependency -> {
+                  if ("$(project.groupid)".equals(dependency.getGroupId())) {
+                    dependency.setGroupId(module.getData().getGroupId());
+                  }
+                  if ("${project.version}".equals(dependency.getVersion())) {
+                    dependency.setVersion(module.getVersion());
+                  }
+                  return dependency;
+                })
+                .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
       }
       Package newPackage = new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
       packageRegistry.add(newPackage);
@@ -162,6 +179,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     Map<String, MavenModule> modules = new HashMap<>();
     try {
       Model model = reader.read(new FileReader(basePath + "/pom.xml"));
+
+      if (model.getGroupId() == null) {
+        model.setGroupId(model.getParent().getGroupId());
+      }
+      if (model.getVersion() == null) {
+        model.setVersion(model.getParent().getVersion());
+      }
       List<String> childModules = model.getModules();
       model.getProfiles().stream()
               .filter(profile -> isProfileActive(profile.getId()))
@@ -209,6 +233,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   private boolean isValidVersion(String version) {
     //todo: implement this
-    return true;
+    return version != null;
   }
 }
