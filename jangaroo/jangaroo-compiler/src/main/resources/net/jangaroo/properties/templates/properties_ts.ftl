@@ -11,7 +11,7 @@ ${tsComment}
  */
 </#if>
 <#if !locale??>
-interface ${resourceBundle.className} extends ResourceBundleProperties {
+interface ${resourceBundle.className} {
 <#list props as property>
   <#assign keyQuote=property.keyIsIdentifier?then("", "\"") />
   <#assign valueQuote=property.valueIsReference?then("", "\"") />
