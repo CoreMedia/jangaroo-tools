@@ -28,6 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private List<SearchAndReplace> npmPackageNameReplacers = new ArrayList<>();
   private boolean useEcmaParameterInitializerSemantics = false;
 
   private boolean mergeOutput = false;
@@ -109,6 +110,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public List<SearchAndReplace> getNpmPackageNameReplacers() {
+    return npmPackageNameReplacers;
+  }
+
+  @Override
   public boolean isUseEcmaParameterInitializerSemantics() {
     return useEcmaParameterInitializerSemantics;
   }
@@ -121,6 +127,10 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")
   public void setUseEcmaParameterInitializerSemantics(boolean useEcmaParameterInitializerSemantics) {
     this.useEcmaParameterInitializerSemantics = useEcmaParameterInitializerSemantics;
+  }
+
+  public void setNpmPackageNameReplacers(List<SearchAndReplace> npmPackageNameReplacers) {
+    this.npmPackageNameReplacers = npmPackageNameReplacers;
   }
 
   @Override

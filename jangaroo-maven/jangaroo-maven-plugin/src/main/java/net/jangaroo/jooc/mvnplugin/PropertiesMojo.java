@@ -84,8 +84,7 @@ public class PropertiesMojo extends AbstractJangarooMojo {
       sourceFiles.add(new File(resourceDirectory,srcFileRelativePath));
     }
 
-    // no typescript needed here, so resolver can be null
-    Propc generator = new Propc(null);
+    Propc generator = new Propc();
     try {
       List<File> sourcePath = Collections.singletonList(resourceDirectory.getCanonicalFile());
       generator.generateApi(sourceFiles, sourcePath, apiOutputDirectory);
