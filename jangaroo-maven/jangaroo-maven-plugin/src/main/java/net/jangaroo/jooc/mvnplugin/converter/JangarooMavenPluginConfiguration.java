@@ -1,24 +1,101 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class JangarooMavenPluginConfiguration {
-  private PackageType packageType;
+  private String packageType;
   private String theme;
   private String applicationClass;
   private String rootApp;
   private List<String> additionalLocales;
   private List<String> additionalCssNonBundle;
+  private List<String> additionalCssIncludeInBundle;
   private List<String> additionalJsIncludeInBundle;
   private List<String> additionalJsNonBundle;
   private String testSuite;
   private String extNamespace;
 
-  public PackageType getPackageType() {
+
+  public JangarooMavenPluginConfiguration(Model mavenModel) {
+    Optional<Plugin> optionalPlugin = mavenModel.getBuild().getPlugins().stream()
+            .filter(plugin ->
+                    "net.jangaroo".equals(plugin.getGroupId()) && "jangaroo-maven-plugin".equals(plugin.getArtifactId()))
+            .findFirst();
+    if (optionalPlugin.isPresent()) {
+      Xpp3Dom configuration = (Xpp3Dom) optionalPlugin.get().getConfiguration();
+      if (configuration != null) {
+        packageType = getConfigString(configuration, "packageType");
+        theme = getConfigString(configuration, "theme");
+        applicationClass = getConfigString(configuration, "applicationClass");
+        rootApp = getConfigString(configuration, "rootApp");
+        testSuite = getConfigString(configuration, "testSuite");
+        extNamespace = getConfigString(configuration, "extNamespace");
+        additionalLocales = getConfigList(configuration, "additionalLocales");
+        additionalCssNonBundle = getConfigList(configuration, "additionalCssNonBundle");
+        additionalCssIncludeInBundle = getConfigList(configuration, "additionalCssIncludeInBundle");
+        additionalJsIncludeInBundle = getConfigList(configuration, "additionalJsIncludeInBundle");
+        additionalJsNonBundle = getConfigList(configuration, "additionalJsNonBundle");
+      } else {
+        additionalLocales = new ArrayList<>();
+        additionalCssNonBundle = new ArrayList<>();
+        additionalCssIncludeInBundle = new ArrayList<>();
+        additionalJsIncludeInBundle = new ArrayList<>();
+        additionalJsNonBundle = new ArrayList<>();
+      }
+    } else {
+      additionalLocales = new ArrayList<>();
+      additionalCssNonBundle = new ArrayList<>();
+      additionalCssIncludeInBundle = new ArrayList<>();
+      additionalJsIncludeInBundle = new ArrayList<>();
+      additionalJsNonBundle = new ArrayList<>();
+    }
+
+  }
+
+  private List<String> getConfigList(Xpp3Dom config, String property) {
+    Xpp3Dom child = config.getChild(property);
+    if (child != null) {
+      List<Xpp3Dom> value = Arrays.asList(child.getChildren());
+      if (!value.isEmpty()) {
+        return value.stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+      } else {
+        return new ArrayList<>();
+      }
+    } else {
+      return new ArrayList<>();
+    }
+  }
+
+  private String getConfigString(Xpp3Dom config, String property) {
+    Xpp3Dom child = config.getChild(property);
+    if (child != null) {
+      Xpp3Dom value = child.getChild("value");
+      if (value != null) {
+        return value.getValue();
+      } else {
+        return "";
+      }
+    } else {
+      return "";
+    }
+  }
+
+  public JangarooMavenPluginConfiguration() {
+  }
+
+  public String getPackageType() {
     return packageType;
   }
 
-  public void setPackageType(PackageType packageType) {
+  public void setPackageType(String packageType) {
     this.packageType = packageType;
   }
 
@@ -94,7 +171,11 @@ public class JangarooMavenPluginConfiguration {
     this.extNamespace = extNamespace;
   }
 
-  public enum PackageType {
-    CODE, THEME
+  public List<String> getAdditionalCssIncludeInBundle() {
+    return additionalCssIncludeInBundle;
+  }
+
+  public void setAdditionalCssIncludeInBundle(List<String> additionalCssIncludeInBundle) {
+    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
   }
 }
