@@ -272,7 +272,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setNpmPackageNameReplacers(
             npmPackageNameReplacers.stream()
                     .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
-            .collect(Collectors.toCollection(ArrayList::new))
+            .collect(Collectors.toList())
     );
 
     if (StringUtils.isNotEmpty(debuglevel)) {
