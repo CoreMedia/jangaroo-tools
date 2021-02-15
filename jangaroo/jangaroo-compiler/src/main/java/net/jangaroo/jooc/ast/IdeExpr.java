@@ -80,7 +80,7 @@ public class IdeExpr extends Expr {
             setThisDeclaration(thisIde);
           }
           dotExpr = new DotExpr(new IdeExpr(thisIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
-        } else if (!ideDeclaration.isPrivate() || ((Jooc) ide.getScope().getCompiler()).getConfig().isMigrateToTypeScript()) {
+        } else if (!ideDeclaration.isPrivate() || ideDeclaration instanceof TypedIdeDeclaration && ((Jooc) ide.getScope().getCompiler()).getConfig().isMigrateToTypeScript()) {
           // non-private static class member: synthesize "<Class>."
           // TODO: ugly: This is the only code in package ast that queries whether we are in TypeScript mode!
           // If we fixed MyClass.privateAccessor JS code generation, we could always add the class, even for private statics.
