@@ -160,7 +160,7 @@ public class JoocTest extends AbstractJoocTest {
   public void testMixin() throws Exception {
     final String relativeClassFileName = "package2/ITestMixin";
     compile(relativeClassFileName);
-    File compileResult = outputFile(outputFolder, relativeClassFileName, ".js");
+    File compileResult = outputFile(outputFolder, relativeClassFileName, jooc.getOutputSuffix());
 
     assertFalse("[Mixin] interfaces must not have compile output.", compileResult.exists());
     assertCompilationResult("package2/TestMixinClient");
