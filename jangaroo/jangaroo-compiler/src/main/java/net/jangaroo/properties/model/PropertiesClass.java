@@ -3,7 +3,6 @@
  */
 package net.jangaroo.properties.model;
 
-import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.backend.TypeScriptModuleResolver;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -33,13 +32,13 @@ public class PropertiesClass {
   private final ResourceBundleClass resourceBundle;
   private final Locale locale;
   private final PropertiesConfiguration properties;
-  private final CompilationUnitResolver compilationUnitResolver;
+  private final TypeScriptModuleResolver typeScriptModuleResolver;
 
-  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties, CompilationUnitResolver compilationUnitResolver) {
+  public PropertiesClass(ResourceBundleClass resourceBundle, Locale locale, PropertiesConfiguration properties, TypeScriptModuleResolver typeScriptModuleResolver) {
     this.resourceBundle = resourceBundle;
     this.locale = locale;
     this.properties = properties;
-    this.compilationUnitResolver = compilationUnitResolver;
+    this.typeScriptModuleResolver = typeScriptModuleResolver;
   }
 
   public ResourceBundleClass getResourceBundle() {
@@ -147,7 +146,6 @@ public class PropertiesClass {
       // in TypeScript every module has to be imported, even if it is in the same folder/"package"
       imports.add(resourceBundle.getFullClassName());
     }
-    TypeScriptModuleResolver typeScriptModuleResolver = new TypeScriptModuleResolver(compilationUnitResolver);
     return typeScriptModuleResolver.getDefaultImports(resourceBundle.getFullClassName(), imports).stream()
             .collect(Collectors.toMap(im -> im.localName, im -> im.source));
   }

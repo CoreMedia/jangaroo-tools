@@ -8,7 +8,7 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.jooc.CompilationUnitResolver;
+import net.jangaroo.jooc.backend.TypeScriptModuleResolver;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
 import net.jangaroo.utils.CompilerUtils;
@@ -45,10 +45,14 @@ public class Propc {
     cfg.setOutputEncoding("UTF-8");
   }
 
-  private final CompilationUnitResolver compilationUnitResolver;
+  private final TypeScriptModuleResolver typeScriptModuleResolver;
 
-  public Propc(CompilationUnitResolver compilationUnitResolver) {
-    this.compilationUnitResolver = compilationUnitResolver;
+  public Propc(TypeScriptModuleResolver typeScriptModuleResolver) {
+    this.typeScriptModuleResolver = typeScriptModuleResolver;
+  }
+
+  public Propc() {
+    this(null);
   }
 
   public void generateApi(String propertiesClassName, InputStream sourceInputStream, OutputStreamWriter writer) throws IOException {
@@ -127,7 +131,7 @@ public class Propc {
     }
     ResourceBundleClass bundle = new ResourceBundleClass(PropcHelper.computeBaseClassName(propertiesClassName));
 
-    return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p, compilationUnitResolver);
+    return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p, typeScriptModuleResolver);
   }
 
   /**

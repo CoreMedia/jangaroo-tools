@@ -48,7 +48,7 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
 
               compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
               compilationUnit.visit(outputFile.getName().endsWith(Jooc.TS_SUFFIX)
-                      ? new TypeScriptCodeGenerator(new TypeScriptModuleResolver(compilationUnitModelResolver), out, compilationUnitModelResolver)
+                      ? new TypeScriptCodeGenerator(new TypeScriptModuleResolver(compilationUnitModelResolver, getOptions().getNpmPackageNameReplacers()), out, compilationUnitModelResolver)
                       : new JsCodeGenerator(out, compilationUnitModelResolver, new JsModuleResolver(compilationUnitModelResolver)));
             } finally {
               out.close();

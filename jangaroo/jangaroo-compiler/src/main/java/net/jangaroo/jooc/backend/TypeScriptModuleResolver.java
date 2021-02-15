@@ -5,6 +5,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
@@ -16,12 +17,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 public class TypeScriptModuleResolver extends ModuleResolverBase {
 
-  public TypeScriptModuleResolver(CompilationUnitResolver compilationUnitModelResolver) {
+  private List<SearchAndReplace> npmPackageNameReplacers;
+
+  public TypeScriptModuleResolver(CompilationUnitResolver compilationUnitModelResolver, List<SearchAndReplace> npmPackageNameReplacers) {
     super(compilationUnitModelResolver);
+    this.npmPackageNameReplacers = npmPackageNameReplacers;
   }
 
   public Set<DefaultImport> getDefaultImports(String sourceCompilationUnitId, Set<String> compilationUnitIds) {
@@ -109,8 +114,14 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       if (npmPackageName.endsWith("ext-as")) {
         npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
       }
-    } else if (npmPackageName.startsWith("com.coremedia.")) {
-      npmPackageName = "@coremedia/" + npmPackageName.substring("com.coremedia.".length());
+    } else {
+      for (SearchAndReplace searchAndReplace : npmPackageNameReplacers) {
+        Matcher matcher = searchAndReplace.search.matcher(npmPackageName);
+        if (matcher.matches()) {
+          npmPackageName = matcher.replaceAll(searchAndReplace.replace);
+          break;
+        }
+      }
     }
     // prepend target npm package in front
     return npmPackageName + "/" + moduleName;

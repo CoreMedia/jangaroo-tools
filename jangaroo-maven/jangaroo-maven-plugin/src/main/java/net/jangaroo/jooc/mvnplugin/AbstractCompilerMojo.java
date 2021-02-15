@@ -8,6 +8,7 @@ import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
+import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
@@ -27,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Super class for mojos compiling Jangaroo sources.
@@ -158,6 +161,17 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(property = "maven.compiler.suppressCommentedActionScriptCode")
   private boolean suppressCommentedActionScriptCode = false;
 
+  /**
+   * Experimental:
+   * Only effective if {@link #migrateToTypeScript} is enabled. The configuration can be used to replace the generated
+   * npm package name of a converted Maven module by a different one.
+   * It defines a list of replacers consisting of a search and a replace field. The search is interpreted as
+   * a regular pattern matched against the generated npm package name while the replacement is a string which can
+   * contain tokens (e.g. $1) matching pattern groups. Order is important, the first matching replacer wins.
+   */
+  @Parameter
+  private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
+
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
@@ -255,6 +269,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setMigrateToTypeScript(migrateToTypeScript);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
+    configuration.setNpmPackageNameReplacers(
+            npmPackageNameReplacers.stream()
+                    .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
+            .collect(Collectors.toList())
+    );
 
     if (StringUtils.isNotEmpty(debuglevel)) {
       try {
