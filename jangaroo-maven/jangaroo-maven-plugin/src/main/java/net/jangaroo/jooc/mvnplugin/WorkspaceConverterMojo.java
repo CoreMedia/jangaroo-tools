@@ -103,13 +103,22 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       String rootPackageJson = getRootPackageJson(yarnWorkspace);
       FileUtils.write(new File(studioNpmTarget + "/package.json"), rootPackageJson);
 
-      // todo: write lerna.json
+      Map<String, Object> lernaJson = new HashMap<>();
+      lernaJson.put("npmClient", "yarn");
+      lernaJson.put("useWorkspaces", true);
+      lernaJson.put("version", "0.0.0");
+      Map<String, Object> lernaCommandMap = new HashMap<>();
+      Map<String, Object> lernaRunMap = new HashMap<>();
+      lernaRunMap.put("stream", true);
+      lernaCommandMap.put("run", lernaRunMap);
+      lernaJson.put("command", lernaCommandMap);
+      FileUtils.write(new File(studioNpmTarget + "/lerna.json"), gson.toJson(lernaJson));
 
       for (Package aPackage : packageRegistry) {
         MavenModule mavenModule = moduleMappings.get(aPackage.getName());
         if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
           String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
-          String targetPackageJson = targetPackageDir + "/packages/package.json";
+          String targetPackageJson = targetPackageDir + "/package.json";
 
           JangarooConfig jangarooConfig = new JangarooConfig();
           AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
@@ -281,7 +290,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
 
           //todo: handle manifest paths
-          FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), gson.toJson(jangarooConfig));
+          String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(gson.toJson(jangarooConfig));
+          FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
           if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
             Optional<Package> optionalThemeDependency = packageRegistry.stream()
                     .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
@@ -304,7 +314,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           packageJson.setPrivat(true);
           aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
           aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
-          FileUtils.writeStringToFile(new File(targetPackageJson), gson.toJson(packageJson));
+          FileUtils.write(new File(targetPackageJson), gson.toJson(packageJson));
         }
       }
     } catch (IOException e) {
