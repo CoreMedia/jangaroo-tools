@@ -10,6 +10,16 @@ public class JoocPropertiesTest extends AbstractJoocTest {
 
   @Test
   public void testPropertiesCompilation() throws Exception {
+    verifyPropertiesCompilation();
+    jooc.getConfig().setMigrateToTypeScript(true);
+    try {
+      verifyPropertiesCompilation();
+    } finally {
+      jooc.getConfig().setMigrateToTypeScript(false);
+    }
+  }
+
+  private void verifyPropertiesCompilation() throws Exception {
     compile(".properties",
             "testPackage/PropertiesTest",
             "testPackage/PropertiesTest_de",
