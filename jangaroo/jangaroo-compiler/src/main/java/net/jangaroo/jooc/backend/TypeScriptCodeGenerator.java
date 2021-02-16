@@ -241,6 +241,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     String ownPropertiesClassName = null;
     String ownConfigsClassName = null;
     String configsFromProps = null;
+    String classDeclarationLocalName = getLocalName(classDeclaration, false);
     if (configClass != null) {
       configClassName = compilationUnitAccessCode(configClass) + "._";
       List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
@@ -250,7 +251,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isBindable())
               .collect(Collectors.toList());
       if (!properties.isEmpty()) {
-        ownPropertiesClassName = classDeclaration.getName() + "Properties";
+        ownPropertiesClassName = classDeclarationLocalName + "Properties";
         out.write(String.format("\nclass %s {", ownPropertiesClassName));
         for (TypedIdeDeclaration propertiesDeclaration : properties) {
           visitAsConfig(propertiesDeclaration);
@@ -261,7 +262,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         needsCompanionInterface = true;
       }
       if (!configs.isEmpty()) {
-        ownConfigsClassName = classDeclaration.getName() + "Configs";
+        ownConfigsClassName = classDeclarationLocalName + "Configs";
         out.write(String.format("\nclass %s {", ownConfigsClassName));
         for (TypedIdeDeclaration configDeclaration : configs) {
           visitAsConfig(configDeclaration);
@@ -303,7 +304,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (ownConfigsClassName != null) {
         configExtends.add(String.format("Partial<%s>", ownConfigsClassName));
       }
-      out.write("interface " + classDeclaration.getName() + "_");
+      out.write("interface " + classDeclarationLocalName + "_");
       if (!configExtends.isEmpty()) {
         out.write(" extends " + String.join(", ", configExtends));
       }
@@ -355,7 +356,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     classDeclaration.getBody().visit(this);
 
     if (needsCompanionInterface) {
-      out.write("\ninterface " + classDeclaration.getName() + configTypeParameterDeclaration);
+      out.write("\ninterface " + classDeclarationLocalName + configTypeParameterDeclaration);
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
@@ -378,7 +379,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         while (superTypes != null) {
           if (!isCurrentMixinInterface(superTypes.getHead())) {
             if (!foundNonMixinInterface) {
-              out.write("\nmixin(" + classDeclaration.getName());
+              out.write("\nmixin(" + classDeclarationLocalName);
               foundNonMixinInterface = true;
             }
             out.write(", ");
@@ -393,7 +394,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
       List<Annotation> metadata = classDeclaration.getMetadata();
       if (!metadata.isEmpty()) {
-        out.write("\nmetadata(" + classDeclaration.getName() + ", [");
+        out.write("\nmetadata(" + classDeclarationLocalName + ", [");
         boolean firstAnnotation = true;
         for (Annotation runtimeAnnotation : metadata) {
           if (firstAnnotation) {
@@ -430,8 +431,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       visitAll(classDeclaration.getSecondaryDeclarations());
 
       if (configClassName != null) {
-        out.write(String.format("\ndeclare namespace %s {\n", classDeclaration.getName()));
-        out.write(String.format("  export type _ = %s_;\n", classDeclaration.getName()));
+        out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
+        out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
         out.write("  export const _: { new(config?: _): _; };\n");
         out.write("}\n\n");
       }
