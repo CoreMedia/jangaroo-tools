@@ -31,7 +31,7 @@ public class LiteralExpr extends Expr {
   private Scope scope;
 
   public LiteralExpr(JooSymbol value) {
-    this.setValue(value);
+    this.value = value;
   }
 
   @Override
@@ -84,7 +84,14 @@ public class LiteralExpr extends Expr {
     return value;
   }
 
-  public void setValue(JooSymbol value) {
-    this.value = value;
+  public LiteralExpr withStringValue(String newValue) {
+    // keep the same quotes if possible:
+    String quote = value.getJooValue() instanceof String ? value.getText().substring(0, 1) : "\"";
+    LiteralExpr literalExpr = new LiteralExpr(new JooSymbol(value.sym, value.getFileName(),
+            value.getLine(), value.getColumn(), value.getWhitespace(),
+            quote + newValue + quote,
+            newValue));
+    literalExpr.scope(scope);
+    return literalExpr;
   }
 }

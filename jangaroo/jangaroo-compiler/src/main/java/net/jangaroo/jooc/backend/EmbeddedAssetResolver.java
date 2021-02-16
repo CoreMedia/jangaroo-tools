@@ -41,7 +41,7 @@ class EmbeddedAssetResolver extends AstVisitorBase {
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
     AstNode value = annotationParameter.getValue();
-    if (value != null) {
+    if (value instanceof LiteralExpr) {
       Annotation parentAnnotation = annotationParameter.getParentAnnotation();
       String metaName = parentAnnotation.getMetaName();
       if (Jooc.EMBED_ANNOTATION_NAME.equals(metaName) && annotationParameter.getOptName() != null &&
@@ -51,8 +51,6 @@ class EmbeddedAssetResolver extends AstVisitorBase {
           throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
         }
 
-        String text = valueSymbol.getText();
-        String quote = text.substring(0, 1);
         String source = (String) valueSymbol.getJooValue();
         String path = source.startsWith("/") || source.startsWith("\\")
                 ? source
@@ -65,11 +63,7 @@ class EmbeddedAssetResolver extends AstVisitorBase {
         if ("image".equals(assetType)) {
           unit.addDependency(compilationUnitRegistry.getCompilationUnit("flash.display.Bitmap"), false);
         }
-        String absoluteSource = path;
-        annotationParameter.setValue(new LiteralExpr(new JooSymbol(valueSymbol.sym, valueSymbol.getFileName(),
-                valueSymbol.getLine(), valueSymbol.getColumn(), valueSymbol.getWhitespace(),
-                quote + absoluteSource + quote,
-                absoluteSource)));
+        annotationParameter.setValue(((LiteralExpr) value).withStringValue(path));
       }
     }
   }
