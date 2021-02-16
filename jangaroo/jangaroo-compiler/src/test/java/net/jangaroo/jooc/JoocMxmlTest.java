@@ -42,6 +42,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
 
   @Test
   public void testTestComponent() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/TestComponentBase", ".as");
     assertCompilationResult("package1/mxml/pkg/TestComponent", ".mxml");
   }
 

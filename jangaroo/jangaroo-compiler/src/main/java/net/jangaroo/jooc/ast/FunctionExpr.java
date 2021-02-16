@@ -184,8 +184,10 @@ public class FunctionExpr extends Expr {
     }
     if (optBody != null) {
       TypeRelation typeRelation = getOptTypeRelation();
+      List<Directive> directives = optBody.getDirectives();
       if (typeRelation != null && AS3Type.VOID.name.equals(typeRelation.getType().getIde().getName()) &&
-              Ide.THIS.equals(getReturnTypeFromAnnotation())) {
+              Ide.THIS.equals(getReturnTypeFromAnnotation()) &&
+              !(!directives.isEmpty() && directives.get(directives.size() - 1) instanceof ReturnStatement)) {
         // complement a final "return this":
         ReturnStatement returnThis = new ReturnStatement(new JooSymbol(sym.RETURN, "return"),null,
                 new JooSymbol(sym.SEMICOLON, ";"));

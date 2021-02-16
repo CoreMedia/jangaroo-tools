@@ -16,7 +16,6 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
-import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -80,13 +79,11 @@ public class IdeExpr extends Expr {
             setThisDeclaration(thisIde);
           }
           dotExpr = new DotExpr(new IdeExpr(thisIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
-        } else if (!ideDeclaration.isPrivate() || ((Jooc) ide.getScope().getCompiler()).getConfig().isMigrateToTypeScript()) {
-          // non-private static class member: synthesize "<Class>."
-          // TODO: ugly: This is the only code in package ast that queries whether we are in TypeScript mode!
-          // If we fixed MyClass.privateAccessor JS code generation, we could always add the class, even for private statics.
+        } else if (ideDeclaration instanceof TypedIdeDeclaration) {
+          // static class member: synthesize "<Class>."
           JooSymbol ideSymbol = ide.getSymbol();
           ClassDeclaration classDeclaration = ideDeclaration.getClassDeclaration();
-          Ide classIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.IDE, classDeclaration.getName(), null));
+          Ide classIde = new Ide(ideSymbol.replacingSymAndTextAndJooValue(sym.IDE, classDeclaration.getName(), null).virtual());
           classIde.setDeclaration(classDeclaration); // must not be resolved again, as implicit imports through super class chain are not found in scope!
           dotExpr = new DotExpr(new IdeExpr(classIde), synthesizeDotSymbol(ideSymbol), new Ide(ideSymbol.withoutWhitespace()));
         }

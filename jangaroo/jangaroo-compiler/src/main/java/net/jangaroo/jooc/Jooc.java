@@ -107,6 +107,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String TS_SUFFIX = ".ts";
   public static final String D_TS_SUFFIX = ".d" + TS_SUFFIX;
 
+  public static String getOutputSuffix(boolean isMigrateToTypeScript) {
+    return isMigrateToTypeScript ? TS_SUFFIX : OUTPUT_FILE_SUFFIX;
+  }
+
   private final List<FileInputSource> compileQueue = new ArrayList<>();
 
   public Jooc() {
@@ -129,6 +133,10 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   @Override
   public void setConfig(JoocConfiguration config) {
     super.setConfig(config);
+  }
+
+  public String getOutputSuffix() {
+    return getOutputSuffix(getConfig().isMigrateToTypeScript());
   }
 
   @Override
@@ -364,7 +372,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     CompilationUnitSinkFactory codeSinkFactory = null;
 
     if (suffix == null) {
-      suffix = config.isMigrateToTypeScript() ? TS_SUFFIX : OUTPUT_FILE_SUFFIX;
+      suffix = getOutputSuffix();
     }
     boolean generateTypeScriptIndexDTS = D_TS_SUFFIX.equals(suffix);
     boolean generateActionScriptApi = AS_SUFFIX.equals(suffix);

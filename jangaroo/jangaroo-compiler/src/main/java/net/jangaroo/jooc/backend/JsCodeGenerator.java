@@ -145,13 +145,23 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String memberName = ide.getName();
 
     if (memberDeclaration != null && memberDeclaration.isPrivateStatic()) {
-      // comment out explicit reference to class for private static access:
-      out.beginComment();
-      arg.visit(this);
-      out.writeSymbol(symDot);
-      out.endComment();
+      if (arg instanceof IdeExpr && arg.getSymbol().isVirtual()) {
+        // suppress synthesized class
+        out.writeSymbolWhitespace(arg.getSymbol());
+      } else {
+        // comment out explicit reference to class for private static access:
+        out.beginComment();
+        arg.visit(this);
+        out.writeSymbol(symDot);
+        out.endComment();
+      }
       // add "$static" suffix to private static members:
-      writeSymbolReplacement(ide.getIde(), memberName + "$static");
+      memberName += "$static";
+      if (memberDeclaration instanceof PropertyDeclaration) {
+        // it can only be a read access, because lhs is already handled in visiAssignmentOpExpr():
+        memberName = "get$" + memberName + "()";
+      }
+      writeSymbolReplacement(ide.getIde(), memberName);
       return;
     }
 
@@ -546,19 +556,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (leftHandSide instanceof IdeExpr) {
         leftHandSide = ((IdeExpr)leftHandSide).getNormalizedExpr();
       }
-      if (leftHandSide instanceof IdeExpr) {
-        Ide ide = ((IdeExpr) leftHandSide).getIde();
+      if (leftHandSide instanceof DotExpr) {
+        DotExpr dotExpr = (DotExpr) leftHandSide;
+        Ide ide = dotExpr.getIde();
         IdeDeclaration ideDeclaration = ide.getDeclaration(false);
         if (ideDeclaration != null && ideDeclaration.isPrivateStatic() && ideDeclaration instanceof FunctionDeclaration
                 && ((FunctionDeclaration)ideDeclaration).isGetterOrSetter()) {
-          writeSymbolReplacement(ide.getSymbol(), "set$" + ide.getName() + "$static");
+          writeSymbolReplacement(leftHandSide.getSymbol(), "set$" + ide.getName() + "$static");
           writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
           assignmentOpExpr.getArg2().visit(this);
           out.writeToken(")");
           return;
         }
-      } else if (leftHandSide instanceof DotExpr) {
-        DotExpr dotExpr = (DotExpr) leftHandSide;
         setter = resolveBindable(dotExpr, MethodType.SET);
         dotExprArg = dotExpr.getArg();
         symDot = dotExpr.getOp();

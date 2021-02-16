@@ -1216,7 +1216,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.writeSymbolWhitespace(objectField.getSymbol());
     out.writeToken("...");
     String whitespace = exmlAppendOrPrepend.getSymbol().getWhitespace();
-    exmlAppendOrPrepend.getSymbol().setWhitespace("");
+    out.suppressWhitespace(exmlAppendOrPrepend.getSymbol());
     exmlAppendOrPrepend.visit(this);
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = ((ApplyExpr) objectField.getValue()).getArgs();
     out.writeTokenForSymbol("({", args.getLParen());

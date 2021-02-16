@@ -10,6 +10,16 @@ public class JoocPropertiesTest extends AbstractJoocTest {
 
   @Test
   public void testPropertiesCompilation() throws Exception {
+    verifyPropertiesCompilation();
+    jooc.getConfig().setMigrateToTypeScript(true);
+    try {
+      verifyPropertiesCompilation();
+    } finally {
+      jooc.getConfig().setMigrateToTypeScript(false);
+    }
+  }
+
+  private void verifyPropertiesCompilation() throws Exception {
     compile(".properties",
             "testPackage/PropertiesTest",
             "testPackage/PropertiesTest_de",
@@ -25,7 +35,11 @@ public class JoocPropertiesTest extends AbstractJoocTest {
   }
 
   void verifyPropertiesOutput(String relativeClassFileName, String locale) throws URISyntaxException, IOException {
-    verifyOutput(relativeClassFileName, propertiesTargetDir(locale), "/expectedProperties/" + locale, ".js");
+    if (jooc.getConfig().isMigrateToTypeScript()) {
+      verifyClassOutput(relativeClassFileName + ("en".equals(locale) ? "" : "_" + locale), "/expected");
+    } else {
+      verifyOutput(relativeClassFileName, propertiesTargetDir(locale), "/expectedProperties/" + locale, ".js");
+    }
   }
 
   private File propertiesTargetDir(String locale) throws URISyntaxException {

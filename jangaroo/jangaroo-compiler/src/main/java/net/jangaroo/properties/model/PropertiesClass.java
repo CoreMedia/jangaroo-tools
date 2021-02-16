@@ -92,7 +92,7 @@ public class PropertiesClass {
         String referenceBundleFullClassName = matcher.group(bundleFirst ? 2 : 4);
         int dotPos = referenceBundleFullClassName.lastIndexOf('.');
         String className = dotPos > -1 ? referenceBundleFullClassName.substring(dotPos + 1) : referenceBundleFullClassName;
-        value = referenceBundleFullClassName + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
+        value = referenceBundleFullClassName + CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".INSTANCE";
         tsValue = className + CompilerUtils.PROPERTIES_CLASS_SUFFIX;
         if (isIdentifier(referenceBundleKey)) {
           value += "." + referenceBundleKey;
