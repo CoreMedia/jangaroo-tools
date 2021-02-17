@@ -1,6 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +13,7 @@ public class PackageJson {
   private String description;
   private String version;
   private String license;
-  @SerializedName("private")
+  @JsonProperty("private")
   private boolean privat;
   private Map<String, String> dependencies;
   private Map<String, String> devDependencies;

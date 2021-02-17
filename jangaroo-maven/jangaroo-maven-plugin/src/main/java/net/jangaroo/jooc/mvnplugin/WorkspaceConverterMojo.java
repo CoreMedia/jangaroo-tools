@@ -1,7 +1,9 @@
 package net.jangaroo.jooc.mvnplugin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
@@ -10,6 +12,7 @@ import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
@@ -25,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -46,8 +48,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Mojo(name = "workspaceConverter",
-        defaultPhase = LifecyclePhase.COMPILE,
+@Mojo(name = "workspaceConverter", //convert-workspace
+        defaultPhase = LifecyclePhase.INSTALL,
         threadSafe = false) // check for threadsafety and make it threadsafe
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
@@ -65,7 +67,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter(property = "activeProfiles", defaultValue = "${session.request.activeProfiles}")
   protected List<String> activeProfiles;
 
-  private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+  private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
+
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -82,6 +85,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/jooflexframework", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/joounit", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/ckeditor4", "1.0.0"));
 
     Map<String, MavenModule> moduleMappings = loadMavenModules(studioNpmMavenRoot);
     getOrCreatePackage(packageRegistry, findPackageNameByReference(appPackageName, moduleMappings), null, moduleMappings);
@@ -112,7 +116,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       lernaRunMap.put("stream", true);
       lernaCommandMap.put("run", lernaRunMap);
       lernaJson.put("command", lernaCommandMap);
-      FileUtils.write(new File(studioNpmTarget + "/lerna.json"), gson.toJson(lernaJson));
+
+      FileUtils.write(new File(studioNpmTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
 
       for (Package aPackage : packageRegistry) {
         MavenModule mavenModule = moduleMappings.get(aPackage.getName());
@@ -141,7 +146,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                             .collect(Collectors.toList()));
             jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
             if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
-              jangarooConfig.setSencha(gson.fromJson(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
+              jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
             }
             Map<String, String> testDependencies = new HashMap<>();
             Map<String, String> testScripts = new HashMap<>();
@@ -181,7 +186,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             List<String> ignoreFromSrcMain = new ArrayList<>();
             ignoreFromSrcMain.add("package.json");
             copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
-                    String.format("{}__{}", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
+                    String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
                     "src", ignoreFromSrcMain, targetPackageDir
             );
           } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
@@ -209,7 +214,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                             .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
                             .collect(Collectors.toList()));
             if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
-              jangarooConfig.setSencha(gson.fromJson(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
+              jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
             }
             if (mavenModule.getData().getOrganization() != null) {
               additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
@@ -290,7 +295,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
 
           //todo: handle manifest paths
-          String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(gson.toJson(jangarooConfig));
+          objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
+          String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
+          objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
           FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
           if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
             Optional<Package> optionalThemeDependency = packageRegistry.stream()
@@ -301,7 +308,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             }
           }
           if (new File(targetPackageJson).exists()) {
-            PackageJson packageJson = gson.fromJson(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
+            PackageJson packageJson = objectMapper.readValue(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
             packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
             packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
             packageJson.getScripts().forEach(additionalJsonEntries::addScript);
@@ -314,7 +321,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           packageJson.setPrivat(true);
           aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
           aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
-          FileUtils.write(new File(targetPackageJson), gson.toJson(packageJson));
+          FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
         }
       }
     } catch (IOException e) {
@@ -323,7 +330,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private void copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
-    for (String dir : Arrays.asList(srcFolderName, "locale")) {
+    // todo: deleted locale, is that ok?
+    for (String dir : Arrays.asList(srcFolderName)) {
       Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
       if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
         Path targetDirPath = Paths.get(targetPackageDir, "sencha", dir);
@@ -379,14 +387,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return matchingFilePaths;
   }
 
-  private String getRootPackageJson(List<String> workspaces) {
+  private String getRootPackageJson(List<String> workspaces) throws JsonProcessingException {
     Map<String, String> devDependencies = new HashMap<>();
     devDependencies.put("lerna", "^3.0.0");
     Map<String, String> scripts = new HashMap<>();
     scripts.put("clean", "lerna run clean");
     scripts.put("build", "lerna run build");
     scripts.put("test", "lerna run test");
-    return gson.toJson(new PackageJson("studio-client-workspace",
+    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(new PackageJson("studio-client-workspace",
             null, null, "1.0.0",
             "MIT",
             true,
@@ -539,7 +547,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String calculateMavenName(Model model) {
-    if ("com.coremedia.sencha".equals(model.getGroupId()) && "ext-js-pkg".equals(model.getArtifactId())) {
+    if ("com.coremedia.sencha".equals(model.getGroupId()) && "ext-js-pkg".equals(model.getArtifactId()) ||
+    "net.jangaroo.com.sencha".equals(model.getGroupId()) && "ext-js-pkg-gpl".equals(model.getArtifactId())) {
       return "ext";
     } else {
       String groupId = model.getGroupId();
