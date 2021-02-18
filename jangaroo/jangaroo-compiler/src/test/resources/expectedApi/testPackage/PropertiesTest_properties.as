@@ -4,7 +4,7 @@ package testPackage {
  * some comment
  */
 [PublicApi]
-[Native("testPackage.PropertiesTest_properties", require)]
+[Native(require)]
 public class PropertiesTest_properties {
   /**
    * Singleton for the current user Locale's instance of ResourceBundle "PropertiesTest".

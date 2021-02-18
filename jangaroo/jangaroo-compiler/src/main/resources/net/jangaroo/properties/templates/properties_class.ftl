@@ -10,7 +10,7 @@ ${as3Comment}
 </#if>
  * @see ${resourceBundle.className}#INSTANCE
  */
-[Native("${resourceBundle.fullClassName}", require)]
+[Native(require)]
 public class ${resourceBundle.className} {
 
 /**
