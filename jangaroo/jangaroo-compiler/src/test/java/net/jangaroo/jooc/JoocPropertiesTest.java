@@ -31,7 +31,7 @@ public class JoocPropertiesTest extends AbstractJoocTest {
     verifyPropertiesOutput("testPackage/PropertiesTest_properties", "es_ES");
     verifyPropertiesOutput("testPackage/PropertiesTest_properties", "it_VA_WIN");
 
-    //todo verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
+    verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
   }
 
   void verifyPropertiesOutput(String relativeClassFileName, String locale) throws URISyntaxException, IOException {
