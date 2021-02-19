@@ -53,16 +53,16 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
   }
 
   public String getDefaultImportName(IdeDeclaration declaration) {
-    String nativeName = getNonRequireNativeName(declaration);
-    if (nativeName != null) {
-      return nativeName;
-    }
     Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
     if (renameAnnotation != null) {
       String targetName = getNativeAnnotationValue(renameAnnotation);
       if (targetName != null && !targetName.isEmpty()) {
         return CompilerUtils.className(targetName);
       }
+    }
+    String nativeName = getNonRequireNativeName(declaration);
+    if (nativeName != null) {
+      return nativeName;
     }
     return declaration.getName();
   }
@@ -163,12 +163,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       return null;
     }
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    if (nativeAnnotation == null) {
-      Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-      if (renameAnnotation != null) {
-        qualifiedName = getNativeAnnotationValue(renameAnnotation);
-      }
-    } else {
+    if (nativeAnnotation != null) {
       if (getNativeAnnotationRequireValue(nativeAnnotation) == null) {
         return null;
       }
@@ -176,6 +171,10 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       if (nativeAnnotationValue != null) {
         qualifiedName = nativeAnnotationValue;
       }
+    }
+    Annotation renameAnnotation = declaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+    if (renameAnnotation != null) {
+      qualifiedName = getNativeAnnotationValue(renameAnnotation);
     }
     return qualifiedName.replace('.', '/');
   }

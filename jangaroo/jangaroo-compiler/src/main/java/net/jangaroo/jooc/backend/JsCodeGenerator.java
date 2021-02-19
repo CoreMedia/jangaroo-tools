@@ -320,34 +320,29 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         continue;
       }
 
-      String javaScriptName;
-      String javaScriptNameToRequire;
+      String javaScriptName = dependentCUId;
+      String javaScriptNameToRequire = "";
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
 
       IdeDeclaration primaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
 
       Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-      if (nativeAnnotation == null) {
-        Annotation renameAnnotation = primaryDeclaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-        javaScriptName = renameAnnotation == null ? null : ModuleResolverBase.getNativeAnnotationValue(renameAnnotation);
-        if (javaScriptName == null) {
-          javaScriptName = dependentCUId;
-        }
-        javaScriptNameToRequire = javaScriptName;
-      } else {
+      if (nativeAnnotation != null) {
         String javaScriptAlias = ModuleResolverBase.getNativeAnnotationValue(nativeAnnotation);
         if (javaScriptAlias != null) {
           javaScriptName = javaScriptAlias;
-        } else {
-          javaScriptName = dependentCUId;
         }
         javaScriptNameToRequire = jsModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
-        if ("".equals(javaScriptNameToRequire)) {
-          javaScriptNameToRequire = javaScriptName;
+      }
+      Annotation renameAnnotation = primaryDeclaration.getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+      if (renameAnnotation != null) {
+        String renamedName = ModuleResolverBase.getNativeAnnotationValue(renameAnnotation);
+        if (renamedName != null) {
+          javaScriptName = renamedName;
         }
       }
       if (javaScriptNameToRequire != null) {
-        requires.add(javaScriptNameToRequire);
+        requires.add(javaScriptNameToRequire.isEmpty() ? javaScriptName : javaScriptNameToRequire);
       }
       imports.put(dependentCUId, javaScriptName);
     }
