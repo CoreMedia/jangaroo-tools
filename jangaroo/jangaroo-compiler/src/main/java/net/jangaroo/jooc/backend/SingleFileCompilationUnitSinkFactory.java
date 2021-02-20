@@ -11,8 +11,10 @@ import net.jangaroo.jooc.api.Jooc;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
+import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.JoocOptions;
 import net.jangaroo.jooc.util.FilePosition;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.CompilerUtils;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -22,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import static net.jangaroo.jooc.Jooc.NATIVE_ANNOTATION_NAME;
 
@@ -46,16 +49,25 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
   }
 
   private File getOutputFile(File sourceFile, IdeDeclaration primaryDeclaration) {
-    if (getOutputDir() == null) {
-      File outputDirectory = sourceFile.getAbsoluteFile().getParentFile();
+    File outputDirectory = getOutputDir();
+    if (outputDirectory == null) {
+      outputDirectory = sourceFile.getAbsoluteFile().getParentFile();
       return new File(outputDirectory, CompilerUtils.qNameFromFile(outputDirectory, sourceFile) + suffix);
     }
     String qName = generateApi
             ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getTargetQualifiedNameStr();
+    if (!generateApi && !options.isMigrateToTypeScript() && qName.endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)) {
+      Locale locale = PropcHelper.computeLocale(qName);
+      outputDirectory = new File(((JoocConfiguration) options).getLocalizedOutputDirectory(),
+            PropcHelper.localeOrDefaultLocaleString(locale));
+      if (locale != null) {
+        qName = PropcHelper.computeBaseClassName(qName);
+      }
+    }
     String suffix = nativeSuffix != null &&
             (primaryDeclaration.isNative() || primaryDeclaration.getAnnotation(NATIVE_ANNOTATION_NAME) != null)
             ? nativeSuffix : this.suffix;
-    return CompilerUtils.fileFromQName(qName, getOutputDir(), suffix);
+    return CompilerUtils.fileFromQName(qName, outputDirectory, suffix);
   }
 
   public CompilationUnitSink createSink(PackageDeclaration packageDeclaration,

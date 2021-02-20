@@ -1,10 +1,12 @@
 package net.jangaroo.jooc;
 
+import net.jangaroo.properties.PropcHelper;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 public class JoocPropertiesTest extends AbstractJoocTest {
 
@@ -26,19 +28,19 @@ public class JoocPropertiesTest extends AbstractJoocTest {
             "testPackage/PropertiesTest_es_ES",
             "testPackage/PropertiesTest_it_VA_WIN");
 
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "en");
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "de");
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "es_ES");
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", "it_VA_WIN");
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("en"));
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("de"));
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("es", "ES"));
+    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("it", "VA", "WIN"));
 
     verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
   }
 
-  void verifyPropertiesOutput(String relativeClassFileName, String locale) throws URISyntaxException, IOException {
+  void verifyPropertiesOutput(String relativeClassFileName, Locale locale) throws URISyntaxException, IOException {
     if (jooc.getConfig().isMigrateToTypeScript()) {
-      verifyClassOutput(relativeClassFileName + ("en".equals(locale) ? "" : "_" + locale), "/expected");
+      verifyClassOutput(PropcHelper.insertNonDefaultLocale(relativeClassFileName, locale), "/expected");
     } else {
-      verifyOutput(relativeClassFileName, propertiesTargetDir(locale), "/expectedProperties/" + locale, ".js");
+      verifyOutput(relativeClassFileName, propertiesTargetDir(locale.toString()), "/expectedProperties/" + locale, ".js");
     }
   }
 

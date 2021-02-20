@@ -17,6 +17,7 @@ import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.util.MessageFormat;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -238,6 +239,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String[] uses = isClassDeclaration ? collectDependencies(compilationUnit, false) : new String[0];
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     this.compilationUnit = compilationUnit;
+
+    if (isClassDeclaration && isPropertiesClass(primaryDeclaration)) {
+      renderPropertiesClass((ClassDeclaration) primaryDeclaration, uses);
+      return;
+    }
+
     out.beginComment();
     packageDeclaration.visit(this);
     out.writeSymbol(compilationUnit.getLBrace());
@@ -258,6 +265,49 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     }
     out.write("\n    return " + classDefinition.toString(2, 4) + ";\n}");
     out.write(");\n");
+  }
+
+  private void renderPropertiesClass(ClassDeclaration classDeclaration, String[] uses) throws IOException {
+    for (Annotation annotation : classDeclaration.getAnnotations()) {
+      annotation.visit(this);
+    }
+    out.writeSymbolWhitespace(classDeclaration.getSymModifiers()[0]); // only use public's white-space
+    out.write("Ext.define(");
+    String propertiesClassName = classDeclaration.getTargetQualifiedNameStr();
+    out.write(CompilerUtils.quote(propertiesClassName));
+    out.write(", {");
+    boolean isPropertiesSubclass = isPropertiesSubclass(classDeclaration);
+    boolean startWithComma = false;
+    if (isPropertiesSubclass) {
+      out.write("\n  override: " + CompilerUtils.quote(PropcHelper.computeBaseClassName(propertiesClassName)));
+      startWithComma = true;
+    }
+    // for some reason, References end up in 'uses', not in 'requires':
+    if (uses.length > 0) {
+      if (startWithComma) {
+        out.write(",");
+      } else {
+        startWithComma = true;
+      }
+      out.write("\n  requires: " + new JsonArray((Object[]) uses).toString(2, 2));
+    }
+    FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
+    if (constructorDeclaration != null) {
+      renderPropertiesClassValues(getPropertiesClassAssignments(constructorDeclaration, true, false), !isPropertiesSubclass, startWithComma);
+      List<AssignmentOpExpr> assignmentsWithReferences = getPropertiesClassAssignments(constructorDeclaration, false, true);
+      if (!isPropertiesSubclass || !assignmentsWithReferences.isEmpty()) {
+        out.write("\n}, function() {");
+        if (!assignmentsWithReferences.isEmpty()) {
+          out.write("\n  Ext.apply(this.prototype, {");
+          renderPropertiesClassValues(assignmentsWithReferences, !isPropertiesSubclass, false);
+          out.write("\n  });");
+        }
+        if (!isPropertiesSubclass) {
+          out.write("\n  this." + PROPERTY_CLASS_INSTANCE + " = new this();");
+        }
+      }
+    }
+    out.write("\n});");
   }
 
   private JsonObject createClassDefinition(IdeDeclaration declaration, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {

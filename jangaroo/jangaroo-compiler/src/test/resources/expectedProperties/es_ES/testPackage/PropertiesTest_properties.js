@@ -1,8 +1,14 @@
+
 /**
- * Properties class for ResourceBundle "PropertiesTest" and Locale "es_ES".
+ * Overrides of ResourceBundle "PropertiesTest" for Locale "es_ES".
+ * @see PropertiesTest_properties#INSTANCE
  */
-Ext.define("testPackage.PropertiesTest_properties_es_ES", {
+Ext.define("testPackage.PropertiesTest_es_ES_properties", {
   override: "testPackage.PropertiesTest_properties",
-  "key": "Hasta la vista"
+  requires: ["testPackage.icons.MoreIcons_properties"],
+ key: "Hasta la vista"
 }, function() {
+  Ext.apply(this.prototype, {
+ "keyWith\"+\"quotes": testPackage.icons.MoreIcons_properties.INSTANCE.someOtherKey
+  });
 });

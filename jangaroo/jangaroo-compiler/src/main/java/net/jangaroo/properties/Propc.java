@@ -8,7 +8,6 @@ import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import net.jangaroo.jooc.backend.TypeScriptModuleResolver;
 import net.jangaroo.properties.model.PropertiesClass;
 import net.jangaroo.properties.model.ResourceBundleClass;
 import net.jangaroo.utils.CompilerUtils;
@@ -28,9 +27,8 @@ import java.io.Writer;
 import java.util.List;
 
 public class Propc {
-  public static final String PROPERTIES_JS_FTL = "properties_js.ftl";
   public static final String PROPERTIES_CLASS_FTL = "properties_class.ftl";
-  public static final String PROPERTIES_TS_FTL = "properties_ts.ftl";
+  public static final String PROPERTIES_SUBCLASS_FTL = "properties_subclass.ftl";
 
   @SuppressWarnings("deprecation")
   private static Configuration cfg = new Configuration();
@@ -45,19 +43,12 @@ public class Propc {
     cfg.setOutputEncoding("UTF-8");
   }
 
-  private final TypeScriptModuleResolver typeScriptModuleResolver;
-
-  public Propc(TypeScriptModuleResolver typeScriptModuleResolver) {
-    this.typeScriptModuleResolver = typeScriptModuleResolver;
-  }
-
   public Propc() {
-    this(null);
   }
 
   public void generateApi(String propertiesClassName, InputStream sourceInputStream, OutputStreamWriter writer) throws IOException {
     PropertiesClass propertiesClass = parse(propertiesClassName, sourceInputStream);
-    generatePropertiesClass(propertiesClass, writer, PROPERTIES_CLASS_FTL);
+    generatePropertiesClass(propertiesClass, writer, propertiesClass.getLocale() == null ? PROPERTIES_CLASS_FTL : PROPERTIES_SUBCLASS_FTL);
   }
 
   private void generatePropertiesClass(PropertiesClass propertiesClass, Writer out, String templateFile) throws IOException {
@@ -94,7 +85,7 @@ public class Propc {
   }
 
   private File generateApi(PropertiesClass pl, File outputDirectory) {
-    File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(outputDirectory, pl.getResourceBundle().getFullClassName());
+    File apiOutputFile = PropcHelper.computeGeneratedPropertiesAS3File(outputDirectory, pl.getResourceBundle().getFullClassName(), pl.getLocale());
     return generateCode(pl, apiOutputFile, PROPERTIES_CLASS_FTL);
   }
 
@@ -131,19 +122,7 @@ public class Propc {
     }
     ResourceBundleClass bundle = new ResourceBundleClass(PropcHelper.computeBaseClassName(propertiesClassName));
 
-    return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p, typeScriptModuleResolver);
-  }
-
-  /**
-   * Compile the given properties file into a JS class.
-   * The files within the given sourcePath should already be canonicalized using {@link File#getCanonicalFile()}.
-   */
-  public File compile(File propertiesFile, List<File> sourcePath, File outputDirectory, boolean migrateToTypeScript) {
-    PropertiesClass propertiesClass = parse(propertiesFile, sourcePath);
-    // Create properties class, which registers itself with the bundle.
-    File outputFile = PropcHelper.computeGeneratedPropertiesFile(outputDirectory, propertiesClass.getResourceBundle().getFullClassName(), propertiesClass.getLocale(), migrateToTypeScript);
-    generateCode(propertiesClass, outputFile, migrateToTypeScript ? PROPERTIES_TS_FTL : PROPERTIES_JS_FTL);
-    return outputFile;
+    return new PropertiesClass(bundle, PropcHelper.computeLocale(propertiesClassName), p);
   }
 
   private PropertiesClass parse(File propertiesFile, List<File> sourcePath) {

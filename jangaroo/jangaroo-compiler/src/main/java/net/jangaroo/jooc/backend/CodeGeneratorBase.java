@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
@@ -88,8 +89,10 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,6 +100,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
+  protected static final String PROPERTY_CLASS_INSTANCE = "INSTANCE";
   protected final CompilationUnitResolver compilationUnitModelResolver;
   protected JsWriter out;
   private ListMultimap<BlockStatement, CodeGenerator> blockStartCodeGenerators =
@@ -301,6 +305,67 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
+  protected List<AssignmentOpExpr> getPropertiesClassAssignments(FunctionDeclaration constructorDeclaration,
+                                                                 boolean includeLiterals,
+                                                                 boolean includeReferences) {
+    List<AssignmentOpExpr> result = new ArrayList<>();
+    for (Directive constructorDirective : constructorDeclaration.getBody().getDirectives()) {
+      if (constructorDirective instanceof SemicolonTerminatedStatement) {
+        AstNode optStatement = ((SemicolonTerminatedStatement) constructorDirective).getOptStatement();
+        if (optStatement instanceof AssignmentOpExpr) {
+          AssignmentOpExpr assignmentOpExpr = (AssignmentOpExpr) optStatement;
+          Map.Entry<Expr, AstNode> objectAndProperty = getObjectAndProperty(assignmentOpExpr);
+          Expr arg = objectAndProperty.getKey();
+          if (arg instanceof IdeExpr && ((IdeExpr) arg).getIde().isThis()) {
+            boolean isLiteral = assignmentOpExpr.getArg2() instanceof LiteralExpr;
+            if (isLiteral == includeLiterals ||
+                    !isLiteral == includeReferences) {
+              result.add(assignmentOpExpr);
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  protected void renderPropertiesClassValues(List<AssignmentOpExpr> propertyAssignments,
+                                             boolean useDeclarationComments,
+                                             boolean startWithComma) throws IOException {
+    for (AssignmentOpExpr propertyAssignment : propertyAssignments) {
+      if (startWithComma) {
+        out.writeToken(",");
+      } else {
+        startWithComma = true;
+      }
+      AstNode index = getObjectAndProperty(propertyAssignment).getValue();
+      if (useDeclarationComments && index instanceof Ide && ((Ide) index).getDeclaration(false) != null) {
+        IdeDeclaration declaration = ((Ide) index).getDeclaration();
+        out.writeSymbolWhitespace(declaration.getSymbol());
+      } else {
+        out.writeSymbolWhitespace(propertyAssignment.getSymbol());
+      }
+      index.visit(this);
+      out.writeToken(":");
+      propertyAssignment.getArg2().visit(this);
+    }
+  }
+
+  protected Map.Entry<Expr, AstNode> getObjectAndProperty(AssignmentOpExpr assignmentOpExpr) {
+    Expr lhs = assignmentOpExpr.getArg1();
+    if (lhs instanceof IdeExpr) {
+      lhs = ((IdeExpr) lhs).getNormalizedExpr();
+    }
+    if (lhs instanceof DotExpr) {
+      DotExpr dotExpr = (DotExpr) lhs;
+      return new AbstractMap.SimpleEntry<>(dotExpr.getArg(), dotExpr.getIde());
+    } else if (lhs instanceof ArrayIndexExpr) {
+      ArrayIndexExpr arrayIndexExpr = (ArrayIndexExpr) lhs;
+      return new AbstractMap.SimpleEntry<>(arrayIndexExpr.getArray(), arrayIndexExpr.getIndexExpr().getExpr());
+    }
+    throw new CompilerError("Properties class constructor code does not match standard format.");
+  }
+
   @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.writeSymbol(typeRelation.getSymbol());
@@ -318,6 +383,17 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
     anExtends.getSuperClass().visit(this);
+  }
+
+  protected static boolean isPropertiesClass(IdeDeclaration primaryDeclaration) {
+    return primaryDeclaration instanceof ClassDeclaration
+            && primaryDeclaration.getName().endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX);
+  }
+
+  protected static boolean isPropertiesSubclass(IdeDeclaration primaryDeclaration) {
+    String classname = primaryDeclaration.getName();
+    return CodeGeneratorBase.isPropertiesClass(primaryDeclaration) &&
+            classname.substring(0, classname.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length()).contains("_") ;
   }
 
   @Override

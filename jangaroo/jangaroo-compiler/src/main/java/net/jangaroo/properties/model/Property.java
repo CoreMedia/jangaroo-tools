@@ -9,15 +9,13 @@ public class Property {
   private final String key;
   private final boolean keyIsIdentifier;
   private final String value;
-  private final String tsValue;
   private final boolean valueIsReference;
 
-  public Property(String comment, String key, boolean keyIsIdentifier, String value, String tsValue, boolean valueIsReference) {
+  public Property(String comment, String key, boolean keyIsIdentifier, String value, boolean valueIsReference) {
     this.comment = comment;
     this.key = key;
     this.keyIsIdentifier = keyIsIdentifier;
     this.value = value;
-    this.tsValue = tsValue;
     this.valueIsReference = valueIsReference;
   }
 
@@ -35,10 +33,6 @@ public class Property {
 
   public String getValue() {
     return value;
-  }
-
-  public String getTsValue() {
-    return tsValue;
   }
 
   public boolean isValueIsReference() {

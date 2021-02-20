@@ -153,9 +153,6 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
     Reader reader;
     try {
       if (inputSourceName.endsWith(Jooc.PROPERTIES_SUFFIX)) {
-        if (inputSourceName.contains("_")) {
-          return null;
-        }
         reader = createPropertiesClassReader(in);
       } else {
         reader = new InputStreamReader(new BOMStripperInputStream(in.getInputStream()), UTF_8);
