@@ -158,7 +158,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       }
       // add "$static" suffix to private static members:
       memberName += "$static";
-      if (memberDeclaration instanceof PropertyDeclaration) {
+      if (memberDeclaration instanceof PropertyDeclaration ||
+              memberDeclaration instanceof FunctionDeclaration && ((FunctionDeclaration) memberDeclaration).isGetterOrSetter()) {
         // it can only be a read access, because lhs is already handled in visiAssignmentOpExpr():
         memberName = "get$" + memberName + "()";
       }
@@ -604,14 +605,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       if (leftHandSide instanceof DotExpr) {
         DotExpr dotExpr = (DotExpr) leftHandSide;
         Ide ide = dotExpr.getIde();
-        IdeDeclaration ideDeclaration = ide.getDeclaration(false);
-        if (ideDeclaration != null && ideDeclaration.isPrivateStatic() && ideDeclaration instanceof FunctionDeclaration
-                && ((FunctionDeclaration)ideDeclaration).isGetterOrSetter()) {
-          writeSymbolReplacement(leftHandSide.getSymbol(), "set$" + ide.getName() + "$static");
-          writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
-          assignmentOpExpr.getArg2().visit(this);
-          out.writeToken(")");
-          return;
+        ExpressionType type = dotExpr.getArg().getType();
+        if (type != null) {
+          IdeDeclaration ideDeclaration = type.resolvePropertyDeclaration(ide.getName());
+          if (ideDeclaration != null && ideDeclaration.isPrivateStatic() && (ideDeclaration instanceof PropertyDeclaration
+                  || ideDeclaration instanceof FunctionDeclaration
+                  && ((FunctionDeclaration)ideDeclaration).isGetterOrSetter())) {
+            writeSymbolReplacement(leftHandSide.getSymbol(), "set$" + ide.getName() + "$static");
+            writeSymbolReplacement(assignmentOpExpr.getOp(), "(");
+            assignmentOpExpr.getArg2().visit(this);
+            out.writeToken(")");
+            return;
+          }
         }
         setter = resolveBindable(dotExpr, MethodType.SET);
         dotExprArg = dotExpr.getArg();
