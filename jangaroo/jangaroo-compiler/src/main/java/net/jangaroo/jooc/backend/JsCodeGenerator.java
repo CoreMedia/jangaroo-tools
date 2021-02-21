@@ -293,19 +293,17 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       out.write("\n  requires: " + new JsonArray((Object[]) uses).toString(2, 2));
     }
     FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
-    if (constructorDeclaration != null) {
-      renderPropertiesClassValues(getPropertiesClassAssignments(constructorDeclaration, true, false), !isPropertiesSubclass, startWithComma);
-      List<AssignmentOpExpr> assignmentsWithReferences = getPropertiesClassAssignments(constructorDeclaration, false, true);
-      if (!isPropertiesSubclass || !assignmentsWithReferences.isEmpty()) {
-        out.write("\n}, function() {");
-        if (!assignmentsWithReferences.isEmpty()) {
-          out.write("\n  Ext.apply(this.prototype, {");
-          renderPropertiesClassValues(assignmentsWithReferences, !isPropertiesSubclass, false);
-          out.write("\n  });");
-        }
-        if (!isPropertiesSubclass) {
-          out.write("\n  this." + PROPERTY_CLASS_INSTANCE + " = new this();");
-        }
+    renderPropertiesClassValues(getPropertiesClassAssignments(constructorDeclaration, true, false), true, !isPropertiesSubclass, startWithComma);
+    List<AssignmentOpExpr> assignmentsWithReferences = getPropertiesClassAssignments(constructorDeclaration, false, true);
+    if (!isPropertiesSubclass || !assignmentsWithReferences.isEmpty()) {
+      out.write("\n}, function() {");
+      if (!assignmentsWithReferences.isEmpty()) {
+        out.write("\n  Ext.apply(this.prototype, {");
+        renderPropertiesClassValues(assignmentsWithReferences, true, !isPropertiesSubclass, false);
+        out.write("\n  });");
+      }
+      if (!isPropertiesSubclass) {
+        out.write("\n  this." + PROPERTY_CLASS_INSTANCE + " = new this();");
       }
     }
     out.write("\n});");

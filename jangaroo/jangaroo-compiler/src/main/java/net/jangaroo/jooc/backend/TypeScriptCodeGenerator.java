@@ -212,20 +212,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    if (isPropertiesSubclass(primaryDeclaration)) {
-      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
-      if (classDeclaration.getConstructor() != null) {
-        out.write("\nResourceBundleUtil.override(" + compilationUnitAccessCode(classDeclaration.getSuperTypeDeclaration()) + ", {");
-        renderPropertiesClassValues(classDeclaration.getConstructor());
-        out.write("\n});\n");
-      }
-      return;
-    }
-
     primaryDeclaration.visit(this);
 
     if (isModule) {
-      out.write("\nexport default " + primaryLocalName + ";\n");
+      if (!isPropertiesSubclass(primaryDeclaration)) {
+        out.write("\nexport default " + primaryLocalName + ";\n");
+      }
     } else if (!targetNamespace.isEmpty()) {
       // close namespace:
       out.writeSymbol(compilationUnit.getRBrace());
@@ -235,6 +227,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    if (isPropertiesClass(classDeclaration)) {
+      visitPropertiesClassDeclaration(classDeclaration);
+      return;
+    }
+
     // pull out private static VariableDeclarations so that they can be used in Properties / Config class
     // initializers, too:
     for (TypedIdeDeclaration staticMember : classDeclaration.getStaticMembers().values()) {
@@ -364,18 +361,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     classDeclaration.getBody().visit(this);
 
-    if (isPropertiesClass(classDeclaration)) {
-      FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
-      if (constructorDeclaration != null) {
-        TypedIdeDeclaration instanceDeclaration = classDeclaration.getStaticMemberDeclaration(PROPERTY_CLASS_INSTANCE);
-        out.writeSymbolWhitespace(instanceDeclaration != null ? instanceDeclaration.getSymbol() : constructorDeclaration.getSymbol());
-        out.write(String.format("const %s: %s = {", classDeclarationLocalName, classDeclarationLocalName));
-        renderPropertiesClassValues(constructorDeclaration);
-        out.write("\n};\n");
-      }
-      return;
-    }
-
     if (needsCompanionInterface) {
       out.write("\ninterface " + classDeclarationLocalName + configTypeParameterDeclaration);
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
@@ -460,8 +445,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private void renderPropertiesClassValues(FunctionDeclaration constructorDeclaration) throws IOException {
-    renderPropertiesClassValues(getPropertiesClassAssignments(constructorDeclaration, true, true), false, false);
+  private void visitPropertiesClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    visitDeclarationAnnotationsAndModifiers(classDeclaration);
+    out.writeSymbolWhitespace(classDeclaration.getSymClass());
+    FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
+    List<AssignmentOpExpr> propertyAssignments = getPropertiesClassAssignments(constructorDeclaration, true, true);
+    if (isPropertiesSubclass(classDeclaration)) {
+      out.write("ResourceBundleUtil.override(" + compilationUnitAccessCode(classDeclaration.getSuperTypeDeclaration()) + ", {");
+      renderPropertiesClassValues(propertyAssignments, true, false, false);
+      out.write("\n});\n");
+    } else {
+      String classDeclarationLocalName = getLocalName(classDeclaration, false);
+      out.write("interface " + classDeclarationLocalName + " {");
+      for (AssignmentOpExpr propertyAssignment : propertyAssignments) {
+        AstNode index = getObjectAndProperty(propertyAssignment).getValue();
+        if (index instanceof Ide && ((Ide) index).getDeclaration(false) != null) {
+          IdeDeclaration declaration = ((Ide) index).getDeclaration();
+          out.writeSymbolWhitespace(declaration.getSymbol());
+          out.write("  ");
+        } else {
+          out.writeSymbolWhitespace(propertyAssignment.getSymbol());
+        }
+        index.visit(this);
+        out.writeToken(": string;");
+      }
+      out.write("\n}");
+      TypedIdeDeclaration instanceDeclaration = classDeclaration.getStaticMemberDeclaration(PROPERTY_CLASS_INSTANCE);
+      out.writeSymbolWhitespace(instanceDeclaration != null ? instanceDeclaration.getSymbol()
+              : constructorDeclaration != null ? constructorDeclaration.getSymbol() : new JooSymbol("\n"));
+      out.write(String.format("const %s: %s = {", classDeclarationLocalName, classDeclarationLocalName));
+      renderPropertiesClassValues(propertyAssignments, false, false, false);
+      out.write("\n};\n");
+    }
   }
 
   private void visitPrivateStaticVarWithSimpleInitializer(VariableDeclaration privateStaticVar) throws IOException {
@@ -660,13 +675,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private static boolean isAmbient(CompilationUnit compilationUnit) {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     return primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) != null
-            || primaryDeclaration.isNative()
-            || isPropertiesClass(compilationUnit.getPrimaryDeclaration());
+            || primaryDeclaration.isNative();
   }
 
   private static boolean isInterface(IdeDeclaration primaryDeclaration) {
-    return primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).isInterface()
-            || isPropertiesClass(primaryDeclaration);
+    return primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).isInterface();
   }
 
   @Override
@@ -731,10 +744,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     if (variableDeclaration.isClassMember()) {
       if (variableDeclaration.isExtConfigOrBindable() ||
-              variableDeclaration.isPrivateStatic() && variableDeclaration.isDeclaringStandAloneConstant() ||
-              isPropertiesClass(variableDeclaration.getClassDeclaration()) && !(variableDeclaration.isPublic() && !variableDeclaration.isStatic())) {
-        // never render [ExtConfig]s or private statics with "simple" initializers or properties class INSTANCE
-        // in a normal "visit":
+              variableDeclaration.isPrivateStatic() && variableDeclaration.isDeclaringStandAloneConstant()) {
+        // never render [ExtConfig]s or private statics with "simple" initializers in a normal "visit":
         return;
       }
       if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
@@ -873,9 +884,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     FunctionExpr functionExpr = functionDeclaration.getFun();
     if (functionDeclaration.isClassMember()) {
-      if (isPropertiesClass(functionDeclaration.getClassDeclaration())) {
-        return;
-      }
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
               (functionDeclaration.isNative() || isAmbientOrInterface);

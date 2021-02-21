@@ -11,13 +11,18 @@ import MoreIcons_properties from './icons/MoreIcons_properties';
 /**
  * Documentation for 'key'.
  */
- key: string;
+  key: string;
 /**
  * Documentation for 'key2'.
  */
- key2: string;
- key3: string;
+  key2: string;
+  key3: string;
+  "keyWith\"+\"quotes": string;
 
+/*
+ * Documentation for 'keyWith"+"quotesAndReference'.
+ */
+  "keyWith\"+\"quotesAndReference": string;
 }
 
 /**
@@ -29,10 +34,6 @@ const PropertiesTest_properties: PropertiesTest_properties = {
   key2: Icons_properties.someKey,
   key3: MoreIcons_properties.someOtherKey,
   "keyWith\"+\"quotes": "gotcha!",
-
-/*
- * Documentation for 'keyWith"+"quotesAndReference'.
- */
   "keyWith\"+\"quotesAndReference": MoreIcons_properties.someOtherKey
 };
 

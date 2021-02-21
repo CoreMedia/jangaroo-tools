@@ -95,6 +95,7 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -308,6 +309,9 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   protected List<AssignmentOpExpr> getPropertiesClassAssignments(FunctionDeclaration constructorDeclaration,
                                                                  boolean includeLiterals,
                                                                  boolean includeReferences) {
+    if (constructorDeclaration == null) {
+      return Collections.emptyList();
+    }
     List<AssignmentOpExpr> result = new ArrayList<>();
     for (Directive constructorDirective : constructorDeclaration.getBody().getDirectives()) {
       if (constructorDirective instanceof SemicolonTerminatedStatement) {
@@ -330,6 +334,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   protected void renderPropertiesClassValues(List<AssignmentOpExpr> propertyAssignments,
+                                             boolean useComments,
                                              boolean useDeclarationComments,
                                              boolean startWithComma) throws IOException {
     for (AssignmentOpExpr propertyAssignment : propertyAssignments) {
@@ -339,11 +344,15 @@ public abstract class CodeGeneratorBase implements AstVisitor {
         startWithComma = true;
       }
       AstNode index = getObjectAndProperty(propertyAssignment).getValue();
-      if (useDeclarationComments && index instanceof Ide && ((Ide) index).getDeclaration(false) != null) {
-        IdeDeclaration declaration = ((Ide) index).getDeclaration();
-        out.writeSymbolWhitespace(declaration.getSymbol());
+      if (useComments) {
+        if (useDeclarationComments && index instanceof Ide && ((Ide) index).getDeclaration(false) != null) {
+          IdeDeclaration declaration = ((Ide) index).getDeclaration();
+          out.writeSymbolWhitespace(declaration.getSymbol());
+        } else {
+          out.writeSymbolWhitespace(propertyAssignment.getSymbol());
+        }
       } else {
-        out.writeSymbolWhitespace(propertyAssignment.getSymbol());
+        out.write("\n  ");
       }
       index.visit(this);
       out.writeToken(":");
