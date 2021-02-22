@@ -140,6 +140,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean migrateToTypeScript = false;
 
   /**
+   * Experimental: When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files.
+   */
+  @Parameter(property = "as3PackagePrefixToRemoveInTypeScript")
+  private String as3PackagePrefixToRemoveInTypeScript = "";
+
+  /**
    * Experimental: If set to "true", compiler generates parameter initializer code that implements
    * ECMAScript semantics, which is subtly different from ActionScript 3 semantics.
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
@@ -267,6 +273,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
+    configuration.setAs3PackagePrefixToRemoveInTypeScript(as3PackagePrefixToRemoveInTypeScript);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
     configuration.setNpmPackageNameReplacers(

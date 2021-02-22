@@ -19,6 +19,8 @@ public interface JoocOptions {
 
   boolean isMigrateToTypeScript();
 
+  String getAs3PackagePrefixToRemoveInTypeScript();
+
   List<SearchAndReplace> getNpmPackageNameReplacers();
 
   PublicApiViolationsMode getPublicApiViolationsMode();

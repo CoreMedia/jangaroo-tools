@@ -11,11 +11,15 @@ public class PathInputSource extends DirectoryInputSource {
   private List<InputSource> entries;
 
   public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath) throws IOException {
+    return fromFiles(files, rootDirs, inSourcePath, null);
+  }
+
+  public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath, String as3PackagePrefixToRemoveInTypeScript) throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
     StringBuilder name = new StringBuilder();
     for (File file : files) {
       if (file.isDirectory()) {
-        entries.add(new FileInputSource(file, file, inSourcePath));
+        entries.add(new FileInputSource(file, file, inSourcePath, as3PackagePrefixToRemoveInTypeScript));
       } else if (file.getName().endsWith(".swc") || file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs, inSourcePath));
       }

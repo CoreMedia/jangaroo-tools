@@ -28,6 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private String as3PackagePrefixToRemoveInTypeScript = "";
   private List<SearchAndReplace> npmPackageNameReplacers = new ArrayList<>();
   private boolean useEcmaParameterInitializerSemantics = false;
 
@@ -110,6 +111,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public String getAs3PackagePrefixToRemoveInTypeScript() {
+    return as3PackagePrefixToRemoveInTypeScript;
+  }
+
+  @Override
   public List<SearchAndReplace> getNpmPackageNameReplacers() {
     return npmPackageNameReplacers;
   }
@@ -122,6 +128,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
   public void setMigrateToTypeScript(boolean migrateToTypeScript) {
     this.migrateToTypeScript = migrateToTypeScript;
+  }
+
+  @Option(name="--as3-package-prefix-to-remove-in-typescript", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files (experimental)")
+  public void setAs3PackagePrefixToRemoveInTypeScript(String as3PackageRemovePrefixInTypeScript) {
+    this.as3PackagePrefixToRemoveInTypeScript = as3PackageRemovePrefixInTypeScript;
   }
 
   @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")

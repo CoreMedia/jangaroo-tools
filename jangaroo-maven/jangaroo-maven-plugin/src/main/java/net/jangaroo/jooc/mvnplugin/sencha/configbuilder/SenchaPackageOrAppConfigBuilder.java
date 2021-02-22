@@ -16,6 +16,7 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
 
   private static final String NAME = "name";
   private static final String VERSION = "version";
+  private static final String NAMESPACE = "namespace";
   private static final String CREATOR = "creator";
   private static final String SUMMARY = "summary";
   protected static final String TYPE = "type";
@@ -44,6 +45,10 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
    */
   public T version(String version) {
     return nameValue(VERSION, version);
+  }
+
+  public T namespace(String namespace) {
+    return nameValue(NAMESPACE, namespace);
   }
 
   /**

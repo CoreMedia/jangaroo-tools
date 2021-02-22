@@ -35,7 +35,6 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
@@ -183,8 +182,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
     }
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
-      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
+      String as3PackagePrefixToRemoveInTypeScript = getConfig().getAs3PackagePrefixToRemoveInTypeScript();
+      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true, as3PackagePrefixToRemoveInTypeScript);
+      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false, as3PackagePrefixToRemoveInTypeScript);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -417,7 +417,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 //      }
 //      throw Jooc.error(String.format("Compilation unit %s defined in %s is redeclared in %s.", qName, canonicalInputSource.getPath(), file.getPath()), file);
 //    }
-    FileInputSource inputSource = new FileInputSource(sourceDir, file, true);
+    FileInputSource inputSource = new FileInputSource(sourceDir, file, true, getConfig().getAs3PackagePrefixToRemoveInTypeScript());
     compileQueue.add(inputSource);
     importSource(inputSource);
   }
