@@ -212,4 +212,9 @@ public class JoocMxmlTest extends AbstractJoocTest {
     assertCompilationResult("package1/AllElements", ".mxml");
   }
 
+  @Test
+  public void testSimpleMxmlClassNameClass() throws Exception {
+    assertCompilationResult("package1/mxml/pkg/SimpleMxmlClass", ".mxml");
+  }
+
 }

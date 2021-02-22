@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---
+ Created by fwienber on 22.02.2021.
+-->
+<panel
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns="ext.config.*"
+        title="{package1.mxml.SimpleMxmlClass.xtype}">
+    <fx:Script><![CDATA[
+        import package1.mxml.SimpleMxmlClass;
+
+        public static const xtype:String = "testNamespace.pkg.config.simpleMxmlClass";
+
+        private var config:SimpleMxmlClass;
+
+        public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
+        ]]></fx:Script>
+
+</panel>
