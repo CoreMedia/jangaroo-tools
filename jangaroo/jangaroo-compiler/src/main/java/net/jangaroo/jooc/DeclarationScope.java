@@ -74,6 +74,11 @@ public class DeclarationScope extends AbstractScope {
 
   @Override
   public void addImport(final ImportDirective importDirective) {
+    if (!(getDefiningNode() instanceof CompilationUnit)) {
+      // Jangaroo can only handle top-level imports, so collect them at the compilation unit:
+      getParentScope().addImport(importDirective);
+      return;
+    }
     Ide ide = importDirective.getIde();
     String name = ide.getName();
     Ide packageIde = ide.getQualifier();
