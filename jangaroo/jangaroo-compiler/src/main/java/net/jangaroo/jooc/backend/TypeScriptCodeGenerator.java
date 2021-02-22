@@ -1594,7 +1594,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   void generateStaticInitializer(List<Directive> directives) throws IOException {
-    if (directives.isEmpty()) {
+    if (directives.isEmpty() || companionInterfaceMode) {
       return;
     }
     Directive firstDirective = directives.get(0);
