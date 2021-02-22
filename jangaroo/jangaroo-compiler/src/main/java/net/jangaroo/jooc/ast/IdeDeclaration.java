@@ -93,12 +93,7 @@ public abstract class IdeDeclaration extends Declaration {
     boolean require = true;
     if (nativeAnnotation != null) {
       targetName = (String) nativeAnnotation.getPropertiesByName().get(null);
-      if (nativeAnnotation.getPropertiesByName().containsKey(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY)) {
-        String requireName = (String) nativeAnnotation.getPropertiesByName().get(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY);
-        if (requireName != null) {
-          targetName = requireName;
-        }
-      } else {
+      if (!nativeAnnotation.getPropertiesByName().containsKey(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY)) {
         require = false;
       }
     } else {
