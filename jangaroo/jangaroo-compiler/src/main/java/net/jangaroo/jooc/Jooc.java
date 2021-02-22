@@ -172,7 +172,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
-    Propc propertyClassGenerator;
     File propertiesOutputDirectory;
     if (getConfig().isMigrateToTypeScript()) {
       propertiesOutputDirectory = getConfig().getOutputDirectory();
@@ -186,8 +185,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     try {
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
       classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
-
-      propertyClassGenerator = new Propc();
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
