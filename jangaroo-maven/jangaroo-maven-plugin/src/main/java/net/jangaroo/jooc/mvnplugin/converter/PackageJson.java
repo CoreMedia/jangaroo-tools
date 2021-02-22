@@ -140,6 +140,10 @@ public class PackageJson {
     return workspaces;
   }
 
+  public void addWorkspace(String workspace) {
+    this.workspaces.add(workspace);
+  }
+
   public void setWorkspaces(List<String> workspaces) {
     this.workspaces = workspaces;
   }

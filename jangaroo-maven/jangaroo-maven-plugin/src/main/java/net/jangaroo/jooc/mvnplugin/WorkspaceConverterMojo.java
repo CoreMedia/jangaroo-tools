@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
@@ -12,23 +11,21 @@ import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
+import net.jangaroo.jooc.mvnplugin.converter.RootPackageJson;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.apache.tools.ant.taskdefs.Pack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -48,32 +45,36 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Mojo(name = "workspaceConverter", //convert-workspace
+@Mojo(name = "convert-workspace", //convert-workspace
         defaultPhase = LifecyclePhase.INSTALL,
         threadSafe = false) // check for threadsafety and make it threadsafe
-public class WorkspaceConverterMojo extends AbstractMojo {
+public class WorkspaceConverterMojo extends AbstractJangarooMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
 
   @Parameter(property = "studio.npm.maven.root")
   private String studioNpmMavenRoot = "/home/fwellers/dev/cms/apps/studio-client";
 
-
   @Parameter(property = "studio.npm.target")
-  private String studioNpmTarget = "../created_workspace";
+  private String studioNpmTarget = "/home/fwellers/dev/jangaroo-tools/jangaroo-maven/jangaroo-maven-plugin/created_workspace";
 
+  //todo: remove
   @Parameter(property = "sudio.app.package.name")
-  private String appPackageName = "com.coremedia.blueprint__studio-resources";
+  private String moduleName = "com.coremedia.blueprint__studio-resources";
 
+  //todo: remove
   @Parameter(property = "activeProfiles", defaultValue = "${session.request.activeProfiles}")
   protected List<String> activeProfiles;
 
+  @Parameter(property = "studio.npm.clean-build")
+  private boolean cleanBuild = false;
+
   private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
 
+  private RootPackageJson rootPackageJson = new RootPackageJson(objectMapper, studioNpmTarget);
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     List<Package> packageRegistry = new ArrayList<>();
-    boolean cleanBuild = true;
 
     packageRegistry.add(new Package("@coremedia/sencha-ext-charts", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext", "7.2.0"));
@@ -87,13 +88,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/ckeditor4", "1.0.0"));
 
-    Map<String, MavenModule> moduleMappings = loadMavenModules(studioNpmMavenRoot);
-    getOrCreatePackage(packageRegistry, findPackageNameByReference(appPackageName, moduleMappings), null, moduleMappings);
+    Map<String, MavenModule> moduleMappings = loadMavenModule(getProject().getFile().getPath().replace("pom.xml", ""));
+    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", getProject().getGroupId(), getProject().getArtifactId()), moduleMappings), null, moduleMappings);
+    // todo: handle clean build
     try {
-      if (cleanBuild) {
-        FileUtils.deleteDirectory(new File(studioNpmTarget));
-      }
-      List<String> yarnWorkspace = moduleMappings.entrySet().stream()
+      rootPackageJson.readPackageJson();
+      moduleMappings.entrySet().stream()
               .map(entry -> {
                 if (ModuleType.IGNORE.equals(entry.getValue().getModuleType())) {
                   return null;
@@ -102,10 +102,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 }
               })
               .filter(Objects::nonNull)
-              .collect(Collectors.toList());
+              .forEach(rootPackageJson::addWorkspace);
 
-      String rootPackageJson = getRootPackageJson(yarnWorkspace);
-      FileUtils.write(new File(studioNpmTarget + "/package.json"), rootPackageJson);
+      rootPackageJson.writePackageJson();
 
       Map<String, Object> lernaJson = new HashMap<>();
       lernaJson.put("npmClient", "yarn");
@@ -119,8 +118,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       FileUtils.write(new File(studioNpmTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
 
-      for (Package aPackage : packageRegistry) {
-        MavenModule mavenModule = moduleMappings.get(aPackage.getName());
+      if (!optionalPackage.isPresent()) {
+        // todo: handle this properly
+        logger.error("Package was null");
+        return;
+      }
+      Package aPackage = optionalPackage.get();
+
+       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
         if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
           String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
           String targetPackageJson = targetPackageDir + "/package.json";
@@ -150,7 +155,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             }
             Map<String, String> testDependencies = new HashMap<>();
             Map<String, String> testScripts = new HashMap<>();
-            if (jangarooConfig.getTestSuite() != null && match("glob:/" + targetPackageDir + "/joounit/**/*.ts", targetPackageDir + "/joounit").size() > 0) {
+            if (jangarooConfig.getTestSuite() != null && !match("glob:/" + targetPackageDir + "/joounit/**/*.ts", targetPackageDir + "/joounit").isEmpty()) {
               testDependencies.put("@jangaroo/joounit", "1.0.0");
               testDependencies.put("@coremedia/sencha-ext", "7.2.0");
               testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
@@ -169,12 +174,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             Map<String, String> devDependencies = new HashMap<>();
             devDependencies.put("@jangaroo/core", "^1.0.0");
             devDependencies.put("@jangaroo/build", "^1.0.0");
+            devDependencies.put("@jangaroo/publish", "^1.0.0");
             devDependencies.putAll(testDependencies);
             devDependencies.put("rimraf", "^3.0.2");
+            additionalJsonEntries.setDevDependencies(devDependencies);
             Map<String, String> scripts = new HashMap<>();
             scripts.put("clean", "rimraf ./dist && rimraf ./build");
             scripts.put("build", "jangaroo build");
-            scripts.putAll(testScripts);
+            scripts.put("publish", "jangaroo-publish dist");
             List<String> typesPaths = new ArrayList<>();
             typesPaths.add("./src/*");
             Map<String, List> allMapping = new HashMap<>();
@@ -323,7 +330,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
           FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
         }
-      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -388,21 +394,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String getRootPackageJson(List<String> workspaces) throws JsonProcessingException {
-    Map<String, String> devDependencies = new HashMap<>();
-    devDependencies.put("lerna", "^3.0.0");
-    Map<String, String> scripts = new HashMap<>();
-    scripts.put("clean", "lerna run clean");
-    scripts.put("build", "lerna run build");
-    scripts.put("test", "lerna run test");
-    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(new PackageJson("studio-client-workspace",
-            null, null, "1.0.0",
-            "MIT",
-            true,
-            new HashMap<>(),
-            devDependencies,
-            scripts,
-            workspaces,
-            new HashMap<>()));
+    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootPackageJson.readPackageJson());
   }
 
   private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, MavenModule> moduleMappings) {
@@ -425,7 +417,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         return Optional.empty();
       } else {
         newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
-        module.getData().getDependencies().stream()
+        List<Dependency> dependencies = module.getData().getDependencies().stream()
                 .filter(dependency -> !"test".equals(dependency.getScope()))
                 .map(dependency -> {
                   if ("${project.groupId}".equals(dependency.getGroupId())) {
@@ -436,8 +428,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   }
                   return dependency;
                 })
-                .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
-        module.getData().getDependencies().stream()
+                .collect(Collectors.toList());
+
+        //dependencies
+        //        .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
+
+        List<Dependency> testDependencies = module.getData().getDependencies().stream()
                 .filter(dependency -> "test".equals(dependency.getScope()))
                 .map(dependency -> {
                   if ("$(project.groupid)".equals(dependency.getGroupId())) {
@@ -448,7 +444,27 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   }
                   return dependency;
                 })
-                .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
+                .collect(Collectors.toList());
+
+        //testDependencies
+        //        .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
+
+        for (Dependency dependency : dependencies) {
+          Package createdPackage = new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+            if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+              newDependencies.add(createdPackage);
+            } else {
+              newDependencies.addAll(createdPackage.getDependencies());
+            }
+        }
+        for (Dependency dependency : testDependencies) {
+          Package createdPackage = new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+            if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+              newDevDependencies.add(createdPackage);
+            } else {
+              newDevDependencies.addAll(createdPackage.getDependencies());
+            }
+        }
       }
       Package newPackage = new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
       packageRegistry.add(newPackage);
@@ -457,16 +473,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
 
-  private void addToDependencies(Dependency dependency, List<Package> dependencies, Map<String, MavenModule> moduleMappings, List<Package> packageRegistry) {
-    String internalPackageName = findPackageNameByReference(calculateMavenName(dependency), moduleMappings);
-    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, internalPackageName, dependency.getVersion(), moduleMappings);
-    if (optionalPackage.isPresent()) {
-      if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-        dependencies.add(optionalPackage.get());
-      } else {
-        dependencies.addAll(optionalPackage.get().getDependencies());
-      }
-    }
+  private Package getDependency(Dependency dependency) {
+    return new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
   }
 
   private void copyStaticPackages() {
@@ -511,6 +519,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
 
+  private Map<String, MavenModule> loadMavenModule(String modulePath) {
+    Map<String, MavenModule> modules = new HashMap<>();
+    modules.put(calculateMavenName(getProject().getModel()), new MavenModule(modulePath, getProject().getModel()));
+    return modules;
+  }
+
+  /*
   private Map<String, MavenModule> loadMavenModules(String basePath) {
     MavenXpp3Reader reader = new MavenXpp3Reader();
     Map<String, MavenModule> modules = new HashMap<>();
@@ -539,12 +554,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     return modules;
   }
+   */
 
+  /*
   private boolean isProfileActive(String profileId) {
     return true;
     // todo: use this
     //return activeProfiles.contains(profileId);
   }
+   */
 
   private String calculateMavenName(Model model) {
     if ("com.coremedia.sencha".equals(model.getGroupId()) && "ext-js-pkg".equals(model.getArtifactId()) ||
@@ -568,9 +586,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   }
 
-
   private boolean isValidVersion(String version) {
-    //todo: implement this
-    return version != null;
+    if (version == null) {
+      return false;
+    }
+    int length = version.length();
+    if (length == 0 || version.split("\\.").length < 3) {
+      return false;
+    }
+    return true;
   }
 }
