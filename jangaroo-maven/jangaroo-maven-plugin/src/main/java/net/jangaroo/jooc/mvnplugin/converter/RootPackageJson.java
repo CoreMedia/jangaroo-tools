@@ -1,12 +1,14 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +46,7 @@ public class RootPackageJson {
       scripts.put("clean", "lerna run clean");
       scripts.put("build", "lerna run build");
       scripts.put("test", "lerna run test");
+      scripts.put("publish", "lerna run publish");
       this.packageJson = new PackageJson("studio-client-workspace",
               null, null, "1.0.0",
               "MIT",
@@ -60,6 +63,7 @@ public class RootPackageJson {
 
   public void writePackageJson() {
     try {
+      this.packageJson.getWorkspaces().sort(Comparator.naturalOrder());
       File packageJsonFile = Paths.get(path + "/package.json").toFile();
       if (packageJsonFile.exists()) {
         packageJsonFile.delete();

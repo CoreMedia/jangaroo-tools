@@ -1,8 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
@@ -16,12 +18,13 @@ import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.tools.ant.taskdefs.Pack;
+import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,37 +46,47 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Mojo(name = "convert-workspace", //convert-workspace
         defaultPhase = LifecyclePhase.INSTALL,
         threadSafe = false) // check for threadsafety and make it threadsafe
-public class WorkspaceConverterMojo extends AbstractJangarooMojo {
+public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
 
-  @Parameter(property = "studio.npm.maven.root")
+  @Parameter
   private String studioNpmMavenRoot = "/home/fwellers/dev/cms/apps/studio-client";
 
-  @Parameter(property = "studio.npm.target")
+  @Parameter
   private String studioNpmTarget = "/home/fwellers/dev/jangaroo-tools/jangaroo-maven/jangaroo-maven-plugin/created_workspace";
 
-  //todo: remove
-  @Parameter(property = "sudio.app.package.name")
-  private String moduleName = "com.coremedia.blueprint__studio-resources";
-
-  //todo: remove
-  @Parameter(property = "activeProfiles", defaultValue = "${session.request.activeProfiles}")
-  protected List<String> activeProfiles;
-
-  @Parameter(property = "studio.npm.clean-build")
+  @Parameter
   private boolean cleanBuild = false;
 
   private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
 
-  private RootPackageJson rootPackageJson = new RootPackageJson(objectMapper, studioNpmTarget);
+  private RootPackageJson rootPackageJson;
+
+  @Parameter
+  private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
+
+  private List<SearchAndReplace> searchAndReplaceList;
+
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
+  private MavenProject project;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    rootPackageJson = new RootPackageJson(objectMapper, studioNpmTarget);
+    searchAndReplaceList = npmPackageNameReplacers.stream()
+            .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
+            .collect(Collectors.toList());
+    //searchAndReplaceList.add(new SearchAndReplace(Pattern.compile("^net.jangaroo__(.+)$"), "@jangaroo/$1"));
+
     List<Package> packageRegistry = new ArrayList<>();
 
     packageRegistry.add(new Package("@coremedia/sencha-ext-charts", "7.2.0"));
@@ -88,8 +101,9 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/ckeditor4", "1.0.0"));
 
-    Map<String, MavenModule> moduleMappings = loadMavenModule(getProject().getFile().getPath().replace("pom.xml", ""));
-    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", getProject().getGroupId(), getProject().getArtifactId()), moduleMappings), null, moduleMappings);
+    Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
+    // todo: packageName cna be null
+    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
     // todo: handle clean build
     try {
       rootPackageJson.readPackageJson();
@@ -125,211 +139,217 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
       }
       Package aPackage = optionalPackage.get();
 
-       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
-        if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
-          String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
-          String targetPackageJson = targetPackageDir + "/package.json";
+      MavenModule mavenModule = moduleMappings.get(aPackage.getName());
+      if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
+        String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
+        String targetPackageJson = targetPackageDir + "/package.json";
 
-          JangarooConfig jangarooConfig = new JangarooConfig();
-          AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
-          JangarooMavenPluginConfiguration jangarooMavenPluginConfiguration = new JangarooMavenPluginConfiguration(mavenModule.getData());
-          if (mavenModule.getModuleType() == ModuleType.SWC) {
-            jangarooConfig.setType(jangarooMavenPluginConfiguration.getPackageType());
-            jangarooConfig.setExtName(calculateMavenName(mavenModule.getData()));
-            jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
-            if (jangarooMavenPluginConfiguration.getTheme() != null) {
-              jangarooConfig.setTheme(findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings));
-            }
-            GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
-            jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
-            jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle());
-            jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-            // todo: is this correct?
-            jangarooConfig.setAdditionalJsIncludeInBundle(
-                    jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
-                            .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                            .collect(Collectors.toList()));
-            jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
-            if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
-              jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
-            }
-            Map<String, String> testDependencies = new HashMap<>();
-            Map<String, String> testScripts = new HashMap<>();
-            if (jangarooConfig.getTestSuite() != null && !match("glob:/" + targetPackageDir + "/joounit/**/*.ts", targetPackageDir + "/joounit").isEmpty()) {
-              testDependencies.put("@jangaroo/joounit", "1.0.0");
-              testDependencies.put("@coremedia/sencha-ext", "7.2.0");
-              testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
-              testDependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-
-              testScripts.put("test", "jangaroo joounit");
-            }
-            if (mavenModule.getData().getOrganization() != null) {
-              additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-            }
-            additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-            Map<String, String> dependencies = new HashMap<>();
-            dependencies.put("@jangaroo/joo", "1.0.0");
-            dependencies.putAll(globalLibraryConfiguration.getDependencies());
-            additionalJsonEntries.setDependencies(dependencies);
-            Map<String, String> devDependencies = new HashMap<>();
-            devDependencies.put("@jangaroo/core", "^1.0.0");
-            devDependencies.put("@jangaroo/build", "^1.0.0");
-            devDependencies.put("@jangaroo/publish", "^1.0.0");
-            devDependencies.putAll(testDependencies);
-            devDependencies.put("rimraf", "^3.0.2");
-            additionalJsonEntries.setDevDependencies(devDependencies);
-            Map<String, String> scripts = new HashMap<>();
-            scripts.put("clean", "rimraf ./dist && rimraf ./build");
-            scripts.put("build", "jangaroo build");
-            scripts.put("publish", "jangaroo-publish dist");
-            List<String> typesPaths = new ArrayList<>();
-            typesPaths.add("./src/*");
-            Map<String, List> allMapping = new HashMap<>();
-            allMapping.put("*", typesPaths);
-            Map<String, Object> typesVersions = new HashMap<>();
-            typesVersions.put("*", allMapping);
-            additionalJsonEntries.setTypesVersions(typesVersions);
-
-            List<String> ignoreFromSrcMain = new ArrayList<>();
-            ignoreFromSrcMain.add("package.json");
-            copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
-                    String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
-                    "src", ignoreFromSrcMain, targetPackageDir
-            );
-          } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
-            jangarooConfig.setType("app");
-            Map<String, Object> commandMap = new HashMap<>();
-            Map<String, String> runMap = new HashMap<>();
-            runMap.put("proxyPathSpec", "/rest/");
-            commandMap.put("run", runMap);
-            jangarooConfig.setCommand(commandMap);
-            jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
+        JangarooConfig jangarooConfig = new JangarooConfig();
+        AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
+        JangarooMavenPluginConfiguration jangarooMavenPluginConfiguration = new JangarooMavenPluginConfiguration(mavenModule.getData());
+        if (mavenModule.getModuleType() == ModuleType.SWC) {
+          jangarooConfig.setType(jangarooMavenPluginConfiguration.getPackageType());
+          jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
+          jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
+          if (jangarooMavenPluginConfiguration.getTheme() != null) {
             jangarooConfig.setTheme(findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings));
-            jangarooConfig.setApplicationClass(jangarooMavenPluginConfiguration.getApplicationClass());
-            jangarooConfig.setAdditionalLocales(jangarooMavenPluginConfiguration.getAdditionalLocales());
-            GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
-            jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
-            jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
-            jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-            // todo: is this correct?
-            jangarooConfig.setAdditionalJsIncludeInBundle(
-                    jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
-                            .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                            .collect(Collectors.toList()));
-            jangarooConfig.setAdditionalJsNonBundle(
-                    jangarooMavenPluginConfiguration.getAdditionalJsNonBundle().stream()
-                            .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                            .collect(Collectors.toList()));
-            if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
-              jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
-            }
-            if (mavenModule.getData().getOrganization() != null) {
-              additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-            }
-            additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-            Map<String, String> dependencies = new HashMap<>();
-            dependencies.put("@coremedia/sencha-ext", "7.2.0");
-            dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
-            dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-            dependencies.put("@jangaroo/joo", "1.0.0");
-            additionalJsonEntries.setDependencies(dependencies);
-            Map<String, String> devDependencies = new HashMap<>();
-            devDependencies.put("@jangaroo/core", "^1.0.0");
-            devDependencies.put("@jangaroo/build", "^1.0.0");
-            devDependencies.put("@jangaroo/run", "^1.0.0");
-            devDependencies.put("rimraf", "^3.0.2");
-            additionalJsonEntries.setDevDependencies(devDependencies);
-            List<String> typesPaths = new ArrayList<>();
-            typesPaths.add("./app/*");
-            Map<String, List> allMapping = new HashMap<>();
-            allMapping.put("*", typesPaths);
-            Map<String, Object> typesVersions = new HashMap<>();
-            typesVersions.put("*", allMapping);
-            additionalJsonEntries.setTypesVersions(typesVersions);
-            List<String> ignoreFromSrcMain = new ArrayList<>();
-            ignoreFromSrcMain.add("app.json");
-            copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app",
-                    String.format("{}__{}", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
-                    "app", ignoreFromSrcMain, targetPackageDir
-            );
-          } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
-            jangarooConfig.setType("app-overlay");
-            Map<String, Object> commandMap = new HashMap<>();
-            Map<String, String> runMap = new HashMap<>();
-            runMap.put("proxyPathSpec", "/rest/");
-            commandMap.put("run", runMap);
-            jangarooConfig.setCommand(commandMap);
-            if (mavenModule.getData().getOrganization() != null) {
-              additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-            }
-            additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-            Map<String, String> devDependencies = new HashMap<>();
-            devDependencies.put("@jangaroo/core", "^1.0.0");
-            devDependencies.put("@jangaroo/build", "^1.0.0");
-            devDependencies.put("@jangaroo/run", "^1.0.0");
-            devDependencies.put("rimraf", "^3.0.2");
-            additionalJsonEntries.setDevDependencies(devDependencies);
-            Map<String, String> scripts = new HashMap<>();
-            scripts.put("clean", "rimraf ./dist");
-            scripts.put("build", "jangaroo build");
-            scripts.put("start", "jangaroo run");
-            additionalJsonEntries.setScripts(scripts);
-          } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
-            jangarooConfig.setType("apps");
-            Map<String, Object> commandMap = new HashMap<>();
-            Map<String, String> runMap = new HashMap<>();
-            runMap.put("proxyPathSpec", "/rest/");
-            commandMap.put("run", runMap);
-            jangarooConfig.setCommand(commandMap);
-            if (jangarooMavenPluginConfiguration.getRootApp() != null && !jangarooMavenPluginConfiguration.getRootApp().isEmpty()) {
-              jangarooConfig.setRootApp(findPackageNameByReference(jangarooMavenPluginConfiguration.getRootApp(), moduleMappings));
-            }
-            if (mavenModule.getData().getOrganization() != null) {
-              additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-            }
-            additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-            Map<String, String> devDependencies = new HashMap<>();
-            devDependencies.put("@jangaroo/core", "^1.0.0");
-            devDependencies.put("@jangaroo/build", "^1.0.0");
-            devDependencies.put("@jangaroo/run", "^1.0.0");
-            devDependencies.put("rimraf", "^3.0.2");
-            additionalJsonEntries.setDevDependencies(devDependencies);
-            Map<String, String> scripts = new HashMap<>();
-            scripts.put("clean", "rimraf ./dist");
-            scripts.put("build", "jangaroo build");
-            scripts.put("start", "jangaroo run");
-            additionalJsonEntries.setScripts(scripts);
           }
+          GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
+          jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
+          jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
+          jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
+          // todo: is this correct?
+          jangarooConfig.setAdditionalJsIncludeInBundle(
+                  jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
+                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
+                          .collect(Collectors.toList()));
+          jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
+          if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
+            jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
+          }
+          Map<String, String> testDependencies = new HashMap<>();
+          Map<String, String> testScripts = new HashMap<>();
+          if (jangarooConfig.getTestSuite() != null && !match("glob:/" + targetPackageDir + "/joounit/**/*.ts", targetPackageDir + "/joounit").isEmpty()) {
+            testDependencies.put("@jangaroo/joounit", "1.0.0");
+            testDependencies.put("@coremedia/sencha-ext", "7.2.0");
+            testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
+            testDependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
 
-          //todo: handle manifest paths
-          objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
-          String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
-          objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
-          FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
-          if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
-            Optional<Package> optionalThemeDependency = packageRegistry.stream()
-                    .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
-                    .findFirst();
-            if (optionalThemeDependency.isPresent()) {
-              additionalJsonEntries.getDependencies().put(optionalThemeDependency.get().getName(), optionalThemeDependency.get().getVersion());
+            testScripts.put("test", "jangaroo joounit");
+          }
+          if (mavenModule.getData().getOrganization() != null) {
+            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
+          }
+          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+          Map<String, String> dependencies = new HashMap<>();
+          dependencies.put("@jangaroo/joo", "1.0.0");
+          dependencies.putAll(globalLibraryConfiguration.getDependencies());
+          additionalJsonEntries.setDependencies(dependencies);
+          Map<String, String> devDependencies = new HashMap<>();
+          devDependencies.put("@jangaroo/core", "^1.0.0");
+          devDependencies.put("@jangaroo/build", "^1.0.0");
+          devDependencies.put("@jangaroo/publish", "^1.0.0");
+          devDependencies.putAll(testDependencies);
+          devDependencies.put("rimraf", "^3.0.2");
+          additionalJsonEntries.setDevDependencies(devDependencies);
+          Map<String, String> scripts = new HashMap<>();
+          scripts.put("clean", "rimraf ./dist && rimraf ./build");
+          scripts.put("build", "jangaroo build");
+          scripts.put("publish", "jangaroo-publish dist");
+          additionalJsonEntries.setScripts(scripts);
+          List<String> typesPaths = new ArrayList<>();
+          typesPaths.add("./src/*");
+          Map<String, List> allMapping = new HashMap<>();
+          allMapping.put("*", typesPaths);
+          Map<String, Object> typesVersions = new HashMap<>();
+          typesVersions.put("*", allMapping);
+          additionalJsonEntries.setTypesVersions(typesVersions);
+
+          List<String> ignoreFromSrcMain = new ArrayList<>();
+          ignoreFromSrcMain.add("package.json");
+          copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
+                  String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
+                  "src", ignoreFromSrcMain, targetPackageDir
+          );
+        } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
+          jangarooConfig.setType("app");
+          Map<String, Object> commandMap = new HashMap<>();
+          Map<String, String> runMap = new HashMap<>();
+          runMap.put("proxyPathSpec", "/rest/");
+          commandMap.put("run", runMap);
+          jangarooConfig.setCommand(commandMap);
+          jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
+          jangarooConfig.setTheme(findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings));
+          jangarooConfig.setApplicationClass(jangarooMavenPluginConfiguration.getApplicationClass());
+          jangarooConfig.setAdditionalLocales(jangarooMavenPluginConfiguration.getAdditionalLocales());
+          GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
+          jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
+          jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
+          jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
+          // todo: is this correct?
+          jangarooConfig.setAdditionalJsIncludeInBundle(
+                  jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
+                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
+                          .collect(Collectors.toList()));
+          jangarooConfig.setAdditionalJsNonBundle(
+                  jangarooMavenPluginConfiguration.getAdditionalJsNonBundle().stream()
+                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
+                          .collect(Collectors.toList()));
+          if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
+            jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
+          }
+          if (mavenModule.getData().getOrganization() != null) {
+            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
+          }
+          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+          Map<String, String> dependencies = new HashMap<>();
+          dependencies.put("@coremedia/sencha-ext", "7.2.0");
+          dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
+          dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
+          dependencies.put("@jangaroo/joo", "1.0.0");
+          additionalJsonEntries.setDependencies(dependencies);
+          Map<String, String> devDependencies = new HashMap<>();
+          devDependencies.put("@jangaroo/core", "^1.0.0");
+          devDependencies.put("@jangaroo/build", "^1.0.0");
+          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("rimraf", "^3.0.2");
+          additionalJsonEntries.setDevDependencies(devDependencies);
+          List<String> typesPaths = new ArrayList<>();
+          typesPaths.add("./app/*");
+          Map<String, List> allMapping = new HashMap<>();
+          allMapping.put("*", typesPaths);
+          Map<String, Object> typesVersions = new HashMap<>();
+          typesVersions.put("*", allMapping);
+          additionalJsonEntries.setTypesVersions(typesVersions);
+          List<String> ignoreFromSrcMain = new ArrayList<>();
+          ignoreFromSrcMain.add("app.json");
+          copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app",
+                  String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
+                  "app", ignoreFromSrcMain, targetPackageDir
+          );
+        } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
+          jangarooConfig.setType("app-overlay");
+          Map<String, Object> commandMap = new HashMap<>();
+          Map<String, String> runMap = new HashMap<>();
+          runMap.put("proxyPathSpec", "/rest/");
+          commandMap.put("run", runMap);
+          jangarooConfig.setCommand(commandMap);
+          if (mavenModule.getData().getOrganization() != null) {
+            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
+          }
+          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+          Map<String, String> devDependencies = new HashMap<>();
+          devDependencies.put("@jangaroo/core", "^1.0.0");
+          devDependencies.put("@jangaroo/build", "^1.0.0");
+          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("rimraf", "^3.0.2");
+          additionalJsonEntries.setDevDependencies(devDependencies);
+          Map<String, String> scripts = new HashMap<>();
+          scripts.put("clean", "rimraf ./dist");
+          scripts.put("build", "jangaroo build");
+          scripts.put("start", "jangaroo run");
+          additionalJsonEntries.setScripts(scripts);
+        } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
+          jangarooConfig.setType("apps");
+          Map<String, Object> commandMap = new HashMap<>();
+          Map<String, String> runMap = new HashMap<>();
+          runMap.put("proxyPathSpec", "/rest/");
+          commandMap.put("run", runMap);
+          jangarooConfig.setCommand(commandMap);
+          if (jangarooMavenPluginConfiguration.getRootApp() != null && !jangarooMavenPluginConfiguration.getRootApp().isEmpty()) {
+            String[] splitName = jangarooMavenPluginConfiguration.getRootApp().split(":");
+            if (splitName.length == 2) {
+              jangarooConfig.setRootApp(calculateMavenName(splitName[0], splitName[1]));
             }
           }
-          if (new File(targetPackageJson).exists()) {
-            PackageJson packageJson = objectMapper.readValue(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
-            packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
-            packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
-            packageJson.getScripts().forEach(additionalJsonEntries::addScript);
-            packageJson.getTypesVersions().forEach(additionalJsonEntries::addTypesVersion);
+          if (mavenModule.getData().getOrganization() != null) {
+            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
-          PackageJson packageJson = new PackageJson(additionalJsonEntries);
-          packageJson.setName(aPackage.getName());
-          packageJson.setVersion(aPackage.getVersion());
-          packageJson.setLicense("MIT");
-          packageJson.setPrivat(true);
-          aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
-          aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
-          FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
+          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+          Map<String, String> devDependencies = new HashMap<>();
+          devDependencies.put("@jangaroo/core", "^1.0.0");
+          devDependencies.put("@jangaroo/build", "^1.0.0");
+          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("rimraf", "^3.0.2");
+          additionalJsonEntries.setDevDependencies(devDependencies);
+          Map<String, String> scripts = new HashMap<>();
+          scripts.put("clean", "rimraf ./dist");
+          scripts.put("build", "jangaroo build");
+          scripts.put("start", "jangaroo run");
+          additionalJsonEntries.setScripts(scripts);
         }
+
+        //todo: handle manifest paths
+        objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
+        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
+        objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
+        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
+        if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
+          Optional<Package> optionalThemeDependency = packageRegistry.stream()
+                  .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
+                  .findFirst();
+          if (optionalThemeDependency.isPresent()) {
+            additionalJsonEntries.getDependencies().put(optionalThemeDependency.get().getName(), optionalThemeDependency.get().getVersion());
+          }
+        }
+
+
+        if (new File(targetPackageJson).exists()) {
+          PackageJson packageJson = objectMapper.readValue(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
+          packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
+          packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
+          packageJson.getScripts().forEach(additionalJsonEntries::addScript);
+          packageJson.getTypesVersions().forEach(additionalJsonEntries::addTypesVersion);
+        }
+        PackageJson packageJson = new PackageJson(additionalJsonEntries);
+        packageJson.setName(aPackage.getName());
+        packageJson.setVersion(aPackage.getVersion());
+        packageJson.setLicense("MIT");
+        packageJson.setPrivat(true);
+        aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
+        aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
+        FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -341,7 +361,7 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
       Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
       if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
         Path targetDirPath = Paths.get(targetPackageDir, "sencha", dir);
-        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() && pathname.getName().contains(".js"));
+        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().contains(".js"));
       }
 
       sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
@@ -393,10 +413,6 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
     return matchingFilePaths;
   }
 
-  private String getRootPackageJson(List<String> workspaces) throws JsonProcessingException {
-    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootPackageJson.readPackageJson());
-  }
-
   private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, MavenModule> moduleMappings) {
     Optional<Package> matchingPackage = packageRegistry.stream()
             .filter(aPackage -> aPackage.matches(packageName, packageVersion))
@@ -419,6 +435,7 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
         newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
         List<Dependency> dependencies = module.getData().getDependencies().stream()
                 .filter(dependency -> !"test".equals(dependency.getScope()))
+                .filter(dependency -> !ignoreDependency(dependency))
                 .map(dependency -> {
                   if ("${project.groupId}".equals(dependency.getGroupId())) {
                     dependency.setGroupId(module.getData().getGroupId());
@@ -430,11 +447,9 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
                 })
                 .collect(Collectors.toList());
 
-        //dependencies
-        //        .forEach(dependency -> addToDependencies(dependency, newDependencies, moduleMappings, packageRegistry));
-
         List<Dependency> testDependencies = module.getData().getDependencies().stream()
                 .filter(dependency -> "test".equals(dependency.getScope()))
+                .filter(dependency -> !ignoreDependency(dependency))
                 .map(dependency -> {
                   if ("$(project.groupid)".equals(dependency.getGroupId())) {
                     dependency.setGroupId(module.getData().getGroupId());
@@ -446,24 +461,27 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
                 })
                 .collect(Collectors.toList());
 
-        //testDependencies
-        //        .forEach(dependency -> addToDependencies(dependency, newDevDependencies, moduleMappings, packageRegistry));
-
         for (Dependency dependency : dependencies) {
-          Package createdPackage = new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
-            if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-              newDependencies.add(createdPackage);
-            } else {
-              newDependencies.addAll(createdPackage.getDependencies());
-            }
+          Package createdPackage = new Package(mapJangarooName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+          if (isJangarooDependency(dependency)) {
+            createdPackage = new Package(mapJangarooName(dependency), "1.0.0");
+          }
+          if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+            newDependencies.add(createdPackage);
+          } else {
+            newDependencies.addAll(createdPackage.getDependencies());
+          }
         }
         for (Dependency dependency : testDependencies) {
-          Package createdPackage = new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
-            if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-              newDevDependencies.add(createdPackage);
-            } else {
-              newDevDependencies.addAll(createdPackage.getDependencies());
-            }
+          Package createdPackage = new Package(mapJangarooName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+          if (isJangarooDependency(dependency)) {
+            createdPackage = new Package(mapJangarooName(dependency), "1.0.0");
+          }
+          if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+            newDevDependencies.add(createdPackage);
+          } else {
+            newDevDependencies.addAll(createdPackage.getDependencies());
+          }
         }
       }
       Package newPackage = new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
@@ -472,12 +490,70 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
     }
   }
 
-
-  private Package getDependency(Dependency dependency) {
-    return new Package(calculateMavenName(dependency), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+  private String mapJangarooName(Dependency dependency) {
+    if (Objects.equals(dependency.getArtifactId(), "ext")) {
+      return "@coremedia/sencha-ext";
+    }
+    if (Objects.equals(dependency.getArtifactId(), "ext-classic")) {
+      return "@coremedia/sencha-ext-classic";
+    }
+    if (Objects.equals(dependency.getArtifactId(), "charts")) {
+      return "@coremedia/sencha-ext-charts";
+    }
+    if (dependency.getArtifactId().startsWith("theme-")) {
+      //todo: test this
+      return "@coremedia/sencha-ext-classic-" + dependency.getArtifactId();
+    }
+    if (dependency.getGroupId().startsWith("net.jangaroo")) {
+      if (Objects.equals(dependency.getArtifactId(), "jangaroo-net")) {
+        return "@jangaroo/jangaroo-net";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "jangaroo-runtime")) {
+        return "@jangaroo/joo";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "jooflash-core")) {
+        return "@jangaroo/jooflash-core";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "jooflexframework")) {
+        return "@jangaroo/jooflexframework";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "joounit")) {
+        return "@jangaroo/joounit";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "ext-as")) {
+        return "@jangaroo/ext-ts";
+      }
+      if (Objects.equals(dependency.getArtifactId(), "ckeditor4")) {
+        return "@jangaroo/ckeditor4";
+      }
+    }
+    return calculateMavenName(dependency);
   }
 
-  private void copyStaticPackages() {
+
+  private boolean isJangarooDependency(Dependency dependency) {
+    return Arrays.asList("net.jangaroo__jangaroo-browser",
+            "net.jangaroo__ext-as",
+            "net.jangaroo__jangaroo-net",
+            "net.jangaroo__jangaroo-runtime",
+            "net.jangaroo__jooflash-core",
+            "net.jangaroo__jooflexframework",
+            "net.jangaroo__joounit",
+            "net.jangaroo__ckeditor4")
+            .contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
+  }
+
+  private boolean ignoreDependency(Dependency dependency) {
+    return Arrays.asList("net.jangaroo__jangaroo-browser"
+            //"net.jangaroo__ext-as",
+            //"net.jangaroo__jangaroo-net",
+            //"net.jangaroo__jangaroo-runtime"
+            //"net.jangaroo__jooflash-core",
+            //"net.jangaroo__jooflexframework",
+            //"net.jangaroo__joounit",
+            //"net.jangaroo__ckeditor4"
+            )
+            .contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
   }
 
   public String findPackageNameByReference(String reference, Map<String, MavenModule> moduleMappings) {
@@ -510,6 +586,12 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
       logger.error("Could not resolve reference " + reference + ". No suitable module was found.");
       return null;
     }
+    for (SearchAndReplace searchAndReplace : searchAndReplaceList) {
+      Matcher matcher = searchAndReplace.search.matcher(packageName.get());
+      if (matcher.matches()) {
+        return matcher.replaceAll(searchAndReplace.replace);
+      }
+    }
     return packageName.get();
   }
 
@@ -521,69 +603,33 @@ public class WorkspaceConverterMojo extends AbstractJangarooMojo {
 
   private Map<String, MavenModule> loadMavenModule(String modulePath) {
     Map<String, MavenModule> modules = new HashMap<>();
-    modules.put(calculateMavenName(getProject().getModel()), new MavenModule(modulePath, getProject().getModel()));
+    modules.put(calculateMavenName(project.getModel()), new MavenModule(modulePath, project.getModel()));
     return modules;
   }
-
-  /*
-  private Map<String, MavenModule> loadMavenModules(String basePath) {
-    MavenXpp3Reader reader = new MavenXpp3Reader();
-    Map<String, MavenModule> modules = new HashMap<>();
-    try {
-      Model model = reader.read(new FileReader(basePath + "/pom.xml"));
-
-      if (model.getGroupId() == null) {
-        model.setGroupId(model.getParent().getGroupId());
-      }
-      if (model.getVersion() == null) {
-        model.setVersion(model.getParent().getVersion());
-      }
-      List<String> childModules = model.getModules();
-      model.getProfiles().stream()
-              .filter(profile -> isProfileActive(profile.getId()))
-              .flatMap(profile -> profile.getModules().stream())
-              .forEach(childModules::add);
-      if (!childModules.isEmpty()) {
-        for (String moduleName : childModules) {
-          modules.putAll(loadMavenModules(basePath + "/" + moduleName));
-        }
-      }
-      modules.put(calculateMavenName(model), new MavenModule(basePath, model));
-    } catch (IOException | XmlPullParserException e) {
-      logger.debug(String.format("pom does not exist in directory %s", basePath));
-    }
-    return modules;
-  }
-   */
-
-  /*
-  private boolean isProfileActive(String profileId) {
-    return true;
-    // todo: use this
-    //return activeProfiles.contains(profileId);
-  }
-   */
 
   private String calculateMavenName(Model model) {
-    if ("com.coremedia.sencha".equals(model.getGroupId()) && "ext-js-pkg".equals(model.getArtifactId()) ||
-    "net.jangaroo.com.sencha".equals(model.getGroupId()) && "ext-js-pkg-gpl".equals(model.getArtifactId())) {
-      return "ext";
+    return calculateMavenName(model.getGroupId(), model.getArtifactId());
+  }
+
+  private String calculateMavenName(String groupId, String artifactId) {
+    String mavenName;
+    if ("com.coremedia.sencha".equals(groupId) && "ext-js-pkg".equals(artifactId) ||
+            "net.jangaroo.com.sencha".equals(groupId) && "ext-js-pkg-gpl".equals(artifactId)) {
+      mavenName = "ext";
     } else {
-      String groupId = model.getGroupId();
-      if (groupId == null) {
-        groupId = model.getParent().getGroupId();
-      }
-      return groupId + "__" + model.getArtifactId();
+      mavenName = groupId + "__" + artifactId;
     }
+    for (SearchAndReplace searchAndReplace : searchAndReplaceList) {
+      Matcher matcher = searchAndReplace.search.matcher(mavenName);
+      if (matcher.matches()) {
+        return matcher.replaceAll(searchAndReplace.replace);
+      }
+    }
+    return mavenName;
   }
 
   private String calculateMavenName(Dependency dependency) {
-    if ("com.coremedia.sencha".equals(dependency.getGroupId()) && "ext-js-pkg".equals(dependency.getArtifactId())) {
-      return "ext";
-    } else {
-      return dependency.getGroupId() + "__" + dependency.getArtifactId();
-    }
-
+    return calculateMavenName(dependency.getGroupId(), dependency.getArtifactId());
   }
 
   private boolean isValidVersion(String version) {

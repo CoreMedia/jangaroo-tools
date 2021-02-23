@@ -32,7 +32,7 @@ public class JangarooMavenPluginConfiguration {
     if (optionalPlugin.isPresent()) {
       Xpp3Dom configuration = (Xpp3Dom) optionalPlugin.get().getConfiguration();
       if (configuration != null) {
-        packageType = getConfigString(configuration, "packageType");
+        packageType = !getConfigString(configuration, "packageType").isEmpty() ? getConfigString(configuration, "packageType") : "code";
         theme = getConfigString(configuration, "theme");
         applicationClass = getConfigString(configuration, "applicationClass");
         rootApp = getConfigString(configuration, "rootApp");
@@ -65,7 +65,7 @@ public class JangarooMavenPluginConfiguration {
     if (child != null) {
       List<Xpp3Dom> value = Arrays.asList(child.getChildren());
       if (!value.isEmpty()) {
-        return value.stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+        return value.stream().map(Xpp3Dom::getValue).collect(Collectors.toList());
       } else {
         return new ArrayList<>();
       }
@@ -76,13 +76,16 @@ public class JangarooMavenPluginConfiguration {
 
   private String getConfigString(Xpp3Dom config, String property) {
     Xpp3Dom child = config.getChild(property);
+    //todo is this ok?
     if (child != null) {
-      Xpp3Dom value = child.getChild("value");
+      /*Xpp3Dom value = child.getChild("value");
       if (value != null) {
         return value.getValue();
       } else {
         return "";
       }
+       */
+      return child.getValue();
     } else {
       return "";
     }
