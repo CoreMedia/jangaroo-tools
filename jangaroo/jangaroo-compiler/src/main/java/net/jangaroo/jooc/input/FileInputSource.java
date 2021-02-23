@@ -18,9 +18,9 @@ public class FileInputSource extends DirectoryInputSource {
   private File file;
   private List<InputSource> children;
 
-  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath, String as3PackagePrefixToRemoveInTypeScript) {
+  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath, String extNamespace) {
     super(inSourcePath);
-    this.as3PackagePrefixToRemoveInTypeScript = as3PackagePrefixToRemoveInTypeScript;
+    this.extNamespace = extNamespace;
     this.sourceDir = sourceDir;
     this.file = file;
   }
@@ -74,7 +74,7 @@ public class FileInputSource extends DirectoryInputSource {
 
   @Override
   public InputSource getParent() {
-    return new FileInputSource(sourceDir, file.getParentFile(), isInSourcePath(), getAS3PackagePrefixToRemoveInTypeScript());
+    return new FileInputSource(sourceDir, file.getParentFile(), isInSourcePath(), getExtNamespace());
   }
 
   @Override
@@ -93,7 +93,7 @@ public class FileInputSource extends DirectoryInputSource {
       assert childFiles != null; // since we made sure it is a directory!
       Arrays.sort(childFiles);   // create a predictable order!
       for (File childFile : childFiles) {
-        children.add(new FileInputSource(sourceDir, childFile, isInSourcePath(), getAS3PackagePrefixToRemoveInTypeScript()));
+        children.add(new FileInputSource(sourceDir, childFile, isInSourcePath(), getExtNamespace()));
       }
     }
     return children;
@@ -112,7 +112,7 @@ public class FileInputSource extends DirectoryInputSource {
         realPath = realPath.replace(File.separatorChar, '/');
       }
       if (path.equals(realPath)) {
-        return new FileInputSource(sourceDir, sourceFile, isInSourcePath(), getAS3PackagePrefixToRemoveInTypeScript());
+        return new FileInputSource(sourceDir, sourceFile, isInSourcePath(), getExtNamespace());
       }
     }
     return null;

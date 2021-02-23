@@ -6,7 +6,7 @@ import java.io.InputStream;
 public abstract class DirectoryInputSource implements InputSource {
 
   private boolean inSourcePath;
-  String as3PackagePrefixToRemoveInTypeScript;
+  String extNamespace;
 
   protected DirectoryInputSource(boolean inSourcePath) {
     this.inSourcePath = inSourcePath;
@@ -28,8 +28,8 @@ public abstract class DirectoryInputSource implements InputSource {
   }
 
   @Override
-  public String getAS3PackagePrefixToRemoveInTypeScript() {
-    return as3PackagePrefixToRemoveInTypeScript;
+  public String getExtNamespace() {
+    return extNamespace;
   }
 
   @Override

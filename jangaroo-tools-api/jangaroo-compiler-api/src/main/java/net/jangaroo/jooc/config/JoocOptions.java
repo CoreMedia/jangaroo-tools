@@ -19,7 +19,7 @@ public interface JoocOptions {
 
   boolean isMigrateToTypeScript();
 
-  String getAs3PackagePrefixToRemoveInTypeScript();
+  String getExtNamespace();
 
   List<SearchAndReplace> getNpmPackageNameReplacers();
 

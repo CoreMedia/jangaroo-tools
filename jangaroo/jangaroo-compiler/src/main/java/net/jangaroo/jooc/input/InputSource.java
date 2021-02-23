@@ -17,7 +17,7 @@ public interface InputSource {
 
   String getRelativePath();
 
-  String getAS3PackagePrefixToRemoveInTypeScript();
+  String getExtNamespace();
 
   boolean isDirectory();
 

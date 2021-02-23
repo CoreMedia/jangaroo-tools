@@ -182,9 +182,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
     }
     try {
-      String as3PackagePrefixToRemoveInTypeScript = getConfig().getAs3PackagePrefixToRemoveInTypeScript();
-      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true, as3PackagePrefixToRemoveInTypeScript);
-      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false, as3PackagePrefixToRemoveInTypeScript);
+      String extNamespace = getConfig().getExtNamespace();
+      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true, extNamespace);
+      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false, extNamespace);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -417,7 +417,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 //      }
 //      throw Jooc.error(String.format("Compilation unit %s defined in %s is redeclared in %s.", qName, canonicalInputSource.getPath(), file.getPath()), file);
 //    }
-    FileInputSource inputSource = new FileInputSource(sourceDir, file, true, getConfig().getAs3PackagePrefixToRemoveInTypeScript());
+    FileInputSource inputSource = new FileInputSource(sourceDir, file, true, getConfig().getExtNamespace());
     compileQueue.add(inputSource);
     importSource(inputSource);
   }

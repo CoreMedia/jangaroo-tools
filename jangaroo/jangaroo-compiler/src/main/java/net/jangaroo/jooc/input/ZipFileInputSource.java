@@ -75,10 +75,10 @@ public class ZipFileInputSource extends DirectoryInputSource {
           if (senchaPackageName == null && "name".equals(propertyName)) {
             senchaPackageName = matcher.group(2);
           }
-          if (as3PackagePrefixToRemoveInTypeScript == null && "namespace".equals(propertyName)) {
-            as3PackagePrefixToRemoveInTypeScript = matcher.group(2);
+          if (extNamespace == null && "namespace".equals(propertyName)) {
+            extNamespace = matcher.group(2);
           }
-          if (senchaPackageName != null && as3PackagePrefixToRemoveInTypeScript != null) {
+          if (senchaPackageName != null && extNamespace != null) {
             break;
           }
         }

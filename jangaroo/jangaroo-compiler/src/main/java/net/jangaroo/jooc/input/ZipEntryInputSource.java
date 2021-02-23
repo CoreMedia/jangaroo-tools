@@ -27,8 +27,8 @@ public class ZipEntryInputSource implements InputSource {
   }
 
   @Override
-  public String getAS3PackagePrefixToRemoveInTypeScript() {
-    return getZipFileInputSource().getAS3PackagePrefixToRemoveInTypeScript();
+  public String getExtNamespace() {
+    return getZipFileInputSource().getExtNamespace();
   }
 
   @Override

@@ -140,10 +140,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean migrateToTypeScript = false;
 
   /**
-   * Experimental: When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files.
+   * Experimental: The Ext namespace is stripped from the relative path to the source root.
    */
-  @Parameter(property = "as3PackagePrefixToRemoveInTypeScript")
-  private String as3PackagePrefixToRemoveInTypeScript = "";
+  @Parameter(property = "extNamespace")
+  private String extNamespace = "";
 
   /**
    * Experimental: If set to "true", compiler generates parameter initializer code that implements
@@ -273,7 +273,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
-    configuration.setAs3PackagePrefixToRemoveInTypeScript(as3PackagePrefixToRemoveInTypeScript);
+    configuration.setExtNamespace(extNamespace);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
     configuration.setNpmPackageNameReplacers(

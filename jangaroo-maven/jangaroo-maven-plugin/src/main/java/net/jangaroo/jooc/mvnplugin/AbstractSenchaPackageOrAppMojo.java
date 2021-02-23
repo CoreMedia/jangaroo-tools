@@ -58,10 +58,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   private File senchaSrcDir;
 
   /**
-   * Experimental: When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files.
+   * Experimental: The Ext namespace is stripped from the relative path to the source root.
    */
-  @Parameter(property = "as3PackagePrefixToRemoveInTypeScript")
-  private String as3PackagePrefixToRemoveInTypeScript = "";
+  @Parameter(property = "extNamespace")
+  private String extNamespace = "";
 
   public abstract String getType();
 
@@ -69,7 +69,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     configureMetadata(configBuilder);
-    configBuilder.namespace(as3PackagePrefixToRemoveInTypeScript);
+    configBuilder.namespace(extNamespace);
     configureRequires(configBuilder);
     configureModule(configBuilder);
     configureProfile(configBuilder, null, this);

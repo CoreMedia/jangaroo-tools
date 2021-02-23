@@ -14,12 +14,12 @@ public class PathInputSource extends DirectoryInputSource {
     return fromFiles(files, rootDirs, inSourcePath, null);
   }
 
-  public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath, String as3PackagePrefixToRemoveInTypeScript) throws IOException {
+  public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath, String extNamespace) throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
     StringBuilder name = new StringBuilder();
     for (File file : files) {
       if (file.isDirectory()) {
-        entries.add(new FileInputSource(file, file, inSourcePath, as3PackagePrefixToRemoveInTypeScript));
+        entries.add(new FileInputSource(file, file, inSourcePath, extNamespace));
       } else if (file.getName().endsWith(".swc") || file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
         entries.add(new ZipFileInputSource(file, rootDirs, inSourcePath));
       }
