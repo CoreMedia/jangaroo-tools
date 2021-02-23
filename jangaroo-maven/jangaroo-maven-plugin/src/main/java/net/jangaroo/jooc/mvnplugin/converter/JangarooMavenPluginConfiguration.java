@@ -32,7 +32,7 @@ public class JangarooMavenPluginConfiguration {
     if (optionalPlugin.isPresent()) {
       Xpp3Dom configuration = (Xpp3Dom) optionalPlugin.get().getConfiguration();
       if (configuration != null) {
-        packageType = !getConfigString(configuration, "packageType").isEmpty() ? getConfigString(configuration, "packageType") : "code";
+        packageType = getConfigString(configuration, "packageType") != null? getConfigString(configuration, "packageType") : "code";
         theme = getConfigString(configuration, "theme");
         applicationClass = getConfigString(configuration, "applicationClass");
         rootApp = getConfigString(configuration, "rootApp");
@@ -43,21 +43,8 @@ public class JangarooMavenPluginConfiguration {
         additionalCssIncludeInBundle = getConfigList(configuration, "additionalCssIncludeInBundle");
         additionalJsIncludeInBundle = getConfigList(configuration, "additionalJsIncludeInBundle");
         additionalJsNonBundle = getConfigList(configuration, "additionalJsNonBundle");
-      } else {
-        additionalLocales = new ArrayList<>();
-        additionalCssNonBundle = new ArrayList<>();
-        additionalCssIncludeInBundle = new ArrayList<>();
-        additionalJsIncludeInBundle = new ArrayList<>();
-        additionalJsNonBundle = new ArrayList<>();
       }
-    } else {
-      additionalLocales = new ArrayList<>();
-      additionalCssNonBundle = new ArrayList<>();
-      additionalCssIncludeInBundle = new ArrayList<>();
-      additionalJsIncludeInBundle = new ArrayList<>();
-      additionalJsNonBundle = new ArrayList<>();
     }
-
   }
 
   private List<String> getConfigList(Xpp3Dom config, String property) {
@@ -87,7 +74,7 @@ public class JangarooMavenPluginConfiguration {
        */
       return child.getValue();
     } else {
-      return "";
+      return null;
     }
   }
 

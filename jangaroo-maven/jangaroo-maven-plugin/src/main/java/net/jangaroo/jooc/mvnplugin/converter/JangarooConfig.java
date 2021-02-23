@@ -50,7 +50,9 @@ public class JangarooConfig {
   }
 
   public void setType(String type) {
-    this.type = type;
+    if (type != null && !type.isEmpty()) {
+      this.type = type;
+    }
   }
 
   public String getExtName() {
@@ -58,7 +60,9 @@ public class JangarooConfig {
   }
 
   public void setExtName(String extName) {
-    this.extName = extName;
+    if (extName != null && !extName.isEmpty()) {
+      this.extName = extName;
+    }
   }
 
   public String getOutputDirectory() {
@@ -66,7 +70,9 @@ public class JangarooConfig {
   }
 
   public void setOutputDirectory(String outputDirectory) {
-    this.outputDirectory = outputDirectory;
+    if (outputDirectory != null && !outputDirectory.isEmpty()) {
+      this.outputDirectory = outputDirectory;
+    }
   }
 
   public String getApplicationClass() {
@@ -74,7 +80,9 @@ public class JangarooConfig {
   }
 
   public void setApplicationClass(String applicationClass) {
-    this.applicationClass = applicationClass;
+    if (applicationClass != null && !applicationClass.isEmpty()) {
+      this.applicationClass = applicationClass;
+    }
   }
 
   public String getRootApp() {
@@ -82,7 +90,9 @@ public class JangarooConfig {
   }
 
   public void setRootApp(String rootApp) {
-    this.rootApp = rootApp;
+    if (rootApp != null && !rootApp.isEmpty()) {
+      this.rootApp = rootApp;
+    }
   }
 
   public String getExtNamespace() {
@@ -90,7 +100,9 @@ public class JangarooConfig {
   }
 
   public void setExtNamespace(String extNamespace) {
-    this.extNamespace = extNamespace;
+    if (extNamespace != null && !extNamespace.isEmpty()) {
+      this.extNamespace = extNamespace;
+    }
   }
 
   public String getTheme() {
@@ -98,7 +110,9 @@ public class JangarooConfig {
   }
 
   public void setTheme(String theme) {
-    this.theme = theme;
+    if (theme != null && !theme.isEmpty()) {
+      this.theme = theme;
+    }
   }
 
   public String getTestSuite() {
@@ -106,7 +120,9 @@ public class JangarooConfig {
   }
 
   public void setTestSuite(String testSuite) {
-    this.testSuite = testSuite;
+    if (testSuite != null && !testSuite.isEmpty()) {
+      this.testSuite = testSuite;
+    }
   }
 
   public Object getSencha() {
@@ -122,7 +138,9 @@ public class JangarooConfig {
   }
 
   public void setAppManifests(Map<String, Object> appManifests) {
-    this.appManifests = appManifests;
+    if (appManifests != null && !appManifests.isEmpty()) {
+      this.appManifests = appManifests;
+    }
   }
 
   public List<String> getAdditionalLocales() {
@@ -130,7 +148,9 @@ public class JangarooConfig {
   }
 
   public void setAdditionalLocales(List<String> additionalLocales) {
-    this.additionalLocales = additionalLocales;
+    if (additionalLocales != null && !additionalLocales.isEmpty()) {
+      this.additionalLocales = additionalLocales;
+    }
   }
 
   public List<String> getAdditionalCssIncludeInBundle() {
@@ -138,7 +158,9 @@ public class JangarooConfig {
   }
 
   public void setAdditionalCssIncludeInBundle(List<String> additionalCssIncludeInBundle) {
-    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
+    if (additionalCssIncludeInBundle != null && !additionalCssIncludeInBundle.isEmpty()) {
+      this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
+    }
   }
 
   public List<String> getAdditionalCssNonBundle() {
@@ -146,7 +168,9 @@ public class JangarooConfig {
   }
 
   public void setAdditionalCssNonBundle(List<String> additionalCssNonBundle) {
-    this.additionalCssNonBundle = additionalCssNonBundle;
+    if (additionalCssNonBundle != null && !additionalCssNonBundle.isEmpty()) {
+      this.additionalCssNonBundle = additionalCssNonBundle;
+    }
   }
 
   public List<String> getAdditionalJsIncludeInBundle() {
@@ -154,7 +178,9 @@ public class JangarooConfig {
   }
 
   public void setAdditionalJsIncludeInBundle(List<String> additionalJsIncludeInBundle) {
-    this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
+    if (additionalJsIncludeInBundle != null && !additionalJsIncludeInBundle.isEmpty()) {
+      this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
+    }
   }
 
   public List<String> getAdditionalJsNonBundle() {
@@ -162,7 +188,9 @@ public class JangarooConfig {
   }
 
   public void setAdditionalJsNonBundle(List<String> additionalJsNonBundle) {
-    this.additionalJsNonBundle = additionalJsNonBundle;
+    if (additionalJsNonBundle != null && !additionalJsNonBundle.isEmpty()) {
+      this.additionalJsNonBundle = additionalJsNonBundle;
+    }
   }
 
   public List<GlobalLibraryConfiguration.LibraryItem> getGlobalLibraries() {
@@ -170,7 +198,9 @@ public class JangarooConfig {
   }
 
   public void setGlobalLibraries(List<GlobalLibraryConfiguration.LibraryItem> globalLibraries) {
-    this.globalLibraries = globalLibraries;
+    if (globalLibraries != null && !globalLibraries.isEmpty()) {
+      this.globalLibraries = globalLibraries;
+    }
   }
 
   public Map<String, Object> getCommand() {
@@ -178,6 +208,8 @@ public class JangarooConfig {
   }
 
   public void setCommand(Map<String, Object> command) {
-    this.command = command;
+    if (command != null && !command.isEmpty()) {
+      this.command = command;
+    }
   }
 }
