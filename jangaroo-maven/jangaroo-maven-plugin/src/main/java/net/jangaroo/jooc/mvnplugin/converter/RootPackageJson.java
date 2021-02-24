@@ -63,7 +63,9 @@ public class RootPackageJson {
 
   public void writePackageJson() {
     try {
-      this.packageJson.getWorkspaces().sort(Comparator.naturalOrder());
+      if (this.packageJson.getWorkspaces() != null) {
+        this.packageJson.getWorkspaces().sort(Comparator.naturalOrder());
+      }
       File packageJsonFile = Paths.get(path + "/package.json").toFile();
       if (packageJsonFile.exists()) {
         packageJsonFile.delete();

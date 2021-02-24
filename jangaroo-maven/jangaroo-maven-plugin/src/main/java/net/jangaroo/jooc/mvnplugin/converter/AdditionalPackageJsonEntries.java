@@ -12,10 +12,6 @@ public class AdditionalPackageJsonEntries {
   private Map<String, Object> typesVersions;
 
   public AdditionalPackageJsonEntries() {
-    this.dependencies = new HashMap<>();
-    this.devDependencies = new HashMap<>();
-    this.scripts = new HashMap<>();
-    this.typesVersions = new HashMap<>();
   }
 
   public String getAuthor() {
@@ -23,7 +19,9 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void setAuthor(String author) {
-    this.author = author;
+    if (author != null && !author.isEmpty()) {
+      this.author = author;
+    }
   }
 
   public String getDescription() {
@@ -31,7 +29,9 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void setDescription(String description) {
-    this.description = description;
+    if (description != null && !description.isEmpty()) {
+      this.description = description;
+    }
   }
 
   public Map<String, String> getDependencies() {
@@ -39,11 +39,16 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void addDependency(String name, String version) {
+    if (this.devDependencies == null) {
+      this.devDependencies = new HashMap<>();
+    }
     this.dependencies.put(name, version);
   }
 
   public void setDependencies(Map<String, String> dependencies) {
-    this.dependencies = dependencies;
+    if (dependencies != null && !dependencies.isEmpty()) {
+      this.dependencies = dependencies;
+    }
   }
 
   public Map<String, String> getDevDependencies() {
@@ -51,11 +56,16 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void addDevDependency(String name, String version) {
+    if (this.devDependencies == null) {
+      this.devDependencies = new HashMap<>();
+    }
     this.devDependencies.put(name, version);
   }
 
   public void setDevDependencies(Map<String, String> devDependencies) {
-    this.devDependencies = devDependencies;
+    if (devDependencies != null && !devDependencies.isEmpty()) {
+      this.devDependencies = devDependencies;
+    }
   }
 
   public Map<String, String> getScripts() {
@@ -63,11 +73,16 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void addScript(String name, String command) {
+    if (this.scripts == null) {
+      this.scripts = new HashMap<>();
+    }
     this.scripts.put(name, command);
   }
 
   public void setScripts(Map<String, String> scripts) {
-    this.scripts = scripts;
+    if (scripts != null && !scripts.isEmpty()) {
+      this.scripts = scripts;
+    }
   }
 
   public Map<String, Object> getTypesVersions() {
@@ -75,10 +90,15 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void addTypesVersion(String name, Object version) {
+    if (this.typesVersions == null) {
+      this.typesVersions = new HashMap<>();
+    }
     this.typesVersions.put(name, version);
   }
 
   public void setTypesVersions(Map<String, Object> typesVersions) {
-    this.typesVersions = typesVersions;
+    if (typesVersions != null && !typesVersions.isEmpty()) {
+      this.typesVersions = typesVersions;
+    }
   }
 }

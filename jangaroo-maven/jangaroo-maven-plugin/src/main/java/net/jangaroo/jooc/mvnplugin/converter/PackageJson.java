@@ -41,15 +41,9 @@ public class PackageJson {
     this.devDependencies = additionalPackageJsonEntries.getDevDependencies();
     this.scripts = additionalPackageJsonEntries.getScripts();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
-    this.workspaces = new ArrayList<>();
   }
 
   public PackageJson() {
-    this.dependencies = new HashMap<>();
-    this.devDependencies = new HashMap<>();
-    this.scripts = new HashMap<>();
-    this.workspaces = new ArrayList<>();
-    this.typesVersions = new HashMap<>();
   }
 
   public String getName() {
@@ -57,7 +51,9 @@ public class PackageJson {
   }
 
   public void setName(String name) {
-    this.name = name;
+    if (name != null && !name.isEmpty()) {
+      this.name = name;
+    }
   }
 
   public String getAuthor() {
@@ -65,7 +61,9 @@ public class PackageJson {
   }
 
   public void setAuthor(String author) {
-    this.author = author;
+    if (author != null && !author.isEmpty()) {
+      this.author = author;
+    }
   }
 
   public String getDescription() {
@@ -73,7 +71,9 @@ public class PackageJson {
   }
 
   public void setDescription(String description) {
-    this.description = description;
+    if (description != null && !description.isEmpty()) {
+      this.description = description;
+    }
   }
 
   public String getVersion() {
@@ -81,7 +81,9 @@ public class PackageJson {
   }
 
   public void setVersion(String version) {
-    this.version = version;
+    if (version != null && !version.isEmpty()) {
+      this.version = version;
+    }
   }
 
   public String getLicense() {
@@ -89,7 +91,9 @@ public class PackageJson {
   }
 
   public void setLicense(String license) {
-    this.license = license;
+    if (license != null && !license.isEmpty()) {
+      this.license = license;
+    }
   }
 
   public boolean isPrivat() {
@@ -105,11 +109,16 @@ public class PackageJson {
   }
 
   public void addDependency(String name, String version) {
+    if (this.dependencies == null) {
+      this.dependencies = new HashMap<>();
+    }
     this.dependencies.put(name, version);
   }
 
   public void setDependencies(Map<String, String> dependencies) {
-    this.dependencies = dependencies;
+    if (dependencies != null && !dependencies.isEmpty()) {
+      this.dependencies = dependencies;
+    }
   }
 
   public Map<String, String> getDevDependencies() {
@@ -117,11 +126,16 @@ public class PackageJson {
   }
 
   public void addDevDependency(String name, String version) {
+    if (this.devDependencies == null) {
+      this.devDependencies = new HashMap<>();
+    }
     this.devDependencies.put(name, version);
   }
 
   public void setDevDependencies(Map<String, String> devDependencies) {
-    this.devDependencies = devDependencies;
+    if (devDependencies != null && !devDependencies.isEmpty()) {
+      this.devDependencies = devDependencies;
+    }
   }
 
   public Map<String, String> getScripts() {
@@ -129,11 +143,16 @@ public class PackageJson {
   }
 
   public void addScript(String name, String command) {
+    if (this.scripts == null) {
+      this.scripts = new HashMap<>();
+    }
     this.scripts.put(name, command);
   }
 
   public void setScripts(Map<String, String> scripts) {
-    this.scripts = scripts;
+    if (scripts != null && !scripts.isEmpty()) {
+      this.scripts = scripts;
+    }
   }
 
   public List<String> getWorkspaces() {
@@ -141,11 +160,16 @@ public class PackageJson {
   }
 
   public void addWorkspace(String workspace) {
+    if (this.workspaces == null) {
+      this.workspaces = new ArrayList<>();
+    }
     this.workspaces.add(workspace);
   }
 
   public void setWorkspaces(List<String> workspaces) {
-    this.workspaces = workspaces;
+    if (workspaces != null && !workspaces.isEmpty()) {
+      this.workspaces = workspaces;
+    }
   }
 
   public Map<String, Object> getTypesVersions() {
@@ -153,10 +177,15 @@ public class PackageJson {
   }
 
   public void addTypesVersion(String name, Object version) {
+    if (this.typesVersions == null) {
+      this.typesVersions = new HashMap<>();
+    }
     this.typesVersions.put(name, version);
   }
 
   public void setTypesVersions(Map<String, Object> typesVersions) {
-    this.typesVersions = typesVersions;
+    if (typesVersions != null && !typesVersions.isEmpty()) {
+      this.typesVersions = typesVersions;
+    }
   }
 }

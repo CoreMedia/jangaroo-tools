@@ -102,7 +102,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/ckeditor4", "1.0.0"));
 
     Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
-    // todo: packageName cna be null
     Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
     // todo: handle clean build
     try {
@@ -133,7 +132,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       FileUtils.write(new File(studioNpmTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
 
       if (!optionalPackage.isPresent()) {
-        // todo: handle this properly
         logger.warn("Package was null");
         return;
       }
@@ -152,13 +150,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
-            jangarooConfig.setTheme(findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings));
+            jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
           }
           GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
           jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
           jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
           jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-          // todo: is this correct?
           jangarooConfig.setAdditionalJsIncludeInBundle(
                   jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
                           .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
@@ -173,7 +170,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           Map<String, String> testDependencies = new HashMap<>();
           Map<String, String> testScripts = new HashMap<>();
-          if (jangarooConfig.getTestSuite() != null && !match("glob:/" + targetPackageDir + "/joounit/**/*.ts", targetPackageDir + "/joounit").isEmpty()) {
+          if (jangarooConfig.getTestSuite() != null) {
             testDependencies.put("@jangaroo/joounit", "1.0.0");
             testDependencies.put("@coremedia/sencha-ext", "7.2.0");
             testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
@@ -225,7 +222,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setCommand(commandMap);
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
-            jangarooConfig.setTheme(findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings));
+            jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
           }
           jangarooConfig.setApplicationClass(jangarooMavenPluginConfiguration.getApplicationClass());
           jangarooConfig.setAdditionalLocales(jangarooMavenPluginConfiguration.getAdditionalLocales());
@@ -344,10 +341,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
         if (new File(targetPackageJson).exists()) {
           PackageJson packageJson = objectMapper.readValue(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
-          packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
-          packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
-          packageJson.getScripts().forEach(additionalJsonEntries::addScript);
-          packageJson.getTypesVersions().forEach(additionalJsonEntries::addTypesVersion);
+          if (packageJson.getDependencies() != null) {
+            packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
+          }
+          if (packageJson.getDevDependencies() != null) {
+            packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
+          }
+          if (packageJson.getScripts() != null) {
+            packageJson.getScripts().forEach(additionalJsonEntries::addScript);
+          }
+          if (packageJson.getWorkspaces() != null) {
+            packageJson.getTypesVersions().forEach(additionalJsonEntries::addTypesVersion);
+          }
         }
         PackageJson packageJson = new PackageJson(additionalJsonEntries);
         packageJson.setName(aPackage.getName());
@@ -395,6 +400,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
   }
 
+  //todo: remove this method
   private List<String> match(String glob, String location) {
     final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
             glob);
