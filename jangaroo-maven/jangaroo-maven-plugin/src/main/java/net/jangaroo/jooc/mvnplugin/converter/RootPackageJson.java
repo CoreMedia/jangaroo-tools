@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -24,7 +23,9 @@ public class RootPackageJson {
   }
 
   public void addWorkspace(String workspace) {
-    this.packageJson.addWorkspace(workspace);
+    if (!this.packageJson.getWorkspaces().contains(workspace)) {
+      this.packageJson.addWorkspace(workspace);
+    }
   }
 
   public PackageJson readPackageJson() {

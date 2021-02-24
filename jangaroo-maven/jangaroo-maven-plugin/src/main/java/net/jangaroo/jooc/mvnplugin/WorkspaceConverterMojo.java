@@ -3,7 +3,6 @@ package net.jangaroo.jooc.mvnplugin;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
@@ -28,7 +27,6 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -56,9 +54,6 @@ import java.util.stream.Collectors;
         threadSafe = false) // check for threadsafety and make it threadsafe
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
-
-  @Parameter
-  private String studioNpmMavenRoot = "/home/fwellers/dev/cms/apps/studio-client";
 
   @Parameter
   private String studioNpmTarget = "/home/fwellers/dev/jangaroo-tools/jangaroo-maven/jangaroo-maven-plugin/created_workspace";

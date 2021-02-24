@@ -39,8 +39,8 @@ public class AdditionalPackageJsonEntries {
   }
 
   public void addDependency(String name, String version) {
-    if (this.devDependencies == null) {
-      this.devDependencies = new HashMap<>();
+    if (this.dependencies == null) {
+      this.dependencies = new HashMap<>();
     }
     this.dependencies.put(name, version);
   }
