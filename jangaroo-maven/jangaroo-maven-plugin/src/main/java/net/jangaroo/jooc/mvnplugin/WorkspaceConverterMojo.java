@@ -2,7 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
@@ -27,7 +26,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.graalvm.compiler.nodes.calc.IntegerDivRemNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,9 +51,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@Mojo(name = "convert-workspace", //convert-workspace
+@Mojo(name = "convert-workspace",
         defaultPhase = LifecyclePhase.INSTALL,
-        threadSafe = false,// check for threadsafety and make it threadsafe
+        threadSafe = false,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
@@ -64,16 +62,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private String studioNpmTarget = "/home/fwellers/dev/jangaroo-tools/jangaroo-maven/jangaroo-maven-plugin/created_workspace";
 
   @Parameter
-  private boolean cleanBuild = false;
-
-  private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
-
-  private RootPackageJson rootPackageJson;
-
-  @Parameter
   private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
   private List<SearchAndReplace> searchAndReplaceList;
+  private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
+  private RootPackageJson rootPackageJson;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
@@ -103,7 +96,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
     Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
-    // todo: handle clean build
     try {
       rootPackageJson.readPackageJson();
       moduleMappings.entrySet().stream()
@@ -230,7 +222,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
           jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
           jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-          // todo: is this correct?
           jangarooConfig.setAdditionalJsIncludeInBundle(
                   jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
                           .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
@@ -398,33 +389,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         );
       }
     }
-  }
-
-  //todo: remove this method
-  private List<String> match(String glob, String location) {
-    final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
-            glob);
-    List<String> matchingFilePaths = new ArrayList<>();
-
-    try {
-      Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-          if (pathMatcher.matches(path)) {
-            matchingFilePaths.add(path.toString());
-          }
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) {
-          return FileVisitResult.CONTINUE;
-        }
-      });
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return matchingFilePaths;
   }
 
   private Optional<Package> getOrCreateDependencyPackage(String name, Dependency dependency) {
@@ -624,20 +588,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   public String findPackageNameByReference(String reference, Map<String, MavenModule> moduleMappings) {
     Optional<String> packageName;
     if (reference == null) {
-      logger.error("THIS SHOULD NOT happen");
       return null;
     }
     String[] splitName = reference.split(":");
     if (splitName.length == 2 && splitName[0] != null && splitName[1] != null) {
       packageName = Optional.of(calculateMavenName(splitName[0], splitName[1]));
-      /*
-      packageName = moduleMappings.entrySet().stream()
-              .filter(moduleEntry -> hasCorrectModuleType(moduleEntry.getValue().getModuleType()))
-              .filter(moduleEntry -> splitName[0].equals(((MavenModule) moduleEntry.getValue()).getData().getGroupId()))
-              .filter(moduleEntry -> splitName[1].equals(((MavenModule) moduleEntry.getValue()).getData().getArtifactId()))
-              .map(Map.Entry::getKey)
-              .findFirst();
-              */
     } else {
       packageName = moduleMappings.entrySet().stream()
               .map(moduleEntry -> {
@@ -652,7 +607,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
               .findFirst();
     }
     if (!packageName.isPresent()) {
-      logger.error("Could not resolve reference " + reference + ". No suitable module was found.");
+      logger.error(String.format("Could not resolve reference %s. No suitable module was found.", reference));
       return null;
     }
     for (SearchAndReplace searchAndReplace : searchAndReplaceList) {
@@ -695,10 +650,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
     }
     return mavenName;
-  }
-
-  private String calculateMavenName(Dependency dependency) {
-    return calculateMavenName(dependency.getGroupId(), dependency.getArtifactId());
   }
 
   private boolean isValidVersion(String version) {
