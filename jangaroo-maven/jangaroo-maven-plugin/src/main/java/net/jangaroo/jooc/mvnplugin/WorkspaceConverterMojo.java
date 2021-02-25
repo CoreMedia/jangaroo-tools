@@ -317,6 +317,26 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           return;
         }
 
+        List<String> appManifestPaths = match("glob:/**/app-manifest-fragment*.json", mavenModule.getDirectory().getPath());
+        if (!appManifestPaths.isEmpty()) {
+          for (String appManifestPath : appManifestPaths) {
+            String fileName = new File(appManifestPath).getName();
+            if ("app-manifest-fragment.json".equals(fileName)) {
+              fileName = "app-manifest-fragment-en.json";
+            }
+            Matcher matcher = Pattern.compile("app-manifest-fragment-([^.]+).json").matcher(fileName);
+            if (matcher.find()) {
+              String locale = matcher.group(1);
+              try {
+                jangarooConfig.addAppManifest(locale, objectMapper.readValue(new File(appManifestPath), Map.class));
+              } catch (IOException ioException) {
+                logger.error("error while reading manifest file: " + appManifestPath);
+              }
+            } else {
+              logger.error("Could not detect locale for manifest file: " + appManifestPath);
+            }
+          }
+        }
         //todo: handle manifest paths
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
         String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
@@ -357,6 +377,32 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private List<String> match(String glob, String location) {
+    final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(
+            glob);
+    List<String> matchingFilePaths = new ArrayList<>();
+
+    try {
+      Files.walkFileTree(Paths.get(location), new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+          if (pathMatcher.matches(path)) {
+            matchingFilePaths.add(path.toString());
+          }
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+          return FileVisitResult.CONTINUE;
+        }
+      });
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return matchingFilePaths;
   }
 
   private void copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
@@ -530,7 +576,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       return "@coremedia/sencha-ext-charts";
     }
     if (artifactId.startsWith("theme-")) {
-      //todo: test this
       return "@coremedia/sencha-ext-classic-" + artifactId;
     }
     if (groupId != null && groupId.startsWith("net.jangaroo")) {

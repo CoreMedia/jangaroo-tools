@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -135,6 +136,13 @@ public class JangarooConfig {
 
   public Map<String, Object> getAppManifests() {
     return appManifests;
+  }
+
+  public void addAppManifest(String name, Object manifest) {
+    if (this.appManifests == null) {
+      this.appManifests = new HashMap<>();
+    }
+    this.appManifests.put(name, manifest);
   }
 
   public void setAppManifests(Map<String, Object> appManifests) {
