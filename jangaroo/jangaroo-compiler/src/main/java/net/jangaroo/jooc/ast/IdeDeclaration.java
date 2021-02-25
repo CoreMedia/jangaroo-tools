@@ -110,7 +110,7 @@ public abstract class IdeDeclaration extends Declaration {
       String as3PackageRemovePrefixInTypeScript = inputSource.getExtNamespace();
       if (as3PackageRemovePrefixInTypeScript != null && !as3PackageRemovePrefixInTypeScript.isEmpty()) {
         if (!targetName.startsWith(as3PackageRemovePrefixInTypeScript + ".")) {
-          System.err.println("Source file fully-qualified name " + targetName + " does not start with package prefix to remove " + as3PackageRemovePrefixInTypeScript);
+          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + as3PackageRemovePrefixInTypeScript);
         } else {
           targetName = targetName.substring(as3PackageRemovePrefixInTypeScript.length() + 1);
         }
