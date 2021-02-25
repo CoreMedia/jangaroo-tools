@@ -2,6 +2,7 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
@@ -15,6 +16,7 @@ import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
 import net.jangaroo.jooc.mvnplugin.converter.RootPackageJson;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.plugin.AbstractMojo;
@@ -23,7 +25,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.graalvm.compiler.nodes.calc.IntegerDivRemNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +55,8 @@ import java.util.stream.Collectors;
 
 @Mojo(name = "convert-workspace", //convert-workspace
         defaultPhase = LifecyclePhase.INSTALL,
-        threadSafe = false) // check for threadsafety and make it threadsafe
+        threadSafe = false,// check for threadsafety and make it threadsafe
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
 
@@ -317,6 +322,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("build", "jangaroo build");
           scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
+        } else {
+          return;
         }
 
         //todo: handle manifest paths
@@ -328,9 +335,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Optional<Package> optionalThemeDependency = packageRegistry.stream()
                   .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
                   .findFirst();
-          if (optionalThemeDependency.isPresent()) {
-            additionalJsonEntries.getDependencies().put(optionalThemeDependency.get().getName(), optionalThemeDependency.get().getVersion());
-          }
+          optionalThemeDependency.ifPresent(value -> additionalJsonEntries.getDependencies().put(value.getName(), value.getVersion()));
         }
 
 
@@ -422,6 +427,46 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return matchingFilePaths;
   }
 
+  private Optional<Package> getOrCreateDependencyPackage(String name, Dependency dependency) {
+    Optional<Artifact> optionalArtifact = project.getArtifacts().stream()
+            .filter(artifact -> artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId()))
+            .findFirst();
+    if (!optionalArtifact.isPresent()) {
+      return Optional.empty();
+    }
+    ModuleType moduleType = MavenModule.calculateModuleType(optionalArtifact.get().getArtifactHandler().getPackaging());
+    if (moduleType == ModuleType.IGNORE) {
+      return Optional.empty();
+    }
+    Model model = new Model();
+    model.setGroupId(optionalArtifact.get().getGroupId());
+    model.setArtifactId(optionalArtifact.get().getArtifactId());
+    model.setPackaging(optionalArtifact.get().getArtifactHandler().getPackaging());
+    model.setDependencies(
+            project.getArtifacts().stream()
+                    .filter(artifact -> inDependencyTrail(dependency, artifact.getDependencyTrail()))
+                    .filter(artifact -> !artifact.getGroupId().equals(dependency.getGroupId()) || !artifact.getArtifactId().equals(dependency.getArtifactId()))
+                    .map(artifact -> {
+                      Dependency localDependency = new Dependency();
+                      localDependency.setArtifactId(artifact.getArtifactId());
+                      localDependency.setGroupId(artifact.getGroupId());
+                      localDependency.setScope(artifact.getScope());
+                      localDependency.setType(artifact.getType());
+                      localDependency.setVersion(artifact.getVersion());
+                      return localDependency;
+                    })
+                    .collect(Collectors.toList())
+    );
+    return Optional.of(handlePackageDependencies(name, new MavenModule("", model)));
+  }
+
+  private boolean inDependencyTrail(Dependency dependency, List<String> dependencyTrail) {
+    return dependencyTrail.stream()
+            .map(dependencyPart -> dependencyPart.split(":"))
+            .filter(dependencySplit -> dependency.getGroupId().equals(dependencySplit[0]))
+            .anyMatch(dependencySplit -> dependency.getArtifactId().equals(dependencySplit[1]));
+  }
+
   private Optional<Package> getOrCreatePackage(List<Package> packageRegistry, String packageName, String packageVersion, Map<String, MavenModule> moduleMappings) {
     Optional<Package> matchingPackage = packageRegistry.stream()
             .filter(aPackage -> aPackage.matches(packageName, packageVersion))
@@ -429,10 +474,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     if (matchingPackage.isPresent()) {
       return matchingPackage;
     } else {
-      String newPackageVersion = null;
-      List<Package> newDependencies = new ArrayList<>();
-      List<Package> newDevDependencies = new ArrayList<>();
-
       MavenModule module = moduleMappings.get(packageName);
       if (module == null) {
         logger.error("could not find module {}", packageName);
@@ -440,63 +481,72 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       if (module.getModuleType() == ModuleType.IGNORE) {
         return Optional.empty();
-      } else {
-        newPackageVersion = isValidVersion(module.getVersion()) ? module.getVersion() : "1.0.0";
-        List<Dependency> dependencies = module.getData().getDependencies().stream()
-                .filter(dependency -> !"test".equals(dependency.getScope()))
-                .filter(dependency -> !ignoreDependency(dependency))
-                .map(dependency -> {
-                  if ("${project.groupId}".equals(dependency.getGroupId())) {
-                    dependency.setGroupId(module.getData().getGroupId());
-                  }
-                  if ("${project.version}".equals(dependency.getVersion())) {
-                    dependency.setVersion(module.getVersion());
-                  }
-                  return dependency;
-                })
-                .collect(Collectors.toList());
-
-        List<Dependency> testDependencies = module.getData().getDependencies().stream()
-                .filter(dependency -> "test".equals(dependency.getScope()))
-                .filter(dependency -> !ignoreDependency(dependency))
-                .map(dependency -> {
-                  if ("$(project.groupid)".equals(dependency.getGroupId())) {
-                    dependency.setGroupId(module.getData().getGroupId());
-                  }
-                  if ("${project.version}".equals(dependency.getVersion())) {
-                    dependency.setVersion(module.getVersion());
-                  }
-                  return dependency;
-                })
-                .collect(Collectors.toList());
-
-        for (Dependency dependency : dependencies) {
-          Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
-          if (isJangarooDependency(dependency)) {
-            createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
-          }
-          if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-            newDependencies.add(createdPackage);
-          } else {
-            newDependencies.addAll(createdPackage.getDependencies());
-          }
-        }
-        for (Dependency dependency : testDependencies) {
-          Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
-          if (isJangarooDependency(dependency)) {
-            createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
-          }
-          if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-            newDevDependencies.add(createdPackage);
-          } else {
-            newDevDependencies.addAll(createdPackage.getDependencies());
-          }
-        }
       }
-      Package newPackage = new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
+      Package newPackage = handlePackageDependencies(packageName, module);
       packageRegistry.add(newPackage);
       return Optional.of(newPackage);
     }
+  }
+
+  private Package handlePackageDependencies(String packageName, MavenModule mavenModule) {
+    String newPackageVersion = isValidVersion(mavenModule.getVersion()) ? mavenModule.getVersion() : "1.0.0";
+    List<Package> newDependencies = new ArrayList<>();
+    List<Package> newDevDependencies = new ArrayList<>();
+    List<Dependency> dependencies;
+    dependencies = mavenModule.getData().getDependencies().stream()
+            .filter(dependency -> !"test".equals(dependency.getScope()))
+            .filter(dependency -> !ignoreDependency(dependency))
+            .map(dependency -> {
+              if ("${project.groupId}".equals(dependency.getGroupId())) {
+                dependency.setGroupId(mavenModule.getData().getGroupId());
+              }
+              if ("${project.version}".equals(dependency.getVersion())) {
+                dependency.setVersion(mavenModule.getVersion());
+              }
+              return dependency;
+            })
+            .collect(Collectors.toList());
+
+    List<Dependency> testDependencies = mavenModule.getData().getDependencies().stream()
+            .filter(dependency -> "test".equals(dependency.getScope()))
+            .filter(dependency -> !ignoreDependency(dependency))
+            .map(dependency -> {
+              if ("$(project.groupid)".equals(dependency.getGroupId())) {
+                dependency.setGroupId(mavenModule.getData().getGroupId());
+              }
+              if ("${project.version}".equals(dependency.getVersion())) {
+                dependency.setVersion(mavenModule.getVersion());
+              }
+              return dependency;
+            })
+            .collect(Collectors.toList());
+
+    for (Dependency dependency : dependencies) {
+      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+      if (isJangarooDependency(dependency)) {
+        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
+      }
+      if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+        newDependencies.add(createdPackage);
+      } else {
+        createdPackage = getOrCreateDependencyPackage(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), dependency).orElse(null);
+        if (createdPackage != null) {
+          newDependencies.addAll(createdPackage.getDependencies());
+        }
+      }
+    }
+    for (Dependency dependency : testDependencies) {
+      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+      if (isJangarooDependency(dependency)) {
+        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
+      }
+      if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+        newDevDependencies.add(createdPackage);
+      } else {
+        newDevDependencies.addAll(createdPackage.getDependencies());
+      }
+    }
+    return new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
   }
 
   private String mapJangarooName(String groupId, String artifactId) {
@@ -567,7 +617,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             //"net.jangaroo__jooflexframework",
             //"net.jangaroo__joounit",
             //"net.jangaroo__ckeditor4"
-            )
+    )
             .contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
   }
 

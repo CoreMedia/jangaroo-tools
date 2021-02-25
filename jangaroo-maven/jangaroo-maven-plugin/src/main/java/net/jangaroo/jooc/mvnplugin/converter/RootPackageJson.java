@@ -23,9 +23,7 @@ public class RootPackageJson {
   }
 
   public void addWorkspace(String workspace) {
-    if (!this.packageJson.getWorkspaces().contains(workspace)) {
-      this.packageJson.addWorkspace(workspace);
-    }
+    this.packageJson.addWorkspace(workspace);
   }
 
   public PackageJson readPackageJson() {
