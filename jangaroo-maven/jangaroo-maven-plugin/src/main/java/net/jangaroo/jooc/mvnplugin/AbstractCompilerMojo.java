@@ -1,5 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import com.google.common.collect.Lists;
 import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
@@ -25,8 +26,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -144,6 +147,15 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    */
   @Parameter(property = "extNamespace")
   private String extNamespace = "";
+
+  /**
+   * Experimental: The Ext namespace is stripped from the relative path to the sass sources roots (var/src)
+   */
+  @Parameter(property = "extSassNamespace")
+  private String extSassNamespace = null;
+
+  @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
+  private File senchaSrcDir;
 
   /**
    * Experimental: If set to "true", compiler generates parameter initializer code that implements
@@ -274,6 +286,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
     configuration.setExtNamespace(extNamespace);
+    configuration.setExtSassNamespace(extSassNamespace != null ? extSassNamespace : extNamespace);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
     configuration.setNpmPackageNameReplacers(
@@ -312,7 +325,20 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     HashSet<File> sources = new HashSet<>();
     log.debug("starting source inclusion scanner");
     sources.addAll(computeStaleSources(staleMillis));
-    if (sources.isEmpty()) {
+
+
+    // SASS files
+    Map<String, File> sassSourcePathByType = new HashMap<>();
+    Map<String, File> sassOutputDirectoryByType = new HashMap<>();
+    Map<String, List<File>> sassSourceFilesByType = new HashMap<>();
+    for (String sassType : Lists.newArrayList("var", "src")) {
+      File sassSourceFolder = senchaSrcDir.toPath().resolve("sass").resolve(sassType).toFile();
+      sassSourcePathByType.put(sassType, sassSourceFolder);
+      sassSourceFilesByType.put(sassType, listFilesRecursive(sassSourceFolder));
+      sassOutputDirectoryByType.put(sassType, getOutputDirectory().toPath().resolve("sass").resolve(sassType).toFile());
+    }
+
+    if (sources.isEmpty() && sassSourceFilesByType.values().stream().mapToInt(List::size).sum() == 0) {
       log.info("Nothing to compile - all classes are up to date");
       return null;
     }
@@ -326,6 +352,18 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
+
+    configuration.setSassSourceFilesByType(sassSourceFilesByType);
+    try {
+      configuration.setSassSourcePathByType(sassSourcePathByType);
+    } catch (IOException e) {
+      throw new MojoFailureException("could not canonicalize sass source paths: " + sassSourcePathByType, e);
+    }
+    try {
+      configuration.setSassOutputDirectoryByType(sassOutputDirectoryByType);
+    } catch (IOException e) {
+      throw new MojoFailureException("could not canonicalize sass output directories: " + sassOutputDirectoryByType, e);
+    }
 
     List<NamespaceConfiguration> allNamespaces = new ArrayList<>();
     if (getNamespaces() != null) {
@@ -411,6 +449,28 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     staleFiles.addAll(getMavenPluginHelper().computeStaleSources(compileSourceRoots, getIncludes(), getExcludes(), outputDirectory, Jooc.MXML_SUFFIX, outputFileSuffix, staleMillis));
     staleFiles.addAll(getMavenPluginHelper().computeStalePropertiesSources(compileSourceRoots, getIncludes(), getExcludes(), getLocalizedOutputDirectory(), staleMillis));
     return staleFiles;
+  }
+
+  private static List<File> listFilesRecursive(File folder) throws MojoExecutionException {
+    List<File> recursiveFolderContents = new ArrayList<>();
+    if (!folder.exists()) {
+      return recursiveFolderContents;
+    }
+    if (!folder.isDirectory()) {
+      throw new MojoExecutionException("Not a directory: " + folder);
+    }
+    File[] folderContents = folder.listFiles();
+    if (folderContents == null) {
+      throw new MojoExecutionException("Could not read directory: " + folder);
+    }
+    for (File file : folderContents) {
+      if (file.isDirectory()) {
+        recursiveFolderContents.addAll(listFilesRecursive(file));
+      } else {
+        recursiveFolderContents.add(file);
+      }
+    }
+    return recursiveFolderContents;
   }
 
   protected abstract Set<String> getIncludes();

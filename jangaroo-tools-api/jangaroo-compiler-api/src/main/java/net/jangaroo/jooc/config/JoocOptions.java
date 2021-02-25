@@ -21,6 +21,8 @@ public interface JoocOptions {
 
   String getExtNamespace();
 
+  String getExtSassNamespace();
+
   List<SearchAndReplace> getNpmPackageNameReplacers();
 
   PublicApiViolationsMode getPublicApiViolationsMode();

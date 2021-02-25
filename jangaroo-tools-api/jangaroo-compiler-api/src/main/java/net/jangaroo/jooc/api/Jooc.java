@@ -16,6 +16,9 @@ public interface Jooc {
   String PROPERTIES_SUFFIX_NO_DOT = "properties";
   String PROPERTIES_SUFFIX = "." + PROPERTIES_SUFFIX_NO_DOT;
 
+  String SCSS_SUFFIX_NO_DOT = "scss";
+  String SCSS_SUFFIX = "." + SCSS_SUFFIX_NO_DOT;
+
   String INPUT_FILE_SUFFIX = AS_SUFFIX;
   String OUTPUT_FILE_SUFFIX = ".js";
 

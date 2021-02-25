@@ -112,8 +112,6 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
-    getLog().info(String.format("Copy files from %s to %s", getSenchaSrcDir().getPath(), senchaAppDirectory.getPath()));
-    FileHelper.copyFiles(getSenchaSrcDir(), senchaAppDirectory);
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);

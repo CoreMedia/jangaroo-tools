@@ -29,6 +29,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
   private String extNamespace = "";
+  private String extSassNamespace = "";
   private List<SearchAndReplace> npmPackageNameReplacers = new ArrayList<>();
   private boolean useEcmaParameterInitializerSemantics = false;
 
@@ -116,6 +117,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public String getExtSassNamespace() {
+    return extSassNamespace;
+  }
+
+  @Override
   public List<SearchAndReplace> getNpmPackageNameReplacers() {
     return npmPackageNameReplacers;
   }
@@ -130,9 +136,14 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.migrateToTypeScript = migrateToTypeScript;
   }
 
-  @Option(name="--as3-package-prefix-to-remove-in-typescript", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files (experimental)")
-  public void setExtNamespace(String as3PackageRemovePrefixInTypeScript) {
-    this.extNamespace = as3PackageRemovePrefixInTypeScript;
+  @Option(name="--extNamespace", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files (experimental)")
+  public void setExtNamespace(String extNamespace) {
+    this.extNamespace = extNamespace;
+  }
+
+  @Option(name="--extSassNamespace", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for SCSS output files (experimental)")
+  public void setExtSassNamespace(String extSassNamespace) {
+    this.extSassNamespace = extSassNamespace;
   }
 
   @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")

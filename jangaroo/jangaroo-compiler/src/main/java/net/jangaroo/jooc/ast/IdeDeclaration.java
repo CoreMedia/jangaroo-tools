@@ -88,6 +88,10 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getTargetQualifiedNameStr() {
+    return getTargetQualifiedNameStr(false);
+  }
+
+  public String getTargetQualifiedNameStr(boolean ignoreNamespace) {
     Annotation nativeAnnotation = getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     String targetName = null;
     boolean require = true;
@@ -105,7 +109,7 @@ public abstract class IdeDeclaration extends Declaration {
     if (targetName == null || targetName.isEmpty()) {
       targetName = getQualifiedNameStr();
     }
-    if (require) {
+    if (require && !ignoreNamespace) {
       InputSource inputSource = getCompilationUnit().getInputSource();
       String as3PackageRemovePrefixInTypeScript = inputSource.getExtNamespace();
       if (as3PackageRemovePrefixInTypeScript != null && !as3PackageRemovePrefixInTypeScript.isEmpty()) {

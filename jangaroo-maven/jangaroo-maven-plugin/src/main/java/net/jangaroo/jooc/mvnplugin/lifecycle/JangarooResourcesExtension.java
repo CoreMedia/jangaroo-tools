@@ -42,6 +42,8 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
         }
         resource.setTargetPath(targetPath);
         resource.setFiltering(false);
+        resource.addExclude("sass/var/**");
+        resource.addExclude("sass/src/**");
         project.addResource(resource);
 
         Resource testResource = new Resource();
