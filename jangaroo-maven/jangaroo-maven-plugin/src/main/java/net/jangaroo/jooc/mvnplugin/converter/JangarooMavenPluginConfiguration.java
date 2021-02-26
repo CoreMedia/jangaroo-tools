@@ -22,6 +22,7 @@ public class JangarooMavenPluginConfiguration {
   private List<String> additionalJsNonBundle;
   private String testSuite;
   private String extNamespace;
+  private String extSassNamespace;
 
 
   public JangarooMavenPluginConfiguration(Model mavenModel) {
@@ -154,11 +155,22 @@ public class JangarooMavenPluginConfiguration {
   }
 
   public String getExtNamespace() {
+    if (extNamespace == null) {
+      extNamespace = "";
+    }
     return extNamespace;
   }
 
   public void setExtNamespace(String extNamespace) {
     this.extNamespace = extNamespace;
+  }
+
+  public String getExtSassNamespace() {
+    return extSassNamespace;
+  }
+
+  public void setExtSassNamespace(String extSassNamespace) {
+    this.extSassNamespace = extSassNamespace;
   }
 
   public List<String> getAdditionalCssIncludeInBundle() {

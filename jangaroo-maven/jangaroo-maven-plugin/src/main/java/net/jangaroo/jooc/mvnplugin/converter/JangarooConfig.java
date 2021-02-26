@@ -11,6 +11,7 @@ public class JangarooConfig {
   private String applicationClass;
   private String rootApp;
   private String extNamespace;
+  private String extSassNamespace;
   private String theme;
   private String testSuite;
   private Object sencha;
@@ -101,8 +102,18 @@ public class JangarooConfig {
   }
 
   public void setExtNamespace(String extNamespace) {
-    if (extNamespace != null && !extNamespace.isEmpty()) {
+    if (extNamespace != null) {
       this.extNamespace = extNamespace;
+    }
+  }
+
+  public String getExtSassNamespace() {
+    return extSassNamespace;
+  }
+
+  public void setExtSassNamespace(String extSassNamespace) {
+    if (extSassNamespace != null && !extSassNamespace.isEmpty()) {
+      this.extSassNamespace = extSassNamespace;
     }
   }
 

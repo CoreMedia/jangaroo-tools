@@ -29,9 +29,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -146,7 +144,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (mavenModule.getModuleType() == ModuleType.SWC) {
           jangarooConfig.setType(jangarooMavenPluginConfiguration.getPackageType());
           jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
+
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
+          jangarooConfig.setExtSassNamespace(jangarooMavenPluginConfiguration.getExtSassNamespace());
+
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
             jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
           }
@@ -162,7 +163,16 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   jangarooMavenPluginConfiguration.getAdditionalJsNonBundle().stream()
                           .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
                           .collect(Collectors.toList()));
-          jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
+          if (jangarooMavenPluginConfiguration.getTestSuite() != null) {
+            jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
+            if (jangarooMavenPluginConfiguration.getExtNamespace() != null) {
+              String extNamespaceWithTrailingDot = jangarooMavenPluginConfiguration.getExtNamespace().concat(".");
+              if (!jangarooConfig.getTestSuite().startsWith(extNamespaceWithTrailingDot)) {
+                logger.error(String.format("Invalid testSuite configuration \"jangarooConfig.testSuite\". When Using extNamespace \"%s\" the test suite cannot exist.", jangarooMavenPluginConfiguration.getExtNamespace()));
+                return;
+              }
+            }
+          }
           if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
             jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
           }
@@ -222,6 +232,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           commandMap.put("run", runMap);
           jangarooConfig.setCommand(commandMap);
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
+          jangarooConfig.setExtSassNamespace(jangarooMavenPluginConfiguration.getExtSassNamespace());
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
             jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
           }
@@ -448,31 +459,35 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private void copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
-    Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
-    if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
-      Path targetDirPath = Paths.get(targetPackageDir, "sencha", srcFolderName);
-      FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().contains(".js"));
-    }
+    ignoreFromSrcMainSencha.add("sass/var");
+    ignoreFromSrcMainSencha.add("sass/src");
+    for (String dir : Arrays.asList(srcFolderName, "sass/var", "sass/src")) {
+      Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
+      if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
+        Path targetDirPath = Paths.get(targetPackageDir, "sencha", dir);
+        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || !pathname.getName().endsWith(".ts"));
+      }
 
-    sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
-    if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
-      Path targetDirPath = Paths.get(targetPackageDir, srcFolderName);
-      FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
-    }
+      sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
+      if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
+        Path targetDirPath = Paths.get(targetPackageDir, srcFolderName);
+        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().endsWith(".ts"));
+      }
 
-    Path jooUnitSourcePath = Paths.get(baseDirectory, "target", "test-classes", srcFolderName);
-    if (jooUnitSourcePath.toFile().exists() && jooUnitSourcePath.toFile().isDirectory()) {
-      Path jooUnitTargetDirPath = Paths.get(targetPackageDir, "joounit");
-      FileUtils.copyDirectory(jooUnitSourcePath.toFile(), jooUnitTargetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
-    }
-    Path srcMainSenchaPath = Paths.get(baseDirectory, "src", "main", "sencha");
-    Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
-    if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
-      FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
-              pathname -> ignoreFromSrcMainSencha.stream()
-                      .map(ignore -> Paths.get(srcMainSenchaPath.toString(), ignore).toString())
-                      .anyMatch(ignore -> !ignore.equals(pathname.getPath()))
-      );
+      Path jooUnitSourcePath = Paths.get(baseDirectory, "target", "test-classes", srcFolderName);
+      if (jooUnitSourcePath.toFile().exists() && jooUnitSourcePath.toFile().isDirectory()) {
+        Path jooUnitTargetDirPath = Paths.get(targetPackageDir, "joounit");
+        FileUtils.copyDirectory(jooUnitSourcePath.toFile(), jooUnitTargetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().endsWith(".ts"));
+      }
+      Path srcMainSenchaPath = Paths.get(baseDirectory, "src", "main", "sencha");
+      Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
+      if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
+        FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
+                pathname -> ignoreFromSrcMainSencha.stream()
+                        .map(ignore -> Paths.get(srcMainSenchaPath.toString(), ignore).toString())
+                        .anyMatch(ignore -> !ignore.equals(pathname.getPath()))
+        );
+      }
     }
   }
 
