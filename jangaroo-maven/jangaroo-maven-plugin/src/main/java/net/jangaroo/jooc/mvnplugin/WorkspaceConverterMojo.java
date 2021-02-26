@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -425,6 +426,16 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         packageJson.setPrivat(true);
         aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
         aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
+        Map<String, String> sortedDependencies = new TreeMap<>();
+        packageJson.getDependencies().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> sortedDependencies.put(entry.getKey(), entry.getValue()));
+        packageJson.setDependencies(sortedDependencies);
+        Map<String, String> sortedDevDependencies = new TreeMap<>();
+        packageJson.getDevDependencies().entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
+        packageJson.setDevDependencies(sortedDevDependencies);
         FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
       }
     } catch (IOException e) {

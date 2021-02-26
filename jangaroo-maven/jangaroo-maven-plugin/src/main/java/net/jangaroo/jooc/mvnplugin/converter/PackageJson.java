@@ -3,9 +3,9 @@ package net.jangaroo.jooc.mvnplugin.converter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class PackageJson {
   @JsonProperty("name")
@@ -122,7 +122,7 @@ public class PackageJson {
 
   public void addDependency(String name, String version) {
     if (this.dependencies == null) {
-      this.dependencies = new HashMap<>();
+      this.dependencies = new TreeMap<>();
     }
     this.dependencies.put(name, version);
   }
@@ -139,7 +139,7 @@ public class PackageJson {
 
   public void addDevDependency(String name, String version) {
     if (this.devDependencies == null) {
-      this.devDependencies = new HashMap<>();
+      this.devDependencies = new TreeMap<>();
     }
     this.devDependencies.put(name, version);
   }
@@ -156,7 +156,7 @@ public class PackageJson {
 
   public void addScript(String name, String command) {
     if (this.scripts == null) {
-      this.scripts = new HashMap<>();
+      this.scripts = new TreeMap<>();
     }
     this.scripts.put(name, command);
   }
@@ -192,7 +192,7 @@ public class PackageJson {
 
   public void addTypesVersion(String name, Object version) {
     if (this.typesVersions == null) {
-      this.typesVersions = new HashMap<>();
+      this.typesVersions = new TreeMap<>();
     }
     this.typesVersions.put(name, version);
   }
