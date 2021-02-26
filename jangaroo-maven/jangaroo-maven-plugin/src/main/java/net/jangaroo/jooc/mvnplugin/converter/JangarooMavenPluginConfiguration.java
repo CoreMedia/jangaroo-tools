@@ -33,7 +33,7 @@ public class JangarooMavenPluginConfiguration {
     if (optionalPlugin.isPresent()) {
       Xpp3Dom configuration = (Xpp3Dom) optionalPlugin.get().getConfiguration();
       if (configuration != null) {
-        packageType = getConfigString(configuration, "packageType") != null? getConfigString(configuration, "packageType") : "code";
+        packageType = getConfigString(configuration, "packageType") != null ? getConfigString(configuration, "packageType") : "code";
         theme = getConfigString(configuration, "theme");
         applicationClass = getConfigString(configuration, "applicationClass");
         rootApp = getConfigString(configuration, "rootApp");

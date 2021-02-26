@@ -11,9 +11,9 @@ public class DownloadNpmPluginConfiguration {
   private List<Package> packages;
 
   public DownloadNpmPluginConfiguration(Xpp3Dom configuration) {
-    Xpp3Dom packages = configuration.getChild("packages");
-    if (packages != null) {
-      this.packages = Arrays.stream(packages.getChildren())
+    Xpp3Dom configPackages = configuration.getChild("packages");
+    if (configPackages != null) {
+      this.packages = Arrays.stream(configPackages.getChildren())
               .map(somePackage -> new Package(getConfigString(somePackage, "name"), getConfigString(somePackage, "version")))
               .collect(Collectors.toList());
     } else {

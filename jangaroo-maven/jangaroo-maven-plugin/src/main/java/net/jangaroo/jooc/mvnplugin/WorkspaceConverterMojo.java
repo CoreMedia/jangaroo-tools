@@ -709,12 +709,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return packageName.get();
   }
 
-  private boolean hasCorrectModuleType(ModuleType moduleType) {
-    List<ModuleType> validModuleTypes = Arrays.asList(ModuleType.SWC, ModuleType.JANGAROO_APP, ModuleType.JANGAROO_APP_OVERLAY, ModuleType.JANGAROO_APPS);
-    return validModuleTypes.contains(moduleType);
-  }
-
-
   private Map<String, MavenModule> loadMavenModule(String modulePath) {
     Map<String, MavenModule> modules = new HashMap<>();
     modules.put(calculateMavenName(project.getModel()), new MavenModule(modulePath, project.getModel()));

@@ -14,6 +14,7 @@ public class MavenModule {
     this.moduleType = calculateModuleType(model.getPackaging());
     this.data = model;
   }
+
   public static ModuleType calculateModuleType(String packaging) {
     ModuleType moduleType;
     switch (packaging) {

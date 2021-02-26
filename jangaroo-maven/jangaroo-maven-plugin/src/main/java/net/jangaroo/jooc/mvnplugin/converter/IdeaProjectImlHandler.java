@@ -18,7 +18,7 @@ public class IdeaProjectImlHandler extends DefaultHandler {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     if (qName.equals("excludeFolder")) {
-      excludePaths.add(attributes.getValue("url").replace("file://$MODULE_DIR$/",""));
+      excludePaths.add(attributes.getValue("url").replace("file://$MODULE_DIR$/", ""));
     }
     super.startElement(uri, localName, qName, attributes);
   }

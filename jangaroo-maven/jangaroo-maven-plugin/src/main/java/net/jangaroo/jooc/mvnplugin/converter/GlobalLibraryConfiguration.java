@@ -81,6 +81,7 @@ public class GlobalLibraryConfiguration {
       this.globalVar = globalVar;
     }
   }
+
   private List<Package> getDownloadNpmPluginConfiguration(Model mavenModel) {
     Optional<Plugin> optionalPlugin = mavenModel.getBuild().getPlugins().stream()
             .filter(plugin ->
