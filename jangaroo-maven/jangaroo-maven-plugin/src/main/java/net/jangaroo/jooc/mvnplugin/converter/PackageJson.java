@@ -163,7 +163,9 @@ public class PackageJson {
     if (this.workspaces == null) {
       this.workspaces = new ArrayList<>();
     }
-    this.workspaces.add(workspace);
+    if (!this.workspaces.contains(workspace)) {
+      this.workspaces.add(workspace);
+    }
   }
 
   public void setWorkspaces(List<String> workspaces) {

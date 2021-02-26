@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
+import net.jangaroo.jooc.mvnplugin.converter.IdeaProjectIml;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooMavenPluginConfiguration;
 import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
@@ -28,7 +29,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -47,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -123,6 +127,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       FileUtils.write(new File(studioNpmTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
 
+      List<String> excludePaths = new ArrayList<>();
       if (!optionalPackage.isPresent()) {
         logger.warn("Package was null");
         return;
@@ -133,6 +138,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
         String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
         String targetPackageJson = targetPackageDir + "/package.json";
+        excludePaths.add(targetPackageDir + "/dist");
 
         JangarooConfig jangarooConfig = new JangarooConfig();
         AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
@@ -163,6 +169,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Map<String, String> testDependencies = new HashMap<>();
           Map<String, String> testScripts = new HashMap<>();
           if (jangarooConfig.getTestSuite() != null) {
+            excludePaths.add(targetPackageDir + "/build");
             testDependencies.put("@jangaroo/joounit", "1.0.0");
             testDependencies.put("@coremedia/sencha-ext", "7.2.0");
             testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
@@ -206,6 +213,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   "src", ignoreFromSrcMain, targetPackageDir
           );
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
+          excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app");
           Map<String, Object> commandMap = new HashMap<>();
           Map<String, String> runMap = new HashMap<>();
@@ -264,6 +272,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   "app", ignoreFromSrcMain, targetPackageDir
           );
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
+          excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app-overlay");
           Map<String, Object> commandMap = new HashMap<>();
           Map<String, String> runMap = new HashMap<>();
@@ -286,6 +295,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
+          excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("apps");
           Map<String, Object> commandMap = new HashMap<>();
           Map<String, String> runMap = new HashMap<>();
@@ -337,7 +347,36 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             }
           }
         }
-        //todo: handle manifest paths
+
+        String projectName = new File(studioNpmTarget).getName();
+        File ideaConfigFolder = Paths.get(studioNpmTarget, ".idea").toFile();
+        File modulesXmlPath = Paths.get(ideaConfigFolder.getPath(), "modules.xml").toFile();
+        File projectImlPath = Paths.get(ideaConfigFolder.getPath(), projectName + ".iml").toFile();
+        //todo: Some security config necessary?
+
+        if (!ideaConfigFolder.exists()) {
+          String modulesXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n<component name=\"ProjectModuleManager\">\n<modules>\n<module fileurl=\"file://$PROJECT_DIR$/.idea/${projectName}.iml\" filepath=\"$PROJECT_DIR$/${path.relative(targetDir, projectImlPath)}\" />\n</modules>\n</component>\n</project>";
+          FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
+        }
+        IdeaProjectIml ideaProjectIml = new IdeaProjectIml(studioNpmTarget, projectImlPath);
+        ideaProjectIml.writeProjectIml(excludePaths);
+
+        File gitignoreFile = Paths.get(studioNpmTarget, ".gitignore").toFile();
+        if (!gitignoreFile.exists()) {
+          StringJoiner stringJoiner = new StringJoiner("\n");
+          stringJoiner.add("# NodeJS");
+          stringJoiner.add("node_modules/");
+          stringJoiner.add("# Jangaroo Build");
+          stringJoiner.add("dist/");
+          stringJoiner.add("build/");
+          stringJoiner.add("# IntellIJ IDEA");
+          stringJoiner.add(Paths.get(studioNpmTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
+          stringJoiner.add("!" + Paths.get(studioNpmTarget).relativize(modulesXmlPath.toPath()).toString());
+          stringJoiner.add("!" + Paths.get(studioNpmTarget).relativize(projectImlPath.toPath()).toString());
+          String gitignore = stringJoiner.toString();
+          FileUtils.writeStringToFile(gitignoreFile, gitignore);
+        }
+
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
         String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
@@ -406,34 +445,31 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private void copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
-    // todo: deleted locale, is that ok?
-    for (String dir : Arrays.asList(srcFolderName)) {
-      Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
-      if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
-        Path targetDirPath = Paths.get(targetPackageDir, "sencha", dir);
-        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().contains(".js"));
-      }
+    Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
+    if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
+      Path targetDirPath = Paths.get(targetPackageDir, "sencha", srcFolderName);
+      FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || pathname.getName().contains(".js"));
+    }
 
-      sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
-      if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
-        Path targetDirPath = Paths.get(targetPackageDir, srcFolderName);
-        FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
-      }
+    sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
+    if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
+      Path targetDirPath = Paths.get(targetPackageDir, srcFolderName);
+      FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
+    }
 
-      Path jooUnitSourcePath = Paths.get(baseDirectory, "target", "test-classes", srcFolderName);
-      if (jooUnitSourcePath.toFile().exists() && jooUnitSourcePath.toFile().isDirectory()) {
-        Path jooUnitTargetDirPath = Paths.get(targetPackageDir, "joounit");
-        FileUtils.copyDirectory(jooUnitSourcePath.toFile(), jooUnitTargetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
-      }
-      Path srcMainSenchaPath = Paths.get(baseDirectory, "src", "main", "sencha");
-      Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
-      if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
-        FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
-                pathname -> ignoreFromSrcMainSencha.stream()
-                        .map(ignore -> Paths.get(srcMainSenchaPath.toString(), ignore).toString())
-                        .anyMatch(ignore -> !ignore.equals(pathname.getPath()))
-        );
-      }
+    Path jooUnitSourcePath = Paths.get(baseDirectory, "target", "test-classes", srcFolderName);
+    if (jooUnitSourcePath.toFile().exists() && jooUnitSourcePath.toFile().isDirectory()) {
+      Path jooUnitTargetDirPath = Paths.get(targetPackageDir, "joounit");
+      FileUtils.copyDirectory(jooUnitSourcePath.toFile(), jooUnitTargetDirPath.toFile(), pathname -> !pathname.getName().contains(".js"));
+    }
+    Path srcMainSenchaPath = Paths.get(baseDirectory, "src", "main", "sencha");
+    Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
+    if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
+      FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
+              pathname -> ignoreFromSrcMainSencha.stream()
+                      .map(ignore -> Paths.get(srcMainSenchaPath.toString(), ignore).toString())
+                      .anyMatch(ignore -> !ignore.equals(pathname.getPath()))
+      );
     }
   }
 
@@ -618,16 +654,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private boolean ignoreDependency(Dependency dependency) {
-    return Arrays.asList("net.jangaroo__jangaroo-browser"
-            //"net.jangaroo__ext-as",
-            //"net.jangaroo__jangaroo-net",
-            //"net.jangaroo__jangaroo-runtime"
-            //"net.jangaroo__jooflash-core",
-            //"net.jangaroo__jooflexframework",
-            //"net.jangaroo__joounit",
-            //"net.jangaroo__ckeditor4"
-    )
-            .contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
+    return "net.jangaroo__jangaroo-browser".contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
   }
 
   public String findPackageNameByReference(String reference, Map<String, MavenModule> moduleMappings) {
