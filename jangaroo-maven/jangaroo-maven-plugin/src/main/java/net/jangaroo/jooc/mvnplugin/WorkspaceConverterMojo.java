@@ -195,6 +195,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Map<String, String> scripts = new HashMap<>();
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
+          scripts.put("watch", "jangaroo watch");
           scripts.put("publish", "jangaroo-publish dist");
           scripts.putAll(testScripts);
           additionalJsonEntries.setScripts(scripts);
@@ -292,6 +293,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Map<String, String> scripts = new HashMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
+          scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
@@ -321,6 +323,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Map<String, String> scripts = new HashMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
+          scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
         } else {
