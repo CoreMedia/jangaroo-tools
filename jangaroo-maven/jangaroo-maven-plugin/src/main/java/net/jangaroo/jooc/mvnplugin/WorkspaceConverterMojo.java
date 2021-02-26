@@ -60,8 +60,8 @@ import java.util.stream.Collectors;
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
 
-  @Parameter
-  private String studioNpmTarget = "/home/fwellers/dev/jangaroo-tools/jangaroo-maven/jangaroo-maven-plugin/created_workspace";
+  @Parameter(property = "convertedWorkspaceTarget", required = true)
+  private String convertedWorkspaceTarget;
 
   @Parameter
   private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
@@ -77,7 +77,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
     //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    rootPackageJson = new RootPackageJson(objectMapper, studioNpmTarget);
+    rootPackageJson = new RootPackageJson(objectMapper, convertedWorkspaceTarget);
     searchAndReplaceList = npmPackageNameReplacers.stream()
             .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
             .collect(Collectors.toList());
@@ -123,7 +123,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       lernaCommandMap.put("run", lernaRunMap);
       lernaJson.put("command", lernaCommandMap);
 
-      FileUtils.write(new File(studioNpmTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
+      FileUtils.write(new File(convertedWorkspaceTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
 
       List<String> excludePaths = new ArrayList<>();
       if (!optionalPackage.isPresent()) {
@@ -134,7 +134,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
       if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
-        String targetPackageDir = studioNpmTarget + "/packages/" + aPackage.getName();
+        String targetPackageDir = convertedWorkspaceTarget + "/packages/" + aPackage.getName();
         String targetPackageJson = targetPackageDir + "/package.json";
         excludePaths.add(targetPackageDir + "/dist");
 
@@ -202,11 +202,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new HashMap<>();
+          Map<String, String> scripts = new HashMap<>(testScripts);
+          scripts.put("publish", "jangaroo-publish dist");
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
-          scripts.put("publish", "jangaroo-publish dist");
           scripts.putAll(testScripts);
           additionalJsonEntries.setScripts(scripts);
           List<String> typesPaths = new ArrayList<>();
@@ -302,10 +302,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new HashMap<>();
+          scripts.put("start", "jangaroo run");
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
-          scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
           excludePaths.add(targetPackageDir + "/build");
@@ -362,8 +362,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
         }
 
-        String projectName = new File(studioNpmTarget).getName();
-        File ideaConfigFolder = Paths.get(studioNpmTarget, ".idea").toFile();
+        String projectName = new File(convertedWorkspaceTarget).getName();
+        File ideaConfigFolder = Paths.get(convertedWorkspaceTarget, ".idea").toFile();
         File modulesXmlPath = Paths.get(ideaConfigFolder.getPath(), "modules.xml").toFile();
         File projectImlPath = Paths.get(ideaConfigFolder.getPath(), projectName + ".iml").toFile();
         //todo: Some security config necessary?
@@ -372,10 +372,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           String modulesXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n<component name=\"ProjectModuleManager\">\n<modules>\n<module fileurl=\"file://$PROJECT_DIR$/.idea/${projectName}.iml\" filepath=\"$PROJECT_DIR$/${path.relative(targetDir, projectImlPath)}\" />\n</modules>\n</component>\n</project>";
           FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
         }
-        IdeaProjectIml ideaProjectIml = new IdeaProjectIml(studioNpmTarget, projectImlPath);
+        IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
         ideaProjectIml.writeProjectIml(excludePaths);
 
-        File gitignoreFile = Paths.get(studioNpmTarget, ".gitignore").toFile();
+        File gitignoreFile = Paths.get(convertedWorkspaceTarget, ".gitignore").toFile();
         if (!gitignoreFile.exists()) {
           StringJoiner stringJoiner = new StringJoiner("\n");
           stringJoiner.add("# NodeJS");
@@ -384,15 +384,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           stringJoiner.add("dist/");
           stringJoiner.add("build/");
           stringJoiner.add("# IntellIJ IDEA");
-          stringJoiner.add(Paths.get(studioNpmTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
-          stringJoiner.add("!" + Paths.get(studioNpmTarget).relativize(modulesXmlPath.toPath()).toString());
-          stringJoiner.add("!" + Paths.get(studioNpmTarget).relativize(projectImlPath.toPath()).toString());
+          stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
+          stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
+          stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
           String gitignore = stringJoiner.toString();
           FileUtils.writeStringToFile(gitignoreFile, gitignore);
         }
 
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
-        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig));
+        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";"));
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
         FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
         if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {

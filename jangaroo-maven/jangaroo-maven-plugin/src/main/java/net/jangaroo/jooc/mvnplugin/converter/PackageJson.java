@@ -1,24 +1,39 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Comparators;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PackageJson {
+  @JsonProperty("name")
   private String name;
+  @JsonProperty("author")
   private String author;
+  @JsonProperty("description")
   private String description;
+  @JsonProperty("version")
   private String version;
+  @JsonProperty("license")
   private String license;
+  // needs to get annotated, because private is a keyword in java. All the other fields also need to get annotated,
+  // for the order of fields to be maintained.
   @JsonProperty("private")
   private boolean privat;
+  @JsonProperty("dependencies")
   private Map<String, String> dependencies;
+  @JsonProperty("devDependencies")
   private Map<String, String> devDependencies;
+  @JsonProperty("scripts")
   private Map<String, String> scripts;
+  @JsonProperty("workspaces")
   private List<String> workspaces;
+  @JsonProperty("typesVersions")
   private Map<String, Object> typesVersions;
 
   public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
