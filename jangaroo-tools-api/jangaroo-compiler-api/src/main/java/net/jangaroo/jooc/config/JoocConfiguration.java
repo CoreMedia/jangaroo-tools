@@ -136,12 +136,12 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.migrateToTypeScript = migrateToTypeScript;
   }
 
-  @Option(name="--extNamespace", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for TS output files (experimental)")
+  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
   public void setExtNamespace(String extNamespace) {
     this.extNamespace = extNamespace;
   }
 
-  @Option(name="--extSassNamespace", usage ="When migrating ActionScript/MXML code to TypeScript, remove this AS3 package prefix for SCSS output files (experimental)")
+  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
   public void setExtSassNamespace(String extSassNamespace) {
     this.extSassNamespace = extSassNamespace;
   }

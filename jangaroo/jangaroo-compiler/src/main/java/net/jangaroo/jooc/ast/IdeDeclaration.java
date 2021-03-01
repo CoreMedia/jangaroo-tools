@@ -111,12 +111,12 @@ public abstract class IdeDeclaration extends Declaration {
     }
     if (require && !ignoreNamespace) {
       InputSource inputSource = getCompilationUnit().getInputSource();
-      String as3PackageRemovePrefixInTypeScript = inputSource.getExtNamespace();
-      if (as3PackageRemovePrefixInTypeScript != null && !as3PackageRemovePrefixInTypeScript.isEmpty()) {
-        if (!targetName.startsWith(as3PackageRemovePrefixInTypeScript + ".")) {
-          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + as3PackageRemovePrefixInTypeScript);
+      String extNamespace = inputSource.getExtNamespace();
+      if (extNamespace != null && !extNamespace.isEmpty()) {
+        if (!targetName.startsWith(extNamespace + ".")) {
+          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
         } else {
-          targetName = targetName.substring(as3PackageRemovePrefixInTypeScript.length() + 1);
+          targetName = targetName.substring(extNamespace.length() + 1);
         }
       }
     }
