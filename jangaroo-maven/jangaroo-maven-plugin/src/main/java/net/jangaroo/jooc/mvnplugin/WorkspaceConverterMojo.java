@@ -175,6 +175,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 logger.error(String.format("Invalid testSuite configuration \"jangarooConfig.testSuite\". When Using extNamespace \"%s\" the test suite cannot exist.", jangarooMavenPluginConfiguration.getExtNamespace()));
                 return;
               }
+              jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
             }
           }
           if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
