@@ -20,7 +20,13 @@ import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.TransitiveAstVisitor;
-import net.jangaroo.jooc.backend.*;
+import net.jangaroo.jooc.backend.CompilationUnitSink;
+import net.jangaroo.jooc.backend.CompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.JsCodeGenerator;
+import net.jangaroo.jooc.backend.MergedOutputCompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.SingleFileCompilationUnitSinkFactory;
+import net.jangaroo.jooc.backend.TypeScriptCodeGenerator;
+import net.jangaroo.jooc.backend.TypeScriptModuleResolver;
 import net.jangaroo.jooc.cli.CommandLineParseException;
 import net.jangaroo.jooc.cli.JoocCommandLineParser;
 import net.jangaroo.jooc.config.JoocConfiguration;
@@ -35,13 +41,14 @@ import net.jangaroo.jooc.mxml.CatalogGenerator;
 import net.jangaroo.jooc.mxml.ComponentPackageManifestParser;
 import net.jangaroo.jooc.mxml.ComponentPackageModel;
 import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
-import net.jangaroo.properties.Propc;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -172,7 +179,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
-    Propc propertyClassGenerator;
     File propertiesOutputDirectory;
     if (getConfig().isMigrateToTypeScript()) {
       propertiesOutputDirectory = getConfig().getOutputDirectory();
@@ -184,10 +190,9 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
     }
     try {
-      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true);
-      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false);
-
-      propertyClassGenerator = new Propc();
+      String extNamespace = getConfig().getExtNamespace();
+      sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true, extNamespace);
+      classPathInputSource = PathInputSource.fromFiles(getConfig().getClassPath(), new String[]{"", JOO_API_IN_SWC_DIRECTORY_PREFIX}, false, extNamespace);
     } catch (IOException e) {
       throw new CompilerError("IO Exception occurred", e);
     }
@@ -262,6 +267,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       compileQueue.clear();
+
+      copySassFiles();
 
       int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;
       return new CompilationResultImpl(result, outputFileMap);
@@ -420,9 +427,66 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 //      }
 //      throw Jooc.error(String.format("Compilation unit %s defined in %s is redeclared in %s.", qName, canonicalInputSource.getPath(), file.getPath()), file);
 //    }
-    FileInputSource inputSource = new FileInputSource(sourceDir, file, true);
+    FileInputSource inputSource = new FileInputSource(sourceDir, file, true, getConfig().getExtNamespace());
     compileQueue.add(inputSource);
     importSource(inputSource);
+  }
+
+  protected void copySassFiles() throws IOException {
+    String extSassNamespace = getConfig().getExtSassNamespace();
+    for (String sassSourceSubFolderName : getConfig().getSassSourceFilesByType().keySet()) {
+      File sassSourceSubFolder = getConfig().getSassSourcePathByType().get(sassSourceSubFolderName);
+      File sassTargetSubFolder = getConfig().getSassOutputDirectoryByType().get(sassSourceSubFolderName);
+      if (sassSourceSubFolder == null) {
+        getLog().error("No sass source folder registered for folder type: " + sassSourceSubFolderName);
+        continue;
+      }
+      if (sassTargetSubFolder == null) {
+        getLog().error("No sass output folder registered for folder type: " + sassSourceSubFolderName);
+        continue;
+      }
+      for (File sassSourceFile : getConfig().getSassSourceFilesByType().get(sassSourceSubFolderName)) {
+        File sassTargetFile;
+        Path relativeSrcPath = sassSourceSubFolder.toPath().relativize(sassSourceFile.toPath());
+        String srcFileName = sassSourceFile.getName();
+        if (!srcFileName.endsWith(SCSS_SUFFIX)) {
+          getLog().warning("Cannot handle unknown extension in sass directory for file: " + sassSourceFile);
+          sassTargetFile = sassTargetSubFolder.toPath().resolve(relativeSrcPath).toFile();
+        } else {
+          String fqn = CompilerUtils.qNameFromFile(sassSourceSubFolder, sassSourceFile);
+          // apply possible renaming
+          CompilationUnit compilationUnit = getCompilationUnit(fqn);
+          String newFqn;
+          if (compilationUnit != null) {
+            newFqn = compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(true);
+          } else {
+            // do not rename
+            newFqn = fqn;
+            getLog().warning(String.format("Could not find compilation unit %s for SASS file %s", fqn, srcFileName));
+          }
+          // apply extSassNamespace
+          if (!extSassNamespace.isEmpty()) {
+            if (!newFqn.startsWith(extSassNamespace) || extSassNamespace.equals(newFqn)) {
+              getLog().error(String.format("Invalid extSassNamespace configuration %s! The following file location would be transformed: %s", extSassNamespace, sassSourceFile));
+              continue;
+            }
+            newFqn = newFqn.substring(extSassNamespace.length() + 1);
+          }
+          sassTargetFile = CompilerUtils.fileFromQName(newFqn, sassTargetSubFolder, SCSS_SUFFIX);
+        }
+        //noinspection ResultOfMethodCallIgnored
+        sassTargetFile.getParentFile().mkdirs();
+        try {
+          Files.copy(sassSourceFile.toPath(),
+                  sassTargetFile.toPath(),
+                  StandardCopyOption.REPLACE_EXISTING,
+                  StandardCopyOption.COPY_ATTRIBUTES,
+                  LinkOption.NOFOLLOW_LINKS);
+        } catch (IOException e) {
+          getLog().error(String.format("Could not copy file %s to %s", sassSourceFile, sassTargetFile));
+        }
+      }
+    }
   }
 
   public static int run(String[] argv, CompileLog log) {

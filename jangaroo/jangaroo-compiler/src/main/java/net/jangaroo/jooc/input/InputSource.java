@@ -17,6 +17,8 @@ public interface InputSource {
 
   String getRelativePath();
 
+  String getExtNamespace();
+
   boolean isDirectory();
 
   List<? extends InputSource> list();

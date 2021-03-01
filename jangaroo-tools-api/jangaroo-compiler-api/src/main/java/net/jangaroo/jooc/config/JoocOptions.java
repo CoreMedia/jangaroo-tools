@@ -19,6 +19,10 @@ public interface JoocOptions {
 
   boolean isMigrateToTypeScript();
 
+  String getExtNamespace();
+
+  String getExtSassNamespace();
+
   List<SearchAndReplace> getNpmPackageNameReplacers();
 
   PublicApiViolationsMode getPublicApiViolationsMode();

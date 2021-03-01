@@ -27,6 +27,11 @@ public class ZipEntryInputSource implements InputSource {
   }
 
   @Override
+  public String getExtNamespace() {
+    return getZipFileInputSource().getExtNamespace();
+  }
+
+  @Override
   public boolean isInSourcePath() {
     return zipFileInputSource.isInSourcePath();
   }

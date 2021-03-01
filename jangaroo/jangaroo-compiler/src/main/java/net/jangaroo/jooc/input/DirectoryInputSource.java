@@ -6,6 +6,7 @@ import java.io.InputStream;
 public abstract class DirectoryInputSource implements InputSource {
 
   private boolean inSourcePath;
+  String extNamespace;
 
   protected DirectoryInputSource(boolean inSourcePath) {
     this.inSourcePath = inSourcePath;
@@ -24,6 +25,11 @@ public abstract class DirectoryInputSource implements InputSource {
   @Override
   public void close() throws IOException {
     throw new UnsupportedOperationException("close() is not supported for directory input sources");
+  }
+
+  @Override
+  public String getExtNamespace() {
+    return extNamespace;
   }
 
   @Override

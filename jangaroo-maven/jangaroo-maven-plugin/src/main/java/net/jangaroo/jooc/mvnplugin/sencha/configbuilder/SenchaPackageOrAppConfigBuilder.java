@@ -13,9 +13,11 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
 
   public static final String CSS = "css";
   public static final String JS = "js";
+  public static final String SASS = "sass";
 
   private static final String NAME = "name";
   private static final String VERSION = "version";
+  private static final String NAMESPACE = "namespace";
   private static final String CREATOR = "creator";
   private static final String SUMMARY = "summary";
   protected static final String TYPE = "type";
@@ -44,6 +46,14 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
    */
   public T version(String version) {
     return nameValue(VERSION, version);
+  }
+
+  public T namespace(String namespace) {
+    return nameValue(NAMESPACE, namespace);
+  }
+
+  public T sassNamespace(String sassNamespace) {
+    return addToSass(NAMESPACE, sassNamespace);
   }
 
   /**
@@ -114,6 +124,10 @@ public class SenchaPackageOrAppConfigBuilder<T extends SenchaPackageOrAppConfigB
 
   public T cssOrJs(String cssOrJs, String path, boolean bundle, boolean includeInBundle) {
     return addToList(getResourceEntry(path, bundle, includeInBundle), cssOrJs);
+  }
+
+  public T addToSass(String property, String value) {
+    return nameValue(SASS, ImmutableMap.of(property, value));
   }
 
   private static Map<String, Object> getResourceEntry(String path, boolean bundle, boolean includeInBundle) {

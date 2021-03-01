@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A description of various file paths in the build environment.
@@ -15,13 +17,19 @@ import java.util.List;
 public class FileLocations {
 
   // all paths from which source files are read; used to resolve the package of each file
-  private List<File> sourcePath = new ArrayList<File>(); // may contain directories which are source roots
+  private List<File> sourcePath = new ArrayList<>(); // may contain directories which are source roots
+  // all paths from which sass source files are read; used to resolve the package of each file
+  private Map<String, File> sassSourcePathByType = new HashMap<>(); // may contain directories which are sass source roots
   // the files to compile
-  private List<File> sourceFiles = new ArrayList<File>();
+  private List<File> sourceFiles = new ArrayList<>();
+  // the sass files to compile
+  private Map<String, List<File>> sassSourceFilesByType = new HashMap<>();
   // the class path (including directories and jars) from which referenced classes are loaded
-  private List<File> classPath = new ArrayList<File>(); // may contain directories and jar files
+  private List<File> classPath = new ArrayList<>(); // may contain directories and jar files
   // the directory into which output files are generated
   private File outputDirectory;
+  // the directory into which sass output files are generated
+  private Map<String, File> sassOutputDirectoryByType;
 
   public File findSourceDir(final File file) throws IOException {
     return CompilerUtils.findSourceDir(getSourcePath(), file);
@@ -49,6 +57,18 @@ public class FileLocations {
     this.sourcePath = Collections.unmodifiableList(canonicalizedSourcePath);
   }
 
+  public Map<String, File> getSassSourcePathByType() {
+    return sassSourcePathByType;
+  }
+
+  public void setSassSourcePathByType(Map<String, File> sassSourcePathByType) throws IOException {
+    Map<String, File> canonicalizedSourcePathByType = new HashMap<>();
+    for (Map.Entry<String, File> entry : sassSourcePathByType.entrySet()) {
+      canonicalizedSourcePathByType.put(entry.getKey(), entry.getValue().getCanonicalFile());
+    }
+    this.sassSourcePathByType = Collections.unmodifiableMap(canonicalizedSourcePathByType);
+  }
+
   public List<File> getClassPath() {
     return classPath;
   }
@@ -68,7 +88,7 @@ public class FileLocations {
     if (sourceFiles == null) {
       throw new IllegalArgumentException("sourceFiles == null");
     }
-    this.sourceFiles = new ArrayList<File>(sourceFiles);
+    this.sourceFiles = new ArrayList<>(sourceFiles);
   }
 
   public void addSourceFile(File source) {
@@ -77,6 +97,32 @@ public class FileLocations {
 
   public void addSourceFile(String sourcepath) {
     addSourceFile(new File(sourcepath));
+  }
+
+  public Map<String, List<File>> getSassSourceFilesByType() {
+    return Collections.unmodifiableMap(sassSourceFilesByType);
+  }
+
+  public void setSassSourceFilesByType(Map<String, List<File>> sassSourceFilesByType) {
+    if (sassSourceFilesByType == null) {
+      throw new IllegalArgumentException("sassSourceFilesByType == null");
+    }
+    this.sassSourceFilesByType = new HashMap<>();
+    for (Map.Entry<String, List<File>> entry : sassSourceFilesByType.entrySet()) {
+      this.sassSourceFilesByType.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+    }
+  }
+
+  public Map<String, File> getSassOutputDirectoryByType() {
+    return Collections.unmodifiableMap(sassOutputDirectoryByType);
+  }
+
+  public void setSassOutputDirectoryByType(Map<String, File> sassOutputDirectoryByType) throws IOException {
+    Map<String, File> canonicalizedOutputDirectoryByType = new HashMap<>();
+    for (Map.Entry<String, File> entry : sassOutputDirectoryByType.entrySet()) {
+      canonicalizedOutputDirectoryByType.put(entry.getKey(), entry.getValue().getCanonicalFile());
+    }
+    this.sassOutputDirectoryByType = Collections.unmodifiableMap(canonicalizedOutputDirectoryByType);
   }
 
   @Override

@@ -28,6 +28,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private String extNamespace = "";
+  private String extSassNamespace = "";
   private List<SearchAndReplace> npmPackageNameReplacers = new ArrayList<>();
   private boolean useEcmaParameterInitializerSemantics = false;
 
@@ -110,6 +112,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public String getExtNamespace() {
+    return extNamespace;
+  }
+
+  @Override
+  public String getExtSassNamespace() {
+    return extSassNamespace;
+  }
+
+  @Override
   public List<SearchAndReplace> getNpmPackageNameReplacers() {
     return npmPackageNameReplacers;
   }
@@ -122,6 +134,16 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
   public void setMigrateToTypeScript(boolean migrateToTypeScript) {
     this.migrateToTypeScript = migrateToTypeScript;
+  }
+
+  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  public void setExtNamespace(String extNamespace) {
+    this.extNamespace = extNamespace;
+  }
+
+  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  public void setExtSassNamespace(String extSassNamespace) {
+    this.extSassNamespace = extSassNamespace;
   }
 
   @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")

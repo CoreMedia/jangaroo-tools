@@ -3,8 +3,11 @@ package net.jangaroo.jooc.input;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,6 +16,8 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -23,6 +28,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
   private String[] rootDirs;
   private Map<String, ZipEntryInputSource> entries = new LinkedHashMap<String, ZipEntryInputSource>();
   private Multimap<String, ZipEntryInputSource> entriesByParent = HashMultimap.create();
+  private String senchaPackageName;
 
   /**
    * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
@@ -51,6 +57,37 @@ public class ZipFileInputSource extends DirectoryInputSource {
         entriesByParent.put(removeTrailingSlash(parent), zipEntryInputSource);
       }
     }
+    readSenchaPackageJson();
+  }
+
+  private static final Pattern JSON_PROPERTY_STRING_VALUE_PATTERN = Pattern.compile("\"([a-z]+)\"\\s*:\\s*\"(.*)\"");
+
+  private void readSenchaPackageJson() throws IOException {
+    InputSource packageJsonInputSource = getChild("META-INF/pkg/package.json");
+    if (packageJsonInputSource == null) {
+      return;
+    }
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(packageJsonInputSource.getInputStream(), StandardCharsets.UTF_8))) {
+      for (String line; (line = br.readLine()) != null; ) {
+        Matcher matcher = JSON_PROPERTY_STRING_VALUE_PATTERN.matcher(line);
+        if (matcher.find()) {
+          String propertyName = matcher.group(1);
+          if (senchaPackageName == null && "name".equals(propertyName)) {
+            senchaPackageName = matcher.group(2);
+          }
+          if (extNamespace == null && "namespace".equals(propertyName)) {
+            extNamespace = matcher.group(2);
+          }
+          if (senchaPackageName != null && extNamespace != null) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  public String getSenchaPackageName() {
+    return senchaPackageName;
   }
 
   private String getRelativePath(final String name) {

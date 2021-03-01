@@ -19,6 +19,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.types.ExpressionType;
 
 import java.util.List;
@@ -87,20 +88,39 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getTargetQualifiedNameStr() {
+    return getTargetQualifiedNameStr(false);
+  }
+
+  public String getTargetQualifiedNameStr(boolean ignoreNamespace) {
     Annotation nativeAnnotation = getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    String nativeName = null;
+    String targetName = null;
+    boolean require = true;
     if (nativeAnnotation != null) {
-      nativeName = (String) nativeAnnotation.getPropertiesByName().get(null);
+      targetName = (String) nativeAnnotation.getPropertiesByName().get(null);
+      if (!nativeAnnotation.getPropertiesByName().containsKey(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY)) {
+        require = false;
+      }
     } else {
       Annotation renameAnnotation = getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
       if (renameAnnotation != null) {
-        nativeName = (String) renameAnnotation.getPropertiesByName().get(null);
+        targetName = (String) renameAnnotation.getPropertiesByName().get(null);
       }
     }
-    if (nativeName != null && !nativeName.isEmpty()) {
-      return nativeName;
+    if (targetName == null || targetName.isEmpty()) {
+      targetName = getQualifiedNameStr();
     }
-    return getQualifiedNameStr();
+    if (require && !ignoreNamespace) {
+      InputSource inputSource = getCompilationUnit().getInputSource();
+      String extNamespace = inputSource.getExtNamespace();
+      if (extNamespace != null && !extNamespace.isEmpty()) {
+        if (!targetName.startsWith(extNamespace + ".")) {
+          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
+        } else {
+          targetName = targetName.substring(extNamespace.length() + 1);
+        }
+      }
+    }
+    return targetName;
   }
 
   public String getQualifiedNameStr() {

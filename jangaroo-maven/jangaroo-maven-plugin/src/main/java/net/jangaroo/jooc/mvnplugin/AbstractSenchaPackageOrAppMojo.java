@@ -57,12 +57,34 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
   private File senchaSrcDir;
 
+  /**
+   * Experimental: The Ext namespace is stripped from the relative path to the source root.
+   */
+  @Parameter(property = "extNamespace")
+  private String extNamespace = "";
+
+  /**
+   * Experimental: The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
+   * and sencha/sass/src of the source root. If not set (or null) it falls back to {@link #extNamespace}.
+   */
+  @Parameter(property = "extSassNamespace")
+  private String extSassNamespace = null;
+
   public abstract String getType();
 
   public abstract String getJsonConfigFileName();
 
   void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     configureMetadata(configBuilder);
+    if (!StringUtils.isEmpty(extNamespace)) {
+      configBuilder.namespace(extNamespace);
+    }
+    String extSassNamespaceWithFallback = extSassNamespace != null ? extSassNamespace : extNamespace;
+    if (!StringUtils.isEmpty(extSassNamespaceWithFallback)) {
+      // in contrast to the jangaroo-maven-plugin sencha configures namespace and sassNamespace separately with no
+      // fallback involved
+      configBuilder.sassNamespace(extSassNamespaceWithFallback);
+    }
     configureRequires(configBuilder);
     configureModule(configBuilder);
     configureProfile(configBuilder, null, this);
