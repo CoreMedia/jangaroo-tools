@@ -8,11 +8,11 @@ import java.util.Map;
 public class AdditionalPackageJsonEntries {
   private String author;
   private String description;
-  private List<String> types;
   private Map<String, String> dependencies;
   private Map<String, String> devDependencies;
   private Map<String, String> scripts;
   private Map<String, Object> typesVersions;
+  private String types;
 
   public AdditionalPackageJsonEntries() {
   }
@@ -35,25 +35,6 @@ public class AdditionalPackageJsonEntries {
     if (description != null && !description.isEmpty()) {
       this.description = description;
     }
-  }
-
-  public List<String> getTypes() {
-    return types;
-  }
-
-  public void addType(String type) {
-    if (type != null && !type.isEmpty()) {
-      if (this.types == null) {
-        this.types = new ArrayList<>();
-      }
-      this.types.add(type);
-    }
-
-  }
-
-
-  public void setTypes(List<String> types) {
-    this.types = types;
   }
 
   public Map<String, String> getDependencies() {
@@ -121,6 +102,16 @@ public class AdditionalPackageJsonEntries {
   public void setTypesVersions(Map<String, Object> typesVersions) {
     if (typesVersions != null && !typesVersions.isEmpty()) {
       this.typesVersions = typesVersions;
+    }
+  }
+
+  public String getTypes() {
+    return types;
+  }
+
+  public void setTypes(String types) {
+    if (types != null && !types.isEmpty()) {
+      this.types = types;
     }
   }
 }

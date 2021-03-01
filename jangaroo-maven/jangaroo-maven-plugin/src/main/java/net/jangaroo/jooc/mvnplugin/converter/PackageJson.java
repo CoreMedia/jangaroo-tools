@@ -32,6 +32,8 @@ public class PackageJson {
   private List<String> workspaces;
   @JsonProperty("typesVersions")
   private Map<String, Object> typesVersions;
+  @JsonProperty("types")
+  private String types;
 
   public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
     this.name = name;
@@ -53,6 +55,7 @@ public class PackageJson {
     this.devDependencies = additionalPackageJsonEntries.getDevDependencies();
     this.scripts = additionalPackageJsonEntries.getScripts();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
+    this.types = additionalPackageJsonEntries.getTypes();
   }
 
   public PackageJson() {
@@ -200,6 +203,16 @@ public class PackageJson {
   public void setTypesVersions(Map<String, Object> typesVersions) {
     if (typesVersions != null && !typesVersions.isEmpty()) {
       this.typesVersions = typesVersions;
+    }
+  }
+
+  public String getTypes() {
+    return types;
+  }
+
+  public void setTypes(String types) {
+    if (types != null && !types.isEmpty()) {
+      this.types = types;
     }
   }
 }

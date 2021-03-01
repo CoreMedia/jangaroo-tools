@@ -232,9 +232,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
             if (useTypesVersions) {
               // although this is the default value, explicitly add this entry
-              additionalJsonEntries.addType("index.d.ts");
+              additionalJsonEntries.setTypes("index.d.ts");
             } else {
-              additionalJsonEntries.addType("src/index.d.ts");
+              additionalJsonEntries.setTypes("src/index.d.ts");
             }
           }
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
@@ -284,6 +284,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
+          Map<String, String> scripts = new HashMap<>();
+          scripts.put("clean", "rimraf ./dist && rimraf ./build");
+          scripts.put("build", "jangaroo build");
+          scripts.put("watch", "jangaroo watch");
+          scripts.put("start", "jangaroo run");
+          additionalJsonEntries.setScripts(scripts);
           if (useTypesVersions) {
             List<String> typesPaths = new ArrayList<>();
             typesPaths.add("./src/*");

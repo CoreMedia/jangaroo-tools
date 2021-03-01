@@ -114,6 +114,6 @@ public class GlobalLibraryConfiguration {
     dependencies.put(aPackage.getName(), aPackage.getVersion());
     globalLibraries.add(new LibraryItem(aPackage.getName(), distPath, globalVar));
     String lastPathSegment = distPath.substring(distPath.lastIndexOf('/') + 1);
-    additionalJsPaths.add(String.format("resources/{}/{}/{}", aPackage.getName(), aPackage.getVersion(), lastPathSegment));
+    additionalJsPaths.add(String.format("resources/%s/%s/%s", aPackage.getName(), aPackage.getVersion(), lastPathSegment));
   }
 }
