@@ -68,7 +68,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
   @Parameter
-  private boolean useTypesVersions;
+  private boolean useTypesVersions = false;
 
   private List<SearchAndReplace> searchAndReplaceList;
   private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
