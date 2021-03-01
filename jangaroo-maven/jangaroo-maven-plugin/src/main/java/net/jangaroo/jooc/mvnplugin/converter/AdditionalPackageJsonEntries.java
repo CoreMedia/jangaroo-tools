@@ -1,11 +1,14 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdditionalPackageJsonEntries {
   private String author;
   private String description;
+  private List<String> types;
   private Map<String, String> dependencies;
   private Map<String, String> devDependencies;
   private Map<String, String> scripts;
@@ -32,6 +35,25 @@ public class AdditionalPackageJsonEntries {
     if (description != null && !description.isEmpty()) {
       this.description = description;
     }
+  }
+
+  public List<String> getTypes() {
+    return types;
+  }
+
+  public void addType(String type) {
+    if (type != null && !type.isEmpty()) {
+      if (this.types == null) {
+        this.types = new ArrayList<>();
+      }
+      this.types.add(type);
+    }
+
+  }
+
+
+  public void setTypes(List<String> types) {
+    this.types = types;
   }
 
   public Map<String, String> getDependencies() {

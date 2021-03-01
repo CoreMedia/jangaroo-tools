@@ -67,6 +67,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter
   private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
+  @Parameter
+  private boolean useTypesVersions;
+
   private List<SearchAndReplace> searchAndReplaceList;
   private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
   private RootPackageJson rootPackageJson;
@@ -210,13 +213,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("watch", "jangaroo watch");
           scripts.putAll(testScripts);
           additionalJsonEntries.setScripts(scripts);
-          List<String> typesPaths = new ArrayList<>();
-          typesPaths.add("./src/*");
-          Map<String, List> allMapping = new HashMap<>();
-          allMapping.put("*", typesPaths);
-          Map<String, Object> typesVersions = new HashMap<>();
-          typesVersions.put("*", allMapping);
-          additionalJsonEntries.setTypesVersions(typesVersions);
+          if (useTypesVersions) {
+            List<String> typesPaths = new ArrayList<>();
+            typesPaths.add("./src/*");
+            Map<String, List> allMapping = new HashMap<>();
+            allMapping.put("*", typesPaths);
+            Map<String, Object> typesVersions = new HashMap<>();
+            typesVersions.put("*", allMapping);
+            additionalJsonEntries.setTypesVersions(typesVersions);
+          }
 
           List<String> ignoreFromSrcMain = new ArrayList<>();
           ignoreFromSrcMain.add("package.json");
@@ -224,6 +229,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
                   "src", ignoreFromSrcMain, targetPackageDir
           );
+          if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
+            if (useTypesVersions) {
+              // although this is the default value, explicitly add this entry
+              additionalJsonEntries.addType("index.d.ts");
+            } else {
+              additionalJsonEntries.addType("src/index.d.ts");
+            }
+          }
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app");
@@ -271,13 +284,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          List<String> typesPaths = new ArrayList<>();
-          typesPaths.add("./app/*");
-          Map<String, List> allMapping = new HashMap<>();
-          allMapping.put("*", typesPaths);
-          Map<String, Object> typesVersions = new HashMap<>();
-          typesVersions.put("*", allMapping);
-          additionalJsonEntries.setTypesVersions(typesVersions);
+          if (useTypesVersions) {
+            List<String> typesPaths = new ArrayList<>();
+            typesPaths.add("./src/*");
+            Map<String, List> allMapping = new HashMap<>();
+            allMapping.put("*", typesPaths);
+            Map<String, Object> typesVersions = new HashMap<>();
+            typesVersions.put("*", allMapping);
+            additionalJsonEntries.setTypesVersions(typesVersions);
+          }
           List<String> ignoreFromSrcMain = new ArrayList<>();
           ignoreFromSrcMain.add("app.json");
           copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app",
