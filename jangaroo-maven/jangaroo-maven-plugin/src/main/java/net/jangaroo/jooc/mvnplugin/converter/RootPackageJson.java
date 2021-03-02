@@ -8,8 +8,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class RootPackageJson {
   private PackageJson packageJson;
@@ -39,9 +40,9 @@ public class RootPackageJson {
         e.printStackTrace();
       }
     } else {
-      Map<String, String> devDependencies = new HashMap<>();
+      Map<String, String> devDependencies = new TreeMap<>();
       devDependencies.put("lerna", "^3.0.0");
-      Map<String, String> scripts = new HashMap<>();
+      Map<String, String> scripts = new LinkedHashMap<>();
       scripts.put("clean", "lerna run clean");
       scripts.put("build", "lerna run build");
       scripts.put("test", "lerna run test");
@@ -50,11 +51,11 @@ public class RootPackageJson {
               null, null, "1.0.0",
               "MIT",
               true,
-              new HashMap<>(),
+              new TreeMap<>(),
               devDependencies,
               scripts,
               new ArrayList<>(),
-              new HashMap<>());
+              new LinkedHashMap<>());
     }
 
     return this.packageJson;

@@ -2,7 +2,10 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
@@ -13,6 +16,7 @@ import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
+import net.jangaroo.jooc.mvnplugin.converter.PackageJsonPrettyPrinter;
 import net.jangaroo.jooc.mvnplugin.converter.RootPackageJson;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import org.apache.commons.io.FileUtils;
@@ -44,6 +48,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +76,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private boolean useTypesVersions = false;
 
   private List<SearchAndReplace> searchAndReplaceList;
-  private ObjectMapper objectMapper = SenchaUtils.getObjectMapper();
+  private ObjectMapper objectMapper;
   private RootPackageJson rootPackageJson;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
@@ -79,9 +84,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    //objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    PackageJsonPrettyPrinter prettyPrinter = new PackageJsonPrettyPrinter();
+
+    objectMapper = SenchaUtils.getObjectMapper()
+            .setDefaultPrettyPrinter(prettyPrinter)
+            .configure(SerializationFeature.INDENT_OUTPUT, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
     rootPackageJson = new RootPackageJson(objectMapper, convertedWorkspaceTarget);
+
     searchAndReplaceList = npmPackageNameReplacers.stream()
             .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
             .collect(Collectors.toList());
@@ -117,12 +128,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       rootPackageJson.writePackageJson();
 
-      Map<String, Object> lernaJson = new HashMap<>();
+      Map<String, Object> lernaJson = new LinkedHashMap<>();
       lernaJson.put("npmClient", "yarn");
       lernaJson.put("useWorkspaces", true);
       lernaJson.put("version", "0.0.0");
-      Map<String, Object> lernaCommandMap = new HashMap<>();
-      Map<String, Object> lernaRunMap = new HashMap<>();
+      Map<String, Object> lernaCommandMap = new LinkedHashMap<>();
+      Map<String, Object> lernaRunMap = new LinkedHashMap<>();
       lernaRunMap.put("stream", true);
       lernaCommandMap.put("run", lernaRunMap);
       lernaJson.put("command", lernaCommandMap);
@@ -181,8 +192,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
             jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
           }
-          Map<String, String> testDependencies = new HashMap<>();
-          Map<String, String> testScripts = new HashMap<>();
+          Map<String, String> testDependencies = new TreeMap<>();
+          Map<String, String> testScripts = new LinkedHashMap<>();
           if (jangarooConfig.getTestSuite() != null) {
             excludePaths.add(targetPackageDir + "/build");
             testDependencies.put("@jangaroo/joounit", "1.0.0");
@@ -196,18 +207,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-          Map<String, String> dependencies = new HashMap<>();
+          Map<String, String> dependencies = new TreeMap<>();
           dependencies.put("@jangaroo/joo", "1.0.0");
           dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
-          Map<String, String> devDependencies = new HashMap<>();
+          Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0");
           devDependencies.put("@jangaroo/build", "^1.0.0");
           devDependencies.put("@jangaroo/publish", "^1.0.0");
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new TreeMap<>(testScripts);
+          Map<String, String> scripts = new LinkedHashMap<>(testScripts);
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
@@ -241,8 +252,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app");
-          Map<String, Object> commandMap = new HashMap<>();
-          Map<String, String> runMap = new HashMap<>();
+          Map<String, Object> commandMap = new LinkedHashMap<>();
+          Map<String, String> runMap = new LinkedHashMap<>();
           runMap.put("proxyPathSpec", "/rest/");
           commandMap.put("run", runMap);
           jangarooConfig.setCommand(commandMap);
@@ -272,20 +283,20 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-          Map<String, String> dependencies = new HashMap<>();
+          Map<String, String> dependencies = new TreeMap<>();
           dependencies.put("@coremedia/sencha-ext", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
           dependencies.put("@jangaroo/joo", "1.0.0");
           dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
-          Map<String, String> devDependencies = new HashMap<>();
+          Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0");
           devDependencies.put("@jangaroo/build", "^1.0.0");
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new TreeMap<>();
+          Map<String, String> scripts = new LinkedHashMap<>();
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
@@ -294,9 +305,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           if (useTypesVersions) {
             List<String> typesPaths = new ArrayList<>();
             typesPaths.add("./src/*");
-            Map<String, List> allMapping = new HashMap<>();
+            Map<String, List> allMapping = new LinkedHashMap<>();
             allMapping.put("*", typesPaths);
-            Map<String, Object> typesVersions = new HashMap<>();
+            Map<String, Object> typesVersions = new LinkedHashMap<>();
             typesVersions.put("*", allMapping);
             additionalJsonEntries.setTypesVersions(typesVersions);
           }
@@ -309,8 +320,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app-overlay");
-          Map<String, Object> commandMap = new HashMap<>();
-          Map<String, String> runMap = new HashMap<>();
+          Map<String, Object> commandMap = new LinkedHashMap<>();
+          Map<String, String> runMap = new LinkedHashMap<>();
           runMap.put("proxyPathSpec", "/rest/");
           commandMap.put("run", runMap);
           jangarooConfig.setCommand(commandMap);
@@ -318,13 +329,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-          Map<String, String> devDependencies = new HashMap<>();
+          Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0");
           devDependencies.put("@jangaroo/build", "^1.0.0");
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new TreeMap<>();
+          Map<String, String> scripts = new LinkedHashMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
@@ -333,8 +344,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("apps");
-          Map<String, Object> commandMap = new HashMap<>();
-          Map<String, String> runMap = new HashMap<>();
+          Map<String, Object> commandMap = new LinkedHashMap<>();
+          Map<String, String> runMap = new LinkedHashMap<>();
           runMap.put("proxyPathSpec", "/rest/");
           commandMap.put("run", runMap);
           jangarooConfig.setCommand(commandMap);
@@ -348,13 +359,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
-          Map<String, String> devDependencies = new HashMap<>();
+          Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0");
           devDependencies.put("@jangaroo/build", "^1.0.0");
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new TreeMap<>();
+          Map<String, String> scripts = new LinkedHashMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
@@ -492,8 +503,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private void copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
-    ignoreFromSrcMainSencha.add("sass/var");
-    ignoreFromSrcMainSencha.add("sass/src");
+    List<String> fullIgnoreFromSrcMainSencha = new ArrayList<>(ignoreFromSrcMainSencha);
+    fullIgnoreFromSrcMainSencha.add("sass/var");
+    fullIgnoreFromSrcMainSencha.add("sass/src");
     for (String dir : Arrays.asList(srcFolderName, "sass/var", "sass/src")) {
       Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
       if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
@@ -516,13 +528,19 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
       if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
         FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
-                pathname -> ignoreFromSrcMainSencha.stream()
-                        .map(ignore -> Paths.get(srcMainSenchaPath.toString(), ignore).toString())
-                        .anyMatch(ignore -> !ignore.equals(pathname.getPath()))
-        );
+                pathname -> ignoreFile(pathname, srcMainSenchaPath, fullIgnoreFromSrcMainSencha));
       }
     }
   }
+
+  private boolean ignoreFile(File file, Path srcMainSenchaPath, List<String> ignoreFromSrcMainSencha) {
+    List<Path> collect = ignoreFromSrcMainSencha.stream()
+            .map(string -> Paths.get(srcMainSenchaPath.toString(), string))
+            .collect(Collectors.toList());
+    return collect.stream()
+            .anyMatch(path -> path.toString().contains(file.getPath()));
+  }
+
 
   private Optional<Package> getOrCreateDependencyPackage(String name, Dependency dependency) {
     Optional<Artifact> optionalArtifact = project.getArtifacts().stream()
@@ -743,7 +761,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private Map<String, MavenModule> loadMavenModule(String modulePath) {
-    Map<String, MavenModule> modules = new HashMap<>();
+    Map<String, MavenModule> modules = new TreeMap<>();
     modules.put(calculateMavenName(project.getModel()), new MavenModule(modulePath, project.getModel()));
     return modules;
   }

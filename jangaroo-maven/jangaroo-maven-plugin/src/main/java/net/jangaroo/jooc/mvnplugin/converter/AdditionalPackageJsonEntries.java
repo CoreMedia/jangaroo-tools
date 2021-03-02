@@ -1,9 +1,8 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class AdditionalPackageJsonEntries {
   private String author;
@@ -43,7 +42,7 @@ public class AdditionalPackageJsonEntries {
 
   public void addDependency(String name, String version) {
     if (this.dependencies == null) {
-      this.dependencies = new HashMap<>();
+      this.dependencies = new TreeMap<>();
     }
     this.dependencies.put(name, version);
   }
@@ -60,7 +59,7 @@ public class AdditionalPackageJsonEntries {
 
   public void addDevDependency(String name, String version) {
     if (this.devDependencies == null) {
-      this.devDependencies = new HashMap<>();
+      this.devDependencies = new TreeMap<>();
     }
     this.devDependencies.put(name, version);
   }
@@ -77,7 +76,7 @@ public class AdditionalPackageJsonEntries {
 
   public void addScript(String name, String command) {
     if (this.scripts == null) {
-      this.scripts = new HashMap<>();
+      this.scripts = new LinkedHashMap<>();
     }
     this.scripts.put(name, command);
   }
@@ -94,7 +93,7 @@ public class AdditionalPackageJsonEntries {
 
   public void addTypesVersion(String name, Object version) {
     if (this.typesVersions == null) {
-      this.typesVersions = new HashMap<>();
+      this.typesVersions = new LinkedHashMap<>();
     }
     this.typesVersions.put(name, version);
   }

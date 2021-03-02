@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin.converter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -159,7 +160,7 @@ public class PackageJson {
 
   public void addScript(String name, String command) {
     if (this.scripts == null) {
-      this.scripts = new TreeMap<>();
+      this.scripts = new LinkedHashMap<>();
     }
     this.scripts.put(name, command);
   }
@@ -195,7 +196,7 @@ public class PackageJson {
 
   public void addTypesVersion(String name, Object version) {
     if (this.typesVersions == null) {
-      this.typesVersions = new TreeMap<>();
+      this.typesVersions = new LinkedHashMap<>();
     }
     this.typesVersions.put(name, version);
   }
