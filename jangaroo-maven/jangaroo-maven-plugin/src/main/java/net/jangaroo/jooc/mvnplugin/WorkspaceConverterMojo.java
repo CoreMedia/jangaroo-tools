@@ -115,7 +115,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       rootPackageJson.readPackageJson();
       moduleMappings.entrySet().stream()
               .map(entry -> {
-                if (ModuleType.IGNORE.equals(entry.getValue().getModuleType())) {
+                if (ModuleType.IGNORE == entry.getValue().getModuleType()) {
+                  return null;
+                } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType()) {
                   return null;
                 } else {
                   return "packages/" + entry.getKey();
