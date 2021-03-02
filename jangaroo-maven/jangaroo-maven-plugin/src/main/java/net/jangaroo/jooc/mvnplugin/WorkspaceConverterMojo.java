@@ -207,11 +207,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new HashMap<>(testScripts);
-          scripts.put("publish", "jangaroo-publish dist");
+          Map<String, String> scripts = new TreeMap<>(testScripts);
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
+          scripts.put("publish", "jangaroo-publish dist");
           scripts.putAll(testScripts);
           additionalJsonEntries.setScripts(scripts);
           if (useTypesVersions) {
@@ -285,7 +285,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new HashMap<>();
+          Map<String, String> scripts = new TreeMap<>();
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
@@ -324,11 +324,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new HashMap<>();
-          scripts.put("start", "jangaroo run");
+          Map<String, String> scripts = new TreeMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
+          scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
           excludePaths.add(targetPackageDir + "/build");
@@ -354,7 +354,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.put("@jangaroo/run", "^1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new HashMap<>();
+          Map<String, String> scripts = new TreeMap<>();
           scripts.put("clean", "rimraf ./dist");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
