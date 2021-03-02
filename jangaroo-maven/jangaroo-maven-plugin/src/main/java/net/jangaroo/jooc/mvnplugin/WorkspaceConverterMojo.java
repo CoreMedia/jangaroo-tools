@@ -2,8 +2,6 @@ package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
@@ -528,17 +526,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
       if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
         FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
-                pathname -> ignoreFile(pathname, srcMainSenchaPath, fullIgnoreFromSrcMainSencha));
+                pathname -> acceptFile(pathname, srcMainSenchaPath, fullIgnoreFromSrcMainSencha));
       }
     }
   }
 
-  private boolean ignoreFile(File file, Path srcMainSenchaPath, List<String> ignoreFromSrcMainSencha) {
+  private boolean acceptFile(File file, Path srcMainSenchaPath, List<String> ignoreFromSrcMainSencha) {
     List<Path> collect = ignoreFromSrcMainSencha.stream()
             .map(string -> Paths.get(srcMainSenchaPath.toString(), string))
             .collect(Collectors.toList());
     return collect.stream()
-            .anyMatch(path -> path.toString().contains(file.getPath()));
+            .noneMatch(path -> file.getPath().contains(path.toString()));
   }
 
 
