@@ -30,7 +30,7 @@ public class IdeaProjectIml {
     stringJoiner.add("  <component name=\"NewModuleRootManager\" inherit-compiler-output=\"true\">");
     stringJoiner.add("    <exclude-output />");
     stringJoiner.add("    <content url=\"file://$MODULE_DIR$\">");
-    stringJoiner.add("      %s");
+    stringJoiner.add("%s");
     stringJoiner.add("    </content>");
     stringJoiner.add("  </component>");
     stringJoiner.add("</module>");
@@ -60,7 +60,7 @@ public class IdeaProjectIml {
             .filter(path -> !this.excludePaths.contains(path))
             .forEach(excludePaths::add);
     this.excludePaths.stream()
-            .map(path -> String.format("<excludeFolder url=\"file://$MODULE_DIR$/%s\" />", path))
+            .map(path -> String.format("      <excludeFolder url=\"file://$MODULE_DIR$/%s\" />", path))
             .forEach(stringJoiner::add);
     try {
       FileUtils.write(projectImlPath, String.format(projectIml, stringJoiner.toString()));

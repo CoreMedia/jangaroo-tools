@@ -401,7 +401,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         //todo: Some security config necessary?
 
         if (!ideaConfigFolder.exists()) {
-          String modulesXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n<component name=\"ProjectModuleManager\">\n<modules>\n<module fileurl=\"file://$PROJECT_DIR$/.idea/${projectName}.iml\" filepath=\"$PROJECT_DIR$/${path.relative(targetDir, projectImlPath)}\" />\n</modules>\n</component>\n</project>";
+          String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                  "<project version=\"4\">\n" +
+                  "  <component name=\"ProjectModuleManager\">\n" +
+                  "    <modules>\n" +
+                  "      <module fileurl=\"file://$PROJECT_DIR$/.idea/%s.iml\" filepath=\"$PROJECT_DIR$/%s\" />\n" +
+                  "    </modules>\n" +
+                  "  </component>\n" +
+                  "</project>", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
           FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
         }
         IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
