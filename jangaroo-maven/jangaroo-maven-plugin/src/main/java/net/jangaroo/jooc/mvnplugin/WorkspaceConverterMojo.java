@@ -403,7 +403,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         //todo: Some security config necessary?
 
         if (!ideaConfigFolder.exists()) {
-          String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+          String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                   "<project version=\"4\">\n" +
                   "  <component name=\"ProjectModuleManager\">\n" +
                   "    <modules>\n" +
@@ -421,9 +421,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           StringJoiner stringJoiner = new StringJoiner("\n");
           stringJoiner.add("# NodeJS");
           stringJoiner.add("node_modules/");
+          stringJoiner.add("");
           stringJoiner.add("# Jangaroo Build");
           stringJoiner.add("dist/");
           stringJoiner.add("build/");
+          stringJoiner.add("");
           stringJoiner.add("# IntellIJ IDEA");
           stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
           stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
