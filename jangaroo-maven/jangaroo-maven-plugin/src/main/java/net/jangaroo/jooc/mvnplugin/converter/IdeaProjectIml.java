@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -60,6 +61,7 @@ public class IdeaProjectIml {
             .filter(path -> !this.excludePaths.contains(path))
             .forEach(excludePaths::add);
     this.excludePaths.stream()
+            .sorted(Comparator.naturalOrder())
             .map(path -> String.format("      <excludeFolder url=\"file://$MODULE_DIR$/%s\" />", path))
             .forEach(stringJoiner::add);
     try {
