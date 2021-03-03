@@ -164,7 +164,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setExtSassNamespace(jangarooMavenPluginConfiguration.getExtSassNamespace());
 
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
-            jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
+            String themePackageName = findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings);
+            jangarooConfig.setTheme(themePackageName);
           }
           GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
           jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
@@ -260,7 +261,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
           jangarooConfig.setExtSassNamespace(jangarooMavenPluginConfiguration.getExtSassNamespace());
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
-            jangarooConfig.setTheme(mapJangarooName(null, jangarooMavenPluginConfiguration.getTheme()));
+            String themePackageName = findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings);
+            jangarooConfig.setTheme(themePackageName);
           }
           jangarooConfig.setApplicationClass(jangarooMavenPluginConfiguration.getApplicationClass());
           jangarooConfig.setAdditionalLocales(jangarooMavenPluginConfiguration.getAdditionalLocales());
@@ -675,12 +677,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String mapJangarooName(String groupId, String artifactId) {
-    if (Objects.equals(artifactId, "com.coremedia.ui:studio-theme")) {
-      return "@coremedia/studio-client.studio-theme";
-    }
-    if (Objects.equals(artifactId, "com.coremedia.blueprint:blueprint-studio-theme")) {
-      return "@coremedia-blueprint/studio-client.blueprint-studio-theme";
-    }
     if (Objects.equals(artifactId, "ext")) {
       return "@coremedia/sencha-ext";
     }
@@ -745,6 +741,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     if (splitName.length == 2 && splitName[0] != null && splitName[1] != null) {
       packageName = Optional.of(calculateMavenName(splitName[0], splitName[1]));
     } else {
+      if (reference.startsWith("theme-")) {
+        return "@coremedia/sencha-ext-classic-theme-" + reference.substring("theme-".length());
+      }
       packageName = moduleMappings.entrySet().stream()
               .map(moduleEntry -> {
                 if (ModuleType.IGNORE.equals(moduleEntry.getValue().getModuleType())) {
