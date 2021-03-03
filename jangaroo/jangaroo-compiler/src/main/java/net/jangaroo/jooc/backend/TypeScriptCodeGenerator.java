@@ -103,6 +103,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private Map<String, String> imports;
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
+  private List<ClassDeclaration> mixinClasses;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -234,6 +235,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
+    mixinClasses = new ArrayList<>();
     String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
 
     List<String> configMixins = new ArrayList<>();
@@ -245,6 +247,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
         if (mixinCompilationUnit != null
                 && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+          mixinClasses.add(maybeMixinDeclaration);
           mixins.add(superTypes.getHead());
           if (maybeMixinDeclaration.hasConfigClass()) {
             configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
@@ -823,6 +826,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (convertToProperty && functionDeclaration.isSetter()) {
         // completely suppress (native) setter class members, they are covered by the writable property declaration
         return;
+      }
+      // In ActionScript, native declarations often redeclare Mixin methods.
+      // Try to find such a declaration in all mixins of this class:
+      if (functionDeclaration.isNative()) {
+        for (ClassDeclaration mixinClass : mixinClasses) {
+          if (mixinClass.resolvePropertyDeclaration(functionDeclaration.getName()) != null) {
+            needsCompanionInterface = true;
+            return;
+          }
+        }
       }
       // any other native members in a non-ambient/interface compilation unit are moved
       // to its companion interface declaration:
