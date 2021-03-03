@@ -41,6 +41,12 @@ import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOUR
         requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
 
+  /**
+   * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
+   */
+  @Parameter(property = "maven.compiler.migrateToTypeScript")
+  private boolean migrateToTypeScript = false;
+
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APP_TARGET_DIRECTORY, readonly = true)
   private File webResourcesOutputDirectory;
 
@@ -55,6 +61,9 @@ public class PreparePackageAppOverlayMojo extends AbstractLinkPackagesMojo {
   void packageAppOverlay(boolean addOwnPackage) throws MojoExecutionException {
     File overlayPackagesDir = new File(webResourcesOutputDirectory, SenchaUtils.PACKAGES_DIRECTORY_NAME);
     FileHelper.ensureDirectory(overlayPackagesDir);
+    if (migrateToTypeScript) {
+      return;
+    }
     Path packagesPath = overlayPackagesDir.toPath().normalize();
     File remotePackagesDir = SenchaUtils.remotePackagesDir(session);
 

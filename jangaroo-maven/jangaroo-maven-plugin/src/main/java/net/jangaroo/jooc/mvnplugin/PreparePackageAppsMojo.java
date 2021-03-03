@@ -36,6 +36,12 @@ import static net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper.META_INF_RESOUR
         requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
 
+  /**
+   * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
+   */
+  @Parameter(property = "maven.compiler.migrateToTypeScript")
+  private boolean migrateToTypeScript = false;
+
   @Parameter(defaultValue = "${project.build.directory}" + SenchaUtils.APPS_TARGET_DIRECTORY, readonly = true)
   private File webResourcesOutputDirectory;
 
@@ -51,6 +57,9 @@ public class PreparePackageAppsMojo extends AbstractLinkPackagesMojo {
     Path rootPath = webResourcesOutputDirectory.toPath().normalize();
     Path appsPath = rootPath.resolve(SenchaUtils.APPS_DIRECTORY_NAME).normalize();
     FileHelper.ensureDirectory(appsPath.toFile());
+    if (migrateToTypeScript) {
+      return;
+    }
 
     JangarooApps jangarooApps = createJangarooApps(project);
     Dependency rootApp = getRootApp();

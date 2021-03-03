@@ -47,6 +47,12 @@ import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.isRequiredSenchaDep
 public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaAppConfigBuilder> {
 
   /**
+   * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
+   */
+  @Parameter(property = "maven.compiler.migrateToTypeScript")
+  private boolean migrateToTypeScript = false;
+
+  /**
    * Supported locales in addition to the default locale "{@value SenchaUtils#DEFAULT_LOCALE}"
    */
   @Parameter()
@@ -112,6 +118,9 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
+    if (migrateToTypeScript) {
+      return;
+    }
 
     SenchaAppConfigBuilder senchaConfigBuilder = createSenchaConfigBuilder();
     configure(senchaConfigBuilder);
@@ -171,6 +180,9 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   }
 
   private void packageModule() throws MojoExecutionException {
+    if (migrateToTypeScript) {
+      return;
+    }
     if (!senchaAppDirectory.exists()) {
       throw new MojoExecutionException("Sencha package directory does not exist: " + senchaAppDirectory.getPath());
     }
