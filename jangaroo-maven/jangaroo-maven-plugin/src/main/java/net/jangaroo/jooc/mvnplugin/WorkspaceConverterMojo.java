@@ -410,7 +410,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   "      <module fileurl=\"file://$PROJECT_DIR$/.idea/%s.iml\" filepath=\"$PROJECT_DIR$/%s\" />\n" +
                   "    </modules>\n" +
                   "  </component>\n" +
-                  "</project>", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
+                  "</project>\n" +
+                  "", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
           FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
         }
         IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
@@ -430,6 +431,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
           stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
           stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
+          stringJoiner.add("");
           String gitignore = stringJoiner.toString();
           FileUtils.writeStringToFile(gitignoreFile, gitignore);
         }

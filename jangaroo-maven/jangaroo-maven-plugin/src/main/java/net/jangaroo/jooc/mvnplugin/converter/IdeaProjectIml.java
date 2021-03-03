@@ -35,6 +35,7 @@ public class IdeaProjectIml {
     stringJoiner.add("    </content>");
     stringJoiner.add("  </component>");
     stringJoiner.add("</module>");
+    stringJoiner.add("");
     this.projectIml = stringJoiner.toString();
   }
 
