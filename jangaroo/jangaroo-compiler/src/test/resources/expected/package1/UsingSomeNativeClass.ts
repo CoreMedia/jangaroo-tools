@@ -18,27 +18,23 @@ import SomeOtherNativeClass from '../SomeOtherNativeClass';
     var local = ():void => {
       var test = this.someNative2.getConfig("baz");
     };
-    var foo = this.getConfig("someNativeAccessor");
-    var bar = this.getConfig("anotherNativeAccessor");
+    var foo = this.someNativeAccessor;
+    var bar = this.anotherNativeAccessor;
   }
 
-  
-   getSomeNativeAccessor():SomeNativeClass {
+   get someNativeAccessor():SomeNativeClass {
     return this.someNative;
   }
 
-  
-   getAnotherNativeAccessor():SomeNativeClass {
+   get anotherNativeAccessor():SomeNativeClass {
     return this.someNative;
   }
 
-  
-   getMonkey():boolean {
+   get monkey():boolean {
     return false;
   }
 
-  
-   setMonkey(value:boolean) {
+   set monkey(value:boolean) {
   }
 }
 export default UsingSomeNativeClass;

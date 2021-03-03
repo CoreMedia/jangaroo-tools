@@ -2,14 +2,10 @@ import {mixin} from '@jangaroo/joo/AS3';
 import TestComponent from './TestComponent';
 import TestInterface from './TestInterface';
 import int from '../../../AS3/int_';
-
-class TestComponentBaseProperties {
-
-   emptyText:string = null;
-   letters:Array<any> = null;}
-
-class TestComponentBaseConfigs {}
-interface TestComponentBase_ extends Partial<TestComponentBaseProperties>, Partial<TestComponentBaseConfigs> {
+interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
+    "emptyText" |
+    "letters"
+>> {
 }
 
 
@@ -18,6 +14,9 @@ interface TestComponentBase_ extends Partial<TestComponentBaseProperties>, Parti
  class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
 
    static readonly DEFAULT:string = "_DEFAULT_";
+
+   emptyText:string = null;
+   letters:Array<any> = null;
 
    #property_1:string = null;
    #property_2:int = 0;
@@ -33,8 +32,6 @@ interface TestComponentBase_ extends Partial<TestComponentBaseProperties>, Parti
     this.#component = component;
   }
 }
-interface TestComponentBase<Cfg extends TestComponent._ = TestComponent._>extends TestComponentBaseProperties{}
-
 mixin(TestComponentBase, TestInterface);
 
 declare namespace TestComponentBase {

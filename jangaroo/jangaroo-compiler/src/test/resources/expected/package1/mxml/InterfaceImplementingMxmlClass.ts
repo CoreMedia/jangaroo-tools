@@ -4,15 +4,9 @@ import Exml from '../../net/jangaroo/ext/Exml';
 import ConfigClass from '../ConfigClass';
 import SimpleClass from './SimpleClass';
 import YetAnotherInterface from './YetAnotherInterface';
-
-class InterfaceImplementingMxmlClassConfigs {
-
-    
-
-    /** @private */
-    
-      someProperty:string;}
-interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<InterfaceImplementingMxmlClassConfigs> {
+interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<InterfaceImplementingMxmlClass,
+    "someProperty"
+>> {
 }
 
 
@@ -21,7 +15,17 @@ class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass.
      constructor(config:InterfaceImplementingMxmlClass._ = null){
     super( Exml.apply(new InterfaceImplementingMxmlClass._({
 }),config));
-  }}
+  }
+  #someProperty:string;
+
+
+    /** This is some property. */
+    
+      get someProperty():string { return this.#someProperty; }
+
+    /** @private */
+    
+      set someProperty(value:string) { this.#someProperty = value; }}
 interface InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._>{
 
       createInstance(o:SimpleInterface):SimpleClass;}

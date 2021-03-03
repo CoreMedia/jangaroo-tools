@@ -234,40 +234,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
-    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
-    String configClassName = null;
-    String ownPropertiesClassName = null;
-    String ownConfigsClassName = null;
-    String configsFromProps = null;
-    String classDeclarationLocalName = getLocalName(classDeclaration, false);
-    if (configClass != null) {
-      configClassName = compilationUnitAccessCode(configClass) + "._";
-      List<TypedIdeDeclaration> properties = classDeclaration.getMembers().stream()
-              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfig())
-              .collect(Collectors.toList());
-      List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
-              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isBindable())
-              .collect(Collectors.toList());
-      if (!properties.isEmpty()) {
-        ownPropertiesClassName = classDeclarationLocalName + "Properties";
-        out.write(String.format("\nclass %s {", ownPropertiesClassName));
-        for (TypedIdeDeclaration propertiesDeclaration : properties) {
-          visitAsConfig(propertiesDeclaration);
-        }
-        out.write("}\n");
-        configsFromProps = String.format("Partial<%s>", ownPropertiesClassName);
-        mixins.add(new Ide(ownPropertiesClassName));
-        needsCompanionInterface = true;
-      }
-      if (!configs.isEmpty()) {
-        ownConfigsClassName = classDeclarationLocalName + "Configs";
-        out.write(String.format("\nclass %s {", ownConfigsClassName));
-        for (TypedIdeDeclaration configDeclaration : configs) {
-          visitAsConfig(configDeclaration);
-        }
-        out.write("}\n");
-      }
-    }
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
 
     List<String> configMixins = new ArrayList<>();
     List<Ide> realInterfaces = new ArrayList<>();
@@ -289,25 +256,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } while (superTypes != null);
     }
 
-    if (configClassName != null) {
+    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
+    String configClassName = null;
+    if (configClass != null) {
+      String configClassLocalName = compilationUnitAccessCode(configClass);
+      configClassName = configClassLocalName + "._";
       List<String> configExtends = new ArrayList<>(configMixins);
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
         configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
       }
       configExtends.addAll(configMixins);
-      if (configsFromProps != null) {
-        configExtends.add(configsFromProps);
+      List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
+              .collect(Collectors.toList());
+      if (!configs.isEmpty()) {
+        String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n    "));
+        configExtends.add(String.format("Partial<Pick<%s,\n    %s\n>>", classDeclarationLocalName, configNamesType));
       }
-      if (ownConfigsClassName != null) {
-        configExtends.add(String.format("Partial<%s>", ownConfigsClassName));
-      }
-      out.write("interface " + classDeclarationLocalName + "_");
-      if (!configExtends.isEmpty()) {
-        out.write(" extends " + String.join(", ", configExtends));
-      }
-      out.write(" {\n");
-      out.write("}\n\n");
+      out.write(String.format("interface %s_%s {\n}\n\n", classDeclarationLocalName, configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
     }
 
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
@@ -345,7 +312,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       visitImplementsFiltered(
               extendsOrImplements,
-              null,
               classDeclaration.getOptImplements(),
               configClassName != null,
               realInterfaces);
@@ -358,7 +324,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
-              ownPropertiesClassName,
               classDeclaration.getOptImplements(),
               configClassName != null,
               mixins);
@@ -477,16 +442,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void visitImplementsFiltered(JooSymbol symImplementsOrExtends,
-                                       String additionalIde,
                                        Implements optImplements,
                                        boolean useCfgTypeParameter,
                                        List<Ide> filter) throws IOException {
     JooSymbol lastSym = symImplementsOrExtends;
-    if (additionalIde != null) {
-      out.writeSymbol(lastSym);
-      out.writeToken(additionalIde);
-      lastSym = new JooSymbol(",");
-    }
     if (optImplements != null) {
       CommaSeparatedList<Ide> current = optImplements.getSuperTypes();
       do {
@@ -505,34 +464,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         current = current.getTail();
       } while (current != null);
     }
-  }
-
-  private void visitAsConfig(TypedIdeDeclaration configDeclaration) throws IOException {
-    JooSymbol optSymSemicolon = null;
-    if (configDeclaration instanceof FunctionDeclaration) {
-      FunctionDeclaration functionDeclaration = (FunctionDeclaration) configDeclaration;
-      if (functionDeclaration.isGetter()) {
-        optSymSemicolon = functionDeclaration.getOptSymSemicolon();
-      } else {
-        // completely suppress set accessors (there are no write-only configs):
-        return;
-      }
-    }
-    // output all comments & white-space:
-    visitDeclarationAnnotationsAndModifiers(configDeclaration);
-    configDeclaration.getIde().visit(this);
-    visitIfNotNull(configDeclaration.getOptTypeRelation());
-    if (configDeclaration instanceof VariableDeclaration) {
-      VariableDeclaration variableDeclaration = (VariableDeclaration) configDeclaration;
-      generateInitializer(variableDeclaration);
-      optSymSemicolon = variableDeclaration.getOptSymSemicolon();
-    } else if (configDeclaration instanceof PropertyDeclaration) {
-      PropertyDeclaration propertyDeclaration = (PropertyDeclaration) configDeclaration;
-      if (propertyDeclaration.getGetter() != null) {
-        optSymSemicolon = propertyDeclaration.getGetter().getOptSymSemicolon();
-      }
-    }
-    writeOptSymbol(optSymSemicolon, ";");
   }
 
   private boolean useCfgTypeParameter(Ide superType) {
@@ -636,6 +567,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
      return expr instanceof IdeExpr && "undefined".equals(((IdeExpr) expr).getIde().getName());
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   private boolean isCompilationUnitAmbient() {
     return isAmbient(compilationUnit);
   }
@@ -678,7 +610,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  public void visitImportDirective(ImportDirective importDirective) throws IOException {
+  public void visitImportDirective(ImportDirective importDirective) {
     // ignore all explicit imports. They already have been rendered as transitive dependencies.
   }
 
@@ -726,15 +658,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isExtConfigOrBindable()) {
-        // never render [ExtConfig]s in a normal "visit":
-        return;
-      }
       if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
         out.writeSymbolWhitespace(variableDeclaration.getSymbol());
         out.writeToken("abstract");
       }
       visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+      List<VariableDeclaration> bindables = variableDeclaration.isBindable() ? new ArrayList<>() : null;
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
@@ -752,6 +681,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         visitVariableDeclarationBase(currentVariableDeclaration);
         writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
+        if (bindables != null) {
+          bindables.add(currentVariableDeclaration);
+        }
+      }
+      if (bindables != null) {
+        for (VariableDeclaration bindable : bindables) {
+          out.write("\n  get " + bindable.getName() + "()");
+          visitIfNotNull(bindable.getOptTypeRelation());
+          out.write(" { return this.#" + bindable.getName() + "; }");
+
+          out.write("\n  set " + bindable.getName() + "(value");
+          visitIfNotNull(bindable.getOptTypeRelation());
+          out.write(") { this.#" + bindable.getName() + " = value; }");
+        }
       }
     } else {
       super.visitVariableDeclaration(variableDeclaration);
@@ -773,7 +716,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Initializer initializer = variableDeclaration.getOptInitializer();
     Ide ide = variableDeclaration.getIde();
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isPrivate()) {
+      if (variableDeclaration.isPrivate() || variableDeclaration.isBindable()) {
         writeSymbolReplacement(ide.getSymbol(), getHashPrivateName(variableDeclaration));
       } else {
         ide.visit(this);
@@ -868,31 +811,28 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (functionDeclaration.isClassMember()) {
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
-              (functionDeclaration.isNative() || isAmbientOrInterface);
-      if (convertToProperty) {
-        if (functionDeclaration.isSetter()) {
-          // completely suppress (native) setter class members, they are covered by the writable property declaration
-          return;
-        }
-        if (!functionDeclaration.isStatic() && functionDeclaration.isPublic()) {
-          // may be an Ext Config / Bindable:
-          IdeDeclaration memberDeclaration = functionDeclaration.getClassDeclaration().getMemberDeclaration(functionDeclaration.getName());
-          if (memberDeclaration instanceof PropertyDeclaration && ((PropertyDeclaration) memberDeclaration).isExtConfigOrBindable()) {
-            // never render [ExtConfig]s in a normal "visit":
-            return;
-          }
-        }
+              (functionDeclaration.isNative() && !functionDeclaration.isBindable() || isAmbientOrInterface);
+      if (convertToProperty && functionDeclaration.isSetter()) {
+        // completely suppress (native) setter class members, they are covered by the writable property declaration
+        return;
       }
       // any other native members in a non-ambient/interface compilation unit are moved
       // to its companion interface declaration:
       boolean renderIntoInterface = !convertToProperty
               && !isAmbientOrInterface
-              && functionDeclaration.isNative();
+              && functionDeclaration.isNative()
+              && !functionDeclaration.isBindable();
       if (renderIntoInterface) {
         needsCompanionInterface = true;
       }
       if (companionInterfaceMode != renderIntoInterface) {
         return;
+      }
+      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()) {
+        // it must be a [Bindable] native get function, so complement a private field for the default implementation:
+        out.write("\n  #" + functionDeclaration.getName());
+        visitIfNotNull(functionDeclaration.getOptTypeRelation());
+        out.write(";\n");
       }
       visitDeclarationAnnotationsAndModifiers(functionDeclaration);
       if (isNonAmbientInterface(functionDeclaration.getClassDeclaration().getCompilationUnit())) {
@@ -901,27 +841,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // leave out "function" symbol for class members!
       writeOptSymbolWhitespace(functionDeclaration.getSymbol());
-      boolean convertAccessorToMethod = false;
       if (convertToProperty) {
         if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
           writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
         }
       } else {
-        convertAccessorToMethod = functionDeclaration.isGetterOrSetter()
-                && functionDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
-        if (!convertAccessorToMethod) {
-          writeOptSymbol(functionDeclaration.getSymGetOrSet());
-        }
+        writeOptSymbol(functionDeclaration.getSymGetOrSet());
       }
       if (functionDeclaration.isConstructor()) {
         writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), "constructor");
       } else {
         if (functionDeclaration.isPrivate()) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getHashPrivateName(functionDeclaration));
-        } else if (convertAccessorToMethod) {
-          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(),
-                  getBindablePropertyName(functionDeclaration.isGetter() ? MethodType.GET : MethodType.SET,
-                          functionDeclaration));
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -944,8 +875,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
-      visitIfNotNull(functionExpr.getBody());
-      writeOptSymbol(functionDeclaration.getOptSymSemicolon());
+      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode) {
+        // it must be a [Bindable] native, so complement the default implementation:
+        if (functionDeclaration.isGetter()) {
+          out.write(" { return this.#" + functionDeclaration.getName() + "; }");
+        } else {
+          out.write(" { this.#" + functionDeclaration.getName() + " = " + functionDeclaration.getParams().getHead().getName() + "; }");
+        }
+      } else {
+        visitIfNotNull(functionExpr.getBody());
+        writeOptSymbol(functionDeclaration.getOptSymSemicolon());
+      }
     } else {
       if (functionDeclaration.isPrimaryDeclaration()) {
         visitDeclarationAnnotationsAndModifiers(functionDeclaration);
@@ -1477,9 +1417,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public void visitIdeWithTypeParam(IdeWithTypeParam ideWithTypeParam) throws IOException {
     // this can only be "Vector$object", so we can always replace it by "Array":
     writeSymbolReplacement(ideWithTypeParam.getIde(), "Array");
-//    writeSymbolReplacement(ideWithTypeParam.getSymDotLt(), "<");
-//    ideWithTypeParam.getType().visit(this);
-//    out.writeSymbol(ideWithTypeParam.getSymGt());
   }
 
   @Override

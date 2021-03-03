@@ -5,13 +5,6 @@ public class TestComponentBase implements TestInterface {
 
   public static const DEFAULT:String = "_DEFAULT_";
 
-  [ExtConfig]
-  [Bindable]
-  /**
-   * @private
-   */
-  public native function set store(value:*):void;
-
   public var emptyText:String;
   public var letters:Array;
 

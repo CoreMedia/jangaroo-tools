@@ -11,6 +11,7 @@ Ext.define("package1.mxml.InterfaceImplementingMxmlClass", function(InterfaceImp
 
     public native function createInstance(o:SimpleInterface):package1.mxml.SimpleClass;
 
+    /** This is some property. * /
     [Bindable]
     public native function get someProperty():String;
 

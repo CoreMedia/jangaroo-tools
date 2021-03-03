@@ -9,20 +9,9 @@ import int from '../AS3/int_';
 import panel from '../ext/config/panel';
 import Exml from '../net/jangaroo/ext/Exml';
 import MessageBox from '../ext/MessageBox';
-
-class AllElementsConfigs {
-
-      /*
-      anonymous object in array:
-
-      tools:[
-        {id:"gear",
-        handler:function(){} }
-      ]
-       */
-      
-       gear:any = null;}
-interface AllElements_ extends Partial<AllElementsConfigs> {
+interface AllElements_ extends Partial<Pick<AllElements,
+    "gear"
+>> {
 }
 
 
@@ -131,7 +120,20 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
     ]
 
 }),config);})());
-  }}
+  }
+
+      /*
+      anonymous object in array:
+
+      tools:[
+        {id:"gear",
+        handler:function(){} }
+      ]
+       */
+      
+       #gear:any = null;
+  get gear():any { return this.#gear; }
+  set gear(value:any) { this.#gear = value; }}
 declare namespace AllElements {
   export type _ = AllElements_;
   export const _: { new(config?: _): _; };

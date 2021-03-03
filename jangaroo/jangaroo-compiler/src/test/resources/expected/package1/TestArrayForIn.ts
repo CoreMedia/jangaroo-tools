@@ -1,9 +1,10 @@
 import int from '../AS3/int_';
 
 
-   const ARRAY:Array<any> = [1, 2, 3];
-
  class TestArrayForIn {
+
+  //@ts-expect-error 18022
+   static readonly #ARRAY:Array<any> = [1, 2, 3];
   //@ts-expect-error 18022
    static #array:Array<any> = [1, 2, 3];
 
@@ -30,7 +31,7 @@ import int from '../AS3/int_';
       TestArrayForIn.#doSomething(e2b);
     }
     // test rewrite of Array for each ... in with static const
-    for (var e3 of ARRAY as int[]) {
+    for (var e3 of TestArrayForIn.#ARRAY as int[]) {
       TestArrayForIn.#doSomething(e3);
     }
     var e4:int;
