@@ -218,7 +218,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
-          Map<String, String> scripts = new LinkedHashMap<>(testScripts);
+          Map<String, String> scripts = new LinkedHashMap<>();
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
