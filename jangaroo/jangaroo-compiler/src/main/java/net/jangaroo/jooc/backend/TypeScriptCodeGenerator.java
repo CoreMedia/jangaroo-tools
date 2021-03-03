@@ -232,14 +232,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
 
-    // pull out private static VariableDeclarations so that they can be used in Properties / Config class
-    // initializers, too:
-    for (TypedIdeDeclaration staticMember : classDeclaration.getStaticMembers().values()) {
-      if (staticMember.isPrivate() && staticMember.isDeclaringStandAloneConstant()) {
-        visitPrivateStaticVarWithSimpleInitializer((VariableDeclaration) staticMember);
-      }
-    }
-
     needsCompanionInterface = false;
     List<Ide> mixins = new ArrayList<>();
     ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
@@ -477,15 +469,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       renderPropertiesClassValues(propertyAssignments, false, false, false);
       out.write("\n};\n");
     }
-  }
-
-  private void visitPrivateStaticVarWithSimpleInitializer(VariableDeclaration privateStaticVar) throws IOException {
-    out.writeSymbolWhitespace(privateStaticVar.getSymbol());
-    out.writeSymbol(privateStaticVar.getOptSymConstOrVar());
-    privateStaticVar.getIde().visit(this);
-    visitIfNotNull(privateStaticVar.getOptTypeRelation());
-    generateInitializer(privateStaticVar);
-    writeOptSymbol(privateStaticVar.getOptSymSemicolon());
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -743,9 +726,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isExtConfigOrBindable() ||
-              variableDeclaration.isPrivateStatic() && variableDeclaration.isDeclaringStandAloneConstant()) {
-        // never render [ExtConfig]s or private statics with "simple" initializers in a normal "visit":
+      if (variableDeclaration.isExtConfigOrBindable()) {
+        // never render [ExtConfig]s in a normal "visit":
         return;
       }
       if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
@@ -1380,13 +1362,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (nativeMemberName instanceof String) {
             memberName = (String) nativeMemberName;
           }
-        }
-        if (memberDeclaration.isPrivateStatic() && memberDeclaration.isDeclaringStandAloneConstant()) {
-          // suppress "<Class>." (and do not use "#" prefix) for private statics with simple initializer:
-          out.writeSymbolWhitespace(arg.getSymbol());
-          out.writeSymbolWhitespace(dotExpr.getOp());
-          out.writeSymbol(dotExpr.getIde().getIde());
-          return;
         }
         if (!ide.isAssignmentLHS()) {
           IdeDeclaration bindableConfigDeclarationCandidate = getBindableConfigDeclarationCandidate(type, ide);
