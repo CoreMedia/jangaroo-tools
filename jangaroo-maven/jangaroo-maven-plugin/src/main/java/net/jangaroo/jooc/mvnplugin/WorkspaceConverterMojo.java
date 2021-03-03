@@ -435,9 +435,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         }
 
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
-        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";"));
+        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";")));
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
-        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), convertJangarooConfig(jangarooConfigDocument));
+        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
         if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
           Optional<Package> optionalThemeDependency = packageRegistry.stream()
                   .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
