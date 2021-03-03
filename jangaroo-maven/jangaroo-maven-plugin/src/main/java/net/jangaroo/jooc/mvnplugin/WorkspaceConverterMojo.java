@@ -313,8 +313,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           List<String> ignoreFromSrcMain = new ArrayList<>();
           ignoreFromSrcMain.add("app.json");
-          copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app",
-                  String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
+          copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
                   "app", ignoreFromSrcMain, targetPackageDir
           );
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
