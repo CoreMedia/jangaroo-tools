@@ -437,7 +437,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
         String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";"));
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
-        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
+        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), convertJangarooConfig(jangarooConfigDocument));
         if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
           Optional<Package> optionalThemeDependency = packageRegistry.stream()
                   .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
@@ -794,6 +794,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
     }
     return mavenName;
+  }
+
+  private String convertJangarooConfig(String jangarooConfig) {
+    Pattern compile = Pattern.compile("\"(.*)\"[^,]");
+    Matcher matcher = compile.matcher(jangarooConfig);
+    return jangarooConfig
+            .replace("}", "},")
+            .replace("]", "],")
+            .replace("\"\n", "\",\n")
+            .replace(",,", ",")
+            .replace(",;", ";");
   }
 
   private boolean isValidVersion(String version) {
