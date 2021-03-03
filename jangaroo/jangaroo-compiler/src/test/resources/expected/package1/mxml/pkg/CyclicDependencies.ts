@@ -12,10 +12,11 @@ class CyclicDependencies<Cfg extends CyclicDependencies._ = CyclicDependencies._
     super(); Exml.apply(this,config);
   }
 
+    #cause_trouble:CyclicDependencies_1 = null;
+
     
-     #cause_trouble:CyclicDependencies_1 = null;
-  get cause_trouble():CyclicDependencies_1 { return this.#cause_trouble; }
-  set cause_trouble(value:CyclicDependencies_1) { this.#cause_trouble = value; }}
+    get cause_trouble():CyclicDependencies_1 { return this.#cause_trouble; }
+    set cause_trouble(value:CyclicDependencies_1) { this.#cause_trouble = value; }}
 declare namespace CyclicDependencies {
   export type _ = CyclicDependencies_;
   export const _: { new(config?: _): _; };

@@ -122,6 +122,8 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
 }),config);})());
   }
 
+    #gear:any = null;
+
       /*
       anonymous object in array:
 
@@ -131,9 +133,8 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
       ]
        */
       
-       #gear:any = null;
-  get gear():any { return this.#gear; }
-  set gear(value:any) { this.#gear = value; }}
+      get gear():any { return this.#gear; }
+    set gear(value:any) { this.#gear = value; }}
 declare namespace AllElements {
   export type _ = AllElements_;
   export const _: { new(config?: _): _; };

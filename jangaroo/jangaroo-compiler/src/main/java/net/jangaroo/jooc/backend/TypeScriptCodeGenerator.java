@@ -662,38 +662,46 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbolWhitespace(variableDeclaration.getSymbol());
         out.writeToken("abstract");
       }
-      visitDeclarationAnnotationsAndModifiers(variableDeclaration);
-      List<VariableDeclaration> bindables = variableDeclaration.isBindable() ? new ArrayList<>() : null;
+      boolean bindable = variableDeclaration.isBindable();
       for (VariableDeclaration currentVariableDeclaration = variableDeclaration;
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
-        if (currentVariableDeclaration != variableDeclaration) {
-          // re-render annotations:
-          visitAll(variableDeclaration.getAnnotations());
-          // pull ide's white-space before the modifiers, as declarations are white-space sensitive:
-          out.writeSymbolWhitespace(currentVariableDeclaration.getIde().getSymbol());
-          // re-render modifiers:
-          writeModifiers(out, variableDeclaration);
-        }
-        // for class members, leave out "var", replace "const" by "readonly":
-        if (variableDeclaration.isConst()) {
-          writeReadonlySuppressWhitespace(currentVariableDeclaration.getIde().getSymbol());
-        }
-        visitVariableDeclarationBase(currentVariableDeclaration);
-        writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
-        if (bindables != null) {
-          bindables.add(currentVariableDeclaration);
-        }
-      }
-      if (bindables != null) {
-        for (VariableDeclaration bindable : bindables) {
-          out.write("\n  get " + bindable.getName() + "()");
-          visitIfNotNull(bindable.getOptTypeRelation());
-          out.write(" { return this.#" + bindable.getName() + "; }");
+        if (bindable) {
+          // we want the ASDoc at the generated accessor, so render (private) field first:
+          out.write("\n\n   ");
+          visitVariableDeclarationBase(currentVariableDeclaration);
+          writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
 
-          out.write("\n  set " + bindable.getName() + "(value");
-          visitIfNotNull(bindable.getOptTypeRelation());
-          out.write(") { this.#" + bindable.getName() + " = value; }");
+          // generate accessors (field has been transformed to #-private)
+          String accessor = currentVariableDeclaration.getName();
+
+          visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+          out.write(String.format("get %s()", accessor));
+          visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
+          out.write(String.format(" { return this.#%s; }", accessor));
+
+          out.write("\n    ");
+          out.write(String.format("set %s(value", accessor));
+          visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
+          out.write(String.format(") { this.#%s = value; }", accessor));
+
+        } else {
+          if (currentVariableDeclaration == variableDeclaration) {
+            visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+          } else {
+            // re-render annotations:
+            visitAll(variableDeclaration.getAnnotations());
+            // pull ide's white-space before the modifiers, as declarations are white-space sensitive:
+            out.writeSymbolWhitespace(currentVariableDeclaration.getIde().getSymbol());
+            // re-render modifiers:
+            writeModifiers(out, variableDeclaration);
+          }
+          // for class members, leave out "var", replace "const" by "readonly":
+          if (variableDeclaration.isConst()) {
+            writeReadonlySuppressWhitespace(currentVariableDeclaration.getIde().getSymbol());
+          }
+          visitVariableDeclarationBase(currentVariableDeclaration);
+          writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
         }
       }
     } else {
