@@ -200,10 +200,6 @@ public abstract class IdeDeclaration extends Declaration {
     return false;
   }
 
-  public boolean isDeclaringStandAloneConstant() {
-    return false;
-  }
-
   public void setIde(Ide ide) {
     this.ide = ide;
   }

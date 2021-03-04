@@ -21,22 +21,18 @@ public class UsingSomeNativeClass {
     var bar = this.anotherNativeAccessor;
   }
 
-  [Bindable]
   public function get someNativeAccessor():package1.SomeNativeClass {
     return someNative;
   }
 
-  [Bindable]
   public function get anotherNativeAccessor():package1.SomeNativeClass {
     return someNative;
   }
 
-  [Bindable]
   public function get monkey():Boolean {
     return false;
   }
 
-  [Bindable]
   public function set monkey(value:Boolean):void {
   }
 }

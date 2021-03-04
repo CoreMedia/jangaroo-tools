@@ -4,10 +4,9 @@ import Exml from '../../net/jangaroo/ext/Exml';
 import ConfigClass from '../ConfigClass';
 import SomeOtherClass from '../someOtherPackage/SomeOtherClass';
 import int from '../../AS3/int_';
-
-class ScriptCdataMxmlClassProperties {
-     field3:Array<int> =[1, 2, 3];}
-interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<ScriptCdataMxmlClassProperties> {
+interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataMxmlClass,
+    "field3"
+>> {
 }
 
 
@@ -15,6 +14,7 @@ class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlC
 
      #field1:SomeOtherClass = null;
     protected field2:Array<string> =["a", "b"];
+     field3:Array<int> =[1, 2, 3];
 
      doIt(...values):void {
       for (var v in values) {
@@ -25,8 +25,6 @@ class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlC
              foo: "bar"
 }),config));
 }}
-interface ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._>extends ScriptCdataMxmlClassProperties{}
-
 mixin(ScriptCdataMxmlClass, SimpleInterface);
 
 declare namespace ScriptCdataMxmlClass {

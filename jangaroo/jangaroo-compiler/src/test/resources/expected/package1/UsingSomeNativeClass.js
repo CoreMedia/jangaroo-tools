@@ -17,27 +17,23 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
     var local = function()/*:void*/ {
       var test/*:String*/ = AS3.getBindable(_this.someNative2,"baz");
     };
-    var foo = AS3.getBindable(this,"someNativeAccessor");
-    var bar = AS3.getBindable(this,"anotherNativeAccessor");
+    var foo = this.someNativeAccessor;
+    var bar = this.anotherNativeAccessor;
   }/*
 
-  [Bindable]
-  public*/ function get$someNativeAccessor()/*:package1.SomeNativeClass*/ {
+  public*/ function  get$someNativeAccessor()/*:package1.SomeNativeClass*/ {
     return this.someNative;
   }/*
 
-  [Bindable]
-  public*/ function get$anotherNativeAccessor()/*:package1.SomeNativeClass*/ {
+  public*/ function  get$anotherNativeAccessor()/*:package1.SomeNativeClass*/ {
     return this.someNative;
   }/*
 
-  [Bindable]
-  public*/ function get$monkey()/*:Boolean*/ {
+  public*/ function  get$monkey()/*:Boolean*/ {
     return false;
   }/*
 
-  [Bindable]
-  public*/ function set$monkey(value/*:Boolean*/)/*:void*/ {
+  public*/ function  set$monkey(value/*:Boolean*/)/*:void*/ {
   }/*
 }
 }
@@ -49,14 +45,13 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
         someNative_.call(this);
         someOtherNative_.call(this);
       },
-      getSomeNativeAccessor: get$someNativeAccessor,
-      getAnotherNativeAccessor: get$anotherNativeAccessor,
-      getMonkey: get$monkey,
-      setMonkey: set$monkey,
-      config: {
-        someNativeAccessor: undefined,
-        anotherNativeAccessor: undefined,
-        monkey: undefined
+      __accessors__: {
+        someNativeAccessor: {get: get$someNativeAccessor},
+        anotherNativeAccessor: {get: get$anotherNativeAccessor},
+        monkey: {
+          get: get$monkey,
+          set: set$monkey
+        }
       },
       uses: [
         "SomeOtherNativeClass",

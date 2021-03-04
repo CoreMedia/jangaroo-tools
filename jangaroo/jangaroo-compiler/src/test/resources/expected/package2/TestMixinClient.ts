@@ -8,10 +8,7 @@ import TestMixin from './TestMixin';
     this.mix(thing);
   }
 }
-interface TestMixinClient extends TestMixin{
-
-  /** @inheritDoc */
-    mix(thing:string):string;}
+interface TestMixinClient extends TestMixin{}
 
 mixin(TestMixinClient, TestMixin);
 
