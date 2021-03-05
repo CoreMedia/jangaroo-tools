@@ -216,9 +216,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "^1.0.0");
-          devDependencies.put("@jangaroo/build", "^1.0.0");
-          devDependencies.put("@jangaroo/publish", "^1.0.0");
+          devDependencies.put("@jangaroo/core", "1.0.0");
+          devDependencies.put("@jangaroo/build", "1.0.0");
+          devDependencies.put("@jangaroo/publish", "1.0.0");
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
@@ -296,9 +296,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "^1.0.0");
-          devDependencies.put("@jangaroo/build", "^1.0.0");
-          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("@jangaroo/core", "1.0.0");
+          devDependencies.put("@jangaroo/build", "1.0.0");
+          devDependencies.put("@jangaroo/run", "1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -334,9 +334,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "^1.0.0");
-          devDependencies.put("@jangaroo/build", "^1.0.0");
-          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("@jangaroo/core", "1.0.0");
+          devDependencies.put("@jangaroo/build", "1.0.0");
+          devDependencies.put("@jangaroo/run", "1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -364,9 +364,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "^1.0.0");
-          devDependencies.put("@jangaroo/build", "^1.0.0");
-          devDependencies.put("@jangaroo/run", "^1.0.0");
+          devDependencies.put("@jangaroo/core", "1.0.0");
+          devDependencies.put("@jangaroo/build", "1.0.0");
+          devDependencies.put("@jangaroo/run", "1.0.0");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -621,7 +621,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private Package handlePackageDependencies(String packageName, MavenModule mavenModule) {
-    String newPackageVersion = isValidVersion(mavenModule.getVersion()) ? mavenModule.getVersion() : "1.0.0";
+    String newPackageVersion = isValidVersion(mavenModule.getVersion()) ? mavenModule.getVersion() : "1.0.0-SNAPSHOT";
     List<Package> newDependencies = new ArrayList<>();
     List<Package> newDevDependencies = new ArrayList<>();
     List<Dependency> dependencies;
@@ -654,7 +654,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             .collect(Collectors.toList());
 
     for (Dependency dependency : dependencies) {
-      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
       if (isJangarooDependency(dependency)) {
         createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
       }
@@ -668,7 +668,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
     }
     for (Dependency dependency : testDependencies) {
-      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0");
+      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
       if (isJangarooDependency(dependency)) {
         createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
       }

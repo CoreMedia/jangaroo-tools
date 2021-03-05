@@ -49,7 +49,7 @@ public class RootPackageJson {
       scripts.put("test", "lerna run test");
       scripts.put("publish", "lerna run publish");
       this.packageJson = new PackageJson("studio-client-workspace",
-              null, null, "1.0.0",
+              null, null, "1.0.0-SNAPSHOT",
               "MIT",
               true,
               new TreeMap<>(),
