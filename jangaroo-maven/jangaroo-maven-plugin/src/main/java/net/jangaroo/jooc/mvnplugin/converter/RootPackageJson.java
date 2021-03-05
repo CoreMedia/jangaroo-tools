@@ -43,6 +43,7 @@ public class RootPackageJson {
       Map<String, String> devDependencies = new TreeMap<>();
       devDependencies.put("lerna", "^3.0.0");
       Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("lerna", "lerna");
       scripts.put("clean", "lerna run clean");
       scripts.put("build", "lerna run build");
       scripts.put("test", "lerna run test");
