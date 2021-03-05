@@ -59,10 +59,11 @@ import java.util.stream.Collectors;
 
 @Mojo(name = "convert-workspace",
         defaultPhase = LifecyclePhase.INSTALL,
-        threadSafe = false,
+        threadSafe = true,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class WorkspaceConverterMojo extends AbstractMojo {
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
+  private static final Object lock = new Object();
 
   @Parameter(property = "convertedWorkspaceTarget", required = true)
   private String convertedWorkspaceTarget;
@@ -112,33 +113,35 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
     Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
     try {
-      rootPackageJson.readPackageJson();
-      moduleMappings.entrySet().stream()
-              .map(entry -> {
-                if (ModuleType.IGNORE == entry.getValue().getModuleType()) {
-                  return null;
-                } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType()) {
-                  return null;
-                } else {
-                  return "packages/" + entry.getKey();
-                }
-              })
-              .filter(Objects::nonNull)
-              .forEach(rootPackageJson::addWorkspace);
+      synchronized (lock) {
+        rootPackageJson.readPackageJson();
+        moduleMappings.entrySet().stream()
+                .map(entry -> {
+                  if (ModuleType.IGNORE == entry.getValue().getModuleType()) {
+                    return null;
+                  } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType()) {
+                    return null;
+                  } else {
+                    return "packages/" + entry.getKey();
+                  }
+                })
+                .filter(Objects::nonNull)
+                .forEach(rootPackageJson::addWorkspace);
 
-      rootPackageJson.writePackageJson();
+        rootPackageJson.writePackageJson();
 
-      Map<String, Object> lernaJson = new LinkedHashMap<>();
-      lernaJson.put("npmClient", "yarn");
-      lernaJson.put("useWorkspaces", true);
-      lernaJson.put("version", "0.0.0");
-      Map<String, Object> lernaCommandMap = new LinkedHashMap<>();
-      Map<String, Object> lernaRunMap = new LinkedHashMap<>();
-      lernaRunMap.put("stream", true);
-      lernaCommandMap.put("run", lernaRunMap);
-      lernaJson.put("command", lernaCommandMap);
+        Map<String, Object> lernaJson = new LinkedHashMap<>();
+        lernaJson.put("npmClient", "yarn");
+        lernaJson.put("useWorkspaces", true);
+        lernaJson.put("version", "0.0.0");
+        Map<String, Object> lernaCommandMap = new LinkedHashMap<>();
+        Map<String, Object> lernaRunMap = new LinkedHashMap<>();
+        lernaRunMap.put("stream", true);
+        lernaCommandMap.put("run", lernaRunMap);
+        lernaJson.put("command", lernaCommandMap);
 
-      FileUtils.write(new File(convertedWorkspaceTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
+        FileUtils.write(new File(convertedWorkspaceTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
+      }
 
       List<String> excludePaths = new ArrayList<>();
       if (!optionalPackage.isPresent()) {
@@ -397,44 +400,46 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
         }
 
-        String projectName = new File(convertedWorkspaceTarget).getName();
-        File ideaConfigFolder = Paths.get(convertedWorkspaceTarget, ".idea").toFile();
-        File modulesXmlPath = Paths.get(ideaConfigFolder.getPath(), "modules.xml").toFile();
-        File projectImlPath = Paths.get(ideaConfigFolder.getPath(), projectName + ".iml").toFile();
-        //todo: Some security config necessary?
+        synchronized (lock) {
+          String projectName = new File(convertedWorkspaceTarget).getName();
+          File ideaConfigFolder = Paths.get(convertedWorkspaceTarget, ".idea").toFile();
+          File modulesXmlPath = Paths.get(ideaConfigFolder.getPath(), "modules.xml").toFile();
+          File projectImlPath = Paths.get(ideaConfigFolder.getPath(), projectName + ".iml").toFile();
+          //todo: Some security config necessary?
 
-        if (!ideaConfigFolder.exists()) {
-          String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                  "<project version=\"4\">\n" +
-                  "  <component name=\"ProjectModuleManager\">\n" +
-                  "    <modules>\n" +
-                  "      <module fileurl=\"file://$PROJECT_DIR$/.idea/%s.iml\" filepath=\"$PROJECT_DIR$/%s\" />\n" +
-                  "    </modules>\n" +
-                  "  </component>\n" +
-                  "</project>\n" +
-                  "", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
-          FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
-        }
-        IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
-        ideaProjectIml.writeProjectIml(excludePaths);
+          if (!ideaConfigFolder.exists()) {
+            String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                    "<project version=\"4\">\n" +
+                    "  <component name=\"ProjectModuleManager\">\n" +
+                    "    <modules>\n" +
+                    "      <module fileurl=\"file://$PROJECT_DIR$/.idea/%s.iml\" filepath=\"$PROJECT_DIR$/%s\" />\n" +
+                    "    </modules>\n" +
+                    "  </component>\n" +
+                    "</project>\n" +
+                    "", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
+            FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
+          }
+          IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
+          ideaProjectIml.writeProjectIml(excludePaths);
 
-        File gitignoreFile = Paths.get(convertedWorkspaceTarget, ".gitignore").toFile();
-        if (!gitignoreFile.exists()) {
-          StringJoiner stringJoiner = new StringJoiner("\n");
-          stringJoiner.add("# NodeJS");
-          stringJoiner.add("node_modules/");
-          stringJoiner.add("");
-          stringJoiner.add("# Jangaroo Build");
-          stringJoiner.add("dist/");
-          stringJoiner.add("build/");
-          stringJoiner.add("");
-          stringJoiner.add("# IntellIJ IDEA");
-          stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
-          stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
-          stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
-          stringJoiner.add("");
-          String gitignore = stringJoiner.toString();
-          FileUtils.writeStringToFile(gitignoreFile, gitignore);
+          File gitignoreFile = Paths.get(convertedWorkspaceTarget, ".gitignore").toFile();
+          if (!gitignoreFile.exists()) {
+            StringJoiner stringJoiner = new StringJoiner("\n");
+            stringJoiner.add("# NodeJS");
+            stringJoiner.add("node_modules/");
+            stringJoiner.add("");
+            stringJoiner.add("# Jangaroo Build");
+            stringJoiner.add("dist/");
+            stringJoiner.add("build/");
+            stringJoiner.add("");
+            stringJoiner.add("# IntellIJ IDEA");
+            stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
+            stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
+            stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
+            stringJoiner.add("");
+            String gitignore = stringJoiner.toString();
+            FileUtils.writeStringToFile(gitignoreFile, gitignore);
+          }
         }
 
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
