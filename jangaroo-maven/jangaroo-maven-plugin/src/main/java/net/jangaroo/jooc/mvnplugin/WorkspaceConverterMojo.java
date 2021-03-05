@@ -438,7 +438,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         }
 
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
-        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";")));
+        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
         objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
         FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
         if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
@@ -481,7 +481,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
         packageJson.setDevDependencies(sortedDevDependencies);
-        FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
+        FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
       }
     } catch (IOException e) {
       e.printStackTrace();

@@ -71,7 +71,7 @@ public class RootPackageJson {
       if (packageJsonFile.exists()) {
         packageJsonFile.delete();
       }
-      FileUtils.write(packageJsonFile, objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson));
+      FileUtils.write(packageJsonFile, objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
     } catch (IOException e) {
       e.printStackTrace();
     }
