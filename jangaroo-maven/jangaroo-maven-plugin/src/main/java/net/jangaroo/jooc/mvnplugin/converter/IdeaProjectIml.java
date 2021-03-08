@@ -41,8 +41,12 @@ public class IdeaProjectIml {
 
   public void readProjectIml() {
     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-    SAXParser saxParser = null;
+
     try {
+      saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      saxParserFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+      saxParserFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      SAXParser saxParser = null;
       saxParser = saxParserFactory.newSAXParser();
       IdeaProjectImlHandler ideaProjectImlHandler = new IdeaProjectImlHandler();
       saxParser.parse(projectImlPath, ideaProjectImlHandler);
