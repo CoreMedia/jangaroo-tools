@@ -10,7 +10,16 @@ public class FieldInitializer {
   [Bindable]
   public var myConfigOption2:Object = { a: 123 };
 
+  function setMyConfigOption(value:String):void {
+    this["myConfigOption"] = value + "!";
+  }
+
+  private function setMyConfigOption2(value: Object) {
+    this.myConfigOption2 = value;
+  }
+
   public function foo():String {
+    setMyConfigOption("direct set call");
     return this.const1 + const2 + const3;
   }
 }

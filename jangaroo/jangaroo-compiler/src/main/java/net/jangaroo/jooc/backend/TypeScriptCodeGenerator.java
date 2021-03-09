@@ -49,6 +49,7 @@ import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.model.MethodType;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -661,7 +662,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     if (variableDeclaration.isClassMember()) {
-      if (isNonAmbientInterface(variableDeclaration.getClassDeclaration().getCompilationUnit())) {
+      ClassDeclaration classDeclaration = variableDeclaration.getClassDeclaration();
+      if (isNonAmbientInterface(classDeclaration.getCompilationUnit())) {
         out.writeSymbolWhitespace(variableDeclaration.getSymbol());
         out.writeToken("abstract");
       }
@@ -683,11 +685,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
           out.write(String.format(" { return this.#%s; }", accessor));
 
-          out.write("\n    ");
-          out.write(String.format("set %s(value", accessor));
-          visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
-          out.write(String.format(") { this.#%s = value; }", accessor));
-
+          // generate a set accessor, but only if no custom set...() method exists:
+          String setMethodName = MethodType.SET + MxmlUtils.capitalize(accessor);
+          TypedIdeDeclaration setMethodDeclaration = classDeclaration.getMemberDeclaration(setMethodName);
+          if (setMethodDeclaration == null || setMethodDeclaration.isPrivate()) {
+            out.write("\n    ");
+            out.write(String.format("set %s(value", accessor));
+            visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
+            out.write(String.format(") { this.#%s = value; }", accessor));
+          }
         } else {
           if (currentVariableDeclaration == variableDeclaration) {
             visitDeclarationAnnotationsAndModifiers(variableDeclaration);
@@ -816,6 +822,26 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private static final CodeGenerator ALIAS_THIS_CODE_GENERATOR = (out, first) -> out.write("const this$=this;");
 
+  private static final Pattern SET_METHOD_NAME_PATTERN = Pattern.compile("set[A-Z].*");
+
+  private static String getAccessorNameFromSetMethod(FunctionDeclaration functionDeclaration) {
+    if (!functionDeclaration.isPrivate() && functionDeclaration.getParams() != null && functionDeclaration.getParams().getTail() == null) {
+      String methodName = functionDeclaration.getName();
+      if (SET_METHOD_NAME_PATTERN.matcher(methodName).matches()) {
+        String setAccessorName = CompilerUtils.uncapitalize(methodName.substring(3));
+        if (setAccessorName != null) {
+          TypedIdeDeclaration maybeBindablePropertyDeclaration = functionDeclaration.getClassDeclaration().getMemberDeclaration(setAccessorName);
+          if ((maybeBindablePropertyDeclaration instanceof PropertyDeclaration ||
+                  maybeBindablePropertyDeclaration instanceof VariableDeclaration) &&
+                  maybeBindablePropertyDeclaration.isBindable()) {
+            return setAccessorName;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   @Override
   public void visitFunctionDeclaration(FunctionDeclaration functionDeclaration) throws IOException {
     FunctionExpr functionExpr = functionDeclaration.getFun();
@@ -849,6 +875,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (companionInterfaceMode != renderIntoInterface) {
         return;
       }
+      String setAccessorName = getAccessorNameFromSetMethod(functionDeclaration);
       if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()) {
         // it must be a [Bindable] native get function, so complement a private field for the default implementation:
         out.write("\n  #" + functionDeclaration.getName());
@@ -866,6 +893,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
           writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
         }
+      } else if (setAccessorName != null) {
+        out.writeToken(MethodType.SET.toString());
       } else {
         writeOptSymbol(functionDeclaration.getSymGetOrSet());
       }
@@ -874,6 +903,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (functionDeclaration.isPrivate()) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getHashPrivateName(functionDeclaration));
+        } else if (setAccessorName != null) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), setAccessorName);
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -884,7 +915,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(functionExpr.getRParen());
       }
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
-      if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter()) {
+      if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessorName == null) {
         generateFunctionExprReturnTypeRelation(functionExpr);
       }
       if (functionDeclaration.isConstructor()
@@ -1154,6 +1185,33 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeToken("]");
       }
     } else {
+      // check for set-Method call (within current class) that is really a Config write:
+      CommaSeparatedList<Expr> expr = args.getExpr();
+      if (expr != null && expr.getTail() == null) {
+        Expr fun = applyExpr.getFun();
+        if (fun instanceof IdeExpr) {
+          fun = ((IdeExpr) fun).getNormalizedExpr();
+        }
+        if (fun instanceof DotExpr) {
+          DotExpr dotExpr = (DotExpr) fun;
+          IdeDeclaration declaration = dotExpr.getIde().getDeclaration(false);
+          if (declaration instanceof FunctionDeclaration &&
+                  compilationUnit.getPrimaryDeclaration().equals(declaration.getClassDeclaration())) {
+            String accessorName = getAccessorNameFromSetMethod((FunctionDeclaration) declaration);
+            if (accessorName != null) {
+              dotExpr.getArg().visit(this);
+              out.writeSymbol(dotExpr.getOp());
+              out.write("setConfig");
+              out.writeSymbol(args.getLParen());
+              writeSymbolReplacement(dotExpr.getIde().getSymbol(), CompilerUtils.quote(accessorName));
+              out.write(", ");
+              expr.getHead().visit(this);
+              out.writeSymbol(args.getRParen());
+              return;
+            }
+          }
+        }
+      }
       super.visitApplyExpr(applyExpr);
     }
   }
@@ -1410,12 +1468,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (stringValue instanceof String) {
           IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration((String) stringValue);
           if (memberDeclaration != null) {
-            // found a typed member, need to downcast to 'object':
-            out.writeSymbolWhitespace(indexedExpr.getSymbol());
-            out.write("(");
-            indexedExpr.visit(this);
-            out.write(" as unknown)");
-            indexExpr.visit(this);
+            // found a typed member
+            if (compilationUnit.getPrimaryDeclaration().equals(memberDeclaration.getClassDeclaration()) &&
+                    memberDeclaration instanceof TypedIdeDeclaration &&
+                    ((TypedIdeDeclaration) memberDeclaration).isBindable() &&
+                    (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
+              // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
+              // instead access the internal field directly, so map it so TypeScript private field access:
+              indexedExpr.visit(this);
+              writeSymbolReplacement(indexExpr.getLParen(), ".");
+              writeSymbolReplacement(innerIndexExpr.getSymbol(), type.isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration));
+            } else {
+              // found a typed member, need to downcast to 'object':
+              out.writeSymbolWhitespace(indexedExpr.getSymbol());
+              out.write("(");
+              indexedExpr.visit(this);
+              out.write(" as unknown)");
+              indexExpr.visit(this);
+            }
             return;
           }
         }

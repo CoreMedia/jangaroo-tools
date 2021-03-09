@@ -8,9 +8,18 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public cla
   public var myConfigOption:String = "baz";
 
   [Bindable]
-  public var myConfigOption2:Object =*/function myConfigOption2_(){this.myConfigOption2=( { a: 123 });}/*;
+  public var myConfigOption2:Object =*/function myConfigOption2_(){this.myConfigOption2=( { a: 123 });}/*;*/
+
+  function setMyConfigOption(value/*:String*/)/*:void*/ {
+    this["myConfigOption"] = value + "!";
+  }/*
+
+  private*/ function setMyConfigOption2(value/*: Object*/) {
+    AS3.setBindable(this,"myConfigOption2" , value);
+  }/*
 
   public*/ function foo()/*:String*/ {
+    this.setMyConfigOption("direct set call");
     return this.const1$ZOoB + this.const2$ZOoB + this.const3$ZOoB;
   }/*
 }*/function FieldInitializer$() {this.super$ZOoB();}/*
@@ -20,6 +29,8 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public cla
     return {
       const1$ZOoB: "foo",
       const2$ZOoB: "foo" + "bar",
+      setMyConfigOption: setMyConfigOption,
+      setMyConfigOption2$ZOoB: setMyConfigOption2,
       foo: foo,
       super$ZOoB: function() {
         const3_.call(this);
