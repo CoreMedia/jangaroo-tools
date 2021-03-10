@@ -74,6 +74,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   public abstract String getJsonConfigFileName();
 
+  String getExtNamespace() {
+    return extNamespace;
+  }
+
   void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
     configureMetadata(configBuilder);
     if (!StringUtils.isEmpty(extNamespace)) {

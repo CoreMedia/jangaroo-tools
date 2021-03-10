@@ -123,7 +123,8 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
 
   private void compileJavaScriptSources(File dir) throws MojoExecutionException {
     try {
-      new PackagerImpl().doPackage(
+      new PackagerImpl().doPackage2(
+              getExtNamespace(),
               new File(dir, "src"),
               new File(dir, "overrides"),
               new File(dir, "locale"),
