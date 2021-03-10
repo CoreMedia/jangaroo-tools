@@ -1,6 +1,7 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.apprunner.proxy.AddDynamicPackagesServlet;
+import net.jangaroo.apprunner.proxy.AdditionalPackagesFromFolderServlet;
 import net.jangaroo.apprunner.util.JettyWrapper;
 import net.jangaroo.apprunner.util.ProxyServletConfig;
 import net.jangaroo.apprunner.util.StaticResourcesServletConfig;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.apprunner.util.JettyWrapper.ROOT_PATH;
+import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.ADDITIONAL_PACKAGES_PATH;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APPS_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.APP_DIRECTORY_NAME;
 import static net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils.DYNAMIC_PACKAGES_FILENAME;
@@ -95,6 +97,16 @@ public class RunMojo extends AbstractSenchaMojo {
    */
   @Parameter
   private List<ProxyServletConfig> jooProxyServletConfigs;
+
+  /**
+   * Set the list of absolute file paths of directories containing an additional 'packages' subdirectory.
+   * Use this to complement an application with plugins that are developed in
+   * dedicated workspaces available under some local file paths.
+   * For each plugin, this is usually the 'target/app' directory of the Jangaroo App plugin module
+   * (the one that uses the Maven goal 'package-plugin' to produce the plugin ZIP).
+   */
+  @Parameter(property = "additionalPackagesDirs")
+  private File[] additionalPackagesDirs;
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -190,6 +202,29 @@ public class RunMojo extends AbstractSenchaMojo {
                 ),
                 SEPARATOR + PACKAGES_DIRECTORY_NAME
         );
+      }
+    }
+
+    if (!isSwcPackaging && !isProxyRootPath) {
+      jettyWrapper.setAdditionalServlets(Collections.singletonMap(ADDITIONAL_PACKAGES_PATH,
+              new AdditionalPackagesFromFolderServlet(additionalPackagesDirs)));
+      if (additionalPackagesDirs != null) {
+        for (File additionalPackagesDir : additionalPackagesDirs) {
+          File additionalPackagesSubDir = new File(additionalPackagesDir, PACKAGES_DIRECTORY_NAME);
+          if (!additionalPackagesSubDir.isDirectory()) {
+            throw new MojoExecutionException("The directory " + additionalPackagesDir.getAbsolutePath() +
+                    " configured in 'additionalPackagesDirs' does not exist" +
+                    " or does not contain a 'packages' subdirectory.");
+          } else {
+            if (isAppsPackaging) {
+              // for apps packaging, only map the "packages" subdirectory:
+              jettyWrapper.addBaseDir(additionalPackagesSubDir.toPath(), SEPARATOR + PACKAGES_DIRECTORY_NAME);
+            } else {
+              // for app(-overlay) packaging, map the root path, so all packages are "overlaid":
+              jettyWrapper.addBaseDir(additionalPackagesDir.toPath(), SEPARATOR);
+            }
+          }
+        }
       }
     }
 

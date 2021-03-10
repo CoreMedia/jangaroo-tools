@@ -127,6 +127,10 @@ public class JettyWrapper {
   }
 
   public void setAdditionalServlets(Map<String, Servlet> additionalServlets, String path) {
+    for (Map.Entry<String, Servlet> servletEntry : additionalServlets.entrySet()) {
+      getLog().info(String.format("  Servlet: %s -> %s",
+              resolve(path, servletEntry.getKey()), servletEntry.getValue().getClass().getSimpleName()));
+    }
     getConfiguration(path).setAdditionalServlets(additionalServlets);
   }
 
