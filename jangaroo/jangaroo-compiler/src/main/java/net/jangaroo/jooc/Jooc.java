@@ -458,7 +458,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           CompilationUnit compilationUnit = getCompilationUnit(fqn);
           String newFqn;
           if (compilationUnit != null) {
-            newFqn = compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(true);
+            newFqn = compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr();
           } else {
             // do not rename
             newFqn = fqn;

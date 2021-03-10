@@ -55,7 +55,7 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
       return new File(outputDirectory, CompilerUtils.qNameFromFile(outputDirectory, sourceFile) + suffix);
     }
     String qName = generateApi
-            ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getTargetQualifiedNameStr();
+            ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getExtNamespaceRelativeTargetQualifiedNameStr();
     if (!generateApi && !options.isMigrateToTypeScript() && qName.endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)) {
       Locale locale = PropcHelper.computeLocale(qName);
       outputDirectory = new File(((JoocConfiguration) options).getLocalizedOutputDirectory(),

@@ -51,7 +51,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       boolean isModule = getRequireModulePath(compilationUnit.getPrimaryDeclaration()) != null;
       File sourceDir = currentInputSource.getSourceDir();
       File currentTargetFile = isModule
-              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getTargetQualifiedNameStr(),
+              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getExtNamespaceRelativeTargetQualifiedNameStr(),
               sourceDir, Jooc.TS_SUFFIX)
               : new File(sourceDir, "index.d.ts");
       // All source code from the same Maven module ends up in the same source directory, *but* test code:
@@ -114,7 +114,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
     if (nativeAnnotation != null && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
       return null;
     }
-    String qualifiedName = declaration.getTargetQualifiedNameStr();
+    String qualifiedName = declaration.getExtNamespaceRelativeTargetQualifiedNameStr();
     // special case: In TypeScript, "AS3.Error" is directly mapped to native "Error":
     if ("Error".equals(qualifiedName)) {
       return null;

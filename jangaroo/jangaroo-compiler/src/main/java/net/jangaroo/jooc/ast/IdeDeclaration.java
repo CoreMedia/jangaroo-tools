@@ -88,10 +88,6 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getTargetQualifiedNameStr() {
-    return getTargetQualifiedNameStr(false);
-  }
-
-  public String getTargetQualifiedNameStr(boolean ignoreNamespace) {
     Annotation nativeAnnotation = getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     String targetName = null;
     boolean require = true;
@@ -109,15 +105,18 @@ public abstract class IdeDeclaration extends Declaration {
     if (targetName == null || targetName.isEmpty()) {
       targetName = getQualifiedNameStr();
     }
-    if (require && !ignoreNamespace) {
-      InputSource inputSource = getCompilationUnit().getInputSource();
-      String extNamespace = inputSource.getExtNamespace();
-      if (extNamespace != null && !extNamespace.isEmpty()) {
-        if (!targetName.startsWith(extNamespace + ".")) {
-          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
-        } else {
-          targetName = targetName.substring(extNamespace.length() + 1);
-        }
+    return targetName;
+  }
+
+  public String getExtNamespaceRelativeTargetQualifiedNameStr() {
+    String targetName = getTargetQualifiedNameStr();
+    InputSource inputSource = getCompilationUnit().getInputSource();
+    String extNamespace = inputSource.getExtNamespace();
+    if (extNamespace != null && !extNamespace.isEmpty()) {
+      if (!targetName.startsWith(extNamespace + ".")) {
+        throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
+      } else {
+        targetName = targetName.substring(extNamespace.length() + 1);
       }
     }
     return targetName;
