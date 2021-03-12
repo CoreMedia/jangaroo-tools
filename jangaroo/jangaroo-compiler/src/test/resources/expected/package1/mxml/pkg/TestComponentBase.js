@@ -12,7 +12,7 @@ Ext.define("package1.mxml.pkg.TestComponentBase", function(TestComponentBase) {/
   private var property_2:int;
 
   public*/ function TestComponentBase$(config/*:TestComponent = null*/) {if(arguments.length<=0)config=null;
-    this.property_1$00xv = AS3.setBindable(config,"property_1" , "_HI");
+    this.property_1$00xv = config.property_1 + "_HI";
     this.property_2$00xv = config.property_2 || 0;
   }/*
 

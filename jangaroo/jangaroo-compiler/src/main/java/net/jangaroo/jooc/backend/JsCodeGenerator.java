@@ -594,9 +594,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       assignmentOpExpr.getArg2().visit(this);
       out.writeToken(")");
     } else {
-      String setter = null;
-      AstNode dotExprArg = null;
-      JooSymbol symDot = null;
       if (leftHandSide instanceof IdeExpr) {
         leftHandSide = ((IdeExpr)leftHandSide).getNormalizedExpr();
       }
@@ -615,21 +612,22 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             out.writeToken(")");
             return;
           }
+          if (!type.isConfigType()) {
+            String setter = resolveBindable(dotExpr, MethodType.SET);
+            if (setter != null) {
+              AstNode dotExprArg = dotExpr.getArg();
+              out.writeSymbolWhitespace(dotExprArg.getSymbol());
+              out.write("AS3.setBindable(");
+              visitInExpressionMode(dotExprArg);
+              writeSymbolReplacement(dotExpr.getOp(), ",");
+              out.write(CompilerUtils.quote(setter));
+              writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
+              assignmentOpExpr.getArg2().visit(this);
+              out.writeToken(")");
+              return;
+            }
+          }
         }
-        setter = resolveBindable(dotExpr, MethodType.SET);
-        dotExprArg = dotExpr.getArg();
-        symDot = dotExpr.getOp();
-      }
-      if (setter != null && dotExprArg != null && !leftHandSide.getType().isConfigType()) {
-        out.writeSymbolWhitespace(dotExprArg.getSymbol());
-        out.write("AS3.setBindable(");
-        visitInExpressionMode(dotExprArg);
-        writeSymbolReplacement(symDot, ",");
-        out.write(CompilerUtils.quote(setter));
-        writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
-        assignmentOpExpr.getArg2().visit(this);
-        out.writeToken(")");
-        return;
       }
       
       visitBinaryOpExpr(assignmentOpExpr);

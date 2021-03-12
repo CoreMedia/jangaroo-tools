@@ -22,7 +22,7 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
    #property_2:int = 0;
 
    constructor(config:TestComponent._ = null) {
-    this.#property_1 = config.property_1 += "_HI";
+    this.#property_1 = config.property_1 + "_HI";
     this.#property_2 = config.property_2 || 0;
   }
 
