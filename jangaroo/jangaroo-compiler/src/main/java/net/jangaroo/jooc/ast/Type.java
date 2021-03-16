@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -66,10 +67,11 @@ public class Type extends NodeImplBase {
       ((IdeWithTypeParam) ide).getType().analyze(this);
     } else {
       IdeDeclaration declaration = ide.getDeclaration();
+      JangarooParser compiler = ide.getScope().getCompiler();
       if (!(declaration instanceof TypeDeclaration)) {
-        ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
+        compiler.getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
       }
-      if (((Jooc) ide.getScope().getCompiler()).getConfig().isMigrateToTypeScript()) {
+      if (compiler instanceof Jooc && ((Jooc) compiler).getConfig().isMigrateToTypeScript()) {
         ide.addExternalUsage(false);
       }
     }
