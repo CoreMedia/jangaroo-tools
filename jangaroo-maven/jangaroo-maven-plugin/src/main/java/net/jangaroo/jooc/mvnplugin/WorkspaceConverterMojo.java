@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
-import net.jangaroo.jooc.mvnplugin.converter.GlobalLibraryConfiguration;
 import net.jangaroo.jooc.mvnplugin.converter.IdeaProjectIml;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooMavenPluginConfiguration;
@@ -171,18 +170,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             String themePackageName = findPackageNameByReference(jangarooMavenPluginConfiguration.getTheme(), moduleMappings);
             jangarooConfig.setTheme(themePackageName);
           }
-          GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
-          jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
           jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
           jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-          jangarooConfig.setAdditionalJsIncludeInBundle(
-                  jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
-                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                          .collect(Collectors.toList()));
-          jangarooConfig.setAdditionalJsNonBundle(
-                  jangarooMavenPluginConfiguration.getAdditionalJsNonBundle().stream()
-                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                          .collect(Collectors.toList()));
+          jangarooConfig.setAdditionalJsIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle());
+          jangarooConfig.setAdditionalJsNonBundle(jangarooMavenPluginConfiguration.getAdditionalJsNonBundle());
           if (jangarooMavenPluginConfiguration.getTestSuite() != null) {
             jangarooConfig.setTestSuite(jangarooMavenPluginConfiguration.getTestSuite());
             if (jangarooMavenPluginConfiguration.getExtNamespace() != null) {
@@ -214,7 +205,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> dependencies = new TreeMap<>();
           dependencies.put("@jangaroo/joo", "1.0.0");
-          dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "1.0.0");
@@ -270,18 +260,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           jangarooConfig.setApplicationClass(jangarooMavenPluginConfiguration.getApplicationClass());
           jangarooConfig.setAdditionalLocales(jangarooMavenPluginConfiguration.getAdditionalLocales());
-          GlobalLibraryConfiguration globalLibraryConfiguration = new GlobalLibraryConfiguration(mavenModule.getData());
-          jangarooConfig.setGlobalLibraries(globalLibraryConfiguration.getGlobalLibraries());
           jangarooConfig.setAdditionalCssIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalCssIncludeInBundle());
           jangarooConfig.setAdditionalCssNonBundle(jangarooMavenPluginConfiguration.getAdditionalCssNonBundle());
-          jangarooConfig.setAdditionalJsIncludeInBundle(
-                  jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle().stream()
-                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                          .collect(Collectors.toList()));
-          jangarooConfig.setAdditionalJsNonBundle(
-                  jangarooMavenPluginConfiguration.getAdditionalJsNonBundle().stream()
-                          .filter(jsPath -> !globalLibraryConfiguration.getAdditionalJsPaths().contains(jsPath))
-                          .collect(Collectors.toList()));
+          jangarooConfig.setAdditionalJsIncludeInBundle(jangarooMavenPluginConfiguration.getAdditionalJsIncludeInBundle());
+          jangarooConfig.setAdditionalJsNonBundle(jangarooMavenPluginConfiguration.getAdditionalJsNonBundle());
           if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
             jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
           }
@@ -294,7 +276,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
           dependencies.put("@jangaroo/joo", "1.0.0");
-          dependencies.putAll(globalLibraryConfiguration.getDependencies());
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "1.0.0");

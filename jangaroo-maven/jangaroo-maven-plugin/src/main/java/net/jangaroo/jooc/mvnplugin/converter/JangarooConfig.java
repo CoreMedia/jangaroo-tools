@@ -21,13 +21,12 @@ public class JangarooConfig {
   private List<String> additionalCssNonBundle;
   private List<String> additionalJsIncludeInBundle;
   private List<String> additionalJsNonBundle;
-  private List<GlobalLibraryConfiguration.LibraryItem> globalLibraries;
   private Map<String, Object> command;
 
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, String testSuite, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, List<GlobalLibraryConfiguration.LibraryItem> globalLibraries, Map<String, Object> command) {
+  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, String testSuite, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Object> command) {
     this.type = type;
     this.extName = extName;
     this.outputDirectory = outputDirectory;
@@ -43,7 +42,6 @@ public class JangarooConfig {
     this.additionalCssNonBundle = additionalCssNonBundle;
     this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
     this.additionalJsNonBundle = additionalJsNonBundle;
-    this.globalLibraries = globalLibraries;
     this.command = command;
   }
 
@@ -209,16 +207,6 @@ public class JangarooConfig {
   public void setAdditionalJsNonBundle(List<String> additionalJsNonBundle) {
     if (additionalJsNonBundle != null && !additionalJsNonBundle.isEmpty()) {
       this.additionalJsNonBundle = additionalJsNonBundle;
-    }
-  }
-
-  public List<GlobalLibraryConfiguration.LibraryItem> getGlobalLibraries() {
-    return globalLibraries;
-  }
-
-  public void setGlobalLibraries(List<GlobalLibraryConfiguration.LibraryItem> globalLibraries) {
-    if (globalLibraries != null && !globalLibraries.isEmpty()) {
-      this.globalLibraries = globalLibraries;
     }
   }
 
