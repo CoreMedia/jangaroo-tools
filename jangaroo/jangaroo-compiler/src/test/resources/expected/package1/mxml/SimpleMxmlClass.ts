@@ -1,4 +1,4 @@
-import {_, bind, cast} from '@jangaroo/joo/AS3';
+import {_, asConfig, bind, cast} from '@jangaroo/joo/AS3';
 import SomeEvent from '../someOtherPackage/SomeEvent';
 import Exml from '../../net/jangaroo/ext/Exml';
 import ConfigClass from '../ConfigClass';
@@ -75,14 +75,14 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
     })),
     new ConfigClass(_<ConfigClass._>({
       items:[
-        new SomeOtherClass(_<SomeOtherClass._>({ doodle: "non-bound", bla: this.getConfig("other").getConfig("bla")}))
+        new SomeOtherClass(_<SomeOtherClass._>({ doodle: "non-bound", bla: asConfig(asConfig(this).other).bla}))
       ],
       number: 12
     })),
     new ConfigClass(_<ConfigClass._>({
       ...Exml.prepend({items: [
         new SomeOtherClass(_<SomeOtherClass._>({ bla: 12})),
-        this.setConfig("no_config" , new SomeOtherClass(_<SomeOtherClass._>({ bla: 13})))
+        asConfig(this).no_config = new SomeOtherClass(_<SomeOtherClass._>({ bla: 13}))
       ]})
     }))
   ]}),

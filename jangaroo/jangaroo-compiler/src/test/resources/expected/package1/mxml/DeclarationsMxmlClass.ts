@@ -1,4 +1,4 @@
-import {_} from '@jangaroo/joo/AS3';
+import {_, asConfig} from '@jangaroo/joo/AS3';
 import SomeNativeClass from '../someOtherPackage/SomeNativeClass';
 import Exml from '../../net/jangaroo/ext/Exml';
 import ConfigClass from '../ConfigClass';
@@ -17,23 +17,23 @@ interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
 
 class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMxmlClass._> extends SomeNativeClass<Cfg>{constructor(config:DeclarationsMxmlClass._=null){
     super();
-    this.setConfig("bar" , "BAR!");
+    asConfig(this).bar = "BAR!";
     /**
      Some number.
      */
-    this.setConfig("num" , 123);
-    this.setConfig("blub" ,{ name: "Kuno"});
-    this.setConfig("list" ,[
+    asConfig(this).num = 123;
+    asConfig(this).blub ={ name: "Kuno"};
+    asConfig(this).list =[
       { name: "Joe"},
       new ConfigClass(_<ConfigClass._>({
         items:[
           new SomeOtherClass(_<SomeOtherClass._>({ bla: 123}))
         ]
       }))
-    ]);
-    this.setConfig("other" , new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
+    ];
+    asConfig(this).other = new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
                         blubb_config: 'blub config expression',
-                        blubb_accessor: 'blub accessor expression'}))); Exml.apply(this,config);
+                        blubb_accessor: 'blub accessor expression'})); Exml.apply(this,config);
 }
 
     #bar:string = null;

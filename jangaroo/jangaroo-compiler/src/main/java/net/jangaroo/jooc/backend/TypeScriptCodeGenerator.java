@@ -1199,14 +1199,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   compilationUnit.getPrimaryDeclaration().equals(declaration.getClassDeclaration())) {
             String accessorName = getAccessorNameFromSetMethod((FunctionDeclaration) declaration);
             if (accessorName != null) {
-              dotExpr.getArg().visit(this);
-              out.writeSymbol(dotExpr.getOp());
-              out.write("setConfig");
+              // rewrite obj.setFoo(value) to asConfig(obj).foo = value:
+              out.writeSymbolWhitespace(applyExpr.getSymbol());
+              out.write("asConfig");
               out.writeSymbol(args.getLParen());
-              writeSymbolReplacement(dotExpr.getIde().getSymbol(), CompilerUtils.quote(accessorName));
-              out.write(", ");
-              expr.getHead().visit(this);
+              dotExpr.getArg().visit(this);
               out.writeSymbol(args.getRParen());
+              out.writeSymbol(dotExpr.getOp());
+              writeSymbolReplacement(dotExpr.getIde().getSymbol(), accessorName);
+              out.write(" = ");
+              expr.getHead().visit(this);
               return;
             }
           }
@@ -1382,14 +1384,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             memberName = (String) nativeMemberName;
           }
         }
-        if (!ide.isAssignmentLHS()) {
-          IdeDeclaration bindableConfigDeclarationCandidate = getBindableConfigDeclarationCandidate(type, ide);
-          if (bindableConfigDeclarationCandidate != null) {
-            TypedIdeDeclaration getter = findMemberWithBindableAnnotation(ide, MethodType.GET, bindableConfigDeclarationCandidate.getClassDeclaration());
-            if (getter != null) {
-              // found usage of a [Bindable]-annotated property: replace property access by arg.getConfig("memberName"):
-              memberName = "getConfig(" + CompilerUtils.quote(ide.getName()) + ")";
-            }
+        IdeDeclaration bindableConfigDeclarationCandidate = getBindableConfigDeclarationCandidate(type, ide);
+        if (bindableConfigDeclarationCandidate != null) {
+          TypedIdeDeclaration accessor = findMemberWithBindableAnnotation(ide,
+                  ide.isAssignmentLHS() ? MethodType.SET : MethodType.GET,
+                  bindableConfigDeclarationCandidate.getClassDeclaration());
+          if (accessor != null) {
+            // found usage of a [Bindable]-annotated property: replace property access by asConfig(arg).ide:
+            out.writeSymbolWhitespace(arg.getSymbol());
+            out.write("asConfig(");
+            arg.visit(this);
+            out.write(")");
+            out.writeSymbol(dotExpr.getOp());
+            ide.visit(this);
+            return;
           }
         }
         if (!memberName.equals(ide.getName()) || memberDeclaration.isPrivate()) {
@@ -1407,36 +1415,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     super.visitDotExpr(dotExpr);
-  }
-
-  @Override
-  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
-    Expr lhs = assignmentOpExpr.getArg1();
-    if (lhs instanceof IdeExpr) {
-      lhs = ((IdeExpr) lhs).getNormalizedExpr();
-    }
-    if (lhs instanceof DotExpr) {
-      DotExpr dotExpr = (DotExpr) lhs;
-      Expr arg = dotExpr.getArg();
-      ExpressionType type = arg.getType();
-      Ide ide = dotExpr.getIde();
-      IdeDeclaration memberDeclaration = getBindableConfigDeclarationCandidate(type, ide);
-      if (memberDeclaration != null) {
-        TypedIdeDeclaration setter = findMemberWithBindableAnnotation(ide, MethodType.SET, memberDeclaration.getClassDeclaration());
-        if (setter != null) {
-          // found usage of a [Bindable]-annotated property: replace property write by lhsArg.setConfig("memberName", rhsExpr):
-          arg.visit(this);
-          out.writeSymbol(dotExpr.getOp());
-          out.write("setConfig(");
-          writeSymbolReplacement(ide.getSymbol(), CompilerUtils.quote(ide.getName()));
-          writeSymbolReplacement(assignmentOpExpr.getOp(), ",");
-          assignmentOpExpr.getArg2().visit(this);
-          out.write( ")");
-          return;
-        }
-      }
-    }
-    super.visitAssignmentOpExpr(assignmentOpExpr);
   }
 
   private IdeDeclaration getBindableConfigDeclarationCandidate(ExpressionType type, Ide ide) {

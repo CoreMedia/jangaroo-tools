@@ -1,4 +1,4 @@
-import {cast} from '@jangaroo/joo/AS3';
+import {asConfig, cast} from '@jangaroo/joo/AS3';
 import Panel from '../ext/Panel';
 import PanelEvent from '../ext/events/PanelEvent';
 
@@ -16,12 +16,12 @@ import PanelEvent from '../ext/events/PanelEvent';
   }
 
    constructor() {const this$=this;
-    this.#panel.setConfig("title" , "not yet clicked.");
+    asConfig(this.#panel).title = "not yet clicked.";
     this.#panel.addEventListener( PanelEvent.FLOPS, (event:PanelEvent):void => {
-      this.getThis().getPanel().setConfig("title" , "clicked!");
-      this.#panel.layout.getOwner().setConfig("title" , "clicked!");
+      asConfig(this.getThis().getPanel()).title = "clicked!";
+      asConfig(this.#panel.layout.getOwner()).title = "clicked!";
       this.#panels.push(this.#panel);
-      this.#getPanels()[0].setConfig("title" , "yes, clicked!");
+      asConfig(this.#getPanels()[0]).title = "yes, clicked!";
     } );
   }
 

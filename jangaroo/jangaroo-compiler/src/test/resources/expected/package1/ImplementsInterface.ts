@@ -1,4 +1,4 @@
-import {mixin} from '@jangaroo/joo/AS3';
+import {asConfig, mixin} from '@jangaroo/joo/AS3';
 import Interface from './Interface';
 import Panel from '../ext/Panel';
 
@@ -26,7 +26,7 @@ import Panel from '../ext/Panel';
     var panels = new Array();
     panels.push(new Panel({}));
     this.bar.push(panels);
-    this.bar[0][0].setConfig("title" , "Gotcha!");
+    asConfig(this.bar[0][0]).title = "Gotcha!";
   }
 
    get property():string {
