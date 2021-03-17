@@ -153,6 +153,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
       if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
         String targetPackageDir = convertedWorkspaceTarget + "/packages/" + aPackage.getName();
+        logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getCanonicalPath()));
         String targetPackageJson = targetPackageDir + "/package.json";
         excludePaths.add(targetPackageDir + "/dist");
 
