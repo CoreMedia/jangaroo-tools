@@ -1,4 +1,4 @@
-import {_, cast} from '@jangaroo/joo/AS3';
+import {_, asConfig, cast} from '@jangaroo/joo/AS3';
 import button from '../ext/config/button';
 import menuitem from '../ext/config/menuitem';
 import allElements from '../exmlparser/config/allElements';
@@ -111,7 +111,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
         handler:function(){} }
       ]
        */
-      this.setConfig("gear" ,{ handler: (x) => ''+x})
+      asConfig(this).gear ={ handler: (x) => ''+x}
     ],
 
     plugins:[

@@ -1,3 +1,4 @@
+import {asConfig} from '@jangaroo/joo/AS3';
 import package1_someOtherPackage_SomeNativeClass from './someOtherPackage/SomeNativeClass';
 import SomeOtherNativeClass from '../SomeOtherNativeClass';
 
@@ -13,10 +14,10 @@ import SomeOtherNativeClass from '../SomeOtherNativeClass';
 
    constructor() {const this$=this;
     new package1_someOtherPackage_SomeNativeClass();
-    this.someNative.setConfig("baz" , "foo");
-    this.someNative2.setConfig("baz" , "foo");
+    asConfig(this.someNative).baz = "foo";
+    asConfig(this.someNative2).baz = "foo";
     var local = ():void => {
-      var test = this.someNative2.getConfig("baz");
+      var test = asConfig(this.someNative2).baz;
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;

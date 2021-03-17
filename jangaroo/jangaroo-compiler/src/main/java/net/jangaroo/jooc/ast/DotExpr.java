@@ -90,6 +90,10 @@ public class DotExpr extends PostfixOpExpr {
           type = getIde().getScope().getExpressionType(memberDeclaration);
         }
         setType(type);
+        if (type != null && !type.isConfigType() && memberDeclaration instanceof TypedIdeDeclaration &&
+                ((TypedIdeDeclaration) memberDeclaration).isBindable()) {
+          getIde().getScope().getCompilationUnit().addBuiltInIdentifierUsage("asConfig");
+        }
       }
     }
   }

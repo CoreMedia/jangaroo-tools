@@ -1,3 +1,4 @@
+import {asConfig} from '@jangaroo/joo/AS3';
 import Exml from '../../net/jangaroo/ext/Exml';
 import PropertiesTest_properties from '../../testPackage/PropertiesTest_properties';
 interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAccessSyntax,
@@ -10,7 +11,7 @@ class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = Te
 
      static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
     super();
-    this.setConfig("foo" , Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\"")); Exml.apply(this,config);
+    asConfig(this).foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
 }
 
     #foo:string = null;
