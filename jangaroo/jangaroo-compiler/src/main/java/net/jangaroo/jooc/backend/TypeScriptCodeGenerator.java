@@ -265,7 +265,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (configClass != null) {
       String configClassLocalName = compilationUnitAccessCode(configClass);
       configClassName = configClassLocalName + "._";
-      List<String> configExtends = new ArrayList<>(configMixins);
+      List<String> configExtends = new ArrayList<>();
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
         configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
