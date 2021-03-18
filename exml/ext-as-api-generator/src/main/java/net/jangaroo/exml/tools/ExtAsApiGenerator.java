@@ -597,6 +597,7 @@ public class ExtAsApiGenerator {
     if (eventType == null) {
       eventType = createClassModel(eventTypeQName);
       ClassModel extAsClass = eventType.getClassModel();
+      extAsClass.addAnnotation(new AnnotationModel("Rename", new AnnotationPropertyModel(null, "\"" + capitalize(eventTypeQName) + "\"")));
       extAsClass.setSuperclass("net.jangaroo.ext.FlExtEvent");
 
       MethodModel constructorModel = extAsClass.createConstructor();
