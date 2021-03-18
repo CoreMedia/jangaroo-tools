@@ -93,8 +93,8 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
 
      #blub:any;
 
-    // noinspection JSUnusedLocalSymbols
-  private static static$5_bR = (() =>{
+    //@ts-expect-error 18022
+  static #static = (() =>{
       if(1 < 0 && 0 > 1) {
         throw "plain wrong!";
       }

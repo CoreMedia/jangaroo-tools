@@ -5,6 +5,8 @@ package package1 {
  */
 public class StaticAndNonStatic {
 
+  new StaticAndNonStatic();
+
   public var StaticAndNonStatic:String;
   
   new StaticAndNonStatic();
