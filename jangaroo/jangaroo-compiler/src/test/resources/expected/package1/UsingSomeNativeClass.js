@@ -12,10 +12,10 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
 
   public*/ function UsingSomeNativeClass$() {var _this=this;this.super$7Tfi();
     new package1.someOtherPackage.SomeNativeClass();
-    AS3.setBindable(this.someNative,"baz" , "foo");
-    AS3.setBindable(this.someNative2,"baz" , "foo");
+    this.someNative.baz = "foo";
+    this.someNative2.baz = "foo";
     var local = function()/*:void*/ {
-      var test/*:String*/ = AS3.getBindable(_this.someNative2,"baz");
+      var test/*:String*/ = _this.someNative2.baz;
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;

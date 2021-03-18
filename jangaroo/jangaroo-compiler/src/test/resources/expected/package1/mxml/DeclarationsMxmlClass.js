@@ -3,23 +3,23 @@ import package1.*;
 import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass) {/*public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$GkLq();
-    AS3.setBindable(this,"bar" , "BAR!");
+    this.bar = "BAR!";
     /**
      Some number.
      */
-    AS3.setBindable(this,"num" , 123);
-    AS3.setBindable(this,"blub" ,{ name: "Kuno"});
-    AS3.setBindable(this,"list" ,[
+    this.num = 123;
+    this.blub ={ name: "Kuno"};
+    this.list =[
       { name: "Joe"},
       new package1.ConfigClass({
         items:[
           new package1.someOtherPackage.SomeOtherClass({ bla: 123})
         ]
       })
-    ]);
-    AS3.setBindable(this,"other" , new package1.someOtherPackage.SomeOtherClass({ bla: 3,
+    ];
+    this.other = new package1.someOtherPackage.SomeOtherClass({ bla: 3,
                         blubb_config: 'blub config expression',
-                        blubb_accessor: 'blub accessor expression'}));net.jangaroo.ext.Exml.apply(this,config);
+                        blubb_accessor: 'blub accessor expression'});net.jangaroo.ext.Exml.apply(this,config);
 }/*
 
     [Bindable]

@@ -17,13 +17,13 @@ interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
 
 class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMxmlClass._> extends SomeNativeClass<Cfg>{constructor(config:DeclarationsMxmlClass._=null){
     super();
-    asConfig(this).bar = "BAR!";
+    this.bar = "BAR!";
     /**
      Some number.
      */
-    asConfig(this).num = 123;
-    asConfig(this).blub ={ name: "Kuno"};
-    asConfig(this).list =[
+    this.num = 123;
+    this.blub ={ name: "Kuno"};
+    this.list =[
       { name: "Joe"},
       new ConfigClass(_<ConfigClass._>({
         items:[
@@ -31,7 +31,7 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
         ]
       }))
     ];
-    asConfig(this).other = new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
+    this.other = new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
                         blubb_config: 'blub config expression',
                         blubb_accessor: 'blub accessor expression'})); Exml.apply(this,config);
 }

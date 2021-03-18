@@ -103,7 +103,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
         handler:function(){} }
       ]
        */
-      AS3.setBindable(this,"gear" ,{ handler: function(x){return ''+x;}})
+      this.gear ={ handler: function(x){return ''+x;}}
     ],
 
     plugins:[

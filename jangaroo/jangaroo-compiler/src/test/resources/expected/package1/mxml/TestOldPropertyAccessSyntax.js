@@ -5,7 +5,7 @@ Ext.define("package1.mxml.TestOldPropertyAccessSyntax", function(TestOldProperty
     import testPackage.PropertiesTest_properties;
 
     public static const BUNDLE:PropertiesTest_properties =*/function BUNDLE$static_(){TestOldPropertyAccessSyntax.BUNDLE=( testPackage.PropertiesTest_properties.INSTANCE);}/*;public*/function TestOldPropertyAccessSyntax$(config/*:TestOldPropertyAccessSyntax=null*/){if(arguments.length<=0)config=null;
-    AS3.setBindable(this,"foo" ,net.jangaroo.ext.Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\"")); net.jangaroo.ext.Exml.apply(this,config);
+    this.foo =net.jangaroo.ext.Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); net.jangaroo.ext.Exml.apply(this,config);
 }/*
 
     [Bindable]

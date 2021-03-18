@@ -750,14 +750,18 @@ public class ExtAsApiGenerator {
       propertyModel.setStatic(isStatic);
       MethodModel getter = propertyModel.addGetter();
       AnnotationModel extConfigAnnotation = null;
+      boolean isAccessor = Boolean.TRUE.equals(member.accessor);
       if (isConfig) {
         extConfigAnnotation = new AnnotationModel(Jooc.EXT_CONFIG_ANNOTATION_NAME);
         if (!name.equals(member.name)) {
           extConfigAnnotation.addProperty(new AnnotationPropertyModel(null, CompilerUtils.quote(member.name)));
         }
         getter.addAnnotation(extConfigAnnotation);
+        if (isAccessor) {
+          getter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+        }
       }
-      if (Boolean.TRUE.equals(member.accessor) && !"w".equals(member.accessor)) {
+      if (isAccessor) {
         MethodModel getMethod = new MethodModel("get" + capitalize(member.name), type); // use original name for get method!
         getMethod.addAnnotation(arrayElementTypeAnnotation);
         getMethod.setAsdoc("Returns the value of <code>" + name + "</code>.\n@see #" + name);
@@ -770,10 +774,14 @@ public class ExtAsApiGenerator {
           // do not add @private to ASDoc in interfaces, or IDEA will completely ignore the declaration!
           setter.setAsdoc(null);
         }
+        boolean isWriteOnlyAccessor = isAccessor || "w".equals(member.accessor);
         if (extConfigAnnotation != null) {
           setter.addAnnotation(extConfigAnnotation);
+          if (isWriteOnlyAccessor) {
+            setter.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+          }
         }
-        if (Boolean.TRUE.equals(member.accessor) || "w".equals(member.accessor)) {
+        if (isWriteOnlyAccessor) {
           ParamModel setMethodParam = new ParamModel(name, type);
           MethodModel setMethod = new MethodModel("set" + capitalize(member.name), "void", setMethodParam);
           setMethod.setAsdoc("Sets the value of <code>" + name + "</code>.\n@see #" + name);
@@ -1532,7 +1540,11 @@ public class ExtAsApiGenerator {
       }
     }
 
-    accessor.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME));
+    if (accessor.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME).isEmpty()) {
+      // although not defined as a real 'config', add [Bindable] annotation, but mark it as style="methods":
+      accessor.addAnnotation(new AnnotationModel(Jooc.BINDABLE_ANNOTATION_NAME,
+              new AnnotationPropertyModel("style", "\"methods\"")));
+    }
     MethodModel documentedMethod = null;
     if (accessor.isSetter()) {
       documentedMethod = classModel.getMethod(accessor.isStatic(), MethodType.GET, accessor.getName());

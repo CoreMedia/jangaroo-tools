@@ -824,7 +824,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private static final Pattern SET_METHOD_NAME_PATTERN = Pattern.compile("set[A-Z].*");
 
-  private static String getAccessorNameFromSetMethod(FunctionDeclaration functionDeclaration) {
+  private static TypedIdeDeclaration getAccessorNameFromSetMethod(FunctionDeclaration functionDeclaration) {
     if (!functionDeclaration.isPrivate() && functionDeclaration.getParams() != null && functionDeclaration.getParams().getTail() == null) {
       String methodName = functionDeclaration.getName();
       if (SET_METHOD_NAME_PATTERN.matcher(methodName).matches()) {
@@ -834,7 +834,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if ((maybeBindablePropertyDeclaration instanceof PropertyDeclaration ||
                   maybeBindablePropertyDeclaration instanceof VariableDeclaration) &&
                   maybeBindablePropertyDeclaration.isBindable()) {
-            return setAccessorName;
+            return maybeBindablePropertyDeclaration;
           }
         }
       }
@@ -875,7 +875,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (companionInterfaceMode != renderIntoInterface) {
         return;
       }
-      String setAccessorName = getAccessorNameFromSetMethod(functionDeclaration);
+      TypedIdeDeclaration setAccessor = getAccessorNameFromSetMethod(functionDeclaration);
       if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()) {
         // it must be a [Bindable] native get function, so complement a private field for the default implementation:
         out.write("\n  #" + functionDeclaration.getName());
@@ -893,7 +893,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (!hasSetter(functionDeclaration)) { // a native getter without setter => readonly property!
           writeReadonlySuppressWhitespace(functionDeclaration.getIde().getSymbol());
         }
-      } else if (setAccessorName != null) {
+      } else if (setAccessor != null) {
         out.writeToken(MethodType.SET.toString());
       } else {
         writeOptSymbol(functionDeclaration.getSymGetOrSet());
@@ -903,8 +903,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (functionDeclaration.isPrivate()) {
           writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), getHashPrivateName(functionDeclaration));
-        } else if (setAccessorName != null) {
-          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), setAccessorName);
+        } else if (setAccessor != null) {
+          writeSymbolReplacement(functionDeclaration.getIde().getSymbol(), setAccessor.getName());
         } else {
           functionDeclaration.getIde().visit(this);
         }
@@ -915,7 +915,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         out.writeSymbol(functionExpr.getRParen());
       }
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
-      if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessorName == null) {
+      if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessor == null) {
         generateFunctionExprReturnTypeRelation(functionExpr);
       }
       if (functionDeclaration.isConstructor()
@@ -1197,16 +1197,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           IdeDeclaration declaration = dotExpr.getIde().getDeclaration(false);
           if (declaration instanceof FunctionDeclaration &&
                   compilationUnit.getPrimaryDeclaration().equals(declaration.getClassDeclaration())) {
-            String accessorName = getAccessorNameFromSetMethod((FunctionDeclaration) declaration);
-            if (accessorName != null) {
-              // rewrite obj.setFoo(value) to asConfig(obj).foo = value:
-              out.writeSymbolWhitespace(applyExpr.getSymbol());
-              out.write("asConfig");
-              out.writeSymbol(args.getLParen());
-              dotExpr.getArg().visit(this);
-              out.writeSymbol(args.getRParen());
+            TypedIdeDeclaration accessor = getAccessorNameFromSetMethod((FunctionDeclaration) declaration);
+            if (accessor != null) {
+              // rewrite obj.setFoo(value) to obj.foo = value:
+              if (!isBindableStyleMethods(accessor)) {
+                dotExpr.getArg().visit(this);
+              } else {
+                // rewrite obj to asConfig(obj):
+                out.writeSymbolWhitespace(applyExpr.getSymbol());
+                out.write("asConfig");
+                out.writeSymbol(args.getLParen());
+                dotExpr.getArg().visit(this);
+                out.writeSymbol(args.getRParen());
+              }
               out.writeSymbol(dotExpr.getOp());
-              writeSymbolReplacement(dotExpr.getIde().getSymbol(), accessorName);
+              writeSymbolReplacement(dotExpr.getIde().getSymbol(), accessor.getName());
               out.write(" = ");
               expr.getHead().visit(this);
               return;

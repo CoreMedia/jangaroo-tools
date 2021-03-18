@@ -15,7 +15,7 @@ Ext.define("package1.FieldInitializer", function(FieldInitializer) {/*public cla
   }/*
 
   private*/ function setMyConfigOption2(value/*: Object*/) {
-    AS3.setBindable(this,"myConfigOption2" , value);
+    this.myConfigOption2 = value;
   }/*
 
   public*/ function foo()/*:String*/ {

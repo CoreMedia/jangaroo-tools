@@ -75,14 +75,14 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
     })),
     new ConfigClass(_<ConfigClass._>({
       items:[
-        new SomeOtherClass(_<SomeOtherClass._>({ doodle: "non-bound", bla: asConfig(asConfig(this).other).bla}))
+        new SomeOtherClass(_<SomeOtherClass._>({ doodle: "non-bound", bla: this.other.bla}))
       ],
       number: 12
     })),
     new ConfigClass(_<ConfigClass._>({
       ...Exml.prepend({items: [
         new SomeOtherClass(_<SomeOtherClass._>({ bla: 12})),
-        asConfig(this).no_config = new SomeOtherClass(_<SomeOtherClass._>({ bla: 13}))
+        this.no_config = new SomeOtherClass(_<SomeOtherClass._>({ bla: 13}))
       ]})
     }))
   ]}),

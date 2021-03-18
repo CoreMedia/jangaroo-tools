@@ -200,13 +200,15 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
 //              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member != null) {
-      List<Annotation> bindableAnnotations = member.getAnnotations(Jooc.BINDABLE_ANNOTATION_NAME);
-      if (bindableAnnotations.size() > 0) {
-        return member;
-      }
+    if (member != null && isBindableStyleMethods(member)) {
+      return member;
     }
     return null;
+  }
+
+  boolean isBindableStyleMethods(TypedIdeDeclaration member) {
+    Annotation bindableAnnotation = member.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME);
+    return bindableAnnotation != null && bindableAnnotation.getPropertiesByName().get("style") != null;
   }
 
   private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,

@@ -11,7 +11,7 @@ class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = Te
 
      static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
     super();
-    asConfig(this).foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
+    this.foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
 }
 
     #foo:string = null;

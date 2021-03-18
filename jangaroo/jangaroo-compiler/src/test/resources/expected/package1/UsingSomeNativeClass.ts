@@ -14,10 +14,10 @@ import SomeOtherNativeClass from '../SomeOtherNativeClass';
 
    constructor() {const this$=this;
     new package1_someOtherPackage_SomeNativeClass();
-    asConfig(this.someNative).baz = "foo";
-    asConfig(this.someNative2).baz = "foo";
+    this.someNative.baz = "foo";
+    this.someNative2.baz = "foo";
     var local = ():void => {
-      var test = asConfig(this.someNative2).baz;
+      var test = this.someNative2.baz;
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;

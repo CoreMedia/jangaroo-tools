@@ -22,11 +22,11 @@ import {asConfig} from '@jangaroo/joo/AS3';
 
   //@ts-expect-error 18022
    #setMyConfigOption2(value: any) {
-    asConfig(this).myConfigOption2 = value;
+    this.myConfigOption2 = value;
   }
 
    foo():string {
-    asConfig(this).myConfigOption = "direct set call";
+    this.myConfigOption = "direct set call";
     return this.#const1 + this.#const2 + this.#const3;
   }
 }

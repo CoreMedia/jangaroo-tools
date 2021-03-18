@@ -9,10 +9,10 @@ public class Panel extends Observable {
   public function Panel(config:Object) {
   }
 
-  [Bindable]
+  [Bindable(style="methods")]
   public native function get title():String;
 
-  [Bindable]
+  [Bindable(style="methods")]
   public native function set title(value:String):void;
 
   [DefaultProperty]

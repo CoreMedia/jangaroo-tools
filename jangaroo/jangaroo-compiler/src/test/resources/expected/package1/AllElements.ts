@@ -111,7 +111,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
         handler:function(){} }
       ]
        */
-      asConfig(this).gear ={ handler: (x) => ''+x}
+      this.gear ={ handler: (x) => ''+x}
     ],
 
     plugins:[

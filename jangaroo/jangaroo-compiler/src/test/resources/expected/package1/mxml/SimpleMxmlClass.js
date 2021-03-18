@@ -51,14 +51,14 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     }),
     new package1.ConfigClass({
       items:[
-        new package1.someOtherPackage.SomeOtherClass({ doodle: "non-bound", bla: AS3.getBindable(AS3.getBindable(this,"other"),"bla","bla_has_changed")})
+        new package1.someOtherPackage.SomeOtherClass({ doodle: "non-bound", bla: this.other.bla})
       ],
       number: 12
     }),
     new package1.ConfigClass({items$at: net.jangaroo.ext.Exml.PREPEND, 
       items:([
         new package1.someOtherPackage.SomeOtherClass({ bla: 12}),
-        AS3.setBindable(this,"no_config" , new package1.someOtherPackage.SomeOtherClass({ bla: 13}))
+        this.no_config = new package1.someOtherPackage.SomeOtherClass({ bla: 13})
       ])
     })
   ]),
