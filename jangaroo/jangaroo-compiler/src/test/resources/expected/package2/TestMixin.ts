@@ -1,4 +1,3 @@
-import Number from '../Number';
 interface TestMixin_ extends Partial<Pick<TestMixin,
     "foo"
 >> {

@@ -1,5 +1,4 @@
 import {as, cast, is} from '@jangaroo/joo/AS3';
-import Number from '../Number';
 import uint from '../AS3/int_';
 import int from '../AS3/int_';
 

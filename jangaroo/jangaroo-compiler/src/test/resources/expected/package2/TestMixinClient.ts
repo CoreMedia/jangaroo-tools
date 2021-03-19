@@ -1,5 +1,4 @@
 import {mixin} from '@jangaroo/joo/AS3';
-import Number from '../Number';
 import TestMixin from './TestMixin';
 
 

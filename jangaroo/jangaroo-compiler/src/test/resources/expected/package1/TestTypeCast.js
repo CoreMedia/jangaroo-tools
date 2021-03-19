@@ -33,9 +33,6 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
         testCastToUint: testCastToUint$static,
         testCastToClassVar: testCastToClassVar$static
       },
-      uses: [
-        "AS3.int_",
-        "Number"
-      ]
+      uses: ["AS3.int_"]
     };
 });
