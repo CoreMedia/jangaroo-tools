@@ -226,7 +226,7 @@ public class ClassDeclaration extends TypeDeclaration {
   public boolean implementsMoreThanOneInterface() {
     return getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
             && getOptImplements() != null
-            && (!isInterface() || getOptImplements().getSuperTypes().getTail() != null);
+            && (!(isInterface() || isMixin()) || getOptImplements().getSuperTypes().getTail() != null);
   }
 
   public List<Annotation> getMetadata() {
@@ -327,7 +327,11 @@ public class ClassDeclaration extends TypeDeclaration {
     if (isInterface()) {
       return getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) != null;
     }
-    if (getOptImplements() != null) {
+    return getMyMixinInterface() != null;
+  }
+
+  public ClassDeclaration getMyMixinInterface() {
+    if (!isInterface() && getOptImplements() != null) {
       CommaSeparatedList<Ide> interfaces = getOptImplements().getSuperTypes();
       String myQualifiedName = getQualifiedNameStr();
       while (interfaces != null) {
@@ -335,12 +339,12 @@ public class ClassDeclaration extends TypeDeclaration {
         ClassDeclaration interfaceDeclaration = (ClassDeclaration) oneInterface.getScope().lookupDeclaration(oneInterface);
         Annotation mixinAnnotation = interfaceDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME);
         if (mixinAnnotation != null && myQualifiedName.equals(mixinAnnotation.getPropertiesByName().get(null))) {
-          return true;
+          return interfaceDeclaration;
         }
         interfaces = interfaces.getTail();
       }
     }
-    return false;
+    return null;
   }
 
   public ClassDeclaration getConfigClassDeclaration() {

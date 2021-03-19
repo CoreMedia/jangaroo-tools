@@ -7,6 +7,14 @@ Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*public class
   }/*
 
   /** @inheritDoc * /
+  [Bindable]
+  public native function get foo():Number;
+
+  /** @private * /
+  [Bindable]
+  public native function set foo(value:Number):void;
+
+  /** @inheritDoc * /
   public native function mix(thing:String):String;
 }
 }

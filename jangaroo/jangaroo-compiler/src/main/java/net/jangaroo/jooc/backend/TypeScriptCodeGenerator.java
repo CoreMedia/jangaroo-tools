@@ -281,6 +281,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write(String.format("interface %s_%s {\n}\n\n", classDeclarationLocalName, configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
     }
 
+    ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
+    if (myMixinInterface != null) {
+      JooSymbol myMixinSymbolWithASDoc = findSymbolWithASDoc(myMixinInterface);
+      if (myMixinSymbolWithASDoc != null) {
+        out.writeSymbolWhitespace(myMixinSymbolWithASDoc);
+        JooSymbol classSymbolWithASDoc = findSymbolWithASDoc(classDeclaration);
+        if (classSymbolWithASDoc != null) {
+          out.suppressWhitespace(classSymbolWithASDoc);
+        }
+      }
+    }
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbolWhitespace(classDeclaration.getSymClass());
     if (isAmbientInterface(classDeclaration.getCompilationUnit())) {
@@ -875,6 +886,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (companionInterfaceMode != renderIntoInterface) {
         return;
       }
+
+      ClassDeclaration myMixinInterface = functionDeclaration.getClassDeclaration().getMyMixinInterface();
+      if (myMixinInterface != null) {
+        // only look for direct interface members:
+        IdeDeclaration interfaceMethod = myMixinInterface.getMemberDeclaration(functionDeclaration.getName());
+        if (interfaceMethod instanceof PropertyDeclaration) {
+          interfaceMethod = ((PropertyDeclaration) interfaceMethod).getAccessor(functionDeclaration.isSetter());
+        }
+        if (interfaceMethod != null) {
+          JooSymbol interfaceSymbolWithASDoc = findSymbolWithASDoc(interfaceMethod);
+          if (interfaceSymbolWithASDoc != null) {
+            out.writeSymbolWhitespace(interfaceSymbolWithASDoc);
+            JooSymbol implMethodSymbolWithASDoc = findSymbolWithASDoc(functionDeclaration);
+            if (implMethodSymbolWithASDoc != null) {
+              String implMethodWhitespace = implMethodSymbolWithASDoc.getWhitespace();
+              if (!(implMethodWhitespace.contains("@inheritDoc") || implMethodWhitespace.contains("@private"))) {
+                functionDeclaration.getIde().getScope().getCompiler().getLog().warning(implMethodSymbolWithASDoc,
+                        "Mixin method implementation has non-inheriting ASDoc. " +
+                                "Please move such documentation to the mixin interface before TypeScript conversion.");
+              }
+              out.suppressWhitespace(implMethodSymbolWithASDoc);
+            }
+          }
+        }
+      }
       TypedIdeDeclaration setAccessor = getAccessorNameFromSetMethod(functionDeclaration);
       if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()) {
         // it must be a [Bindable] native get function, so complement a private field for the default implementation:
@@ -945,6 +981,29 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       functionExpr.visit(this);
       writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
     }
+  }
+
+  JooSymbol findSymbolWithASDoc(IdeDeclaration declaration) {
+    // look in modifier symbols and the declaration's symbol first, as sometimes, annotations like [Event]
+    // have their own ASDoc:
+    if (containsASDoc(declaration.getSymbol())) {
+      return declaration.getSymbol();
+    }
+    for (JooSymbol symModifier : declaration.getSymModifiers()) {
+      if (containsASDoc(symModifier)) {
+        return symModifier;
+      }
+    }
+    for (Annotation annotation : declaration.getAnnotations()) {
+      if (containsASDoc(annotation.getSymbol())) {
+        return annotation.getSymbol();
+      }
+    }
+    return null;
+  }
+  
+  private static boolean containsASDoc(JooSymbol symbol) {
+    return symbol.getWhitespace().contains("/**");
   }
 
   void generateFunctionExprReturnTypeRelation(FunctionExpr functionExpr) throws IOException {
