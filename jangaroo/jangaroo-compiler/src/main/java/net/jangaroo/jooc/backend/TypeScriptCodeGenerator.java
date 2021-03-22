@@ -1259,7 +1259,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             TypedIdeDeclaration accessor = getAccessorNameFromSetMethod((FunctionDeclaration) declaration);
             if (accessor != null) {
               // rewrite obj.setFoo(value) to obj.foo = value:
-              if (!isBindableStyleMethods(accessor)) {
+              if (!isBindableWithoutAccessor(accessor)) {
                 dotExpr.getArg().visit(this);
               } else {
                 // rewrite obj to asConfig(obj):

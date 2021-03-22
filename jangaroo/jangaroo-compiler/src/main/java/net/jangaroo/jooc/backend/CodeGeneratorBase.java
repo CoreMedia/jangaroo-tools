@@ -200,15 +200,17 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
 //      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
 //              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member != null && isBindableStyleMethods(member)) {
+    if (member != null && isBindableWithoutAccessor(member)) {
       return member;
     }
     return null;
   }
 
-  boolean isBindableStyleMethods(TypedIdeDeclaration member) {
+  boolean isBindableWithoutAccessor(TypedIdeDeclaration member) {
     Annotation bindableAnnotation = member.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME);
-    return bindableAnnotation != null && bindableAnnotation.getPropertiesByName().get("style") != null;
+    // Since it seems we cannot "patch" Ext to support accessors for configs, treat *all* Ext [Bindables]
+    // (and only those) as configs without accessors:
+    return bindableAnnotation != null && "ext".equals(member.getClassDeclaration().getQualifiedName()[0]);
   }
 
   private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
