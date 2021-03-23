@@ -195,26 +195,44 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     }
   }
 
-  protected TypedIdeDeclaration findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) throws IOException {
+  protected TypedIdeDeclaration findMemberWithBindableAnnotation(Ide qIde, MethodType methodType, TypeDeclaration typeDeclaration) {
     String memberName = qIde.getIde().getText();
-    TypedIdeDeclaration member = lookupPropertyDeclaration(typeDeclaration, memberName, methodType);
-//      System.err.println("*#*#*#* found member " + member + " for " + typeDeclaration.getQualifiedNameStr()
-//              + "#" + memberName + " for qIde " + qIde.getQualifiedNameStr());
-    if (member != null && isBindableWithoutAccessor(member)) {
-      return member;
-    }
+    TypeDeclaration currentTypeDeclaration = typeDeclaration;
+    List<TypedIdeDeclaration> incorrectOverrides = new ArrayList<>();
+    do {
+      TypedIdeDeclaration member = lookupPropertyDeclaration(currentTypeDeclaration, memberName, methodType);
+      if (member == null) {
+        break;
+      }
+      if (isBindableWithoutAccessor(member)) {
+        for (TypedIdeDeclaration incorrectOverride : incorrectOverrides) {
+          qIde.getScope().getCompiler().getLog().warning(incorrectOverride.getSymbol(),
+                  String.format("Ext config '%s' with annotation [Bindable(style=\"methods\")] must be redeclared/overwritten with the same annotation.", memberName));
+        }
+        return member;
+      }
+      // Maybe it is an Ext [Bindable(style="methods")], incorrectly redeclared as simple property or [Bindable]?
+      // So even after finding a member, continue searching where we left off:
+      currentTypeDeclaration = member.getClassDeclaration().getSuperTypeDeclaration();
+      incorrectOverrides.add(member);
+    } while (currentTypeDeclaration != null);
     return null;
   }
 
   boolean isBindableWithoutAccessor(TypedIdeDeclaration member) {
     Annotation bindableAnnotation = member.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME);
     // Since it seems we cannot "patch" Ext to support accessors for configs, treat *all* Ext [Bindables]
-    // (and only those) as configs without accessors:
-    return bindableAnnotation != null && "ext".equals(member.getClassDeclaration().getQualifiedName()[0]);
+    // and those explicitly annotated as [Bindable(style="methods")] as configs without accessors:
+    return bindableAnnotation != null &&
+            (bindableAnnotation.getPropertiesByName().get("style") != null ||
+                    "ext".equals(member.getClassDeclaration().getQualifiedName()[0]));
   }
 
   private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
-                                                        MethodType methodType) throws IOException {
+                                                        MethodType methodType) {
+    if (classDeclaration == null) {
+      return null;
+    }
     TypedIdeDeclaration member = classDeclaration.getMemberDeclaration(memberName);
     if (member instanceof PropertyDeclaration) {
       member = ((PropertyDeclaration) member).getAccessor(methodType == MethodType.SET);
@@ -232,10 +250,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       }
     }
     if (member == null) {
-      ClassDeclaration superDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (superDeclaration != null) {
-        member = lookupPropertyDeclaration(superDeclaration, memberName, methodType);
-      }
+      member = lookupPropertyDeclaration(classDeclaration.getSuperTypeDeclaration(), memberName, methodType);
     }
     return member;
   }
