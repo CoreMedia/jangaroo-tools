@@ -201,7 +201,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     List<TypedIdeDeclaration> incorrectOverrides = new ArrayList<>();
     do {
       TypedIdeDeclaration member = lookupPropertyDeclaration(currentTypeDeclaration, memberName, methodType);
-      if (member == null) {
+      if (member == null || !member.isPublic() || member.getClassDeclaration() == null) {
         break;
       }
       if (isBindableWithoutAccessor(member)) {
