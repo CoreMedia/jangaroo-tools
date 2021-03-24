@@ -16,6 +16,7 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
+import net.jangaroo.jooc.ast.Extends;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
@@ -369,6 +370,20 @@ final class MxmlToModelParser {
     return value;
   }
 
+  private boolean isJavaScriptObject() {
+    // Cannot use getSuperTypeDeclaration() before class has been scoped,
+    // so use "extends" and resolve direct superclass manually:
+    Extends optExtends = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).getOptExtends();
+    if (optExtends != null) {
+      CompilationUnit superCompilationUnit = jangarooParser.getCompilationUnit(optExtends.getSuperClass().getQualifiedNameStr());
+      // there should always be one, but we must avoid uncaught exceptions for better error reporting:
+      if (superCompilationUnit != null) {
+        return ((ClassDeclaration) superCompilationUnit.getPrimaryDeclaration()).isJavaScriptObject();
+      }
+    }
+    return false;
+  }
+
   @Nullable
   Expr createExprFromElement(XmlElement objectElement, Boolean defaultUseConfigObjects, boolean generatingConfig) {
     String className = getClassNameForElement(objectElement);
@@ -390,7 +405,7 @@ final class MxmlToModelParser {
         String asDoc = convertMxmlWhitespace(objectElement.getSymbol());
         int i = asDoc.lastIndexOf('\n');
         additionalDeclaration = asDoc +
-                '[' + Jooc.BINDABLE_ANNOTATION_NAME + ']' +
+                '[' + (isJavaScriptObject() ? Jooc.EXT_CONFIG_ANNOTATION_NAME : Jooc.BINDABLE_ANNOTATION_NAME) + ']' +
                 (i < 0 ? "\n" : asDoc.substring(i)) +
                 "public var " + id + ':' + className + ';';
         Collection<Directive> directives = mxmlParserHelper.parseClassBody(new JooSymbol(additionalDeclaration)).getDirectives();

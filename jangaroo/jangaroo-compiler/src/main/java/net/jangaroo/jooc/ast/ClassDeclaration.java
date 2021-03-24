@@ -382,6 +382,17 @@ public class ClassDeclaration extends TypeDeclaration {
             (superTypeDeclaration == classDeclaration || superTypeDeclaration.isSubclassOf(classDeclaration)); // NOSONAR no equals here
   }
 
+  public boolean isJavaScriptObject() {
+    for (ClassDeclaration classDeclaration = this;
+         classDeclaration != null;
+         classDeclaration = classDeclaration.getSuperTypeDeclaration()) {
+      if ("joo.JavaScriptObject".equals(classDeclaration.getQualifiedNameStr())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public Type getThisType() {
     return thisType;
   }

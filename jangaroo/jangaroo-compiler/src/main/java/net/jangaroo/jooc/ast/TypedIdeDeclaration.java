@@ -111,6 +111,10 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
         }
       }
     }
+    if (isBindable() && getClassDeclaration().isJavaScriptObject()) {
+      scope.getCompiler().getLog().error(getSymbol(),
+              "Members of a class inheriting from joo.JavaScriptObject must not be [Bindable].");
+    }
   }
 
   @Override
