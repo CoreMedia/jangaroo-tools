@@ -1160,7 +1160,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private void registerField(VariableDeclaration variableDeclaration, List<Metadata> currentMetadata) {
     String variableName = variableDeclaration.getName();
-    boolean isBindable = variableDeclaration.getAnnotation(Jooc.BINDABLE_ANNOTATION_NAME) != null;
+    boolean isBindable = variableDeclaration.isBindable();
     String value = null;
     if (mustInitializeInStaticCode(variableDeclaration)) {
       if (variableDeclaration.isStatic()) {
