@@ -69,7 +69,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  protected JooSymbol getDeclarationSymbol() {
+  public JooSymbol getDeclarationSymbol() {
     return getOptSymConstOrVar();
   }
 

@@ -7,7 +7,7 @@ interface TestMixin_ extends Partial<Pick<TestMixin,
 /**
  * This is a test mixin.
  */
- class TestMixin<Cfg extends TestMixin._ = TestMixin._> {
+class TestMixin<Cfg extends TestMixin._ = TestMixin._> {
   /**
    * An accessor.
    */
@@ -29,7 +29,7 @@ interface TestMixin_ extends Partial<Pick<TestMixin,
    * @param thing from the swamp
    * @return mud
    */
-   mix(thing:string):string {
+  mix(thing:string):string {
     return "Mixed " + thing + "!";
   }
 }

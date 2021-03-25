@@ -3,9 +3,9 @@ import IResourceManager from '../mx/resources/IResourceManager';
 
 
 
- class TestRequireResourceBundle {
+class TestRequireResourceBundle {
 
-   testResourceManagerAccess(rm:IResourceManager) {
+  testResourceManagerAccess(rm:IResourceManager) {
     var propertyValue = ResourceBundle_properties.someProperty;
   }
 }

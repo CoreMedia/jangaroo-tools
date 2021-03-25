@@ -3,19 +3,19 @@ import Panel from '../ext/Panel';
 import PanelEvent from '../ext/events/PanelEvent';
 
 
- class TestEventListener {
+class TestEventListener {
 
-   #panel:Panel = cast(Panel,{});
+  #panel:Panel = cast(Panel,{});
   
-   #panels:Array<Panel> = [];
+  #panels:Array<Panel> = [];
 
   
   //@ts-expect-error 18022
-   #getPanels():Array<Panel> {
+  #getPanels():Array<Panel> {
     return this.#panels;
   }
 
-   constructor() {const this$=this;
+  constructor() {const this$=this;
     asConfig(this.#panel).title = "not yet clicked.";
     this.#panel.addEventListener( PanelEvent.FLOPS, (event:PanelEvent):void => {
       asConfig(this.getThis().getPanel()).title = "clicked!";
@@ -25,11 +25,11 @@ import PanelEvent from '../ext/events/PanelEvent';
     } );
   }
 
-   getThis():TestEventListener {
+  getThis():TestEventListener {
     return this;
   }
 
-   getPanel():Panel {
+  getPanel():Panel {
     return this.#panel;
   }
 }

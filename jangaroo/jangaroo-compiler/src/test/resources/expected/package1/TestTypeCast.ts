@@ -3,12 +3,12 @@ import uint from '../AS3/int_';
 import int from '../AS3/int_';
 
 
- class TestTypeCast {
+class TestTypeCast {
 
-   constructor() {
+  constructor() {
   }
 
-   static testAsCast(p : any) : TestTypeCast {
+  static testAsCast(p : any) : TestTypeCast {
     var r = 99.7;
     var n = Number("99.8");
     var i = int(r);
@@ -17,11 +17,11 @@ import int from '../AS3/int_';
     return as( p,  TestTypeCast);
   }
 
-   static testCastToUint(any:any):uint {
+  static testCastToUint(any:any):uint {
     return uint(any);
   }
 
-   static testCastToClassVar(clazz:Class, value:any):any {
+  static testCastToClassVar(clazz:Class, value:any):any {
     return cast(clazz,value);
   }
 

@@ -1,10 +1,10 @@
 
- class PrivateMemberAccess {
+class PrivateMemberAccess {
 
-   static readonly INSTANCE:PrivateMemberAccess = new PrivateMemberAccess();
-   #secret:string = null;
+  static readonly INSTANCE:PrivateMemberAccess = new PrivateMemberAccess();
+  #secret:string = null;
 
-   static doSomething():string {
+  static doSomething():string {
     return PrivateMemberAccess.INSTANCE.#secret;
   }
 }

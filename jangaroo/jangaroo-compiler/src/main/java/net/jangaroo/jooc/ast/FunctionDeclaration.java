@@ -301,7 +301,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
-  protected JooSymbol getDeclarationSymbol() {
+  public JooSymbol getDeclarationSymbol() {
     return getFun().getSymbol();
   }
 

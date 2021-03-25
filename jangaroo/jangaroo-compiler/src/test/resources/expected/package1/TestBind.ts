@@ -16,20 +16,20 @@
 import {bind} from '@jangaroo/joo/AS3';
 
 
- class TestBind {
+class TestBind {
 
-   boundField:AnyFunction =bind( this,this.#getStatePrivate);
+  boundField:AnyFunction =bind( this,this.#getStatePrivate);
 
-   constructor(state : string) {
+  constructor(state : string) {
     this.#state = state;
     var bound:AnyFunction =bind( this,this.#getStatePrivate);
   }
 
   
   //@ts-expect-error 18022
-   #testCoerce(shouldBeString: any):void {}
+  #testCoerce(shouldBeString: any):void {}
 
-   getState() : string {
+  getState() : string {
     this.boundField.call( null);
     this.#testCoerce(String(1));
     this.#testCoerce("1");
@@ -37,7 +37,7 @@ import {bind} from '@jangaroo/joo/AS3';
   }
 
   
-   chainable():this {
+  chainable():this {
     if (this.getState()) {
       this.#testCoerce("nothing here");
       return this;
@@ -46,11 +46,11 @@ import {bind} from '@jangaroo/joo/AS3';
   }
 
   //@ts-expect-error 18022
-   #getStatePrivate() : string {
+  #getStatePrivate() : string {
     return this.#state;
   }
 
-   #state : string = null;
+  #state : string = null;
 
 }
 export default TestBind;

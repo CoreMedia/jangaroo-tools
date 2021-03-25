@@ -1,14 +1,14 @@
 import int from '../AS3/int_';
 
 
- class TestArrayForIn {
+class TestArrayForIn {
 
   //@ts-expect-error 18022
-   static readonly #ARRAY:Array<any> = [1, 2, 3];
+  static readonly #ARRAY:Array<any> = [1, 2, 3];
   //@ts-expect-error 18022
-   static #array:Array<any> = [1, 2, 3];
+  static #array:Array<any> = [1, 2, 3];
 
-   static test():Array<any> {
+  static test():Array<any> {
     var a = [1, 2, 3];
     // test rewrite of Array for ... in with local variable
     for (var i1 in a) {
@@ -51,7 +51,7 @@ import int from '../AS3/int_';
   }
 
   //@ts-expect-error 18022
-   static #doSomething(param:any):void {
+  static #doSomething(param:any):void {
     // do something...
   }
 }

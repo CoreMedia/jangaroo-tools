@@ -11,24 +11,24 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 
- class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
+class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
 
-   static readonly DEFAULT:string = "_DEFAULT_";
+  static readonly DEFAULT:string = "_DEFAULT_";
 
-   emptyText:string = null;
-   letters:Array<any> = null;
+  emptyText:string = null;
+  letters:Array<any> = null;
 
-   #property_1:string = null;
-   #property_2:int = 0;
+  #property_1:string = null;
+  #property_2:int = 0;
 
-   constructor(config:TestComponent._ = null) {
+  constructor(config:TestComponent._ = null) {
     this.#property_1 = config.property_1 + "_HI";
     this.#property_2 = config.property_2 || 0;
   }
 
-   #component:any = null;
+  #component:any = null;
 
-   init(component:any):void {
+  init(component:any):void {
     this.#component = component;
   }
 }

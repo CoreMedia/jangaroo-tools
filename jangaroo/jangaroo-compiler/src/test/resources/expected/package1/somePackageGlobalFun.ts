@@ -5,7 +5,7 @@ import SomeOtherClass from './someOtherPackage/SomeOtherClass';
 /**
  * Some package-global documentation;
  */
- function somePackageGlobalFun(flag:boolean):SomeOtherClass {
+function somePackageGlobalFun(flag:boolean):SomeOtherClass {
   return new SomeOtherClass();
 }
 export default somePackageGlobalFun;

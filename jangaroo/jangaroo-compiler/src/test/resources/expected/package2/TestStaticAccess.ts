@@ -17,122 +17,122 @@ import StaticAccessSuperSuperClass from '../package1/StaticAccessSuperSuperClass
 import StaticAccessSuperClass from './StaticAccessSuperClass';
 
 
- class TestStaticAccess extends StaticAccessSuperClass {
+class TestStaticAccess extends StaticAccessSuperClass {
 
-  static  s1:string = "s1";
-  static 
+  static s1:string = "s1";
+  static
   //@ts-expect-error 18022
- #s2:string = "s2";
+#s2:string = "s2";
 
-   constructor() {
+  constructor() {
     super();
     StaticAccessSuperSuperClass.f0();
   }
 
-  static  get_s0():string {
+  static get_s0():string {
     return StaticAccessSuperClass.s0;
   }
  
-  static  set_s0(_s0:string):void {
+  static set_s0(_s0:string):void {
     StaticAccessSuperClass.s0 = _s0;
   }
 
-  static  get_s0_qualified():string {
+  static get_s0_qualified():string {
     var s0 = "qualified error";
     return StaticAccessSuperClass.s0;
   }
 
-  static  set_s0_qualified(s0:string):void {
+  static set_s0_qualified(s0:string):void {
     StaticAccessSuperClass.s0 = s0;
   }
 
-  static  get_s0_fully_qualified():string {
+  static get_s0_fully_qualified():string {
     var s0 = "fully qualified error";
     return StaticAccessSuperClass.s0;
   }
 
-  static  set_s0_fully_qualified(s0:string):void {
+  static set_s0_fully_qualified(s0:string):void {
     StaticAccessSuperClass.s0 = s0;
   }
 
-  static  get_s1():string {
+  static get_s1():string {
       return TestStaticAccess.s1;
     }
   
-  static  set_s1(_s1:string):void {
+  static set_s1(_s1:string):void {
     TestStaticAccess.s1 = _s1;
   }
 
-  static  get_s1_qualified():string {
+  static get_s1_qualified():string {
     var s1 = "qualified error";
     return TestStaticAccess.s1;
   }
 
-  static  set_s1_qualified(s1:string):void {
+  static set_s1_qualified(s1:string):void {
     TestStaticAccess.s1 = s1;
   }
 
-  static  get_s1_fully_qualified():string {
+  static get_s1_fully_qualified():string {
     var s1 = "fully qualified error";
     return TestStaticAccess.s1;
   }
 
-  static  set_s1_fully_qualified(s1:string):void {
+  static set_s1_fully_qualified(s1:string):void {
     TestStaticAccess.s1 = s1;
   }
 
-  static  get_s2():string {
+  static get_s2():string {
     return TestStaticAccess.#s2;
   }
 
-  static  set_s2(_s2:string):void {
+  static set_s2(_s2:string):void {
     TestStaticAccess.#s2 = _s2;
   }
 
-  static  get_s2_qualified():string {
+  static get_s2_qualified():string {
     var s2 = "qualified error";
     return TestStaticAccess.#s2;
   }
 
-  static  set_s2_qualified(s2:string):void {
+  static set_s2_qualified(s2:string):void {
     TestStaticAccess.#s2 = s2;
   }
 
-  static  get_s2_fully_qualified():string {
+  static get_s2_fully_qualified():string {
     var s2 = "fully qualified error";
     return TestStaticAccess.#s2;
   }
 
-  static  set_s2_fully_qualified(s2:string):void {
+  static set_s2_fully_qualified(s2:string):void {
     TestStaticAccess.#s2 = s2;
   }
 
-  static 
+  static
   //@ts-expect-error 18022
- #get_s2_private():string {
+#get_s2_private():string {
     return TestStaticAccess.#s2;
   }
 
-  static  get_s2_via_private_static_method():string {
+  static get_s2_via_private_static_method():string {
     return TestStaticAccess.#get_s2_private();
   }
 
-  static  get_s2_via_private_static_method_qualified():string {
+  static get_s2_via_private_static_method_qualified():string {
     return TestStaticAccess.#get_s2_private();
   }
 
-  static  get_s2_via_private_static_method_full_qualified():string {
+  static get_s2_via_private_static_method_full_qualified():string {
     TestStaticAccess.#some_private_static = TestStaticAccess.#some_private_static + "foo";
     return TestStaticAccess.#get_s2_private();
   }
 
   //@ts-expect-error 18022
-   static get #some_private_static():string {
+  static get #some_private_static():string {
     return "some_private_static";
   }
 
   //@ts-expect-error 18022
-   static set #some_private_static(value:string) {
+  static set #some_private_static(value:string) {
   }
 }
 export default TestStaticAccess;

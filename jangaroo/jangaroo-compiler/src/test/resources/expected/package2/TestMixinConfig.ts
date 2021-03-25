@@ -1,9 +1,9 @@
 
- class TestMixinConfig {
+class TestMixinConfig {
 
   
   //@ts-expect-error 18022
-   #doSomethingBeforeFoo() {
+  #doSomethingBeforeFoo() {
     // gotcha before foo!
   }
 
@@ -13,34 +13,34 @@
   }
 
   
-   doSomethingBeforeBar() {
+  doSomethingBeforeBar() {
     // gotcha before bar!
   }
 
   
-   doSomethingOnBar() {
+  doSomethingOnBar() {
     // gotcha on bar!
   }
 
   
-   doSomethingOnBaz() {
+  doSomethingOnBaz() {
     // gotcha on baz!
   }
 
   
-   doSomethingOnMany() {
+  doSomethingOnMany() {
     // gotcha on many!
   }
 
   
   
-   doSomethingOnBoth() {
+  doSomethingOnBoth() {
     // gotcha on both!
   }
 
   
   //@ts-expect-error 18022
-   static #extendClass(baseClass:Class, derivedClass:Class, classBody: any):void {
+  static #extendClass(baseClass:Class, derivedClass:Class, classBody: any):void {
     // gotcha extended!
   }
 }

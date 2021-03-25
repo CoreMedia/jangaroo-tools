@@ -78,7 +78,7 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   @Override
-  protected JooSymbol getDeclarationSymbol() {
+  public JooSymbol getDeclarationSymbol() {
     return getSymClass();
   }
 

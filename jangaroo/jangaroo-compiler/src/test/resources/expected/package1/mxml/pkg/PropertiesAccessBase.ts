@@ -8,16 +8,16 @@ interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
 
 
 
- class PropertiesAccessBase<Cfg extends PropertiesAccess._ = PropertiesAccess._> {
+class PropertiesAccessBase<Cfg extends PropertiesAccess._ = PropertiesAccess._> {
 
-   constructor(config:PropertiesAccess._ = null) {
+  constructor(config:PropertiesAccess._ = null) {
     this.property_1 = config.property_1 += "_HI";
     this.property_2 = 123;
     this.property_3 = config.property_3 || "";
   }
 
-   property_1:string = null;
-   #_property_2:string = null;
+  property_1:string = null;
+  #_property_2:string = null;
 
    set property_2(value:any) {
     this.#_property_2 = String(value);
@@ -27,7 +27,7 @@ interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
     return this.#_property_2;
   }
 
-    property_3:string;
+  property_3:string;
 }
 declare namespace PropertiesAccessBase {
   export type _ = PropertiesAccessBase_;

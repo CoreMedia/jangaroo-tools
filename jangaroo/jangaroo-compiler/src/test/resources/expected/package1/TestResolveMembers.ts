@@ -1,8 +1,8 @@
 import Interface from './Interface';
 
- class TestResolveMembers {
+class TestResolveMembers {
 
-   constructor() {
+  constructor() {
     // resolve Object methods on something typed by an interface:
     var someInterface:Interface;
     var str = someInterface.toString();

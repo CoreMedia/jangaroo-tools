@@ -38,6 +38,7 @@ import java.util.Set;
  */
 public final class JsWriter extends FilterWriter {
 
+  private static final String TOKEN_SEPARATOR_CHARS = "=><!&|+-*/&|^%";
   private JsStringLiteralWriter stringLiteralWriter;
   private JoocOptions options;
   private boolean commentStartWritten = false;
@@ -303,8 +304,8 @@ public final class JsWriter extends FilterWriter {
     if (shouldWrite()) {
       char firstSymbolChar = token.charAt(0);
       if ((isIdeChar(lastChar) && isIdeChar(firstSymbolChar)) ||
-              (lastChar == firstSymbolChar && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0) ||
-              (firstSymbolChar == '=' && "=><!&|+-*/&|^%".indexOf(lastChar) >= 0)) {
+              (lastChar == firstSymbolChar && TOKEN_SEPARATOR_CHARS.indexOf(lastChar) != -1) ||
+              (firstSymbolChar == '=' && TOKEN_SEPARATOR_CHARS.indexOf(lastChar) != -1)) {
         write(' ');
       }
       checkOpenString();
@@ -315,7 +316,7 @@ public final class JsWriter extends FilterWriter {
   }
 
   private boolean isIdeChar(final char ch) {
-    return ch == '$' || ch == '_' || Character.isLetterOrDigit(ch);
+    return ch == '$' || ch == '#' || ch == '_' || Character.isLetterOrDigit(ch);
   }
 
   public void writeSymbol(JooSymbol symbol) throws IOException {

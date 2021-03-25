@@ -11,9 +11,9 @@ interface SimpleMxmlClass_ {
  */
 class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends panel<Cfg>{
 
-         static readonly xtype:string = "testNamespace.pkg.config.simpleMxmlClass";
+        static readonly xtype:string = "testNamespace.pkg.config.simpleMxmlClass";
 
-         constructor(config:SimpleMxmlClass._ = null){
+        constructor(config:SimpleMxmlClass._ = null){
     super( Exml.apply(new SimpleMxmlClass._({
         title: Exml.asString( package1_mxml_SimpleMxmlClass.xtype)
 

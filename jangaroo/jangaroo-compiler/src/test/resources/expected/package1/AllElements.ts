@@ -23,28 +23,28 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
     /**
      * This is my <b>constant</b>
      */
-     static readonly SOME_CONSTANT:uint = allElements.SOME_CONSTANT;
+    static readonly SOME_CONSTANT:uint = allElements.SOME_CONSTANT;
     /**
      * This is another <b>constant</b>
      */
-     static readonly ANOTHER_CONSTANT:string = allElements.ANOTHER_CONSTANT;
-     static readonly CODE_CONSTANT:int = allElements.CODE_CONSTANT;
+    static readonly ANOTHER_CONSTANT:string = allElements.ANOTHER_CONSTANT;
+    static readonly CODE_CONSTANT:int = allElements.CODE_CONSTANT;
 
-     #myProperty:string = null;
-     #myVar:string = null;
-     #myVar2:any = null;
-     #myVar3:button = null;
-     #myVar4:Array<any> = null;
+    #myProperty:string = null;
+    #myVar:string = null;
+    #myVar2:any = null;
+    #myVar3:button = null;
+    #myVar4:Array<any> = null;
 
     //@ts-expect-error 18022
-     #__initialize__(config:AllElements._):void {
+    #__initialize__(config:AllElements._):void {
       this.#myVar = config.#myProperty + '_suffix';
       this.#myVar2 = {
         prop: config.#myProperty
       };
     }
 
-     constructor(config:AllElements._ = null){
+    constructor(config:AllElements._ = null){
     super((()=>{this.#__initialize__(config);
   
     this.#myVar3 = new button(_<button._>({

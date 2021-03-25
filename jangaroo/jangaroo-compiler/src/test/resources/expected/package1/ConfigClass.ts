@@ -13,21 +13,21 @@ interface ConfigClass_ extends Partial<Pick<ConfigClass,
 
 
 
- class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<Cfg> {
+class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<Cfg> {
 
-   constructor(config:ConfigClass._ = null) {
+  constructor(config:ConfigClass._ = null) {
     super();
   }
 
-   foo:string = "foo";
+  foo:string = "foo";
 
-   number:int = 0;
+  number:int = 0;
 
-    items:Array<any>;
+  items:Array<any>;
 
-    defaults:any;
+  defaults:any;
 
-   #_title:string = "- empty -";
+  #_title:string = "- empty -";
 
   
    get title():string {

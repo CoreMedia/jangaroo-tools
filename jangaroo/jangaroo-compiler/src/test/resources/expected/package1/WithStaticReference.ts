@@ -1,19 +1,19 @@
 import {is} from '@jangaroo/joo/AS3';
 
- class WithStaticReference {
-   static readonly BLA = "bla";
-   constructor() {
+class WithStaticReference {
+  static readonly BLA = "bla";
+  constructor() {
     var bla = WithStaticReference.BLA;is(
     bla,  WithStaticReference);
     this.#make2();
   }
-   static make():void {
+  static make():void {
     var bla = WithStaticReference.BLA;is(
     bla,  WithStaticReference);
     new WithStaticReference();
   }
   //@ts-expect-error 18022
-   #make2():void {
+  #make2():void {
     var bla = WithStaticReference.BLA;is(
     bla,  WithStaticReference);
     new WithStaticReference();

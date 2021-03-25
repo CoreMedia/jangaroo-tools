@@ -6,13 +6,13 @@ import SomeOtherNativeClass from '../SomeOtherNativeClass';
 /**
  * This is an example of a class using a "native" class.
  */
- class UsingSomeNativeClass {
+class UsingSomeNativeClass {
 
-   someNative:SomeNativeClass = new SomeNativeClass();
-   someOtherNative:SomeOtherNativeClass = new SomeOtherNativeClass();
-   readonly someNative2:SomeNativeClass;
+  someNative:SomeNativeClass = new SomeNativeClass();
+  someOtherNative:SomeOtherNativeClass = new SomeOtherNativeClass();
+  readonly someNative2:SomeNativeClass;
 
-   constructor() {const this$=this;
+  constructor() {const this$=this;
     new package1_someOtherPackage_SomeNativeClass();
     this.someNative.baz = "foo";
     this.someNative2.baz = "foo";

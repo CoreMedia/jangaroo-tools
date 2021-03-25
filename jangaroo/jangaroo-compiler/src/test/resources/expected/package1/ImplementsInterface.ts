@@ -3,25 +3,25 @@ import Interface from './Interface';
 import Panel from '../ext/Panel';
 
 
-  class ImplementsInterface implements Interface {
+class ImplementsInterface implements Interface {
 
   /**
    * Field with ASDoc.
    * Second line.
    */
-   foo;/*
+  foo;/*
   
   /**
    * Annotated field with ASDoc.
    * /
   @Bar*/
-   bar:Array<Array<Panel>> = null;
+  bar:Array<Array<Panel>> = null;
 
-   constructor() {
+  constructor() {
     // nothing really
   }
 
-   doSomething():string {
+  doSomething():string {
     this.bar = new Array();
     var panels = new Array();
     panels.push(new Panel({}));

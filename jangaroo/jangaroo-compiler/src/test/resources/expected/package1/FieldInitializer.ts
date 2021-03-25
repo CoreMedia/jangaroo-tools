@@ -1,6 +1,6 @@
 import {asConfig} from '@jangaroo/joo/AS3';
 
- class FieldInitializer {
+class FieldInitializer {
   readonly #const1:string = "foo";
   readonly #const2:any = "foo" + "bar";
   readonly #const3:Record<string,any> = {"foo": "bar"};
@@ -21,11 +21,11 @@ import {asConfig} from '@jangaroo/joo/AS3';
   }
 
   //@ts-expect-error 18022
-   #setMyConfigOption2(value: any) {
+  #setMyConfigOption2(value: any) {
     this.myConfigOption2 = value;
   }
 
-   foo():string {
+  foo():string {
     this.myConfigOption = "direct set call";
     return this.#const1 + this.#const2 + this.#const3;
   }

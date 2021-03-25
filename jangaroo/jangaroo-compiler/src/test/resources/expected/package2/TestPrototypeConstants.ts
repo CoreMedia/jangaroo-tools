@@ -1,6 +1,6 @@
 
 
- class TestPrototypeConstants {
+class TestPrototypeConstants {
 
   readonly foo:string = "FOO";
   readonly bar:Record<string,any> = {};

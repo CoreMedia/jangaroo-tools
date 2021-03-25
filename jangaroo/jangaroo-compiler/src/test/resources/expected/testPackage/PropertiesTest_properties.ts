@@ -6,7 +6,7 @@ import MoreIcons_properties from './icons/MoreIcons_properties';
 */  /*
  * @see PropertiesTest_properties#INSTANCE
  */
- interface PropertiesTest_properties {
+interface PropertiesTest_properties {
 
 /**
  * Documentation for 'key'.

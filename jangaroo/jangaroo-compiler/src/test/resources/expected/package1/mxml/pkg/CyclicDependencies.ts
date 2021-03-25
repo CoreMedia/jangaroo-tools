@@ -8,7 +8,7 @@ interface CyclicDependencies_ extends Partial<Pick<CyclicDependencies,
 
 class CyclicDependencies<Cfg extends CyclicDependencies._ = CyclicDependencies._> extends Object<Cfg>{
 
-     constructor(config:CyclicDependencies._ = null){
+    constructor(config:CyclicDependencies._ = null){
     super(); Exml.apply(this,config);
   }
 

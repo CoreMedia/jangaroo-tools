@@ -52,7 +52,7 @@ public class PackageDeclaration extends IdeDeclaration {
   }
 
   @Override
-  protected JooSymbol getDeclarationSymbol() {
+  public JooSymbol getDeclarationSymbol() {
     return getSymPackage();
   }
 

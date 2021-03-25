@@ -6,6 +6,6 @@ import SomeOtherClass from './someOtherPackage/SomeOtherClass';
 /**
  * Some package-global documentation;
  */
- var somePackageGlobal:{_: SomeOtherClass}
+var somePackageGlobal:{_: SomeOtherClass}
   ={_:  new SomeOtherClass()};
 export default somePackageGlobal;

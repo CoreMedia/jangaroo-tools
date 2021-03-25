@@ -2,9 +2,9 @@ import {mixin} from '@jangaroo/joo/AS3';
 import TestMixin from './TestMixin';
 
 
- class TestMixinClient {
+class TestMixinClient {
 
-   constructor(thing:string) {
+  constructor(thing:string) {
     this.mix(thing);
   }
 }

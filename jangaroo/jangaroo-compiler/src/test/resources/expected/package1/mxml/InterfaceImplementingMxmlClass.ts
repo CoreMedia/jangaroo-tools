@@ -12,7 +12,7 @@ interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<In
 
 class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._> extends ConfigClass<Cfg> implements YetAnotherInterface{
 
-     constructor(config:InterfaceImplementingMxmlClass._ = null){
+    constructor(config:InterfaceImplementingMxmlClass._ = null){
     super( Exml.apply(new InterfaceImplementingMxmlClass._({
 }),config));
   }
@@ -21,14 +21,14 @@ class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass.
 
     /** This is some property. */
     
-      get someProperty():string { return this.#someProperty; }
+     get someProperty():string { return this.#someProperty; }
 
     /** @private */
     
-      set someProperty(value:string) { this.#someProperty = value; }}
+     set someProperty(value:string) { this.#someProperty = value; }}
 interface InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._>{
 
-      createInstance(o:SimpleInterface):SimpleClass;}
+    createInstance(o:SimpleInterface):SimpleClass;}
 
 mixin(InterfaceImplementingMxmlClass, YetAnotherInterface);
 

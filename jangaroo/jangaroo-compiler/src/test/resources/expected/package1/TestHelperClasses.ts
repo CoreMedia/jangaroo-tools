@@ -1,37 +1,37 @@
 import {bind} from '@jangaroo/joo/AS3';
 
 
- class TestHelperClasses {
+class TestHelperClasses {
 
-   static readonly TEXT:string = "foo";
-   static getText():string {
+  static readonly TEXT:string = "foo";
+  static getText():string {
     var thc = new Helper("foo");
     var f:AnyFunction =bind( thc,thc.getText);
     return f();
   }
 
-   static getConstantFromHelperClass():string {
+  static getConstantFromHelperClass():string {
     return Helper.CONST;
   }
 }
 
 class Helper {
 
-   static readonly CONST:string = "FOO";
-   #text:string = TestHelperClasses.TEXT;
+  static readonly CONST:string = "FOO";
+  #text:string = TestHelperClasses.TEXT;
 
-   constructor(text:string) {
+  constructor(text:string) {
     this.#text = text;
   }
 
-   getText():string {
+  getText():string {
     var f:AnyFunction =bind( this,this.#text_getter);
     f =bind( this,this.#text_getter);
     return f();
   }
 
   //@ts-expect-error 18022
-   #text_getter():string {
+  #text_getter():string {
     return this.#text;
   }
 }

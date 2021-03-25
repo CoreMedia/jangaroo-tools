@@ -7,32 +7,32 @@ import Bitmap from '../flash/display/Bitmap';
  * This is an example of a class using an [Embed] annotation.
  * /
 @SomeRuntimeAnnotation({foo:"bar"})*/
- class UsingEmbed {
+class UsingEmbed {
 
   
-   someText:Class = null;
-
-  
-  //@ts-expect-error 18022
-   static #anotherText:Class = null;
+  someText:Class = null;
 
   
   //@ts-expect-error 18022
-   static #jooley:Class = null;/*
+  static #anotherText:Class = null;
+
+  
+  //@ts-expect-error 18022
+  static #jooley:Class = null;/*
 
   @SomeRuntimeAnnotation*/
-   annotated1;/*
+  annotated1;/*
 
   @SomeRuntimeAnnotationWithArg({"_""foo"})*/
-   annotated2() {
+  annotated2() {
   }/*
 
   @SomeRuntimeAnnotationWithNamedArg({foo:"bar"})*/
-   annotated3() {
+  annotated3() {
   }/*
 
   @SomeRuntimeAnnotationWithNamedArg({foo:"bar"})*/
-   annotated4() {
+  annotated4() {
   }/*
 
   /**
@@ -43,11 +43,11 @@ import Bitmap from '../flash/display/Bitmap';
    * annotations
    * /
   @SomeRuntimeAnnotation({type:"baz"})*/
-   annotated5() {
+  annotated5() {
   }/*
 
   @SomePropertyAnnotation({"_"1})*/
-    annotated6:string;
+  annotated6:string;
 
 }
 metadata(UsingEmbed, ["SomeRuntimeAnnotation"],

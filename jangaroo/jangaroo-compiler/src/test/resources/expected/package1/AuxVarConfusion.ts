@@ -1,8 +1,8 @@
 
 
- class AuxVarConfusion {
+class AuxVarConfusion {
 
-   doSomething():void {
+  doSomething():void {
     for (var i of Object.values({foo:true} || {})) {
       new AuxVarConfusion();
     }

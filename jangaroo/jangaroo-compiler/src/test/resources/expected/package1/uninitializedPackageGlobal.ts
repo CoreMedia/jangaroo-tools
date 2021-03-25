@@ -5,5 +5,5 @@ import SomeOtherClass from './someOtherPackage/SomeOtherClass';
 /**
  * Some package-global documentation;
  */
- var uninitializedPackageGlobal:{_: SomeOtherClass}={_: null};
+var uninitializedPackageGlobal:{_: SomeOtherClass}={_: null};
 export default uninitializedPackageGlobal;

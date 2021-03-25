@@ -58,7 +58,7 @@ public class NamespaceDeclaration extends IdeDeclaration {
   }
 
   @Override
-  protected JooSymbol getDeclarationSymbol() {
+  public JooSymbol getDeclarationSymbol() {
     return getSymNamespace();
   }
 

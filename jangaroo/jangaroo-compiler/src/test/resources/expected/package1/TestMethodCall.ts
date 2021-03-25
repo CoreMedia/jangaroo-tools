@@ -19,16 +19,18 @@ import int from '../AS3/int_';
 /**
 * a comment
 */
- class TestMethodCall /* blub ber *//*extends Object*/ {
+class TestMethodCall /* blub ber *//*extends Object*/ {
 
-   constructor() {
-  } s:TestMethodCall = null;
+  constructor() {
+  }
 
-  static  s(x :int) :int {
+  s:TestMethodCall = null;
+
+  static s(x :int) :int {
     return x;
   }
 
-   m(x :int) :int {
+  m(x :int) :int {
     return x;
   }
 
@@ -37,90 +39,90 @@ import int from '../AS3/int_';
   }
 
   //@ts-expect-error 18022
-   #priv(x :int) :int {
+  #priv(x :int) :int {
     return x+2;
   }
 
-   callm(x :int, t:TestMethodCall) :int {
+  callm(x :int, t:TestMethodCall) :int {
     return t.m(x);
   }
 
-   callmViaThis(x :int, t:TestMethodCall) :int {
+  callmViaThis(x :int, t:TestMethodCall) :int {
     return this.m(x);
   }
 
-   callmViaObject(x :int, t:TestMethodCall) :int {
+  callmViaObject(x :int, t:TestMethodCall) :int {
     var o:Record<string,any> = { t: t };
     return o.t.m(x);
   }
 
-   callmViaVar(x :int, t:TestMethodCall) :int {
+  callmViaVar(x :int, t:TestMethodCall) :int {
     var o = t;
     return o.m(x);
   }
 
-   callmViaField(x :int, t:TestMethodCall) :int {
+  callmViaField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.m(x);
   }
 
-   callmViaThisDotField(x :int, t:TestMethodCall) :int {
+  callmViaThisDotField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.m(x);
   }
 
-   callProt(x :int, t:TestMethodCall) :int {
+  callProt(x :int, t:TestMethodCall) :int {
     return t.prot(x);
   }
 
-   callProtViaThis(x :int, t:TestMethodCall) :int {
+  callProtViaThis(x :int, t:TestMethodCall) :int {
     return this.prot(x);
   }
 
-   callProtViaObject(x :int, t:TestMethodCall) :int {
+  callProtViaObject(x :int, t:TestMethodCall) :int {
     var o:Record<string,any> = { t: t };
     return o.t.prot(x);
   }
 
-   callProtViaVar(x :int, t:TestMethodCall) :int {
+  callProtViaVar(x :int, t:TestMethodCall) :int {
     var o = t;
     return o.prot(x);
   }
 
-   callProtViaField(x :int, t:TestMethodCall) :int {
+  callProtViaField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.prot(x);
   }
 
-   callProtViaThisDotField(x :int, t:TestMethodCall) :int {
+  callProtViaThisDotField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.prot(x);
   }
 
-   callPriv(x :int, t:TestMethodCall) :int {
+  callPriv(x :int, t:TestMethodCall) :int {
     return t.#priv(x);
   }
 
-   callPrivViaThis(x :int, t:TestMethodCall) :int {
+  callPrivViaThis(x :int, t:TestMethodCall) :int {
     return this.#priv(x);
   }
 
-   callPrivViaObject(x :int, t:TestMethodCall) :int {
+  callPrivViaObject(x :int, t:TestMethodCall) :int {
     var o:Record<string,any> = { t: t };
     return o.t.priv(x);
   }
 
-   callPrivViaVar(x :int, t:TestMethodCall) :int {
+  callPrivViaVar(x :int, t:TestMethodCall) :int {
     var o = t;
     return o.#priv(x);
   }
 
-   callPrivViaField(x :int, t:TestMethodCall) :int {
+  callPrivViaField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.#priv(x);
   }
 
-   callPrivViaThisDotField(x :int, t:TestMethodCall) :int {
+  callPrivViaThisDotField(x :int, t:TestMethodCall) :int {
     this.s = t;
     return this.s.#priv(x);
   }

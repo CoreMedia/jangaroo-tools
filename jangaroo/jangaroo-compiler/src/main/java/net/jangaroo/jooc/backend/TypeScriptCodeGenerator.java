@@ -115,11 +115,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {
     boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
     for (JooSymbol modifier : declaration.getSymModifiers()) {
-      out.writeSymbolWhitespace(modifier);
+      writeNonTrivialWhitespace(modifier);
+    }
+    writeNonTrivialWhitespace(declaration.getDeclarationSymbol());
+    writeNonTrivialWhitespace(declaration.getIde().getSymbol());
+    for (JooSymbol modifier : declaration.getSymModifiers()) {
       if (!isPrimaryDeclaration && !companionInterfaceMode) {
         if (modifier.sym == sym.PROTECTED
                 || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())) {
-          out.writeSymbol(modifier, false);
+          out.writeSymbol(modifier);
         } else if (modifier.sym == sym.PRIVATE && noSupportForHashPrivate(declaration)) {
           // As long as tsc does not yet support private members other than instance fields,
           // insert @ts-expect-error compiler directive, always as a separate line that can easily be removed later.
@@ -140,6 +144,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         } else {
           out.writeToken("declare");
         }
+      }
+    }
+  }
+
+  private void writeNonTrivialWhitespace(JooSymbol symbol) throws IOException {
+    if (symbol != null) {
+      if (" ".equals(symbol.getWhitespace())) {
+        out.suppressWhitespace(symbol);
+      } else {
+        out.writeSymbolWhitespace(symbol);
       }
     }
   }
@@ -293,7 +307,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
-    out.writeSymbolWhitespace(classDeclaration.getSymClass());
     if (isAmbientInterface(classDeclaration.getCompilationUnit())) {
       out.writeToken("interface");
     } else {
