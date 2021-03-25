@@ -349,6 +349,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write("\n");
     }
 
+    generateClassMetadata(classDeclaration);
+
+    if (classDeclaration.isPrimaryDeclaration()) {
+      visitAll(classDeclaration.getSecondaryDeclarations());
+
+      if (configClassName != null) {
+        out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
+        out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
+        out.write("  export const _: { new(config?: _): _; };\n");
+        out.write("}\n\n");
+      }
+    }
+  }
+
+  private void generateClassMetadata(ClassDeclaration classDeclaration) throws IOException {
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
     if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       if (classDeclaration.getOptImplements() != null
               && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
@@ -402,17 +418,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.write("]");
         }
         out.write(");\n");
-      }
-    }
-
-    if (classDeclaration.isPrimaryDeclaration()) {
-      visitAll(classDeclaration.getSecondaryDeclarations());
-
-      if (configClassName != null) {
-        out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
-        out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
-        out.write("  export const _: { new(config?: _): _; };\n");
-        out.write("}\n\n");
       }
     }
   }
