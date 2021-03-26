@@ -217,7 +217,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("clean", "rimraf ./dist && rimraf ./build");
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
-          scripts.put("publish", "jangaroo-publish dist");
+          scripts.put("publish", "jangaroo publish dist");
           scripts.putAll(testScripts);
           additionalJsonEntries.setScripts(scripts);
           if (useTypesVersions) {
@@ -288,6 +288,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
+          scripts.put("publish", "jangaroo publish dist");
           additionalJsonEntries.setScripts(scripts);
           if (useTypesVersions) {
             List<String> typesPaths = new ArrayList<>();
@@ -326,6 +327,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
+          scripts.put("publish", "jangaroo publish dist");
           additionalJsonEntries.setScripts(scripts);
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
           excludePaths.add(targetPackageDir + "/build");
@@ -356,6 +358,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("build", "jangaroo build");
           scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
+          scripts.put("publish", "jangaroo publish dist");
           additionalJsonEntries.setScripts(scripts);
         } else {
           return;
