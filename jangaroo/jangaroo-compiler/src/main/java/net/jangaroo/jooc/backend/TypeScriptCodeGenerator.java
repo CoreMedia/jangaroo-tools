@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -112,13 +113,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {
+  void visitDeclarationAnnotationsAndModifiers(IdeDeclaration declaration) throws IOException {
     boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
-    for (JooSymbol modifier : declaration.getSymModifiers()) {
-      writeNonTrivialWhitespace(modifier);
+    List<Annotation> annotations = declaration.getAnnotations();
+    /* ASDoc comments may come before annotations, after annotations, or even *both*.
+     * The latter case is only for annotations like [Event] that have their own ASDoc.
+     * Whitespace-only "whitespace" may be ignored, but *not* the initial one if no
+     * other whitespace follows.
+     */
+    List<JooSymbol> whitespaceSymbols = new ArrayList<>();
+    for (Annotation annotation : annotations) {
+      whitespaceSymbols.add(annotation.getSymbol());
     }
-    writeNonTrivialWhitespace(declaration.getDeclarationSymbol());
-    writeNonTrivialWhitespace(declaration.getIde().getSymbol());
+    Collections.addAll(whitespaceSymbols, declaration.getSymModifiers());
+    whitespaceSymbols.add(declaration.getDeclarationSymbol());
+    whitespaceSymbols.add(declaration.getIde().getSymbol());
+    out.writeNonTrivialWhitespace(whitespaceSymbols);
+
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       if (!isPrimaryDeclaration && !companionInterfaceMode) {
         if (modifier.sym == sym.PROTECTED
@@ -144,16 +155,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         } else {
           out.writeToken("declare");
         }
-      }
-    }
-  }
-
-  private void writeNonTrivialWhitespace(JooSymbol symbol) throws IOException {
-    if (symbol != null) {
-      if (" ".equals(symbol.getWhitespace())) {
-        out.suppressWhitespace(symbol);
-      } else {
-        out.writeSymbolWhitespace(symbol);
       }
     }
   }

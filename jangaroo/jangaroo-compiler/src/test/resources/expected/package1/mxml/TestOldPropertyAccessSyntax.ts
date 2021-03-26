@@ -16,7 +16,6 @@ class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = Te
 
     #foo:string = null;
 
-    
     get foo():string { return this.#foo; }
     set foo(value:string) { this.#foo = value; }}
 declare namespace TestOldPropertyAccessSyntax {

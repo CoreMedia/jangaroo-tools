@@ -584,10 +584,10 @@ final class MxmlToModelParser {
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
     String eventHandlerName = "$on_" + eventName.replace('-', '_')
             + "_" + value.getLine() + "_" + value.getColumn();
-    String classBodyCode = "private function " + eventHandlerName +
+    String classBodyCode = "\n    private function " + eventHandlerName +
             " (" + "event" + ':' + eventTypeIde.getQualifiedNameStr() + ") :void {\n" +
-            "    " + value.getJooValue() +
-            "}";
+            "      " + value.getJooValue() +
+            "\n    }";
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode)).getDirectives());
 
     return MxmlAstUtils.createObjectField(eventName,

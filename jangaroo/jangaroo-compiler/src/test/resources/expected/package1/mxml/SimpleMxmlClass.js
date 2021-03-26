@@ -122,10 +122,14 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
 
     [Bindable]
     public var other:package1.someOtherPackage.SomeOtherClass;
-private*/ function $on_click_14_20 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-    var result/*:String*/ = 'gotcha!';}/*
-private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-    var test=0;}/*
+
+    private*/ function $on_click_14_20 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+      var result/*:String*/ = 'gotcha!';
+    }/*
+
+    private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+      var test=0;
+    }/*
 
         [Bindable]
         public var no_config:package1.someOtherPackage.SomeOtherClass;}}

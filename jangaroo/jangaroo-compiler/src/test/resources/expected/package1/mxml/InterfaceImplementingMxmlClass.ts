@@ -9,7 +9,6 @@ interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<In
 >> {
 }
 
-
 class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._> extends ConfigClass<Cfg> implements YetAnotherInterface{
 
     constructor(config:InterfaceImplementingMxmlClass._ = null){
@@ -20,11 +19,9 @@ class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass.
 
 
     /** This is some property. */
-    
      get someProperty():string { return this.#someProperty; }
 
     /** @private */
-    
      set someProperty(value:string) { this.#someProperty = value; }}
 interface InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._>{
 

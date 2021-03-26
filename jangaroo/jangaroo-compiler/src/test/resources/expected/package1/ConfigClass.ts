@@ -11,8 +11,6 @@ interface ConfigClass_ extends Partial<Pick<ConfigClass,
 
 
 
-
-
 class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<Cfg> {
 
   constructor(config:ConfigClass._ = null) {
@@ -29,12 +27,10 @@ class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<
 
   #_title:string = "- empty -";
 
-  
    get title():string {
     return this.#_title;
   }
 
-  
    set title(value:string) {
     this.#_title = value;
   }

@@ -1,5 +1,4 @@
 import {asConfig} from '@jangaroo/joo/AS3';
-
 class FieldInitializer {
   readonly #const1:string = "foo";
   readonly #const2:any = "foo" + "bar";
@@ -7,12 +6,10 @@ class FieldInitializer {
 
     #myConfigOption:string = "baz";
 
-  
   get myConfigOption():string { return this.#myConfigOption; }
 
     #myConfigOption2:Record<string,any> = { a: 123 };
 
-  
   get myConfigOption2():Record<string,any> { return this.#myConfigOption2; }
     set myConfigOption2(value:Record<string,any>) { this.#myConfigOption2 = value; }
 

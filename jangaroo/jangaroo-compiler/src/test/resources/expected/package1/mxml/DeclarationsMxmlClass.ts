@@ -38,7 +38,6 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
 
     #bar:string = null;
 
-    
     get bar():string { return this.#bar; }
     set bar(value:string) { this.#bar = value; }
 
@@ -47,7 +46,6 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
     /**
      Some number.
      */
-    
     get num():int { return this.#num; }
     set num(value:int) { this.#num = value; }
 
@@ -56,25 +54,21 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
     /**
      Empty declaration.
      */
-    
     get empty():int { return this.#empty; }
     set empty(value:int) { this.#empty = value; }
 
     #blub:any = null;
 
-    
     get blub():any { return this.#blub; }
     set blub(value:any) { this.#blub = value; }
 
     #list:Array<any> = null;
 
-    
     get list():Array<any> { return this.#list; }
     set list(value:Array<any>) { this.#list = value; }
 
     #other:SomeOtherClass = null;
 
-    
     get other():SomeOtherClass { return this.#other; }
     set other(value:SomeOtherClass) { this.#other = value; }}
 declare namespace DeclarationsMxmlClass {

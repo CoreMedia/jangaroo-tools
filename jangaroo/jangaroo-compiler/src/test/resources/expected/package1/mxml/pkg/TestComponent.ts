@@ -28,14 +28,12 @@ class TestComponent<Cfg extends TestComponent._ = TestComponent._> extends TestC
 
     #property_1:string = null;
 
-    
     get property_1():string { return this.#property_1; }
     set property_1(value:string) { this.#property_1 = value; }
 
     #property_2:int = 0;
 
 
-    
     get property_2():int { return this.#property_2; }
     set property_2(value:int) { this.#property_2 = value; }}
 declare namespace TestComponent {

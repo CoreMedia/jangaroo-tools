@@ -4,11 +4,9 @@ import ConfigClass from '../ConfigClass';
 interface MetadataMxmlClass_ extends ConfigClass._ {
 }
 
-/*
 
-    @ThisIsJustATest
-    @Deprecated ({replacement:'use.this.please'})*/
-class MetadataMxmlClass<Cfg extends MetadataMxmlClass._ = MetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataMxmlClass._=null){
+
+    class MetadataMxmlClass<Cfg extends MetadataMxmlClass._ = MetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataMxmlClass._=null){
     super( Exml.apply(new MetadataMxmlClass._({
 }),config));
 }}

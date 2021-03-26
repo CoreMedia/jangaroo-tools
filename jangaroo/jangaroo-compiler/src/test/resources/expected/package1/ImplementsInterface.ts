@@ -9,12 +9,11 @@ class ImplementsInterface implements Interface {
    * Field with ASDoc.
    * Second line.
    */
-  foo;/*
+  foo;
   
   /**
    * Annotated field with ASDoc.
-   * /
-  @Bar*/
+   */
   bar:Array<Array<Panel>> = null;
 
   constructor() {

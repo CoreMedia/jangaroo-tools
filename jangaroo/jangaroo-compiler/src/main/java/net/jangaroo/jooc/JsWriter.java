@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author Andreas Gawecki
@@ -246,6 +247,28 @@ public final class JsWriter extends FilterWriter {
 
   public void suppressWhitespace(JooSymbol symbol) {
     isWhitespaceWritten.add(symbol);
+  }
+
+  public void writeNonTrivialWhitespace(List<JooSymbol> symbols) throws IOException {
+    String initialWhitespace = null;
+    StringBuilder allWhitespace = new StringBuilder();
+    for (JooSymbol symbol : symbols) {
+      if (symbol != null && !isWhitespaceWritten.contains(symbol)) {
+        String whitespace = symbol.getWhitespace();
+        if (initialWhitespace == null) {
+          initialWhitespace = whitespace;
+        }
+        if (!Pattern.matches("\\s*", whitespace)) {
+          allWhitespace.append(whitespace);
+          initialWhitespace = "";
+        }
+        suppressWhitespace(symbol);
+      }
+    }
+    if (initialWhitespace != null && initialWhitespace.length() > 1) { // also suppress single space, will be re-added by writeToken()
+      allWhitespace.insert(0, initialWhitespace);
+    }
+    write(allWhitespace.toString());
   }
 
   public void writeSymbolWhitespace(JooSymbol symbol) throws IOException {

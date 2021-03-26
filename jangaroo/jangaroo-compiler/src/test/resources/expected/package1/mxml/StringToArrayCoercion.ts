@@ -4,7 +4,6 @@ import Panel from '../../ext/Panel';
 interface StringToArrayCoercion_ {
 }
 
-
 class StringToArrayCoercion<Cfg extends StringToArrayCoercion._ = StringToArrayCoercion._> extends Panel<Cfg>{constructor(config:StringToArrayCoercion._=null){
     super( Exml.apply(new StringToArrayCoercion._({
            items: ["just a joke"]

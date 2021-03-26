@@ -14,7 +14,6 @@ class CyclicDependencies<Cfg extends CyclicDependencies._ = CyclicDependencies._
 
     #cause_trouble:CyclicDependencies_1 = null;
 
-    
     get cause_trouble():CyclicDependencies_1 { return this.#cause_trouble; }
     set cause_trouble(value:CyclicDependencies_1) { this.#cause_trouble = value; }}
 declare namespace CyclicDependencies {

@@ -132,7 +132,6 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
         handler:function(){} }
       ]
        */
-      
       get gear():any { return this.#gear; }
     set gear(value:any) { this.#gear = value; }}
 declare namespace AllElements {
