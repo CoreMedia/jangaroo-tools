@@ -139,7 +139,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         lernaCommandMap.put("run", lernaRunMap);
         lernaJson.put("command", lernaCommandMap);
 
-        FileUtils.write(new File(convertedWorkspaceTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson));
+        FileUtils.write(new File(convertedWorkspaceTarget + "/lerna.json"), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(lernaJson).concat("\n"));
       }
 
       List<String> excludePaths = new ArrayList<>();
