@@ -240,8 +240,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             if (useTypesVersions) {
               // although this is the default value, explicitly add this entry
               additionalJsonEntries.setTypes("index.d.ts");
+              additionalJsonEntries.addPublishOverride("types", "index.d.ts");
             } else {
               additionalJsonEntries.setTypes("src/index.d.ts");
+              additionalJsonEntries.addPublishOverride("types", "src/index.d.ts");
             }
           }
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
