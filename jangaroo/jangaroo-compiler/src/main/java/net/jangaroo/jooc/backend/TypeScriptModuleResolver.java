@@ -95,7 +95,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       }
     }
     // prepend target npm package in front
-    return npmPackageName + "/" + moduleName;
+    return npmPackageName + (moduleName.isEmpty() ? "" : "/" + moduleName);
   }
 
   private String computeRelativeModulePath(File currentFile, File importedFile) {
