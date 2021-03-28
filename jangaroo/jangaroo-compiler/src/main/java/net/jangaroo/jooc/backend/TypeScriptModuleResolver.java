@@ -83,7 +83,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
       // by 'joo' for everything else:
       if (npmPackageName.endsWith("ext-as")) {
-        npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("Ext") ? "/ext-ts" : "/joo");
+        npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("joo/") ? "/joo" : "/ext-ts");
       }
     } else {
       for (SearchAndReplace searchAndReplace : npmPackageNameReplacers) {
