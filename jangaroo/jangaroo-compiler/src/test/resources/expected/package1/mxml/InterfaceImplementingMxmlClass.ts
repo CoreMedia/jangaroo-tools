@@ -9,6 +9,7 @@ interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<In
 >> {
 }
 
+
 class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._> extends ConfigClass<Cfg> implements YetAnotherInterface{
 
     constructor(config:InterfaceImplementingMxmlClass._ = null){

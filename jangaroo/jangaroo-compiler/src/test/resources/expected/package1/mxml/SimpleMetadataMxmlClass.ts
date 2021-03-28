@@ -4,6 +4,7 @@ import ConfigClass from '../ConfigClass';
 interface SimpleMetadataMxmlClass_ extends ConfigClass._ {
 }
 
+
 class SimpleMetadataMxmlClass<Cfg extends SimpleMetadataMxmlClass._ = SimpleMetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:SimpleMetadataMxmlClass._=null){
     super( Exml.apply(new SimpleMetadataMxmlClass._({
 }),config));

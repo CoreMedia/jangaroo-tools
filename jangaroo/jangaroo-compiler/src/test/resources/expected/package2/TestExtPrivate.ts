@@ -1,3 +1,4 @@
+
 class TestExtPrivate {
 
   canOverride():void {

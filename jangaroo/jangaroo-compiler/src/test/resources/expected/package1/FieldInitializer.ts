@@ -1,4 +1,5 @@
 import {asConfig} from '@jangaroo/joo/AS3';
+
 class FieldInitializer {
   readonly #const1:string = "foo";
   readonly #const2:any = "foo" + "bar";

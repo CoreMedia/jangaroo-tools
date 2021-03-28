@@ -265,7 +265,7 @@ public final class JsWriter extends FilterWriter {
         suppressWhitespace(symbol);
       }
     }
-    if (initialWhitespace != null && initialWhitespace.length() > 1) { // also suppress single space, will be re-added by writeToken()
+    if (initialWhitespace != null && !" ".equals(initialWhitespace)) { // also suppress single space, will be re-added by writeToken()
       allWhitespace.insert(0, initialWhitespace);
     }
     write(allWhitespace.toString());

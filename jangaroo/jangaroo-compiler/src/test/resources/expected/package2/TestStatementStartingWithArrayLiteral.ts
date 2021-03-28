@@ -1,4 +1,5 @@
 import int from '../AS3/int_';
+
 class TestStatementStartingWithArrayLiteral {
 
   static sum1_2_3():int {
