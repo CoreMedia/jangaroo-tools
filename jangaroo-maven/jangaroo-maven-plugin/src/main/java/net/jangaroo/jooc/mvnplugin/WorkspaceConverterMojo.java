@@ -438,21 +438,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         }
 
 
-        if (new File(targetPackageJson).exists()) {
-          PackageJson packageJson = objectMapper.readValue(FileUtils.readFileToString(new File(targetPackageJson)), PackageJson.class);
-          if (packageJson.getDependencies() != null) {
-            packageJson.getDependencies().forEach(additionalJsonEntries::addDependency);
-          }
-          if (packageJson.getDevDependencies() != null) {
-            packageJson.getDevDependencies().forEach(additionalJsonEntries::addDevDependency);
-          }
-          if (packageJson.getScripts() != null) {
-            packageJson.getScripts().forEach(additionalJsonEntries::addScript);
-          }
-          if (packageJson.getWorkspaces() != null) {
-            packageJson.getTypesVersions().forEach(additionalJsonEntries::addTypesVersion);
-          }
-        }
         PackageJson packageJson = new PackageJson(additionalJsonEntries);
         packageJson.setName(aPackage.getName());
         packageJson.setVersion(aPackage.getVersion());

@@ -35,6 +35,8 @@ public class PackageJson {
   private Map<String, Object> typesVersions;
   @JsonProperty("types")
   private String types;
+  @JsonProperty("publishOverrides")
+  private Map<String, Object> publishOverrides;
 
   public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
     this.name = name;
@@ -57,6 +59,7 @@ public class PackageJson {
     this.scripts = additionalPackageJsonEntries.getScripts();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
     this.types = additionalPackageJsonEntries.getTypes();
+    this.publishOverrides = additionalPackageJsonEntries.getPublishOverrides();
   }
 
   public PackageJson() {
@@ -214,6 +217,23 @@ public class PackageJson {
   public void setTypes(String types) {
     if (types != null && !types.isEmpty()) {
       this.types = types;
+    }
+  }
+
+  public Map<String, Object> getPublishOverrides() {
+    return publishOverrides;
+  }
+
+  public void addPublishOverride(String key, Object value) {
+    if (this.publishOverrides == null) {
+      this.publishOverrides = new LinkedHashMap<>();
+    }
+    this.publishOverrides.put(key, value);
+  }
+
+  public void setPublishOverrides(Map<String, Object> publishOverrides) {
+    if (publishOverrides != null && !publishOverrides.isEmpty()) {
+      this.publishOverrides = publishOverrides;
     }
   }
 }
