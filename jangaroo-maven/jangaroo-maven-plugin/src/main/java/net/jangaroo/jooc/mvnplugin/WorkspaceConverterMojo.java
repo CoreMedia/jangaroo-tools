@@ -172,7 +172,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                   } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType()) {
                     return null;
                   } else {
-                    return "packages/" + entry.getKey();
+                    return "packages/" + getPackageFolderName(entry.getKey());
                   }
                 })
                 .filter(Objects::nonNull)
@@ -202,14 +202,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
       if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
-        String packageFolderName = aPackage.getName();
-        for (SearchAndReplace searchAndReplace : resolvedNpmPackageFolderNameReplacers) {
-          Matcher matcher = searchAndReplace.search.matcher(packageFolderName);
-          if (matcher.matches()) {
-            packageFolderName = matcher.replaceAll(searchAndReplace.replace);
-            break;
-          }
-        }
+        String packageFolderName = getPackageFolderName(aPackage.getName());
         String targetPackageDir = convertedWorkspaceTarget + "/packages/" + packageFolderName;
         logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getCanonicalPath()));
         String targetPackageJson = targetPackageDir + "/package.json";
@@ -508,6 +501,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  private String getPackageFolderName(String packageName) {
+    String packageFolderName = packageName;
+    for (SearchAndReplace searchAndReplace : resolvedNpmPackageFolderNameReplacers) {
+      Matcher matcher = searchAndReplace.search.matcher(packageFolderName);
+      if (matcher.matches()) {
+        packageFolderName = matcher.replaceAll(searchAndReplace.replace);
+        break;
+      }
+    }
+    return packageFolderName;
   }
 
   private List<String> match(String glob, String location) {
