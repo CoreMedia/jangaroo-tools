@@ -68,12 +68,16 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private String convertedWorkspaceTarget;
 
   @Parameter
-  private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
+  private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
+
+  @Parameter
+  private List<SearchAndReplaceConfiguration> npmPackageFolderNameReplacers = new ArrayList<>();
 
   @Parameter
   private boolean useTypesVersions = false;
 
-  private List<SearchAndReplace> searchAndReplaceList;
+  private List<SearchAndReplace> resolvedNpmPackageNameReplacers;
+  private List<SearchAndReplace> resolvedNpmPackageFolderNameReplacers;
   private ObjectMapper objectMapper;
   private RootPackageJson rootPackageJson;
 
@@ -91,7 +95,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     rootPackageJson = new RootPackageJson(objectMapper, convertedWorkspaceTarget);
 
-    searchAndReplaceList = npmPackageNameReplacers.stream()
+    resolvedNpmPackageNameReplacers = npmPackageNameReplacers.stream()
+            .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
+            .collect(Collectors.toList());
+    resolvedNpmPackageFolderNameReplacers = npmPackageFolderNameReplacers.stream()
             .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
             .collect(Collectors.toList());
 
@@ -151,7 +158,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
       MavenModule mavenModule = moduleMappings.get(aPackage.getName());
       if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
-        String targetPackageDir = convertedWorkspaceTarget + "/packages/" + aPackage.getName();
+        String packageFolderName = aPackage.getName();
+        for (SearchAndReplace searchAndReplace : resolvedNpmPackageFolderNameReplacers) {
+          Matcher matcher = searchAndReplace.search.matcher(packageFolderName);
+          if (matcher.matches()) {
+            packageFolderName = matcher.replaceAll(searchAndReplace.replace);
+            break;
+          }
+        }
+        String targetPackageDir = convertedWorkspaceTarget + "/packages/" + packageFolderName;
         logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getCanonicalPath()));
         String targetPackageJson = targetPackageDir + "/package.json";
         excludePaths.add(targetPackageDir + "/dist");
@@ -734,7 +749,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       logger.error(String.format("Could not resolve reference %s. No suitable module was found.", reference));
       return null;
     }
-    for (SearchAndReplace searchAndReplace : searchAndReplaceList) {
+    for (SearchAndReplace searchAndReplace : resolvedNpmPackageNameReplacers) {
       Matcher matcher = searchAndReplace.search.matcher(packageName.get());
       if (matcher.matches()) {
         return matcher.replaceAll(searchAndReplace.replace);
@@ -761,7 +776,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     } else {
       mavenName = groupId + "__" + artifactId;
     }
-    for (SearchAndReplace searchAndReplace : searchAndReplaceList) {
+    for (SearchAndReplace searchAndReplace : resolvedNpmPackageNameReplacers) {
       Matcher matcher = searchAndReplace.search.matcher(mavenName);
       if (matcher.matches()) {
         return matcher.replaceAll(searchAndReplace.replace);

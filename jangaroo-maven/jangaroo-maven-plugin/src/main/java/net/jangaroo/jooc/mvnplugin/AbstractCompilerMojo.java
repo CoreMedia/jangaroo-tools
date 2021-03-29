@@ -188,7 +188,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * contain tokens (e.g. $1) matching pattern groups. Order is important, the first matching replacer wins.
    */
   @Parameter
-  private List<NpmPackageNameReplacerConfiguration> npmPackageNameReplacers = new ArrayList<>();
+  private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
   protected abstract List<File> getCompileSourceRoots();
 
