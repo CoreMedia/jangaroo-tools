@@ -39,6 +39,7 @@ public class JangarooMavenPluginConfiguration {
         rootApp = getConfigString(configuration, "rootApp");
         testSuite = getConfigString(configuration, "testSuite");
         extNamespace = getConfigString(configuration, "extNamespace");
+        extSassNamespace = getConfigString(configuration, "extSassNamespace");
         additionalLocales = getConfigList(configuration, "additionalLocales");
         additionalCssNonBundle = getConfigList(configuration, "additionalCssNonBundle");
         additionalCssIncludeInBundle = getConfigList(configuration, "additionalCssIncludeInBundle");
