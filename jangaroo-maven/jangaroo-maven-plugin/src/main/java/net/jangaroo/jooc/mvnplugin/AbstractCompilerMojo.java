@@ -146,7 +146,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * Experimental: The Ext namespace is stripped from the relative path to the source root.
    */
   @Parameter(property = "extNamespace")
-  private String extNamespace = "";
+  private String extNamespace;
+
+  @Parameter(property = "extNamespaceRequired")
+  private boolean extNamespaceRequired = false;
 
   /**
    * Experimental: The Ext namespace is stripped from the relative path to the sass sources roots (var/src)
@@ -234,6 +237,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   public void execute() throws MojoExecutionException, MojoFailureException {
 
     final Log log = getLog();
+
+    if (extNamespace == null) {
+      if (extNamespaceRequired) {
+        throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
+      }
+      extNamespace = "";
+    }
 
     if (getCompileSourceRoots().isEmpty()) {
       log.info("No sources to compile");

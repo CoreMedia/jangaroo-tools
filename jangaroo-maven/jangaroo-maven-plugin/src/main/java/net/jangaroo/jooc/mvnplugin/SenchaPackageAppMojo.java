@@ -96,6 +96,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    super.execute();
     if (!Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
       throw new MojoExecutionException("This goal only supports projects with packaging type \"jangaroo-app\"");
     }

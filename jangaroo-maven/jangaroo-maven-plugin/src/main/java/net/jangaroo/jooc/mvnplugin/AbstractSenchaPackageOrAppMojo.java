@@ -10,6 +10,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
@@ -64,7 +65,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
    * Experimental: The Ext namespace is stripped from the relative path to the source root.
    */
   @Parameter(property = "extNamespace")
-  private String extNamespace = "";
+  private String extNamespace;
+
+  @Parameter(property = "extNamespaceRequire")
+  private boolean extNamespaceRequired;
 
   /**
    * Experimental: The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
@@ -79,6 +83,16 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   String getExtNamespace() {
     return extNamespace;
+  }
+
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    if (extNamespace == null) {
+      if (extNamespaceRequired) {
+        throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
+      }
+      extNamespace = "";
+    }
   }
 
   void configure(SenchaPackageOrAppConfigBuilder configBuilder) throws MojoExecutionException {
