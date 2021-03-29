@@ -58,7 +58,7 @@ public class JangarooMavenPluginConfiguration {
         return new ArrayList<>();
       }
     } else {
-      return new ArrayList<>();
+      return null;
     }
   }
 
