@@ -21,12 +21,12 @@ public class JangarooConfig {
   private List<String> additionalCssNonBundle;
   private List<String> additionalJsIncludeInBundle;
   private List<String> additionalJsNonBundle;
-  private Map<String, Object> command;
+  private Map<String, Map<String, Object>> command;
 
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, String testSuite, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Object> command) {
+  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, String testSuite, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
     this.type = type;
     this.extName = extName;
     this.outputDirectory = outputDirectory;
@@ -182,11 +182,11 @@ public class JangarooConfig {
     this.additionalJsNonBundle = additionalJsNonBundle;
   }
 
-  public Map<String, Object> getCommand() {
+  public Map<String, Map<String, Object>> getCommand() {
     return command;
   }
 
-  public void setCommand(Map<String, Object> command) {
+  public void setCommand(Map<String, Map<String, Object>> command) {
     this.command = command;
   }
 }

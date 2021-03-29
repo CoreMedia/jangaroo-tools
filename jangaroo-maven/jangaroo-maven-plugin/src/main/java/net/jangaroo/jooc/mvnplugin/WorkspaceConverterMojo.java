@@ -200,6 +200,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
               jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
             }
           }
+          if (jangarooMavenPluginConfiguration.getJooUnitTestExecutionTimeout() != null) {
+            setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jangarooMavenPluginConfiguration.getJooUnitTestExecutionTimeout());
+          }
           if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
             jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
           }
@@ -264,11 +267,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app");
-          Map<String, Object> commandMap = new LinkedHashMap<>();
-          Map<String, String> runMap = new LinkedHashMap<>();
-          runMap.put("proxyPathSpec", "/rest/");
-          commandMap.put("run", runMap);
-          jangarooConfig.setCommand(commandMap);
+          setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
           jangarooConfig.setExtNamespace(jangarooMavenPluginConfiguration.getExtNamespace());
           jangarooConfig.setExtSassNamespace(jangarooMavenPluginConfiguration.getExtSassNamespace());
           if (jangarooMavenPluginConfiguration.getTheme() != null) {
@@ -323,11 +322,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app-overlay");
-          Map<String, Object> commandMap = new LinkedHashMap<>();
-          Map<String, String> runMap = new LinkedHashMap<>();
-          runMap.put("proxyPathSpec", "/rest/");
-          commandMap.put("run", runMap);
-          jangarooConfig.setCommand(commandMap);
+          setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
           if (mavenModule.getData().getOrganization() != null) {
             additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
           }
@@ -347,11 +342,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("apps");
-          Map<String, Object> commandMap = new LinkedHashMap<>();
-          Map<String, String> runMap = new LinkedHashMap<>();
-          runMap.put("proxyPathSpec", "/rest/");
-          commandMap.put("run", runMap);
-          jangarooConfig.setCommand(commandMap);
+          setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
           if (jangarooMavenPluginConfiguration.getRootApp() != null && !jangarooMavenPluginConfiguration.getRootApp().isEmpty()) {
             String[] splitName = jangarooMavenPluginConfiguration.getRootApp().split(":");
             if (splitName.length == 2) {
@@ -805,5 +796,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       return false;
     }
     return true;
+  }
+
+  private void setCommandMapEntry(JangarooConfig jangarooConfig, String commandName, String entryName, Object entryValue) {
+    Map<String, Map<String, Object>> commandsByName = jangarooConfig.getCommand();
+    if (commandsByName == null) {
+      commandsByName = new LinkedHashMap<>();
+      jangarooConfig.setCommand(commandsByName);
+    }
+    Map<String, Object> command = commandsByName.computeIfAbsent(commandName, k -> new LinkedHashMap<>());
+    command.put(entryName, entryValue);
   }
 }

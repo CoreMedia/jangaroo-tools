@@ -21,6 +21,7 @@ public class JangarooMavenPluginConfiguration {
   private List<String> additionalJsIncludeInBundle;
   private List<String> additionalJsNonBundle;
   private String testSuite;
+  private Integer jooUnitTestExecutionTimeout;
   private String extNamespace;
   private String extSassNamespace;
 
@@ -38,6 +39,7 @@ public class JangarooMavenPluginConfiguration {
         applicationClass = getConfigString(configuration, "applicationClass");
         rootApp = getConfigString(configuration, "rootApp");
         testSuite = getConfigString(configuration, "testSuite");
+        jooUnitTestExecutionTimeout = getConfigInt(configuration, "jooUnitTestExecutionTimeout");
         extNamespace = getConfigString(configuration, "extNamespace");
         extSassNamespace = getConfigString(configuration, "extSassNamespace");
         additionalLocales = getConfigList(configuration, "additionalLocales");
@@ -76,6 +78,18 @@ public class JangarooMavenPluginConfiguration {
        */
       return child.getValue();
     } else {
+      return null;
+    }
+  }
+
+  private Integer getConfigInt(Xpp3Dom config, String property) {
+    String configString = getConfigString(config, property);
+    if (configString == null) {
+      return null;
+    }
+    try {
+      return Integer.parseInt(configString);
+    } catch (IllegalArgumentException e) {
       return null;
     }
   }
@@ -153,6 +167,14 @@ public class JangarooMavenPluginConfiguration {
 
   public void setTestSuite(String testSuite) {
     this.testSuite = testSuite;
+  }
+
+  public Integer getJooUnitTestExecutionTimeout() {
+    return jooUnitTestExecutionTimeout;
+  }
+
+  public void setJooUnitTestExecutionTimeout(Integer jooUnitTestExecutionTimeout) {
+    this.jooUnitTestExecutionTimeout = jooUnitTestExecutionTimeout;
   }
 
   public String getExtNamespace() {
