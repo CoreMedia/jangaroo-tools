@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
@@ -118,6 +117,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter
   private List<String> additionalJsIncludeInBundle;
 
+  @Parameter
+  private Map<String, String> globalResourcesMap;
+
   private List<SearchAndReplace> resolvedNpmPackageNameReplacers;
   private List<SearchAndReplace> resolvedNpmPackageFolderNameReplacers;
   private ObjectMapper objectMapper;
@@ -230,6 +232,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
           jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
           jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
+          jangarooConfig.setGlobalResourcesMap(globalResourcesMap);
           if (testSuite != null) {
             jangarooConfig.setTestSuite(testSuite);
             if (!extNamespace.isEmpty()) {
@@ -473,9 +476,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
         }
 
-        objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, false);
         String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
-        objectMapper.configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true);
         FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
         if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
           Optional<Package> optionalThemeDependency = packageRegistry.stream()
@@ -818,9 +819,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String convertJangarooConfig(String jangarooConfig) {
-    Pattern compile = Pattern.compile("\"(.*)\"[^,]");
-    Matcher matcher = compile.matcher(jangarooConfig);
     return jangarooConfig
+            .replaceAll("\"([a-zA-Z_$][0-9a-zA-Z_$]*)\":", "$1:")
             .replace("}", "},")
             .replace("]", "],")
             .replace("\"\n", "\",\n")
