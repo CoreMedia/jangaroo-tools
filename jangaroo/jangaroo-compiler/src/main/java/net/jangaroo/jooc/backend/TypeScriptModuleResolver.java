@@ -116,7 +116,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
     }
     String qualifiedName = declaration.getExtNamespaceRelativeTargetQualifiedNameStr();
     // special case: In TypeScript, "AS3.Error" is directly mapped to native "Error":
-    if ("Error".equals(qualifiedName)) {
+    if ("AS3.Error".equals(qualifiedName)) {
       return null;
     }
     return qualifiedName.replace('.', '/');

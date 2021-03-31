@@ -384,6 +384,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testExtendError() throws Exception {
+    assertCompilationResult("package1/ExtendError");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");
