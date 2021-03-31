@@ -10,6 +10,7 @@ interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<In
 }
 
 
+@mixin(YetAnotherInterface)
 class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._> extends ConfigClass<Cfg> implements YetAnotherInterface{
 
     constructor(config:InterfaceImplementingMxmlClass._ = null){
@@ -27,8 +28,6 @@ class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass.
 interface InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._>{
 
     createInstance(o:SimpleInterface):SimpleClass;}
-
-mixin(InterfaceImplementingMxmlClass, YetAnotherInterface);
 
 declare namespace InterfaceImplementingMxmlClass {
   export type _ = InterfaceImplementingMxmlClass_;

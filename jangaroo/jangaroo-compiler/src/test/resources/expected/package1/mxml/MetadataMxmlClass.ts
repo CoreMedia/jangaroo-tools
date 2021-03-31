@@ -6,13 +6,12 @@ interface MetadataMxmlClass_ extends ConfigClass._ {
 
 
 
-    class MetadataMxmlClass<Cfg extends MetadataMxmlClass._ = MetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataMxmlClass._=null){
+    @metadata("ThisIsJustATest")
+@metadata("Deprecated", {replacement: 'use.this.please'})
+class MetadataMxmlClass<Cfg extends MetadataMxmlClass._ = MetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataMxmlClass._=null){
     super( Exml.apply(new MetadataMxmlClass._({
 }),config));
 }}
-metadata(MetadataMxmlClass, ["ThisIsJustATest"],
-    "Deprecated", {replacement: 'use.this.please'}]);
-
 declare namespace MetadataMxmlClass {
   export type _ = MetadataMxmlClass_;
   export const _: { new(config?: _): _; };
