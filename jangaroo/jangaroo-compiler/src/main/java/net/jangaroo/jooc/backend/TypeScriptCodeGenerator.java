@@ -639,6 +639,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  protected void visitObjectFieldValue(ObjectField objectField) throws IOException {
+    JooSymbol symbol = objectField.getValue().getSymbol();
+    if (Pattern.matches("[\\s]+", symbol.getWhitespace())) {
+      out.suppressWhitespace(symbol);
+      out.write(" ");
+    }
+    super.visitObjectFieldValue(objectField);
+  }
+
+
+  @Override
   public void visitVectorLiteral(VectorLiteral vectorLiteral) throws IOException {
     vectorLiteral.getArrayLiteral().visit(this);
   }

@@ -63,8 +63,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
       cast(someMixin,{
         ...Exml.append({someList: [
           cast(button,{ text: "click me!", id: "myId",
-            baseAction:
-              new ext.Action(_<Action._>({
+            baseAction: new ext.Action(_<Action._>({
             }))
           })
         ]})
@@ -72,8 +71,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
     ],
 
     /* attribute*/
-    layoutConfig:
-      { bla: "blub", anchor: "test", border: "solid"
+    layoutConfig: { bla: "blub", anchor: "test", border: "solid"
     },
 
     /* array with component

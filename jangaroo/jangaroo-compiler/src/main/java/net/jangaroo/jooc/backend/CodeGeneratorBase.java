@@ -438,8 +438,12 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     } else {
       objectField.getLabel().visit(this);
       out.writeSymbol(objectField.getSymColon());
-      objectField.getValue().visit(this);
+      visitObjectFieldValue(objectField);
     }
+  }
+
+  protected void visitObjectFieldValue(ObjectField objectField) throws IOException {
+    objectField.getValue().visit(this);
   }
 
   protected abstract void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException;

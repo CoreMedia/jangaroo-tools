@@ -62,8 +62,7 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
     return  Exml.apply(new SimpleMxmlClass._({
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,
-  defaultType:
-    SomeOtherClass.xtype,
+  defaultType: SomeOtherClass.xtype,
   defaults:_<SomeOtherClass._&{"known-unknown"}>({ bla: 99,
                           "known-unknown": true
   }),
