@@ -3,6 +3,7 @@ import Interface from './Interface';
 import Panel from '../ext/Panel';
 
 
+@mixin(Interface)
 class ImplementsInterface implements Interface {
 
   /**
@@ -36,6 +37,4 @@ class ImplementsInterface implements Interface {
     this.foo = value.substr("prefix".length);
   }
 }
-mixin(ImplementsInterface, Interface);
-
 export default ImplementsInterface;

@@ -308,6 +308,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
+    generateClassMetadata(classDeclaration);
     if (isAmbientInterface(classDeclaration.getCompilationUnit())) {
       out.writeToken("interface");
     } else {
@@ -363,8 +364,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write("\n");
     }
 
-    generateClassMetadata(classDeclaration);
-
     if (classDeclaration.isPrimaryDeclaration()) {
       visitAll(classDeclaration.getSecondaryDeclarations());
 
@@ -378,7 +377,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void generateClassMetadata(ClassDeclaration classDeclaration) throws IOException {
-    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
     if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       if (classDeclaration.getOptImplements() != null
               && (!classDeclaration.isInterface() || classDeclaration.getOptImplements().getSuperTypes().getTail() != null)) {
@@ -387,51 +385,66 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         while (superTypes != null) {
           if (!isCurrentMixinInterface(superTypes.getHead())) {
             if (!foundNonMixinInterface) {
-              out.write("\nmixin(" + classDeclarationLocalName);
+              out.write("@mixin(");
               foundNonMixinInterface = true;
+              out.suppressWhitespace(superTypes.getHead().getSymbol());
+            } else {
+              out.write(", ");
             }
-            out.write(", ");
             superTypes.getHead().visit(this);
           }
           superTypes = superTypes.getTail();
         }
         if (foundNonMixinInterface) {
-          out.write(");\n");
+          out.write(")\n");
         }
       }
 
       List<Annotation> metadata = classDeclaration.getMetadata();
       if (!metadata.isEmpty()) {
-        out.write("\nmetadata(" + classDeclarationLocalName + ", [");
-        boolean firstAnnotation = true;
         for (Annotation runtimeAnnotation : metadata) {
-          if (firstAnnotation) {
-            firstAnnotation = false;
-          } else {
-            out.write(",\n    ");
-          }
+          out.write("@metadata(");
           out.write(CompilerUtils.quote(runtimeAnnotation.getMetaName()));
+          // split annotation parameters into those without versus with name:
           CommaSeparatedList<AnnotationParameter> annotationParameters = runtimeAnnotation.getOptAnnotationParameters();
-          if (annotationParameters != null) {
-            out.write(", {");
-            boolean firstParameter = true;
-            while (annotationParameters != null) {
-              AnnotationParameter annotationParameter = annotationParameters.getHead();
-              if (firstParameter) {
-                firstParameter = false;
-              } else {
-                out.write(", ");
-              }
-              visitIfNotNull(annotationParameter.getOptName(), "\"\"");
-              out.write(": ");
-              visitIfNotNull(annotationParameter.getValue(), "true");
-              annotationParameters = annotationParameters.getTail();
+          List<AnnotationParameter> parametersWithName = new ArrayList<>();
+          List<AnnotationParameter> parametersWithoutName = new ArrayList<>();
+          while (annotationParameters != null) {
+            AnnotationParameter annotationParameter = annotationParameters.getHead();
+            if (annotationParameter.getOptName() == null) {
+              parametersWithoutName.add(annotationParameter);
+            } else {
+              parametersWithName.add(annotationParameter);
             }
+            annotationParameters = annotationParameters.getTail();
+          }
+          // first write parameters without name are direct parameters, collect parameters with name
+          generateAnnotationParameterList(parametersWithoutName, true);
+          if (!parametersWithName.isEmpty()) {
+            // then all parameters with names go into an object hash
+            out.write(", {");
+            generateAnnotationParameterList(parametersWithName, false);
             out.write("}");
           }
-          out.write("]");
+          out.write(")\n");
         }
-        out.write(");\n");
+      }
+    }
+  }
+
+  private void generateAnnotationParameterList(List<AnnotationParameter> annotationParameterList, boolean startWithComma) throws IOException {
+    for (AnnotationParameter annotationParameter : annotationParameterList) {
+      if (startWithComma) {
+        out.write(", ");
+      } else {
+        startWithComma = true;
+      }
+      if (annotationParameter.getOptName() != null) {
+        annotationParameter.getOptName().visit(this);
+        out.write(": ");
+        visitIfNotNull(annotationParameter.getValue(), "true");
+      } else {
+        annotationParameter.getValue().visit(this);
       }
     }
   }

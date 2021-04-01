@@ -4,6 +4,8 @@ import Bitmap from '../flash/display/Bitmap';
 /**
  * This is an example of a class using an [Embed] annotation.
  */
+@metadata("SomeRuntimeAnnotation")
+@metadata("SomeRuntimeAnnotation", {foo: "bar"})
 class UsingEmbed {
 
   someText:Class = null;
@@ -38,7 +40,4 @@ class UsingEmbed {
   annotated6:string;
 
 }
-metadata(UsingEmbed, ["SomeRuntimeAnnotation"],
-    "SomeRuntimeAnnotation", {foo: "bar"}]);
-
 export default UsingEmbed;

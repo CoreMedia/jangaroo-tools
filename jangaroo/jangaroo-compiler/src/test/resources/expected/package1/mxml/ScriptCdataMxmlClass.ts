@@ -10,6 +10,7 @@ interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataM
 }
 
 
+@mixin(SimpleInterface)
 class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._> extends ConfigClass<Cfg> implements SimpleInterface{
 
     #field1:SomeOtherClass = null;
@@ -25,8 +26,6 @@ class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlC
              foo: "bar"
 }),config));
 }}
-mixin(ScriptCdataMxmlClass, SimpleInterface);
-
 declare namespace ScriptCdataMxmlClass {
   export type _ = ScriptCdataMxmlClass_;
   export const _: { new(config?: _): _; };
