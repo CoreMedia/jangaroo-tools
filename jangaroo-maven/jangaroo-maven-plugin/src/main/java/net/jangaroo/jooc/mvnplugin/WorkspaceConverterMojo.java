@@ -181,7 +181,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         rootPackageJson.writePackageJson();
 
         Map<String, Object> lernaJson = new LinkedHashMap<>();
-        lernaJson.put("npmClient", "yarn");
         lernaJson.put("useWorkspaces", true);
         lernaJson.put("version", "0.0.0");
         Map<String, Object> lernaCommandMap = new LinkedHashMap<>();
