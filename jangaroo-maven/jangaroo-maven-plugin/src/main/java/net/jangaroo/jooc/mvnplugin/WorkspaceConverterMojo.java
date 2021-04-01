@@ -246,7 +246,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           Map<String, String> testScripts = new LinkedHashMap<>();
           if (jangarooConfig.getTestSuite() != null) {
             excludePaths.add(targetPackageDir + "/build");
-            testDependencies.put("@jangaroo/joounit", "1.0.0");
+            testDependencies.put("@jangaroo/joounit", "^1.0.0-alpha");
             testDependencies.put("@coremedia/sencha-ext", "7.2.0");
             testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
             testDependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
@@ -258,12 +258,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> dependencies = new TreeMap<>();
-          dependencies.put("@jangaroo/joo", "1.0.0");
+          dependencies.put("@jangaroo/joo", "^1.0.0-alpha");
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "1.0.0");
-          devDependencies.put("@jangaroo/build", "1.0.0");
-          devDependencies.put("@jangaroo/publish", "1.0.0");
+          devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
           devDependencies.putAll(testDependencies);
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
@@ -327,12 +327,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           dependencies.put("@coremedia/sencha-ext", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-          dependencies.put("@jangaroo/joo", "1.0.0");
+          dependencies.put("@jangaroo/joo", "^1.0.0-alpha");
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "1.0.0");
-          devDependencies.put("@jangaroo/build", "1.0.0");
-          devDependencies.put("@jangaroo/run", "1.0.0");
+          devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -364,9 +364,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "1.0.0");
-          devDependencies.put("@jangaroo/build", "1.0.0");
-          devDependencies.put("@jangaroo/run", "1.0.0");
+          devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -390,9 +390,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
           Map<String, String> devDependencies = new TreeMap<>();
-          devDependencies.put("@jangaroo/core", "1.0.0");
-          devDependencies.put("@jangaroo/build", "1.0.0");
-          devDependencies.put("@jangaroo/run", "1.0.0");
+          devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
           devDependencies.put("rimraf", "^3.0.2");
           additionalJsonEntries.setDevDependencies(devDependencies);
           Map<String, String> scripts = new LinkedHashMap<>();
@@ -677,7 +677,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     for (Dependency dependency : dependencies) {
       Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
       if (isJangarooDependency(dependency)) {
-        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
+        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
       }
       if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
         newDependencies.add(createdPackage);
@@ -691,7 +691,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     for (Dependency dependency : testDependencies) {
       Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
       if (isJangarooDependency(dependency)) {
-        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "1.0.0");
+        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
       }
       if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
         newDevDependencies.add(createdPackage);
