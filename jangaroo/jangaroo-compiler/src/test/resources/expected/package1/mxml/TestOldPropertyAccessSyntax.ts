@@ -9,15 +9,15 @@ interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAcces
 
 class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = TestOldPropertyAccessSyntax._> extends Object<Cfg>{
 
-    static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
+  static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
     super();
     this.foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
 }
 
-    #foo:string = null;
+  #foo:string = null;
 
-    get foo():string { return this.#foo; }
-    set foo(value:string) { this.#foo = value; }}
+  get foo():string { return this.#foo; }
+  set foo(value:string) { this.#foo = value; }}
 declare namespace TestOldPropertyAccessSyntax {
   export type _ = TestOldPropertyAccessSyntax_;
   export const _: { new(config?: _): _; };

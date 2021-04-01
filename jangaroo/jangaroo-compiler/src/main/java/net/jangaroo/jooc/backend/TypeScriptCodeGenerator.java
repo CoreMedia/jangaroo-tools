@@ -19,6 +19,7 @@ import net.jangaroo.jooc.ast.BlockStatement;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.CompilationUnit;
+import net.jangaroo.jooc.ast.Declaration;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.EmptyStatement;
@@ -727,7 +728,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
         if (bindable) {
           // we want the ASDoc at the generated accessor, so render (private) field first:
-          out.write("\n\n   ");
+          out.write("\n\n ");
           visitVariableDeclarationBase(currentVariableDeclaration);
           writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
 
@@ -743,7 +744,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           String setMethodName = MethodType.SET + MxmlUtils.capitalize(accessor);
           TypedIdeDeclaration setMethodDeclaration = classDeclaration.getMemberDeclaration(setMethodName);
           if (setMethodDeclaration == null || setMethodDeclaration.isPrivate()) {
-            out.write("\n    ");
+            out.write("\n  ");
             out.write(String.format("set %s(value", accessor));
             visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
             out.write(String.format(") { this.#%s = value; }", accessor));
@@ -1676,6 +1677,34 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     return false;
+  }
+
+  private static final Pattern ENDS_WITH_4_SPACES_INDENTATION = Pattern.compile("^([\\s\\S]*)\n( ?| {3,})$");
+
+  @Override
+  public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
+    if (compilationUnit instanceof MxmlCompilationUnit) {
+      for (Directive directive : classBodyDirectives) {
+        // Class body directives are indented by 4 spaces in MXML, but in TypeScript, as class members, they should
+        // only have 2 spaces. In combination with the new # private member syntax, ESLint cannot fix this, so we
+        // do it here.
+        setIndentationToTwo(directive.getSymbol());
+        if (directive instanceof Declaration) {
+          for (Annotation annotation : ((Declaration) directive).getAnnotations()) {
+            setIndentationToTwo(annotation.getSymbol());
+          }
+        }
+      }
+    }
+    super.visitClassBodyDirectives(classBodyDirectives);
+  }
+
+  private void setIndentationToTwo(JooSymbol symbol) {
+    String whitespace = symbol.getWhitespace();
+    Matcher indentationMatcher = ENDS_WITH_4_SPACES_INDENTATION.matcher(whitespace);
+    if (indentationMatcher.matches()) {
+      symbol.setWhitespace(indentationMatcher.group(1) + "\n  ");
+    }
   }
 
   private int staticCodeCounter = 0;

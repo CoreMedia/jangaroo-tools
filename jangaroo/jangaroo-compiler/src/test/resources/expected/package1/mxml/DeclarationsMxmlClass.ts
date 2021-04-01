@@ -36,41 +36,41 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
                         blubb_accessor: 'blub accessor expression'})); Exml.apply(this,config);
 }
 
-    #bar:string = null;
+  #bar:string = null;
 
-    get bar():string { return this.#bar; }
-    set bar(value:string) { this.#bar = value; }
+  get bar():string { return this.#bar; }
+  set bar(value:string) { this.#bar = value; }
 
-    #num:int = 0;
+  #num:int = 0;
 
     /**
      Some number.
      */
-    get num():int { return this.#num; }
-    set num(value:int) { this.#num = value; }
+  get num():int { return this.#num; }
+  set num(value:int) { this.#num = value; }
 
-    #empty:int = 0;
+  #empty:int = 0;
 
     /**
      Empty declaration.
      */
-    get empty():int { return this.#empty; }
-    set empty(value:int) { this.#empty = value; }
+  get empty():int { return this.#empty; }
+  set empty(value:int) { this.#empty = value; }
 
-    #blub:any = null;
+  #blub:any = null;
 
-    get blub():any { return this.#blub; }
-    set blub(value:any) { this.#blub = value; }
+  get blub():any { return this.#blub; }
+  set blub(value:any) { this.#blub = value; }
 
-    #list:Array<any> = null;
+  #list:Array<any> = null;
 
-    get list():Array<any> { return this.#list; }
-    set list(value:Array<any>) { this.#list = value; }
+  get list():Array<any> { return this.#list; }
+  set list(value:Array<any>) { this.#list = value; }
 
-    #other:SomeOtherClass = null;
+  #other:SomeOtherClass = null;
 
-    get other():SomeOtherClass { return this.#other; }
-    set other(value:SomeOtherClass) { this.#other = value; }}
+  get other():SomeOtherClass { return this.#other; }
+  set other(value:SomeOtherClass) { this.#other = value; }}
 declare namespace DeclarationsMxmlClass {
   export type _ = DeclarationsMxmlClass_;
   export const _: { new(config?: _): _; };

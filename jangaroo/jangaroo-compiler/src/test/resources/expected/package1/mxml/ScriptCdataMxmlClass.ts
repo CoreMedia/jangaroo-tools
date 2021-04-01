@@ -13,11 +13,11 @@ interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataM
 @mixin(SimpleInterface)
 class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._> extends ConfigClass<Cfg> implements SimpleInterface{
 
-    #field1:SomeOtherClass = null;
-    protected field2:Array<string> =["a", "b"];
-    field3:Array<int> =[1, 2, 3];
+  #field1:SomeOtherClass = null;
+  protected field2:Array<string> =["a", "b"];
+  field3:Array<int> =[1, 2, 3];
 
-    doIt(...values):void {
+  doIt(...values):void {
       for (var v in values) {
         throw "cannot do it with " + v;
       }
