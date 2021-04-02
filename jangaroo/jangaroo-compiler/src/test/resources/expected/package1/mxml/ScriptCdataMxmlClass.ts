@@ -5,7 +5,7 @@ import ConfigClass from "../ConfigClass";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
 import int from "../../AS3/int_";
 interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataMxmlClass,
-    "field3"
+  "field3"
 >> {
 }
 

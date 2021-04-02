@@ -1,8 +1,8 @@
 import PropertiesAccess from "./PropertiesAccess";
 interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
-    "property_1" |
-    "property_2" |
-    "property_3"
+  "property_1" |
+  "property_2" |
+  "property_3"
 >> {
 }
 

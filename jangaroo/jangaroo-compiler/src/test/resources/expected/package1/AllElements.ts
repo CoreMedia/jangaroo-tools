@@ -10,7 +10,7 @@ import panel from "../ext/config/panel";
 import Exml from "../net/jangaroo/ext/Exml";
 import MessageBox from "../ext/MessageBox";
 interface AllElements_ extends Partial<Pick<AllElements,
-    "gear"
+  "gear"
 >> {
 }
 

@@ -274,8 +274,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
               .collect(Collectors.toList());
       if (!configs.isEmpty()) {
-        String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n    "));
-        configExtends.add(String.format("Partial<Pick<%s,\n    %s\n>>", classDeclarationLocalName, configNamesType));
+        String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
+        configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
       }
       out.write(String.format("interface %s_%s {\n}\n\n", classDeclarationLocalName, configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
     }

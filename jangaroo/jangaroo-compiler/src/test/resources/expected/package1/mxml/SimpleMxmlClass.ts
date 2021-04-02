@@ -5,22 +5,22 @@ import ConfigClass from "../ConfigClass";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
 import int from "../../AS3/int_";
 interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
-    "list" |
-    "bar" |
-    "computed" |
-    "num" |
-    "empty" |
-    "someFlag1" |
-    "anotherFlag1" |
-    "someFlag2" |
-    "anotherFlag2" |
-    "someFlag3" |
-    "anotherFlag3" |
-    "emptyObject" |
-    "joe" |
-    "otherByExpression" |
-    "other" |
-    "no_config"
+  "list" |
+  "bar" |
+  "computed" |
+  "num" |
+  "empty" |
+  "someFlag1" |
+  "anotherFlag1" |
+  "someFlag2" |
+  "anotherFlag2" |
+  "someFlag3" |
+  "anotherFlag3" |
+  "emptyObject" |
+  "joe" |
+  "otherByExpression" |
+  "other" |
+  "no_config"
 >> {
 }
 

@@ -1,11 +1,11 @@
 import Observable from "../ext/mixin/Observable";
 import int from "../AS3/int_";
 interface ConfigClass_ extends Partial<Pick<ConfigClass,
-    "foo" |
-    "number" |
-    "items" |
-    "defaults" |
-    "title"
+  "foo" |
+  "number" |
+  "items" |
+  "defaults" |
+  "title"
 >> {
 }
 

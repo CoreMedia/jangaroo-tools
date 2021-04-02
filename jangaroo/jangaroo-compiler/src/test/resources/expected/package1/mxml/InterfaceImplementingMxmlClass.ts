@@ -5,7 +5,7 @@ import ConfigClass from "../ConfigClass";
 import SimpleClass from "./SimpleClass";
 import YetAnotherInterface from "./YetAnotherInterface";
 interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<InterfaceImplementingMxmlClass,
-    "someProperty"
+  "someProperty"
 >> {
 }
 

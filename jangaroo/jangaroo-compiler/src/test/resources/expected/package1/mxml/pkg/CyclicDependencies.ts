@@ -1,7 +1,7 @@
 import Exml from "../../../net/jangaroo/ext/Exml";
 import CyclicDependencies_1 from "./CyclicDependencies_1";
 interface CyclicDependencies_ extends Partial<Pick<CyclicDependencies,
-    "cause_trouble"
+  "cause_trouble"
 >> {
 }
 

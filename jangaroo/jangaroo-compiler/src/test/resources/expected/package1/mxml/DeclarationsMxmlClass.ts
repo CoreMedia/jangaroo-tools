@@ -5,12 +5,12 @@ import ConfigClass from "../ConfigClass";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
 import int from "../../AS3/int_";
 interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
-    "bar" |
-    "num" |
-    "empty" |
-    "blub" |
-    "list" |
-    "other"
+  "bar" |
+  "num" |
+  "empty" |
+  "blub" |
+  "list" |
+  "other"
 >> {
 }
 
