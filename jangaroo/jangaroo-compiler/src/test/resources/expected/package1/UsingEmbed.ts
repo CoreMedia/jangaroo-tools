@@ -1,5 +1,5 @@
-import {metadata} from '@jangaroo/joo/AS3';
-import Bitmap from '../flash/display/Bitmap';
+import { metadata } from "@jangaroo/joo/AS3";
+import Bitmap from "../flash/display/Bitmap";
 
 /**
  * This is an example of a class using an [Embed] annotation.

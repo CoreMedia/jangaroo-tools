@@ -1,6 +1,6 @@
-import {cast, metadata} from '@jangaroo/joo/AS3';
-import Exml from '../../net/jangaroo/ext/Exml';
-import ConfigClass from '../ConfigClass';
+import { cast, metadata } from "@jangaroo/joo/AS3";
+import Exml from "../../net/jangaroo/ext/Exml";
+import ConfigClass from "../ConfigClass";
 interface MetadataCdataMxmlClass_ extends ConfigClass._ {
 }
 
@@ -11,7 +11,7 @@ interface MetadataCdataMxmlClass_ extends ConfigClass._ {
      * @see {@link http://help.adobe.com/en_US/flex/using/WSd0ded3821e0d52fe1e63e3d11c2f44bc36-7ff2.html}
      */
     @metadata("ThisIsJustATest")
-@metadata("Deprecated", {replacement: 'use.this.please'})
+@metadata("Deprecated", {replacement: "use.this.please"})
 class MetadataCdataMxmlClass<Cfg extends MetadataCdataMxmlClass._ = MetadataCdataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataCdataMxmlClass._=null){
     super( Exml.apply(new MetadataCdataMxmlClass._({
 }),config));

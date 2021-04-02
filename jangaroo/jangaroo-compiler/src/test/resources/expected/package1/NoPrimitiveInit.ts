@@ -1,5 +1,5 @@
-import SomeOtherClass from './someOtherPackage/SomeOtherClass';
-import int from '../AS3/int_';
+import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
+import int from "../AS3/int_";
 
 
 class NoPrimitiveInit {

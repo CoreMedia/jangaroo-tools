@@ -1,9 +1,9 @@
-import {cast, mixin} from '@jangaroo/joo/AS3';
-import SimpleInterface from './SimpleInterface';
-import Exml from '../../net/jangaroo/ext/Exml';
-import ConfigClass from '../ConfigClass';
-import SimpleClass from './SimpleClass';
-import YetAnotherInterface from './YetAnotherInterface';
+import { cast, mixin } from "@jangaroo/joo/AS3";
+import SimpleInterface from "./SimpleInterface";
+import Exml from "../../net/jangaroo/ext/Exml";
+import ConfigClass from "../ConfigClass";
+import SimpleClass from "./SimpleClass";
+import YetAnotherInterface from "./YetAnotherInterface";
 interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<InterfaceImplementingMxmlClass,
     "someProperty"
 >> {

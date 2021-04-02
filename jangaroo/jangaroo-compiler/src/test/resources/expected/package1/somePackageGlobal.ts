@@ -1,4 +1,4 @@
-import SomeOtherClass from './someOtherPackage/SomeOtherClass';
+import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 
 
 // This comment to vanish in API

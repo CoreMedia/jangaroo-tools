@@ -1,5 +1,5 @@
-import NaN from '../NaN';
-import undefined from '../undefined';
+import NaN from "../NaN";
+import undefined from "../undefined";
 
 
 class ParameterInitializers {

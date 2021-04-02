@@ -1,9 +1,9 @@
-import {_, asConfig, bind, cast} from '@jangaroo/joo/AS3';
-import SomeEvent from '../someOtherPackage/SomeEvent';
-import Exml from '../../net/jangaroo/ext/Exml';
-import ConfigClass from '../ConfigClass';
-import SomeOtherClass from '../someOtherPackage/SomeOtherClass';
-import int from '../../AS3/int_';
+import { _, asConfig, bind, cast } from "@jangaroo/joo/AS3";
+import SomeEvent from "../someOtherPackage/SomeEvent";
+import Exml from "../../net/jangaroo/ext/Exml";
+import ConfigClass from "../ConfigClass";
+import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
+import int from "../../AS3/int_";
 interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
     "list" |
     "bar" |
@@ -38,7 +38,7 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
     this.#blub ={ name: "Kuno"};
     config = Exml.apply({
     bar: "FOO & BAR!",
-    computed: Exml.asString( 'B' + 'AR!'),
+    computed: Exml.asString( "B" + "AR!"),
     /**
      Some number.
      */
@@ -54,10 +54,10 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
         new SomeOtherClass(_<SomeOtherClass._>({ bla: 123}))
       ]}))
     ],
-    otherByExpression: { foo: 'bar'},
+    otherByExpression: { foo: "bar"},
     other: new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
-                          blubb_config: 'blub config expression',
-                          blubb_accessor: 'blub accessor expression'}))
+                          blubb_config: "blub config expression",
+                          blubb_accessor: "blub accessor expression"}))
     },config);
     return  Exml.apply(new SimpleMxmlClass._({
              foo: "bar",
@@ -179,7 +179,7 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
 
   //@ts-expect-error 18022
   #$on_click_14_20 (event:SomeEvent) :void {
-      var result = 'gotcha!';
+      var result = "gotcha!";
     }
 
   //@ts-expect-error 18022

@@ -1,4 +1,4 @@
-import SuperInterface from './SuperInterface';
+import SuperInterface from "./SuperInterface";
 
 
 /**

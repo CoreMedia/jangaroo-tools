@@ -1,4 +1,4 @@
-import Interface from './Interface';
+import Interface from "./Interface";
 
 class TestResolveMembers {
 

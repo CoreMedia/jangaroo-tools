@@ -1,5 +1,5 @@
-import Icons_properties from './Icons_properties';
-import MoreIcons_properties from './icons/MoreIcons_properties';
+import Icons_properties from "./Icons_properties";
+import MoreIcons_properties from "./icons/MoreIcons_properties";
 
 /**
  * some comment

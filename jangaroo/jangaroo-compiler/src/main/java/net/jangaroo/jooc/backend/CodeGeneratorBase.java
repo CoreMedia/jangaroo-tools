@@ -143,7 +143,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public final void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
+  public void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
     out.writeSymbol(literalExpr.getValue());
   }
 

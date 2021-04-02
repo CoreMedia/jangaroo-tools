@@ -1,4 +1,4 @@
-import PropertiesAccess from './PropertiesAccess';
+import PropertiesAccess from "./PropertiesAccess";
 interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
     "property_1" |
     "property_2" |

@@ -1,5 +1,5 @@
-import PropertiesTest_properties from './PropertiesTest_properties';
-import MoreIcons_properties from './icons/MoreIcons_properties';
+import PropertiesTest_properties from "./PropertiesTest_properties";
+import MoreIcons_properties from "./icons/MoreIcons_properties";
 
 /**
  * Overrides of ResourceBundle "PropertiesTest" for Locale "es_ES".

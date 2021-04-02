@@ -13,7 +13,7 @@
  * governing permissions and limitations under the License.
  */
 
-import int from '../AS3/int_';
+import int from "../AS3/int_";
 
 
 /**

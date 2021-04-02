@@ -1,5 +1,5 @@
-import somePackageGlobal from './somePackageGlobal';
-import SomeOtherClass from './someOtherPackage/SomeOtherClass';
+import somePackageGlobal from "./somePackageGlobal";
+import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 
 
 /**

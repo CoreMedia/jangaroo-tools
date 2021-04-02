@@ -1,4 +1,4 @@
-import int from '../AS3/int_';
+import int from "../AS3/int_";
 
 class TestStatementStartingWithArrayLiteral {
 

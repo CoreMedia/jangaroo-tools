@@ -13,8 +13,8 @@
  * governing permissions and limitations under the License.
  */
 
-import StaticAccessSuperSuperClass from '../package1/StaticAccessSuperSuperClass';
-import StaticAccessSuperClass from './StaticAccessSuperClass';
+import StaticAccessSuperSuperClass from "../package1/StaticAccessSuperSuperClass";
+import StaticAccessSuperClass from "./StaticAccessSuperClass";
 
 
 class TestStaticAccess extends StaticAccessSuperClass {

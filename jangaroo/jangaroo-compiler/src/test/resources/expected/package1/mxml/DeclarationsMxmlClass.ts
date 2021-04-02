@@ -1,9 +1,9 @@
-import {_, asConfig} from '@jangaroo/joo/AS3';
-import SomeNativeClass from '../someOtherPackage/SomeNativeClass';
-import Exml from '../../net/jangaroo/ext/Exml';
-import ConfigClass from '../ConfigClass';
-import SomeOtherClass from '../someOtherPackage/SomeOtherClass';
-import int from '../../AS3/int_';
+import { _, asConfig } from "@jangaroo/joo/AS3";
+import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
+import Exml from "../../net/jangaroo/ext/Exml";
+import ConfigClass from "../ConfigClass";
+import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
+import int from "../../AS3/int_";
 interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
     "bar" |
     "num" |
@@ -32,8 +32,8 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
       }))
     ];
     this.other = new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
-                        blubb_config: 'blub config expression',
-                        blubb_accessor: 'blub accessor expression'})); Exml.apply(this,config);
+                        blubb_config: "blub config expression",
+                        blubb_accessor: "blub accessor expression"})); Exml.apply(this,config);
 }
 
   #bar:string = null;

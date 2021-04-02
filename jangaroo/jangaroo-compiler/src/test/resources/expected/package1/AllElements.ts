@@ -1,14 +1,14 @@
-import {_, asConfig, cast} from '@jangaroo/joo/AS3';
-import button from '../ext/config/button';
-import menuitem from '../ext/config/menuitem';
-import allElements from '../exmlparser/config/allElements';
-import someMixin from '../ext/config/someMixin';
-import aplugin from '../ext/config/aplugin';
-import uint from '../AS3/int_';
-import int from '../AS3/int_';
-import panel from '../ext/config/panel';
-import Exml from '../net/jangaroo/ext/Exml';
-import MessageBox from '../ext/MessageBox';
+import { _, asConfig, cast } from "@jangaroo/joo/AS3";
+import button from "../ext/config/button";
+import menuitem from "../ext/config/menuitem";
+import allElements from "../exmlparser/config/allElements";
+import someMixin from "../ext/config/someMixin";
+import aplugin from "../ext/config/aplugin";
+import uint from "../AS3/int_";
+import int from "../AS3/int_";
+import panel from "../ext/config/panel";
+import Exml from "../net/jangaroo/ext/Exml";
+import MessageBox from "../ext/MessageBox";
 interface AllElements_ extends Partial<Pick<AllElements,
     "gear"
 >> {
@@ -38,7 +38,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
 
   //@ts-expect-error 18022
   #__initialize__(config:AllElements._):void {
-      this.#myVar = config.#myProperty + '_suffix';
+      this.#myVar = config.#myProperty + "_suffix";
       this.#myVar2 = {
         prop: config.#myProperty
       };
@@ -80,7 +80,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
     items:[
       cast(button,{ text: "Save",
         handler: ():void => {
-          MessageBox.alert('gotcha!');
+          MessageBox.alert("gotcha!");
         }
       }),
       {xtype: "editortreepanel"},
@@ -109,7 +109,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
         handler:function(){} }
       ]
        */
-      this.gear ={ handler: (x) => ''+x}
+      this.gear ={ handler: (x) => ""+x}
     ],
 
     plugins:[

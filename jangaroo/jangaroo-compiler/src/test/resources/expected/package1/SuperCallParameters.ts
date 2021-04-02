@@ -1,4 +1,4 @@
-import ManyConstructorParameters from './ManyConstructorParameters';
+import ManyConstructorParameters from "./ManyConstructorParameters";
 
 
 class SuperCallParameters extends ManyConstructorParameters {

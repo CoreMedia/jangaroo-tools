@@ -175,7 +175,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
 
     if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
-      out.write(String.format("import {%s} from '@jangaroo/joo/AS3';\n",
+      out.write(String.format("import { %s } from \"@jangaroo/joo/AS3\";\n",
               String.join(", ", compilationUnit.getUsedBuiltInIdentifiers())));
     }
 
@@ -218,7 +218,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (requireModuleName != null) {
         if (!isModule) {
           // import from non-module to module must be inlined:
-          localName = String.format("import('%s').default", requireModuleName);
+          localName = String.format("import(\"%s\").default", requireModuleName);
         } else if (localNameClashes.contains(localName)) {
           // resolve name clashes by using transformed fully-qualified name ('.' -> '_'):
           localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
@@ -226,7 +226,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
       if (isModule && requireModuleName != null) {
-        out.write(String.format("import %s from '%s';\n", localName, requireModuleName));
+        out.write(String.format("import %s from \"%s\";\n", localName, requireModuleName));
       }
     }
 
@@ -1444,6 +1444,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  public final void visitLiteralExpr(LiteralExpr literalExpr) throws IOException {
+    JooSymbol value = literalExpr.getValue();
+    if (value.getJooValue() instanceof String) {
+      // normalize single quotes to double quotes, unless a double quote is used inside the string:
+      String string = (String) value.getJooValue();
+      if (value.getText().charAt(0) == '\'' && !string.contains("\"")) {
+        writeSymbolReplacement(literalExpr.getSymbol(), CompilerUtils.quote(string, false));
+        return;
+      }
+    }
+    super.visitLiteralExpr(literalExpr);
+  }
+
+  @Override
   public void visitDotExpr(DotExpr dotExpr) throws IOException {
     Ide ide = dotExpr.getIde();
     if (ide.isBound()) {
@@ -1470,7 +1484,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // dynamic property access on typed objects must be converted to ["<ide>"] in TypeScript:
           arg.visit(this);
           writeSymbolReplacement(dotExpr.getOp(), "[");
-          writeSymbolReplacement(ide.getSymbol(), "'" + ide.getName() + "'");
+          writeSymbolReplacement(ide.getSymbol(), '"' + ide.getName() + '"');
           out.write("]");
           return;
         }

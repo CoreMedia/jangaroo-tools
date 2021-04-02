@@ -1,5 +1,5 @@
-import {mixin} from '@jangaroo/joo/AS3';
-import TestMixin from './TestMixin';
+import { mixin } from "@jangaroo/joo/AS3";
+import TestMixin from "./TestMixin";
 
 
 @mixin(TestMixin)

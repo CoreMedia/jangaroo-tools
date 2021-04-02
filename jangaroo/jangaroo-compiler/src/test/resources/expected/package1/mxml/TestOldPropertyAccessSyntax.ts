@@ -1,6 +1,6 @@
-import {asConfig} from '@jangaroo/joo/AS3';
-import Exml from '../../net/jangaroo/ext/Exml';
-import PropertiesTest_properties from '../../testPackage/PropertiesTest_properties';
+import { asConfig } from "@jangaroo/joo/AS3";
+import Exml from "../../net/jangaroo/ext/Exml";
+import PropertiesTest_properties from "../../testPackage/PropertiesTest_properties";
 interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAccessSyntax,
     "foo"
 >> {

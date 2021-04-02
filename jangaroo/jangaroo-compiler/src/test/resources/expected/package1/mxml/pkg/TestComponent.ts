@@ -1,7 +1,7 @@
-import {cast} from '@jangaroo/joo/AS3';
-import Exml from '../../../net/jangaroo/ext/Exml';
-import TestComponentBase from './TestComponentBase';
-import int from '../../../AS3/int_';
+import { cast } from "@jangaroo/joo/AS3";
+import Exml from "../../../net/jangaroo/ext/Exml";
+import TestComponentBase from "./TestComponentBase";
+import int from "../../../AS3/int_";
 interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent,
     "property_1" |
     "property_2"
@@ -16,11 +16,11 @@ class TestComponent<Cfg extends TestComponent._ = TestComponent._> extends TestC
     property_1: "withDefault"
     },config);
     super( Exml.apply(new TestComponent._({
-        emptyText: Exml.asString( '<div class=\'widget-content-list-empty\'>' + TestComponentBase.DEFAULT + '</div>'),
+        emptyText: Exml.asString( "<div class='widget-content-list-empty'>" + TestComponentBase.DEFAULT + "</div>"),
         letters: [
-              'a',
-              'b',
-              'c'
+              "a",
+              "b",
+              "c"
              ]
 
 }),config));

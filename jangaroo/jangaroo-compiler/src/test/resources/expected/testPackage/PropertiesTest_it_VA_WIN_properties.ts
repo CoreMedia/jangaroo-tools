@@ -1,4 +1,4 @@
-import PropertiesTest_properties from './PropertiesTest_properties';
+import PropertiesTest_properties from "./PropertiesTest_properties";
 
 /**
  * Overrides of ResourceBundle "PropertiesTest" for Locale "it_VA_WIN".

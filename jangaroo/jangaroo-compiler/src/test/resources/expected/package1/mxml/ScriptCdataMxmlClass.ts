@@ -1,9 +1,9 @@
-import {cast, mixin} from '@jangaroo/joo/AS3';
-import SimpleInterface from './SimpleInterface';
-import Exml from '../../net/jangaroo/ext/Exml';
-import ConfigClass from '../ConfigClass';
-import SomeOtherClass from '../someOtherPackage/SomeOtherClass';
-import int from '../../AS3/int_';
+import { cast, mixin } from "@jangaroo/joo/AS3";
+import SimpleInterface from "./SimpleInterface";
+import Exml from "../../net/jangaroo/ext/Exml";
+import ConfigClass from "../ConfigClass";
+import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
+import int from "../../AS3/int_";
 interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataMxmlClass,
     "field3"
 >> {

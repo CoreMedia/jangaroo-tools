@@ -1,6 +1,6 @@
-import {asConfig, cast} from '@jangaroo/joo/AS3';
-import Panel from '../ext/Panel';
-import PanelEvent from '../ext/events/PanelEvent';
+import { asConfig, cast } from "@jangaroo/joo/AS3";
+import Panel from "../ext/Panel";
+import PanelEvent from "../ext/events/PanelEvent";
 
 
 class TestEventListener {

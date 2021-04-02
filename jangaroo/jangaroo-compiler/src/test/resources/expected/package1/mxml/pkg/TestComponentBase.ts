@@ -1,7 +1,7 @@
-import {asConfig, mixin} from '@jangaroo/joo/AS3';
-import TestComponent from './TestComponent';
-import TestInterface from './TestInterface';
-import int from '../../../AS3/int_';
+import { asConfig, mixin } from "@jangaroo/joo/AS3";
+import TestComponent from "./TestComponent";
+import TestInterface from "./TestInterface";
+import int from "../../../AS3/int_";
 interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
     "emptyText" |
     "letters"

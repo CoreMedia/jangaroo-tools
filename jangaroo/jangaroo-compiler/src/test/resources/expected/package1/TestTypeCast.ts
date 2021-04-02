@@ -1,6 +1,6 @@
-import {as, cast, is} from '@jangaroo/joo/AS3';
-import uint from '../AS3/int_';
-import int from '../AS3/int_';
+import { as, cast, is } from "@jangaroo/joo/AS3";
+import uint from "../AS3/int_";
+import int from "../AS3/int_";
 
 
 class TestTypeCast {
