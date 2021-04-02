@@ -106,7 +106,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   void visitDeclarationAnnotationsAndModifiers(IdeDeclaration declaration) throws IOException {
-    boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
     List<Annotation> annotations = declaration.getAnnotations();
     /* ASDoc comments may come before annotations, after annotations, or even *both*.
      * The latter case is only for annotations like [Event] that have their own ASDoc.
@@ -122,17 +121,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     whitespaceSymbols.add(declaration.getIde().getSymbol());
     out.writeNonTrivialWhitespace(whitespaceSymbols);
 
-    for (JooSymbol modifier : declaration.getSymModifiers()) {
-      if (!isPrimaryDeclaration && !companionInterfaceMode) {
-        if (modifier.sym == sym.PROTECTED
-                || modifier.sym == sym.IDE &&
-                (SyntacticKeywords.STATIC.equals(modifier.getText())
-                        || SyntacticKeywords.OVERRIDE.equals(modifier.getText()))) {
-          out.writeSymbol(modifier);
-        }
-      }
-    }
-    if (isPrimaryDeclaration) {
+    writeModifiers(declaration);
+    if (declaration.isPrimaryDeclaration()) {
       Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
       if (nativeAnnotation != null && !isInterface(declaration)) {
         if (typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation) == null
@@ -140,6 +130,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeToken("export");
         } else {
           out.writeToken("declare");
+        }
+      }
+    }
+  }
+
+  @Override
+  protected void writeModifiers(IdeDeclaration declaration) throws IOException {
+    boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
+    for (JooSymbol modifier : declaration.getSymModifiers()) {
+      if (!isPrimaryDeclaration && !companionInterfaceMode) {
+        if (modifier.sym == sym.PROTECTED
+                || modifier.sym == sym.IDE &&
+                (SyntacticKeywords.STATIC.equals(modifier.getText())
+                        || SyntacticKeywords.OVERRIDE.equals(modifier.getText()))) {
+          out.writeSymbol(modifier);
         }
       }
     }
@@ -743,7 +748,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             // pull ide's white-space before the modifiers, as declarations are white-space sensitive:
             out.writeSymbolWhitespace(currentVariableDeclaration.getIde().getSymbol());
             // re-render modifiers:
-            writeModifiers(out, variableDeclaration);
+            writeModifiers(variableDeclaration);
           }
           // for class members, leave out "var", replace "const" by "readonly":
           if (variableDeclaration.isConst()) {

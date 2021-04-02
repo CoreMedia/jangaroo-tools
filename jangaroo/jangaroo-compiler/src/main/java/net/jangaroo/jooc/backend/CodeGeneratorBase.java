@@ -136,7 +136,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     visitAll(blockStatement.getDirectives());
   }
 
-  protected void writeModifiers(JsWriter out, IdeDeclaration declaration) throws IOException {
+  protected void writeModifiers(IdeDeclaration declaration) throws IOException {
     for (JooSymbol modifier : declaration.getSymModifiers()) {
       out.writeSymbol(modifier);
     }
@@ -1027,7 +1027,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   void visitDeclarationAnnotationsAndModifiers(IdeDeclaration declaration) throws IOException {
     visitAll(declaration.getAnnotations());
-    writeModifiers(out, declaration);
+    writeModifiers(declaration);
   }
 
   @Override

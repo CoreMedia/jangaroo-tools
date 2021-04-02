@@ -8,9 +8,8 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
   public*/ function ConfigClass$(config/*:ConfigClass = null*/) {if(arguments.length<=0)config=null;this.super$klfp();
   }/*
 
-  public var foo:String = "foo";
-
-  public var number:int;
+  public var foo:String = "foo",
+          number:int;
 
   public native function get items():Array;
 

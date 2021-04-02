@@ -8,9 +8,8 @@ public class ConfigClass extends Observable {
   public function ConfigClass(config:ConfigClass = null) {
   }
 
-  public var foo:String = "foo";
-
-  public var number:int;
+  public var foo:String = "foo",
+          number:int;
 
   public native function get items():Array;
 

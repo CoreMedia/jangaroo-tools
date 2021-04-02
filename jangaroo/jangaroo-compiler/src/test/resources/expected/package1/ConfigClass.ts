@@ -18,8 +18,7 @@ class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<
   }
 
   foo:string = "foo";
-
-  number:int = 0;
+          number:int = 0;
 
   items:Array<any>;
 

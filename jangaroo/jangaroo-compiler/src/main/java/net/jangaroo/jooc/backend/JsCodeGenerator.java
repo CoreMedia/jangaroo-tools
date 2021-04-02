@@ -1091,7 +1091,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         );
       }
       out.beginComment();
-      writeModifiers(out, variableDeclaration);
+      writeModifiers(variableDeclaration);
       writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
       variableDeclaration.getIde().visit(this);
       visitIfNotNull(variableDeclaration.getOptTypeRelation());
@@ -1220,7 +1220,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   protected void generateVarStartCode(VariableDeclaration variableDeclaration) throws IOException {
     out.beginComment();
-    writeModifiers(out, variableDeclaration);
+    writeModifiers(variableDeclaration);
     out.endComment();
     if (variableDeclaration.getOptSymConstOrVar() != null) {
       if (variableDeclaration.isConst()) {
@@ -1311,7 +1311,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         );
       }
       out.beginComment();
-      writeModifiers(out, functionDeclaration);
+      writeModifiers(functionDeclaration);
       Map<String, PropertyDefinition> members = membersOrStaticMembers(functionDeclaration);
       if (functionDeclaration.isAbstract() || functionDeclaration.isNative()) {
         out.writeSymbol(functionDeclaration.getFun().getFunSymbol());
@@ -1449,7 +1449,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
             ? primaryClassDefinitionBuilder : (secondaryClassDefinitionBuilder = new ClassDefinitionBuilder());
     classDefinitionBuilder.storeCurrentMetadata("", currentMetadata);
     out.beginComment();
-    writeModifiers(out, classDeclaration);
+    writeModifiers(classDeclaration);
     out.writeSymbol(classDeclaration.getSymClass());
     classDeclaration.getIde().visit(this);
     visitIfNotNull(classDeclaration.getOptExtends());
@@ -1547,7 +1547,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       writeExtDefineCodePrefix(namespaceDeclaration);
     }
     out.beginString();
-    writeModifiers(out, namespaceDeclaration);
+    writeModifiers(namespaceDeclaration);
     out.writeSymbol(namespaceDeclaration.getSymNamespace());
     namespaceDeclaration.getIde().visit(this);
     out.endString();
