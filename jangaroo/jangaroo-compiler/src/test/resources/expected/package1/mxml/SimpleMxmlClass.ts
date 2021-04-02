@@ -92,7 +92,6 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
 
   #blub:any;
 
-  //@ts-expect-error 18022
   static #static = (() =>{
       if(1 < 0 && 0 > 1) {
         throw "plain wrong!";
@@ -177,12 +176,10 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
   get other():SomeOtherClass { return this.#other; }
   set other(value:SomeOtherClass) { this.#other = value; }
 
-  //@ts-expect-error 18022
   #$on_click_14_20 (event:SomeEvent) :void {
       var result = "gotcha!";
     }
 
-  //@ts-expect-error 18022
   #$on_clickClack_55_41 (event:SomeEvent) :void {
       var test=0;
     }

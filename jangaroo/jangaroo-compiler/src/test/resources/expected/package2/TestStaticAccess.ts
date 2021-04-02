@@ -20,9 +20,7 @@ import StaticAccessSuperClass from "./StaticAccessSuperClass";
 class TestStaticAccess extends StaticAccessSuperClass {
 
   static s1:string = "s1";
-  static
-  //@ts-expect-error 18022
-#s2:string = "s2";
+  static #s2:string = "s2";
 
   constructor() {
     super();
@@ -107,9 +105,7 @@ class TestStaticAccess extends StaticAccessSuperClass {
     TestStaticAccess.#s2 = s2;
   }
 
-  static
-  //@ts-expect-error 18022
-#get_s2_private():string {
+  static #get_s2_private():string {
     return TestStaticAccess.#s2;
   }
 
@@ -126,12 +122,10 @@ class TestStaticAccess extends StaticAccessSuperClass {
     return TestStaticAccess.#get_s2_private();
   }
 
-  //@ts-expect-error 18022
   static get #some_private_static():string {
     return "some_private_static";
   }
 
-  //@ts-expect-error 18022
   static set #some_private_static(value:string) {
   }
 }

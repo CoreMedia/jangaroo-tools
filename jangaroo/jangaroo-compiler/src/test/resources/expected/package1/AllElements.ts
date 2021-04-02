@@ -36,7 +36,6 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
   #myVar3:button = null;
   #myVar4:Array<any> = null;
 
-  //@ts-expect-error 18022
   #__initialize__(config:AllElements._):void {
       this.#myVar = config.#myProperty + "_suffix";
       this.#myVar2 = {

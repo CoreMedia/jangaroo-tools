@@ -1,7 +1,6 @@
 
 class TestMixinConfig {
 
-  //@ts-expect-error 18022
   #doSomethingBeforeFoo() {
     // gotcha before foo!
   }
@@ -30,7 +29,6 @@ class TestMixinConfig {
     // gotcha on both!
   }
 
-  //@ts-expect-error 18022
   static #extendClass(baseClass:Class, derivedClass:Class, classBody: any):void {
     // gotcha extended!
   }

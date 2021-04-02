@@ -25,7 +25,6 @@ class TestBind {
     var bound:AnyFunction =bind( this,this.#getStatePrivate);
   }
 
-  //@ts-expect-error 18022
   #testCoerce(shouldBeString: any):void {}
 
   getState() : string {
@@ -43,7 +42,6 @@ class TestBind {
     this.#testCoerce("nothing there");return this;
   }
 
-  //@ts-expect-error 18022
   #getStatePrivate() : string {
     return this.#state;
   }

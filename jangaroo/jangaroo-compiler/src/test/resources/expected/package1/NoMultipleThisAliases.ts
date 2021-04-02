@@ -9,7 +9,6 @@ class NoMultipleThisAliases {
     }
   }
 
-  //@ts-expect-error 18022
   #method():void {}
 }
 export default NoMultipleThisAliases;

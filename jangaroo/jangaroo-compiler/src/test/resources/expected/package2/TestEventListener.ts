@@ -8,7 +8,6 @@ class TestEventListener {
   #panel:Panel = cast(Panel,{});
   #panels:Array<Panel> = [];
 
-  //@ts-expect-error 18022
   #getPanels():Array<Panel> {
     return this.#panels;
   }

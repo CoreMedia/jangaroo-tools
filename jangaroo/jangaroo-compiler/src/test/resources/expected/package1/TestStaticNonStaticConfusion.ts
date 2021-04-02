@@ -11,7 +11,6 @@ class TestStaticNonStaticConfusion {
     return "static foo";
   }
 
-  //@ts-expect-error 18022
   #foo():string {
     return "foo";
   }

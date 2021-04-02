@@ -30,7 +30,6 @@ class Helper {
     return f();
   }
 
-  //@ts-expect-error 18022
   #text_getter():string {
     return this.#text;
   }

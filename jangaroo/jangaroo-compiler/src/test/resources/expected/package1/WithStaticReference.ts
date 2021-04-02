@@ -12,7 +12,6 @@ class WithStaticReference {
     bla,  WithStaticReference);
     new WithStaticReference();
   }
-  //@ts-expect-error 18022
   #make2():void {
     var bla = WithStaticReference.BLA;is(
     bla,  WithStaticReference);

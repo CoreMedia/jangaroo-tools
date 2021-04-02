@@ -38,7 +38,6 @@ class TestMethodCall /* blub ber *//*extends Object*/ {
     return x+1;
   }
 
-  //@ts-expect-error 18022
   #priv(x :int) :int {
     return x+2;
   }

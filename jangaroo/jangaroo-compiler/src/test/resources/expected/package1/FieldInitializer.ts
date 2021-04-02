@@ -18,7 +18,6 @@ class FieldInitializer {
     this.#myConfigOption = value + "!";
   }
 
-  //@ts-expect-error 18022
   #setMyConfigOption2(value: any) {
     this.myConfigOption2 = value;
   }

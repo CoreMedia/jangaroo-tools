@@ -3,9 +3,7 @@ import int from "../AS3/int_";
 
 class TestArrayForIn {
 
-  //@ts-expect-error 18022
   static readonly #ARRAY:Array<any> = [1, 2, 3];
-  //@ts-expect-error 18022
   static #array:Array<any> = [1, 2, 3];
 
   static test():Array<any> {
@@ -50,7 +48,6 @@ class TestArrayForIn {
     return copy;
   }
 
-  //@ts-expect-error 18022
   static #doSomething(param:any):void {
     // do something...
   }

@@ -6,7 +6,6 @@ class NoPrimitiveInit {
   constructor() {
   }
 
-  //@ts-expect-error 18022
   #method(i:int):int {
     return SomeOtherClass.BLA + int.MAX_VALUE;
   }

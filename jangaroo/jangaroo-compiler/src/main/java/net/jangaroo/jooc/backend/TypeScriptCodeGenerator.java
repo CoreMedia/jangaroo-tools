@@ -82,15 +82,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   );
   public static final List<AS3Type> TYPES_ALLOWED_AS_INDEX = Arrays.asList(AS3Type.ANY, AS3Type.STRING, AS3Type.NUMBER, AS3Type.INT, AS3Type.UINT);
 
-  private static final Pattern INDENTATION_PATTERN = Pattern.compile("\n *\\z");
-
-  /**
-   * The TypeScript compiler directive to suppress errors regarding unsupported usage of #private names.
-   * The error number 18022 does not have any effect on the compiler, but we add it to easily identify the
-   * corresponding ts-expect-error lines to remove as soon as the feature is fully supported.
-   */
-  private static final String TS_EXPECT_ERROR_18022 = "//@ts-expect-error 18022";
-
   private static final String I_RESOURCE_MANAGER_QUALIFIED_NAME = "mx.resources.IResourceManager";
   private static final String GET_STRING_METHOD_NAME = "getString";
 
@@ -136,14 +127,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (modifier.sym == sym.PROTECTED
                 || modifier.sym == sym.IDE && SyntacticKeywords.STATIC.equals(modifier.getText())) {
           out.writeSymbol(modifier);
-        } else if (modifier.sym == sym.PRIVATE && noSupportForHashPrivate(declaration)) {
-          // As long as tsc does not yet support private members other than instance fields,
-          // insert @ts-expect-error compiler directive, always as a separate line that can easily be removed later.
-          // So repeat the same indentation if possible:
-          Matcher indentationMatcher = INDENTATION_PATTERN.matcher(modifier.getWhitespace());
-          out.write(indentationMatcher.find()
-                  ? TS_EXPECT_ERROR_18022 + indentationMatcher.group()
-                  : "\n  " + TS_EXPECT_ERROR_18022 + "\n");
         }
       }
     }
@@ -859,13 +842,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private String getHashPrivateName(IdeDeclaration varOrFunDeclaration) {
     return "#" + varOrFunDeclaration.getIde().getName();
-  }
-
-  private boolean noSupportForHashPrivate(IdeDeclaration varOrFunDeclaration) {
-    return varOrFunDeclaration.isStatic()
-            || !varOrFunDeclaration.isNative()
-            && (varOrFunDeclaration instanceof PropertyDeclaration
-            || varOrFunDeclaration instanceof FunctionDeclaration);
   }
 
   @Override
@@ -1735,7 +1711,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       uniqueName = String.valueOf(staticCodeCounter);
     }
     ++staticCodeCounter;
-    out.writeToken(String.format("%s\n  static #static%s = (() =>", TS_EXPECT_ERROR_18022, uniqueName));
+    out.writeToken(String.format("static #static%s = (() =>", uniqueName));
 
     // is static code already wrapped in a block?
     if (directives.size() == 1 && firstDirective instanceof BlockStatement) {

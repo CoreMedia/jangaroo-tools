@@ -10,10 +10,8 @@ class UsingEmbed {
 
   someText:Class = null;
 
-  //@ts-expect-error 18022
   static #anotherText:Class = null;
 
-  //@ts-expect-error 18022
   static #jooley:Class = null;
 
   annotated1;
