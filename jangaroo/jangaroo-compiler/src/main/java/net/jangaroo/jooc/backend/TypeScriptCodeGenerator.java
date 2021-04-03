@@ -143,7 +143,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (modifier.sym == sym.PROTECTED
                 || modifier.sym == sym.IDE &&
                 (SyntacticKeywords.STATIC.equals(modifier.getText())
-                        || SyntacticKeywords.OVERRIDE.equals(modifier.getText()))) {
+//                        || SyntacticKeywords.OVERRIDE.equals(modifier.getText())
+                )) {
           out.writeSymbol(modifier);
         }
       }
