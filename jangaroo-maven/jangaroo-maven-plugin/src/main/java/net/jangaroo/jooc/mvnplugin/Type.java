@@ -18,6 +18,9 @@ package net.jangaroo.jooc.mvnplugin;
 
 import org.apache.maven.project.MavenProject;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Contains some basic constants concerning the different entities of a Jangaroo and a SenchaCmd workspace
  */
@@ -39,6 +42,14 @@ public final class Type {
   public static final String JANGAROO_APP_PACKAGING = "jangaroo-app";
   public static final String JANGAROO_APP_OVERLAY_PACKAGING = "jangaroo-app-overlay";
   public static final String JANGAROO_APPS_PACKAGING = "jangaroo-apps";
+
+  public static final List<String> JANGAROO_PACKAGING_TYPES = Arrays.asList(
+          JANGAROO_PKG_PACKAGING,
+          JANGAROO_SWC_PACKAGING,
+          JANGAROO_APP_PACKAGING,
+          JANGAROO_APP_OVERLAY_PACKAGING,
+          JANGAROO_APPS_PACKAGING
+  );
 
   public static final String META_INF_PATH = "META-INF/";
   public static final String SWC_PKG_PATH = META_INF_PATH + "pkg/";

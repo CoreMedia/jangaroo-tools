@@ -98,7 +98,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private Integer jooUnitTestExecutionTimeout;
 
   @Parameter
-  private String extNamespace = "";
+  private String extNamespace;
+
+  @Parameter(property = "extNamespaceRequired")
+  private boolean extNamespaceRequired;
 
   @Parameter
   private String extSassNamespace;
@@ -131,6 +134,28 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if (!Type.JANGAROO_PACKAGING_TYPES.contains(project.getPackaging())) {
+      return;
+    }
+    if (extNamespace == null) {
+      if (extNamespaceRequired
+              // app-overlay cannot contain sources
+              && !Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging())
+              // apps cannot contain sources
+              && !Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging())) {
+        throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
+      }
+      extNamespace = "";
+    }
+
+    if (".".equals(extNamespace)) {
+      extNamespace = "";
+    }
+
+    if (".".equals(extSassNamespace)) {
+      extSassNamespace = "";
+    }
+
     PackageJsonPrettyPrinter prettyPrinter = new PackageJsonPrettyPrinter();
 
     objectMapper = SenchaUtils.getObjectMapper()

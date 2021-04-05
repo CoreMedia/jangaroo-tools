@@ -63,6 +63,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   /**
    * Experimental: The Ext namespace is stripped from the relative path to the source root.
+   * Use "." to explicitly set this configuration to an empty namespace.
    */
   @Parameter(property = "extNamespace")
   private String extNamespace;
@@ -73,9 +74,10 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
   /**
    * Experimental: The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
    * and sencha/sass/src of the source root. If not set (or null) it falls back to {@link #extNamespace}.
+   * Use "." to explicitly set this configuration to an empty namespace.
    */
   @Parameter(property = "extSassNamespace")
-  private String extSassNamespace = null;
+  private String extSassNamespace;
 
   public abstract String getType();
 
@@ -92,6 +94,14 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
         throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
       }
       extNamespace = "";
+    }
+
+    if (".".equals(extNamespace)) {
+      extNamespace = "";
+    }
+
+    if (".".equals(extSassNamespace)) {
+      extSassNamespace = "";
     }
   }
 

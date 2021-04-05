@@ -144,18 +144,21 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   /**
    * Experimental: The Ext namespace is stripped from the relative path to the source root.
+   * Use "." to explicitly set this configuration to an empty namespace.
    */
   @Parameter(property = "extNamespace")
   private String extNamespace;
 
   @Parameter(property = "extNamespaceRequired")
-  private boolean extNamespaceRequired = false;
+  private boolean extNamespaceRequired;
 
   /**
-   * Experimental: The Ext namespace is stripped from the relative path to the sass sources roots (var/src)
+   * Experimental: The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
+   * and sencha/sass/src of the source root. If not set (or null) it falls back to {@link #extNamespace}.
+   * Use "." to explicitly set this configuration to an empty namespace.
    */
   @Parameter(property = "extSassNamespace")
-  private String extSassNamespace = null;
+  private String extSassNamespace;
 
   @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
   private File senchaSrcDir;
@@ -243,6 +246,14 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
         throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
       }
       extNamespace = "";
+    }
+
+    if (".".equals(extNamespace)) {
+      extNamespace = "";
+    }
+
+    if (".".equals(extSassNamespace)) {
+      extSassNamespace = "";
     }
 
     if (getCompileSourceRoots().isEmpty()) {
