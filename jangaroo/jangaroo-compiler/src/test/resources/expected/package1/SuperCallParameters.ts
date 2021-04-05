@@ -6,7 +6,7 @@ class SuperCallParameters extends ManyConstructorParameters {
     super("bar", -1, -4.2, true, {}, []);
   }
 
-  override isEmpty(str:string):boolean {
+  isEmpty(str:string):boolean {
     return super.isEmpty(str);
   }
 }
