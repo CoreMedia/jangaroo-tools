@@ -19,6 +19,7 @@ public class UsingSomeNativeClass {
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;
+    someNative.delete_();
   }
 
   public function get someNativeAccessor():package1.SomeNativeClass {

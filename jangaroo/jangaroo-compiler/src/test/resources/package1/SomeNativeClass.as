@@ -23,5 +23,10 @@ public class SomeNativeClass extends SomeNativeSuperClass {
    */
   public native function bar();
 
+  /**
+   * Some renamed method.
+   */
+  [Native("delete")]
+  public native function delete_(): void;
 }
 }

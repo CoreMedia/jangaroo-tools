@@ -19,6 +19,7 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;
+    this.someNative.delete();
   }/*
 
   public*/ function  get$someNativeAccessor()/*:package1.SomeNativeClass*/ {

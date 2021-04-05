@@ -21,5 +21,11 @@ public class SomeNativeClass extends package1.SomeNativeSuperClass {
    * Some method doc.
    */
   public native function bar();
+
+  /**
+   * Some renamed method.
+   */
+  [Native("delete")]
+  public native function delete_():void;
 }
 }

@@ -21,6 +21,7 @@ class UsingSomeNativeClass {
     };
     var foo = this.someNativeAccessor;
     var bar = this.anotherNativeAccessor;
+    this.someNative.delete();
   }
 
    get someNativeAccessor():SomeNativeClass {
