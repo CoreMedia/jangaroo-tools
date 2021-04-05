@@ -282,10 +282,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
             testScripts.put("test", "jangaroo joounit");
           }
-          if (mavenModule.getData().getOrganization() != null) {
-            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-          }
-          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+
           Map<String, String> dependencies = new TreeMap<>();
           dependencies.put("@jangaroo/joo", "^1.0.0-alpha");
           additionalJsonEntries.setDependencies(dependencies);
@@ -359,10 +356,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
             jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
           }
-          if (mavenModule.getData().getOrganization() != null) {
-            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-          }
-          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+
           Map<String, String> dependencies = new TreeMap<>();
           dependencies.put("@coremedia/sencha-ext", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
@@ -399,10 +393,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app-overlay");
           setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-          if (mavenModule.getData().getOrganization() != null) {
-            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-          }
-          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
           devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
@@ -425,10 +416,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
               jangarooConfig.setRootApp(calculateMavenName(splitName[0], splitName[1]));
             }
           }
-          if (mavenModule.getData().getOrganization() != null) {
-            additionalJsonEntries.setAuthor(mavenModule.getData().getOrganization().getName());
-          }
-          additionalJsonEntries.setDescription(mavenModule.getData().getDescription());
+
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
           devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
@@ -521,6 +509,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         PackageJson packageJson = new PackageJson(additionalJsonEntries);
         packageJson.setName(aPackage.getName());
         packageJson.setVersion(aPackage.getVersion());
+        if (mavenModule.getData().getOrganization() != null) {
+          packageJson.setAuthor(mavenModule.getData().getOrganization().getName());
+        }
         packageJson.setLicense("MIT");
         packageJson.setPrivat(true);
         aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);

@@ -54,6 +54,7 @@ public class PackageJson {
 
   public PackageJson(AdditionalPackageJsonEntries additionalPackageJsonEntries) {
     this.author = additionalPackageJsonEntries.getAuthor();
+    this.description = additionalPackageJsonEntries.getDescription();
     this.dependencies = additionalPackageJsonEntries.getDependencies();
     this.devDependencies = additionalPackageJsonEntries.getDevDependencies();
     this.scripts = additionalPackageJsonEntries.getScripts();
