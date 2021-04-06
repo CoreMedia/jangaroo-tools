@@ -29,6 +29,12 @@ module.exports = {
       "error",
       "double"
     ],
+    "@typescript-eslint/space-before-function-paren": ["error", {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always",
+    }],
+    "@typescript-eslint/space-infix-ops": "error",
     "array-bracket-newline": ["error", "consistent"],
     "arrow-parens": ["error", "as-needed"],
     "import/newline-after-import": [
@@ -49,6 +55,7 @@ module.exports = {
     "no-multiple-empty-lines": ["error", {
       "max": 1
     }],
+    "no-multi-spaces": "error",
     "no-trailing-spaces": "error",
     "no-whitespace-before-property": "error",
     "object-curly-newline": ["error", {
@@ -67,5 +74,6 @@ module.exports = {
       "error",
       "always"
     ],
+    "space-in-parens": "error",
   }
 };
