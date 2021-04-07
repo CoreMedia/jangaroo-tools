@@ -12,14 +12,7 @@ Ext.define("package1.mxml.MetadataMxmlClass", function(MetadataMxmlClass) {/*pub
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "package1.ConfigClass",
-      metadata: {"": [
-        "ThisIsJustATest",
-        "Deprecated",
-        [
-          "replacement",
-          "use.this.please"
-        ]
-      ]},
+      metadata: {"": ["ThisIsJustATest"]},
       constructor: MetadataMxmlClass$,
       super$$82_: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);

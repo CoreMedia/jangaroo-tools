@@ -384,6 +384,10 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testRestResourceAnnotation() throws Exception {
+    assertCompilationResult("package2/TestRestResourceAnnotation");
+  }
+  @Test
   public void testExtendError() throws Exception {
     assertCompilationResult("package1/ExtendError");
   }

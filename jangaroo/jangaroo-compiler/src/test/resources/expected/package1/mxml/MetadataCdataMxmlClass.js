@@ -16,14 +16,7 @@ Ext.define("package1.mxml.MetadataCdataMxmlClass", function(MetadataCdataMxmlCla
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "package1.ConfigClass",
-      metadata: {"": [
-        "ThisIsJustATest",
-        "Deprecated",
-        [
-          "replacement",
-          "use.this.please"
-        ]
-      ]},
+      metadata: {"": ["ThisIsJustATest"]},
       constructor: MetadataCdataMxmlClass$,
       super$3$jH: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);

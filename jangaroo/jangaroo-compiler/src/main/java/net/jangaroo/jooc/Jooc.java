@@ -67,6 +67,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   public static final String PUBLIC_API_EXCLUSION_ANNOTATION_NAME = "ExcludeClass";
   public static final String PUBLIC_API_INCLUSION_ANNOTATION_NAME = "PublicApi";
+  public static final String DEPRECATED_ANNOTATION_NAME = "Deprecated";
   public static final String NATIVE_ANNOTATION_NAME = "Native";
   public static final String NATIVE_ANNOTATION_REQUIRE_PROPERTY = "require";
   public static final String RENAME_ANNOTATION_NAME = "Rename";
@@ -106,6 +107,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
           Jooc.EXT_PRIVATE_ANNOTATION_NAME,
           Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME,
           Jooc.PUBLIC_API_EXCLUSION_ANNOTATION_NAME,
+          Jooc.DEPRECATED_ANNOTATION_NAME,
           Jooc.EVENT_ANNOTATION_NAME,
           Jooc.LAZY_ANNOTATION_NAME,
           Jooc.PARAMETER_ANNOTATION_NAME,

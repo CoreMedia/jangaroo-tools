@@ -14,8 +14,7 @@ interface MetadataCdataMxmlClass_ extends ConfigClass._ {
     super( Exml.apply(new MetadataCdataMxmlClass._({
 }),config));
 }}
-metadata(MetadataCdataMxmlClass, ["ThisIsJustATest"],
-    "Deprecated", {replacement: "use.this.please"}]);
+metadata(MetadataCdataMxmlClass, ["ThisIsJustATest"]);
 
 declare namespace MetadataCdataMxmlClass {
   export type _ = MetadataCdataMxmlClass_;
