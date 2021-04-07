@@ -84,6 +84,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private static final String I_RESOURCE_MANAGER_QUALIFIED_NAME = "mx.resources.IResourceManager";
   private static final String GET_STRING_METHOD_NAME = "getString";
+  private static final String REST_RESOURCE_ANNOTATION_NAME = "RestResource";
+  private static final String REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME = "uriTemplate";
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
@@ -164,6 +166,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
+
+    if (!getMetadata(primaryDeclaration).isEmpty()) {
+      compilationUnit.addBuiltInIdentifierUsage("metadata");
+    }
 
     if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
       out.write(String.format("import { %s } from \"@jangaroo/joo/AS3\";\n",
@@ -369,6 +375,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private static List<Annotation> getMetadata(IdeDeclaration declaration) {
+    // use all runtime retention metadata, but not [RestResource], which gets special treatment:
+    return declaration.getAnnotations().stream()
+            .filter(annotation ->
+                    !REST_RESOURCE_ANNOTATION_NAME.equals(annotation.getMetaName()) &&
+                    !Jooc.ANNOTATIONS_FOR_COMPILER_ONLY.contains(annotation.getMetaName()))
+            .collect(Collectors.toList());
+  }
+
   private void generateClassMetadata(ClassDeclaration classDeclaration) throws IOException {
     String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
     if (classDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
@@ -392,7 +407,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
 
-      List<Annotation> metadata = classDeclaration.getMetadata();
+      List<Annotation> metadata = getMetadata(classDeclaration);
       if (!metadata.isEmpty()) {
         out.write("\nmetadata(" + classDeclarationLocalName + ", [");
         boolean firstAnnotation = true;
@@ -1668,6 +1683,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
+    generateRestResourceUriTemplateConstant(compilationUnit.getPrimaryDeclaration()
+            .getAnnotation(REST_RESOURCE_ANNOTATION_NAME));
     if (compilationUnit instanceof MxmlCompilationUnit) {
       for (Directive directive : classBodyDirectives) {
         // Class body directives are indented by 4 spaces in MXML, but in TypeScript, as class members, they should
@@ -1682,6 +1699,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     super.visitClassBodyDirectives(classBodyDirectives);
+  }
+
+  private void generateRestResourceUriTemplateConstant(Annotation restResourceAnnotation) throws IOException {
+    if (restResourceAnnotation != null) {
+      CommaSeparatedList<AnnotationParameter> annotationParameters = restResourceAnnotation.getOptAnnotationParameters();
+      if (annotationParameters != null) {
+        AnnotationParameter annotationParameter = annotationParameters.getHead();
+        if (annotationParameter.getOptName() != null) {
+          if (REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME.equals(annotationParameter.getOptName().getName())) {
+            out.write(String.format("\n  static readonly REST_RESOURCE_URI_TEMPLATE = %s;",
+                    annotationParameter.getValue().getSymbol().getText()));
+          }
+        }
+      }
+    }
   }
 
   private void setIndentationToTwo(JooSymbol symbol) {

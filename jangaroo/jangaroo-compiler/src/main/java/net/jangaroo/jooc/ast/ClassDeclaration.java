@@ -229,12 +229,6 @@ public class ClassDeclaration extends TypeDeclaration {
             && (!(isInterface() || isMixin()) || getOptImplements().getSuperTypes().getTail() != null);
   }
 
-  public List<Annotation> getMetadata() {
-    return getAnnotations().stream()
-            .filter(annotation -> !Jooc.ANNOTATIONS_FOR_COMPILER_ONLY.contains(annotation.getMetaName()))
-            .collect(Collectors.toList());
-  }
-
   public void analyze(AstNode parentNode) {
     analyzeSymModifiers();
     super.analyze(parentNode);
@@ -249,9 +243,6 @@ public class ClassDeclaration extends TypeDeclaration {
     }
     if (implementsMoreThanOneInterface()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("mixin");
-    }
-    if (!getMetadata().isEmpty()) {
-      scope.getCompilationUnit().addBuiltInIdentifierUsage("metadata");
     }
     body.analyze(this);
     for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
