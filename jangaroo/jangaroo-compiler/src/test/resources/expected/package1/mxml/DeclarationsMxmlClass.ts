@@ -19,7 +19,7 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
     super();
     this.bar = "BAR!";
     /**
-     Some number.
+     * Some number.
      */
     this.num = 123;
     this.blub ={ name: "Kuno"};
@@ -44,7 +44,7 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
   #num:int = 0;
 
     /**
-     Some number.
+     * Some number.
      */
   get num():int { return this.#num; }
   set num(value:int) { this.#num = value; }
@@ -52,7 +52,7 @@ class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMx
   #empty:int = 0;
 
     /**
-     Empty declaration.
+     * Empty declaration.
      */
   get empty():int { return this.#empty; }
   set empty(value:int) { this.#empty = value; }

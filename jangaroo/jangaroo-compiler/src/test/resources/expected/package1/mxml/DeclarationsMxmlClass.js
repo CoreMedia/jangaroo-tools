@@ -5,7 +5,7 @@ import net.jangaroo.ext.Exml;*/
 Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass) {/*public class DeclarationsMxmlClass extends SomeNativeClass{public*/function DeclarationsMxmlClass$(config/*:DeclarationsMxmlClass=null*/){if(arguments.length<=0)config=null;this.super$GkLq();
     this.bar = "BAR!";
     /**
-     Some number.
+     * Some number.
      */
     this.num = 123;
     this.blub ={ name: "Kuno"};
@@ -26,13 +26,13 @@ Ext.define("package1.mxml.DeclarationsMxmlClass", function(DeclarationsMxmlClass
     public var bar:String;
 
     /**
-     Some number.
+     * Some number.
      * /
     [Bindable]
     public var num:int;
 
     /**
-     Empty declaration.
+     * Empty declaration.
      * /
     [Bindable]
     public var empty:int;

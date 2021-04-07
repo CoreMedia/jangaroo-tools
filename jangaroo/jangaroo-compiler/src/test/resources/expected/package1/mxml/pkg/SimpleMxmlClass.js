@@ -2,7 +2,7 @@
 import ext.config.*;
 import net.jangaroo.ext.Exml;*/
 /**
- Created by fwienber on 22.02.2021.
+ * Created by fwienber on 22.02.2021.
  */
 Ext.define("package1.mxml.pkg.SimpleMxmlClass", function(SimpleMxmlClass) {/*public class SimpleMxmlClass extends panel{
 

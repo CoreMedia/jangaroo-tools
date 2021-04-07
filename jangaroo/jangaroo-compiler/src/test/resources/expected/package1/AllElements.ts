@@ -16,7 +16,7 @@ interface AllElements_ extends Partial<Pick<AllElements,
 
 
 /**
- This is my <b>TestComponent</b>
+ * This is my <b>TestComponent</b>
  */
 class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
 

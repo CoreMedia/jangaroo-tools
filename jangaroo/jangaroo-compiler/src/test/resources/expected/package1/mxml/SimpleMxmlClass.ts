@@ -26,7 +26,7 @@ interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
 
 
 /**
-  My config class subclass, authored in MXML.
+ *  My config class subclass, authored in MXML.
  */
 
 class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends ConfigClass<Cfg>{
@@ -40,7 +40,7 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
     bar: "FOO & BAR!",
     computed: Exml.asString( "B" + "AR!"),
     /**
-     Some number.
+     * Some number.
      */
     num: 123,
     someFlag2: false,
@@ -116,7 +116,7 @@ class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends
   #num:int = 0;
 
     /**
-     Some number.
+     * Some number.
      */
   get num():int { return this.#num; }
   set num(value:int) { this.#num = value; }

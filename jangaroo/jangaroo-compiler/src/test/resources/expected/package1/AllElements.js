@@ -4,7 +4,7 @@ import exmlparser.config.*;
 import ext.*;
 import net.jangaroo.ext.Exml;*/
 /**
- This is my <b>TestComponent</b>
+ * This is my <b>TestComponent</b>
  */
 Ext.define("package1.AllElements", function(AllElements) {/*public class AllElements extends panel{
 

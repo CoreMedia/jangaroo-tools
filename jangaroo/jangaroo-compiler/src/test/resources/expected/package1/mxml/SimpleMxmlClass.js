@@ -3,7 +3,7 @@ import package1.*;
 import package1.someOtherPackage.*;
 import net.jangaroo.ext.Exml;*/
 /**
-  My config class subclass, authored in MXML.
+ *  My config class subclass, authored in MXML.
  */
 
 Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public class SimpleMxmlClass extends ConfigClass{
@@ -16,7 +16,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     bar: "FOO & BAR!",
     computed:net.jangaroo.ext.Exml.asString( 'B' + 'AR!'),
     /**
-     Some number.
+     * Some number.
      */
     num: 123,
     someFlag2: false,
@@ -85,7 +85,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     public var computed:String;
 
     /**
-     Some number.
+     * Some number.
      * /
     [Bindable]
     public var num:int;

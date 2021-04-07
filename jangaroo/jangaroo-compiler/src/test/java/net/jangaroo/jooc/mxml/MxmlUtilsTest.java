@@ -40,9 +40,9 @@ public class MxmlUtilsTest {
   public void testToASDoc() {
     Assert.assertEquals("/* this text and two empty lines \n\n */\n" +
                     "/** unescaped: $1 *//* single star *//**\n" +
-                    "\n" +
-                    " escaped: \\$2\n" +
-                    "\n" +
+                    " *\n" +
+                    " * escaped: \\$2\n" +
+                    " *\n" +
                     " */",
             MxmlUtils.toASDoc("<!-- this text and two empty lines \n\n-->\n" +
                     "<!--- unescaped: $1 --><!-- single star --><!---\n" +
@@ -50,5 +50,47 @@ public class MxmlUtilsTest {
                     " escaped: \\$2\n" +
                     "\n" +
                     "-->"));
+  }
+
+  @Test
+  public void testToASDocClass() {
+    Assert.assertEquals(
+            "//Some comment\n/**\n" +
+                    " * This is a form panel which combines several form elements to an editor for local settings to configure\n" +
+                    " * the fixed index behaviour. A combination of integer field and reset button.\n" +
+                    " */\n",
+            MxmlUtils.toASDoc(
+                    "//Some comment\n<!---\n" +
+                    " This is a form panel which combines several form elements to an editor for local settings to configure\n" +
+                    " the fixed index behaviour. A combination of integer field and reset button.\n" +
+                    "-->\n"));
+  }
+
+  @Test
+  public void testToASDocClassStartOfFile() {
+    Assert.assertEquals(
+            "/**\n" +
+                    " * This is a form panel which combines several form elements to an editor for local settings to configure\n" +
+                    " * the fixed index behaviour. A combination of integer field and reset button.\n" +
+                    " */\n",
+            MxmlUtils.toASDoc(
+                    "<!---\n" +
+                    " This is a form panel which combines several form elements to an editor for local settings to configure\n" +
+                    " the fixed index behaviour. A combination of integer field and reset button.\n" +
+                    "-->\n"));
+  }
+
+  @Test
+  public void testToASDocProperty() {
+    Assert.assertEquals(
+            "    /**\n" +
+                    "     * The name of the sting property of the Bean to bind in this field.\n" +
+                    "     * The string property holds the id of the catalog product\n" +
+                    "     */\n",
+            MxmlUtils.toASDoc(
+                    "    <!---\n" +
+                    "     The name of the sting property of the Bean to bind in this field.\n" +
+                    "     The string property holds the id of the catalog product\n" +
+                    "    -->\n"));
   }
 }

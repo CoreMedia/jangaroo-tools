@@ -30,7 +30,7 @@ public class MxmlUtils {
   private static final Pattern IS_BINDING_EXPRESSION_PATTERN = Pattern.compile("(^|[^\\\\])\\{([^}]*[^\\\\])\\}");
   private static final Pattern BINDING_EXPRESSION_START_OR_END_PATTERN = Pattern.compile("[{}]");
 
-  private static final Pattern MXML_COMMENT = Pattern.compile("<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
+  private static final Pattern MXML_COMMENT = Pattern.compile("(^|\n)?( *)<!--(-?)([^-]*(?:-[^-]+)*)-->", Pattern.DOTALL);
   public static final String CONFIG = "config";
   private static final List<AS3Type> AS3_TYPES_THAT_ALLOW_EMPTY_STRING = Arrays.asList(AS3Type.ANY, AS3Type.OBJECT, AS3Type.STRING, AS3Type.ARRAY);
 
@@ -151,7 +151,6 @@ public class MxmlUtils {
       return MxmlUtils.getBindingExpression(trimmedValueStr);
     }
     return CompilerUtils.quote(valueStr.replaceAll("\\\\\\{", "{"));
-
   }
 
   public static String capitalize(String name) {
@@ -162,17 +161,34 @@ public class MxmlUtils {
   }
 
   public static String toASDoc(String xmlWhitespace) {
-    // convert MXML comments to ASdoc comments
+    // convert MXML comments to ASDoc comments
     Matcher matcher = MXML_COMMENT.matcher(xmlWhitespace);
     StringBuffer sb = new StringBuffer();
-    while(matcher.find()) {
-      String prefix = "-".equals(matcher.group(1)) ? "/**" : "/*";
-      String content = Matcher.quoteReplacement(matcher.group(2));
+    while (matcher.find()) {
+      String indent = matcher.group(2);
+      boolean isASDoc = "-".equals(matcher.group(3));
+      String prefix = (matcher.group(1) == null ? "" : matcher.group(1))
+              + indent
+              + (isASDoc ? "/**" : "/*");
+      String content = Matcher.quoteReplacement(matcher.group(4));
+      if (isASDoc) {
+        String[] lines = content.split("\n", -1);
+        for (int i = 1; i < lines.length; i++) {
+          String line = lines[i];
+          if (line.isEmpty() || line.startsWith(indent)) {
+            lines[i] = indent + " *" + (line.isEmpty() ? "" : line.substring(indent.length()));
+          }
+        }
+        content = String.join("\n", lines);
+      }
       String lastReplacement = prefix + content;
-      if (content.contains("\n")) {
+      if (!isASDoc && content.contains("\n")) {
         lastReplacement += " ";
       }
-      lastReplacement += "*/";
+      if (!lastReplacement.endsWith("*")) {
+        lastReplacement += "*";
+      }
+      lastReplacement += "/";
       matcher.appendReplacement(sb, lastReplacement);
     }
     return matcher.appendTail(sb).toString();

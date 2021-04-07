@@ -7,7 +7,7 @@ interface SimpleMxmlClass_ {
 
 
 /**
- Created by fwienber on 22.02.2021.
+ * Created by fwienber on 22.02.2021.
  */
 class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends panel<Cfg>{
 
