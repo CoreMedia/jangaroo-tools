@@ -2,7 +2,6 @@ import { mixin } from "@jangaroo/joo/AS3";
 import TestMixin from "./TestMixin";
 
 
-@mixin(TestMixin)
 class TestMixinClient {
 
   constructor(thing:string) {
@@ -10,5 +9,7 @@ class TestMixinClient {
   }
 }
 interface TestMixinClient extends TestMixin{}
+
+mixin(TestMixinClient, TestMixin);
 
 export default TestMixinClient;

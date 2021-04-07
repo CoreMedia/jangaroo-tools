@@ -11,7 +11,6 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 
-@mixin(TestInterface)
 class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
 
   static readonly DEFAULT:string = "_DEFAULT_";
@@ -33,6 +32,8 @@ class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implement
     this.#component = component;
   }
 }
+mixin(TestComponentBase, TestInterface);
+
 declare namespace TestComponentBase {
   export type _ = TestComponentBase_;
   export const _: { new(config?: _): _; };
