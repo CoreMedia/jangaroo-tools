@@ -3,7 +3,7 @@
   "version": "1.0.0.0",
   "indexHtmlPath": "index.html",
   "classpath": [
-    "app",
+    "src",
     "${toolkit.name}/src",
     "locale/en"
   ],

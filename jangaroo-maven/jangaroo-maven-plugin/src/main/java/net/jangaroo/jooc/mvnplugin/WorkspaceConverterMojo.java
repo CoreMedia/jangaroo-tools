@@ -314,7 +314,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           ignoreFromSrcMain.add("package.json");
           CopyFromMavenResult copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
                   String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
-                  "src", ignoreFromSrcMain, targetPackageDir
+                  ignoreFromSrcMain, targetPackageDir
           );
           if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
             devDependencies.put("eslint", "^7.23.0");
@@ -387,7 +387,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           List<String> ignoreFromSrcMain = new ArrayList<>();
           ignoreFromSrcMain.add("app.json");
           copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
-                  "app", ignoreFromSrcMain, targetPackageDir
+                  ignoreFromSrcMain, targetPackageDir
           );
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
           excludePaths.add(targetPackageDir + "/build");
@@ -571,17 +571,16 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return matchingFilePaths;
   }
 
-  private CopyFromMavenResult copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, String srcFolderName, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
+  private CopyFromMavenResult copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
     AtomicBoolean hasSourceTsFiles = new AtomicBoolean(false);
     AtomicBoolean hasJooUnitTsFiles = new AtomicBoolean(false);
 
+    final String srcFolderName = "src";
     Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
     if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
       Path targetDirPath = Paths.get(targetPackageDir, "sencha", srcFolderName);
       FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> pathname.isDirectory() || !pathname.getName().endsWith(".ts"));
-    }
-    if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
-      Path targetDirPath = Paths.get(targetPackageDir, srcFolderName);
+      targetDirPath = Paths.get(targetPackageDir, srcFolderName);
       FileUtils.copyDirectory(sourceDirPath.toFile(), targetDirPath.toFile(), pathname -> {
         boolean isTsFile = pathname.getName().endsWith(".ts");
         if (isTsFile) {
