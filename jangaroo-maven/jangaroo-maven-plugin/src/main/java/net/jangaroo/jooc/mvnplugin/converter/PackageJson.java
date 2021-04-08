@@ -23,6 +23,8 @@ public class PackageJson {
   // for the order of fields to be maintained.
   @JsonProperty("private")
   private boolean privat;
+  @JsonProperty("engines")
+  private Map<String, String> engines;
   @JsonProperty("dependencies")
   private Map<String, String> dependencies;
   @JsonProperty("devDependencies")
@@ -38,13 +40,14 @@ public class PackageJson {
   @JsonProperty("publishOverrides")
   private Map<String, Object> publishOverrides;
 
-  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
+  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
     this.name = name;
     this.author = author;
     this.description = description;
     this.version = version;
     this.license = license;
     this.privat = privat;
+    this.engines = engines;
     this.dependencies = dependencies;
     this.devDependencies = devDependencies;
     this.scripts = scripts;
@@ -122,6 +125,14 @@ public class PackageJson {
 
   public void setPrivat(boolean privat) {
     this.privat = privat;
+  }
+
+  public Map<String, String> getEngines() {
+    return engines;
+  }
+
+  public void setEngines(Map<String, String> engines) {
+    this.engines = engines;
   }
 
   public Map<String, String> getDependencies() {

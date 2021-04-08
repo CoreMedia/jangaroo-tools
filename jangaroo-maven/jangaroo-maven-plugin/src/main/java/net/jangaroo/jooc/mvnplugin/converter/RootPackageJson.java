@@ -40,6 +40,9 @@ public class RootPackageJson {
         e.printStackTrace();
       }
     } else {
+      Map<String, String> engines = new TreeMap<>();
+      engines.put("node", "^14.16.1");
+      engines.put("npm", "^7.8.0");
       Map<String, String> devDependencies = new TreeMap<>();
       devDependencies.put("@typescript-eslint/eslint-plugin", "^4.19.0");
       devDependencies.put("@typescript-eslint/parser", "^4.19.0");
@@ -59,6 +62,7 @@ public class RootPackageJson {
               null, null, "1.0.0-SNAPSHOT",
               "MIT",
               true,
+              engines,
               new TreeMap<>(),
               devDependencies,
               scripts,
