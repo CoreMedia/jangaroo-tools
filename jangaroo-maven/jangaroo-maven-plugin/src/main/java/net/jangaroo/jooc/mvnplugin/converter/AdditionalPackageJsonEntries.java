@@ -12,6 +12,7 @@ public class AdditionalPackageJsonEntries {
   private Map<String, String> scripts;
   private Map<String, Object> typesVersions;
   private String types;
+  private Map<String, Object> coremedia;
   private Map<String, Object> publishOverrides;
 
   public AdditionalPackageJsonEntries() {
@@ -113,6 +114,14 @@ public class AdditionalPackageJsonEntries {
     if (types != null && !types.isEmpty()) {
       this.types = types;
     }
+  }
+
+  public Map<String, Object> getCoremedia() {
+    return coremedia;
+  }
+
+  public void setCoremedia(Map<String, Object> coremedia) {
+    this.coremedia = coremedia;
   }
 
   public Map<String, Object> getPublishOverrides() {

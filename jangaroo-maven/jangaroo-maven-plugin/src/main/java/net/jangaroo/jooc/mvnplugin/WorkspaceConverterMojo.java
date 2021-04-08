@@ -60,6 +60,9 @@ import java.util.stream.Collectors;
         threadSafe = true,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class WorkspaceConverterMojo extends AbstractMojo {
+
+  private static final Pattern EXTENSION_POINT_PATTERN = Pattern.compile("^(.+)-extension-dependencies$");
+
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
   private static final Object lock = new Object();
 
@@ -134,15 +137,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if (!Type.JANGAROO_PACKAGING_TYPES.contains(project.getPackaging())) {
-      return;
-    }
     if (extNamespace == null) {
       if (extNamespaceRequired
-              // app-overlay cannot contain sources
-              && !Type.JANGAROO_APP_OVERLAY_PACKAGING.equals(project.getPackaging())
-              // apps cannot contain sources
-              && !Type.JANGAROO_APPS_PACKAGING.equals(project.getPackaging())) {
+              && Arrays.asList(Type.JANGAROO_PKG_PACKAGING, Type.JANGAROO_SWC_PACKAGING, Type.JANGAROO_APP_PACKAGING).contains(project.getPackaging())) {
         throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
       }
       extNamespace = "";
@@ -195,7 +192,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 .map(entry -> {
                   if (ModuleType.IGNORE == entry.getValue().getModuleType()) {
                     return null;
-                  } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType()) {
+                  } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType() && !isAggregatorToConvert(entry.getValue().getData())) {
                     return null;
                   } else {
                     return getPackageFolderName(entry.getKey());
@@ -236,7 +233,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         String targetPackageJson = targetPackageDir + "/package.json";
         excludePaths.add(targetPackageDir + "/dist");
 
-        JangarooConfig jangarooConfig = new JangarooConfig();
+        final JangarooConfig jangarooConfig = new JangarooConfig();
         AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
         if (mavenModule.getModuleType() == ModuleType.SWC) {
           jangarooConfig.setType(packageType);
@@ -337,6 +334,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
               additionalJsonEntries.addPublishOverride("types", "src/index.d.ts");
             }
           }
+          String projectExtensionFor = mavenModule.getData().getProperties().getProperty("coremedia.project.extension.for");
+          if (projectExtensionFor != null) {
+            Map<String, Object> coremedia = new LinkedHashMap<>();
+            coremedia.put("projectExtensionFor", renameLegacyExtensionPoint(projectExtensionFor));
+            additionalJsonEntries.setCoremedia(coremedia);
+          }
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app");
@@ -429,6 +432,26 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("watch", "jangaroo watch");
           scripts.put("start", "jangaroo run");
           additionalJsonEntries.setScripts(scripts);
+        } else if (mavenModule.getModuleType() == ModuleType.AGGREGATOR && isAggregatorToConvert(mavenModule.getData())) {
+          jangarooConfig.setType("code");
+          Map<String, String> devDependencies = new TreeMap<>();
+          devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+          devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
+          devDependencies.put("rimraf", "^3.0.2");
+          additionalJsonEntries.setDevDependencies(devDependencies);
+          Map<String, String> scripts = new LinkedHashMap<>();
+          scripts.put("clean", "rimraf ./dist && rimraf ./build");
+          scripts.put("build", "jangaroo build");
+          scripts.put("watch", "jangaroo watch");
+          scripts.put("publish", "jangaroo publish dist");
+          additionalJsonEntries.setScripts(scripts);
+          Matcher matcher = EXTENSION_POINT_PATTERN.matcher(mavenModule.getData().getArtifactId());
+          if (matcher.matches()) {
+            Map<String, Object> coremedia = new LinkedHashMap<>();
+            coremedia.put("projectExtensionPoint", matcher.group(1));
+            additionalJsonEntries.setCoremedia(coremedia);
+          }
         } else {
           return;
         }
@@ -517,14 +540,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
         aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
         Map<String, String> sortedDependencies = new TreeMap<>();
-        packageJson.getDependencies().entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> sortedDependencies.put(entry.getKey(), entry.getValue()));
+        if (packageJson.getDependencies() != null) {
+          packageJson.getDependencies().entrySet().stream()
+                  .sorted(Map.Entry.comparingByKey())
+                  .forEach(entry -> sortedDependencies.put(entry.getKey(), entry.getValue()));
+        }
         packageJson.setDependencies(sortedDependencies);
         Map<String, String> sortedDevDependencies = new TreeMap<>();
-        packageJson.getDevDependencies().entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
+        if (packageJson.getDevDependencies() != null) {
+          packageJson.getDevDependencies().entrySet().stream()
+                  .sorted(Map.Entry.comparingByKey())
+                  .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
+        }
         packageJson.setDevDependencies(sortedDevDependencies);
         FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
       }
@@ -728,7 +755,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       if (isJangarooDependency(dependency)) {
         createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
       }
-      if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
+      if (Arrays.asList("swc", "jar").contains(dependency.getType())
+          || isAggregatorToConvert(dependency)) {
         newDependencies.add(createdPackage);
       } else {
         createdPackage = getOrCreateDependencyPackage(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), dependency).orElse(null);
@@ -910,5 +938,22 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       this.hasSourceTsFiles = hasSourceTsFiles;
       this.hasJooUnitTsFiles = hasJooUnitTsFiles;
     }
+  }
+
+  private String renameLegacyExtensionPoint(String extensionPoint) {
+    if ("studio".equals(extensionPoint)) {
+      return "studio-client";
+    } else if ("studio-dynamic".equals(extensionPoint)) {
+      return "studio-client-dynamic";
+    }
+    return extensionPoint;
+  }
+
+  private boolean isAggregatorToConvert(Model mavenProject) {
+    return "pom".equals(mavenProject.getPackaging()) && EXTENSION_POINT_PATTERN.matcher(mavenProject.getArtifactId()).matches();
+  }
+
+  private boolean isAggregatorToConvert(Dependency dependency) {
+    return "pom".equals(dependency.getType()) && EXTENSION_POINT_PATTERN.matcher(dependency.getArtifactId()).matches();
   }
 }

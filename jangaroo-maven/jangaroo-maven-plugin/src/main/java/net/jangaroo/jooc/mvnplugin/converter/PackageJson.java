@@ -37,6 +37,8 @@ public class PackageJson {
   private Map<String, Object> typesVersions;
   @JsonProperty("types")
   private String types;
+  @JsonProperty("coremedia")
+  private Map<String, Object> coremedia;
   @JsonProperty("publishOverrides")
   private Map<String, Object> publishOverrides;
 
@@ -63,6 +65,7 @@ public class PackageJson {
     this.scripts = additionalPackageJsonEntries.getScripts();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
     this.types = additionalPackageJsonEntries.getTypes();
+    this.coremedia = additionalPackageJsonEntries.getCoremedia();
     this.publishOverrides = additionalPackageJsonEntries.getPublishOverrides();
   }
 
@@ -230,6 +233,14 @@ public class PackageJson {
     if (types != null && !types.isEmpty()) {
       this.types = types;
     }
+  }
+
+  public Map<String, Object> getCoremedia() {
+    return coremedia;
+  }
+
+  public void setCoremedia(Map<String, Object> coremedia) {
+    this.coremedia = coremedia;
   }
 
   public Map<String, Object> getPublishOverrides() {
