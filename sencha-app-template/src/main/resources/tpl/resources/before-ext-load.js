@@ -27,7 +27,7 @@ joo.localeSupport = (function() {
             name + "=" + encodeURIComponent(value || "") +
             ((expires === null) ? "" : ("; expires=" + expires.toGMTString())) +
             ((path === null) ? "" : ("; path=" + path)) +
-            ((domain === null) ? "" : ("; domain=" + domain))
+            ((domain === null) ? "" : ("; domain=" + domain)) + "; SameSite=Lax"
   }
 
   return {
