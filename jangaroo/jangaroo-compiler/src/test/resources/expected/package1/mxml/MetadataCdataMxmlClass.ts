@@ -10,7 +10,14 @@ interface MetadataCdataMxmlClass_ extends ConfigClass._ {
      * Let's have a class with two annotations.
      * @see {@link http://help.adobe.com/en_US/flex/using/WSd0ded3821e0d52fe1e63e3d11c2f44bc36-7ff2.html}
      */
-    class MetadataCdataMxmlClass<Cfg extends MetadataCdataMxmlClass._ = MetadataCdataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataCdataMxmlClass._=null){
+    
+/**
+ * The class level comment for the component.
+ * This tag supports all ASDoc tags,
+ * and does not require a CDATA block.
+ * @deprecated Use {@link use.this.please} instead.
+ */
+class MetadataCdataMxmlClass<Cfg extends MetadataCdataMxmlClass._ = MetadataCdataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataCdataMxmlClass._=null){
     super( Exml.apply(new MetadataCdataMxmlClass._({
 }),config));
 }}

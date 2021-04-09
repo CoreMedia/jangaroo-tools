@@ -1,4 +1,5 @@
-
+/*
+[Rename("testPackage.PropertiesTest_de_properties")]*/
 /**
  * Overrides of ResourceBundle "PropertiesTest" for Locale "de".
  * @see PropertiesTest_properties#INSTANCE

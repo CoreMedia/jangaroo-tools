@@ -23,8 +23,7 @@ public class PropertiesClass {
   private static final Pattern RESOURCE_REFERENCE_PATTERN = Pattern.compile(
           "^\\s*Resource\\s*\\(\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*,\\s*(key|bundle)\\s*=\\s*['\"]([^'\"]*)['\"]\\s*\\)\\s*$"
   );
-  private static final String AS3_ANNOTATION_PATTERN = "(^|\\n)\\s*\\*\\s*(\\[[^]]*])";
-  private static final String AS3_ANNOTATION_REPLACEMENT = "$1*/ $2 /*";
+  private static final Pattern AS3_ANNOTATION_PATTERN = Pattern.compile("\\s*\\*\\s*(\\[[^]]*])(\n|$)");
 
   private final ResourceBundleClass resourceBundle;
   private final Locale locale;
@@ -51,12 +50,35 @@ public class PropertiesClass {
   /**
    * takes special care of AS3 annotations
    */
+  public String getAnnotations() {
+    final String comment = getComment();
+    if (comment != null) {
+      // extract all annotations:
+      Matcher matcher = AS3_ANNOTATION_PATTERN.matcher(comment);
+      List<String> annotations = new ArrayList<>();
+      while (matcher.find()) {
+        annotations.add(matcher.group(1));
+      }
+      if (!annotations.isEmpty()) {
+        return String.join("\n", annotations);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * takes special care of AS3 annotations
+   */
   public String getAs3Comment() {
     final String comment = getComment();
-    if (comment == null) {
-      return null;
+    if (comment != null) {
+      // remove all annotations:
+      String withoutAnnotations = AS3_ANNOTATION_PATTERN.matcher(comment).replaceAll("");
+      if (!withoutAnnotations.isEmpty()) {
+        return withoutAnnotations;
+      }
     }
-    return comment.replaceAll(AS3_ANNOTATION_PATTERN, AS3_ANNOTATION_REPLACEMENT);
+    return null;
   }
 
   public List<Property> getProps() {

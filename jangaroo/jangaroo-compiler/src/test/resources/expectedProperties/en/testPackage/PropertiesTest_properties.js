@@ -1,7 +1,8 @@
 /*
+[PublicApi]
+[Rename("testPackage.PropertiesTest_properties")]*/
 /**
- * some comment
-* / [PublicApi]*/ /*
+ * Some class comment in a properties file.
  * @see PropertiesTest_properties#INSTANCE
  */
 Ext.define("testPackage.PropertiesTest_properties", {

@@ -2,9 +2,9 @@ import Icons_properties from "./Icons_properties";
 import MoreIcons_properties from "./icons/MoreIcons_properties";
 
 /**
- * some comment
-*/  /*
+ * Some class comment in a properties file.
  * @see PropertiesTest_properties#INSTANCE
+ * @public
  */
 interface PropertiesTest_properties {
 

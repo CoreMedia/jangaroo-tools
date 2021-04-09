@@ -3,6 +3,9 @@ package ${resourceBundle.packageName} {
 <#list imports as import>
 import ${import};
 </#list>
+<#if annotations??>
+${annotations}
+</#if>
 /**
 <#if as3Comment??>
 ${as3Comment}

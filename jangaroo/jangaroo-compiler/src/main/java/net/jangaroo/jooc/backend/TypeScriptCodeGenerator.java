@@ -2,6 +2,7 @@ package net.jangaroo.jooc.backend;
 
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
+import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -69,6 +70,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -86,6 +88,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private static final String GET_STRING_METHOD_NAME = "getString";
   private static final String REST_RESOURCE_ANNOTATION_NAME = "RestResource";
   private static final String REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME = "uriTemplate";
+  private static final Map<String, Function<Annotation, String>> ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER = new HashMap<String, Function<Annotation, String>>() {{
+    put(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME, annotation -> "\n * @public");
+    put(Jooc.DEPRECATED_ANNOTATION_NAME, annotation -> "\n * @deprecated" + renderDeprecatedParameters(annotation));
+  }};
+
+  private static String renderDeprecatedParameters(Annotation annotation) {
+    List<String> parts = new ArrayList<>();
+    Map<String, Object> propertiesByName = annotation.getPropertiesByName();
+    Object since = propertiesByName.get("since");
+    if (since instanceof String) {
+      parts.add(" since " + since);
+    }
+    Object replacements = propertiesByName.get("replacement");
+    if (replacements instanceof String) {
+      parts.add(" Use {@link " + replacements + "} instead.");
+    }
+    return String.join(".", parts);
+  }
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
@@ -115,12 +135,45 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
      * other whitespace follows.
      */
     List<JooSymbol> whitespaceSymbols = new ArrayList<>();
+    List<Annotation> tsdocTags = new ArrayList<>();
     for (Annotation annotation : annotations) {
       whitespaceSymbols.add(annotation.getSymbol());
+      if (ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER.containsKey(annotation.getMetaName())) {
+        tsdocTags.add(annotation);
+      }
     }
     Collections.addAll(whitespaceSymbols, declaration.getSymModifiers());
     whitespaceSymbols.add(declaration.getDeclarationSymbol());
     whitespaceSymbols.add(declaration.getIde().getSymbol());
+    if (!tsdocTags.isEmpty()) {
+      String tsDoc = toTsdoc(tsdocTags);
+      int lastSymbolWithASDocIndex;
+      String newWhitespace;
+      // find last symbol with ASDoc (if any):
+      JooSymbol lastSymbolWithASDoc = whitespaceSymbols.stream()
+              .reduce(null, (symbolWithASDoc, currentSymbol) -> containsASDoc(currentSymbol) ? currentSymbol : symbolWithASDoc);
+      if (lastSymbolWithASDoc == null) {
+        //noinspection ConstantConditions IDEA bug! Only the filtered list is empty, not the original one!
+        lastSymbolWithASDocIndex = whitespaceSymbols.size();
+        newWhitespace = "/**" + tsDoc + "\n */\n";
+      } else {
+        String whitespace = lastSymbolWithASDoc.getWhitespace();
+        Matcher matcher = Pattern.compile("\n? *\\*/").matcher(whitespace);
+        if (!matcher.find()) {
+          throw new CompilerError(declaration.getSymbol(), "Internal error: End of ASDoc not found.");
+        }
+        StringBuffer builder = new StringBuffer();
+        matcher.appendReplacement(builder, tsDoc + Matcher.quoteReplacement(matcher.group()));
+        newWhitespace = matcher.appendTail(builder).toString();
+        // To not modify the AST, in the whitespace symbols list, replace the symbol containing the ASDoc
+        // by a new one with the modified ASDoc:
+        out.suppressWhitespace(lastSymbolWithASDoc);
+        lastSymbolWithASDocIndex = whitespaceSymbols.indexOf(lastSymbolWithASDoc);
+        whitespaceSymbols.remove(lastSymbolWithASDoc);
+      }
+      whitespaceSymbols.add(lastSymbolWithASDocIndex,
+              new JooSymbol(sym.SEMICOLON, "", -1, -1, newWhitespace, ""));
+    }
     out.writeNonTrivialWhitespace(whitespaceSymbols);
 
     writeModifiers(declaration);
@@ -135,6 +188,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     }
+  }
+
+  private static String toTsdoc(List<Annotation> tsdocTags) {
+    return tsdocTags.stream()
+            .map(tsdocTag -> ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER.get(tsdocTag.getMetaName()).apply(tsdocTag))
+            .collect(Collectors.joining());
   }
 
   @Override

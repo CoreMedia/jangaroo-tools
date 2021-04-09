@@ -1,9 +1,11 @@
 package testPackage {
 
-/**
- * some comment
- */
 [PublicApi]
+[Rename("testPackage.PropertiesTest_properties")]
+/**
+ * Some class comment in a properties file.
+ * @see PropertiesTest_properties#INSTANCE
+ */
 public class PropertiesTest_properties {
   /**
    * Singleton for the current user Locale's instance of ResourceBundle "PropertiesTest".

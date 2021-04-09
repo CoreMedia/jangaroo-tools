@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
+<!---
+ The class level comment for the component.
+ This tag supports all ASDoc tags,
+ and does not require a CDATA block.
+-->
 <p1:ConfigClass xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns:p1="package1.*">
-  <!---
-   The class level comment for the component.
-   This tag supports all ASDoc tags,
-   and does not require a CDATA block.
-  -->
   <fx:Metadata><![CDATA[
     /**
      * Let's have a class with two annotations.
