@@ -389,9 +389,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
           List<String> ignoreFromSrcMain = new ArrayList<>();
           ignoreFromSrcMain.add("app.json");
-          copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
+          CopyFromMavenResult copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
                   ignoreFromSrcMain, targetPackageDir
           );
+          if (copyFromMavenResult.hasSourceTsFiles) {
+            devDependencies.put("eslint", "^7.23.0");
+            scripts.put("lint", "eslint --fix 'src/**/*.ts'");
+          }
         } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
           excludePaths.add(targetPackageDir + "/build");
           jangarooConfig.setType("app-overlay");
