@@ -66,8 +66,8 @@ module.exports = {
       "error",
       {
         "blankLine": "always",
-        "prev": ["class", "interface", "declare namespace"],
-        "next": ["class", "interface", "declare namespace"]
+        "prev": ["abstract class", "class", "interface", "declare namespace", "const"],
+        "next": ["abstract class", "class", "interface", "declare namespace", "export default"],
       },
     ],
     "semi": [
