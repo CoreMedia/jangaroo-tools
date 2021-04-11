@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
-import net.jangaroo.jooc.mvnplugin.converter.IdeaProjectIml;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
 import net.jangaroo.jooc.mvnplugin.converter.MavenModule;
 import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
@@ -483,25 +482,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
         synchronized (lock) {
           String projectName = new File(convertedWorkspaceTarget).getName();
-          File ideaConfigFolder = Paths.get(convertedWorkspaceTarget, ".idea").toFile();
-          File modulesXmlPath = Paths.get(ideaConfigFolder.getPath(), "modules.xml").toFile();
-          File projectImlPath = Paths.get(ideaConfigFolder.getPath(), projectName + ".iml").toFile();
-          //todo: Some security config necessary?
-
-          if (!ideaConfigFolder.exists()) {
-            String modulesXml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                    "<project version=\"4\">\n" +
-                    "  <component name=\"ProjectModuleManager\">\n" +
-                    "    <modules>\n" +
-                    "      <module fileurl=\"file://$PROJECT_DIR$/.idea/%s.iml\" filepath=\"$PROJECT_DIR$/%s\" />\n" +
-                    "    </modules>\n" +
-                    "  </component>\n" +
-                    "</project>\n" +
-                    "", projectName, Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
-            FileUtils.writeStringToFile(modulesXmlPath, modulesXml);
-          }
-          IdeaProjectIml ideaProjectIml = new IdeaProjectIml(convertedWorkspaceTarget, projectImlPath);
-          ideaProjectIml.writeProjectIml(excludePaths);
 
           File gitignoreFile = Paths.get(convertedWorkspaceTarget, ".gitignore").toFile();
           if (!gitignoreFile.exists()) {
@@ -512,11 +492,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             stringJoiner.add("# Jangaroo Build");
             stringJoiner.add("dist/");
             stringJoiner.add("build/");
-            stringJoiner.add("");
-            stringJoiner.add("# IntellIJ IDEA");
-            stringJoiner.add(Paths.get(convertedWorkspaceTarget).relativize(ideaConfigFolder.toPath()).toString() + "/*");
-            stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(modulesXmlPath.toPath()).toString());
-            stringJoiner.add("!" + Paths.get(convertedWorkspaceTarget).relativize(projectImlPath.toPath()).toString());
             stringJoiner.add("");
             String gitignore = stringJoiner.toString();
             FileUtils.writeStringToFile(gitignoreFile, gitignore);
