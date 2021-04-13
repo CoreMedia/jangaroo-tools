@@ -153,7 +153,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       JooSymbol lastSymbolWithASDoc = whitespaceSymbols.stream()
               .reduce(null, (symbolWithASDoc, currentSymbol) -> containsASDoc(currentSymbol) ? currentSymbol : symbolWithASDoc);
       if (lastSymbolWithASDoc == null) {
-        //noinspection ConstantConditions IDEA bug! Only the filtered list is empty, not the original one!
         lastSymbolWithASDocIndex = whitespaceSymbols.size();
         newWhitespace = "/**" + tsDoc + "\n */\n";
       } else {
@@ -374,18 +373,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken("class");
     }
     writeSymbolReplacement(classDeclaration.getIde().getSymbol(), getLocalName(classDeclaration, false));
-    String configTypeParameterDeclaration = "";
-    if (configClassName != null) {
-      configTypeParameterDeclaration = String.format("<Cfg extends %s = %s>", configClassName, configClassName);
-      out.write(configTypeParameterDeclaration);
-    }
-    if (classDeclaration.getOptExtends() != null) {
-      classDeclaration.getOptExtends().visit(this);
-      if (configClassName != null) {
-        // *always* hand through Cfg type parameter to super class if using config system:
-        out.write("<Cfg>");
-      }
-    }
+    visitIfNotNull(classDeclaration.getOptExtends());
 
     if (classDeclaration.getOptImplements() != null) {
       JooSymbol extendsOrImplements;
@@ -399,19 +387,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       visitImplementsFiltered(
               extendsOrImplements,
               classDeclaration.getOptImplements(),
-              configClassName != null,
               realInterfaces);
     }
 
     classDeclaration.getBody().visit(this);
 
     if (needsCompanionInterface) {
-      out.write("\ninterface " + classDeclarationLocalName + configTypeParameterDeclaration);
+      out.write("\ninterface " + classDeclarationLocalName);
       // output "extends [Required<...Configs>,] [<mixin-interfaces>]"
       visitImplementsFiltered(
               new JooSymbol("extends"),
               classDeclaration.getOptImplements(),
-              configClassName != null,
               mixins);
       // visit class body again in "companion interface" mode
       companionInterfaceMode = true;
@@ -543,7 +529,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private void visitImplementsFiltered(JooSymbol symImplementsOrExtends,
                                        Implements optImplements,
-                                       boolean useCfgTypeParameter,
                                        List<Ide> filter) throws IOException {
     JooSymbol lastSym = symImplementsOrExtends;
     if (optImplements != null) {
@@ -556,19 +541,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeSymbol(lastSym);
           lastSym = current.getSymComma();
           head.visit(this);
-          if (useCfgTypeParameter && useCfgTypeParameter(head)) {
-            // hand through my Config class type parameter:
-            out.write("<Cfg>");
-          }
         }
         current = current.getTail();
       } while (current != null);
     }
-  }
-
-  private boolean useCfgTypeParameter(Ide superType) {
-    IdeDeclaration declaration = superType.getDeclaration();
-    return declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass();
   }
 
   @Override
@@ -650,9 +626,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitParameter(Parameter parameter) throws IOException {
+    Initializer initializer = parameter.getOptInitializer();
+    ClassDeclaration configType = parameter.getConfigType();
+    if (configType != null) {
+      // make 'config' constructor parameter readonly (-> field) and non-optional:
+      out.writeToken("readonly");
+      initializer = null;
+    }
     writeOptSymbol(parameter.getOptSymRest());
     parameter.getIde().visit(this);
-    Initializer initializer = parameter.getOptInitializer();
     boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()));
     if (isOptional) {
       out.write("?");
@@ -1742,18 +1724,34 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassBodyDirectives(List<Directive> classBodyDirectives) throws IOException {
-    generateRestResourceUriTemplateConstant(compilationUnit.getPrimaryDeclaration()
-            .getAnnotation(REST_RESOURCE_ANNOTATION_NAME));
-    if (compilationUnit instanceof MxmlCompilationUnit) {
-      for (Directive directive : classBodyDirectives) {
-        // Class body directives are indented by 4 spaces in MXML, but in TypeScript, as class members, they should
-        // only have 2 spaces. In combination with the new # private member syntax, ESLint cannot fix this, so we
-        // do it here.
-        setIndentationToTwo(directive.getSymbol());
-        if (directive instanceof Declaration) {
-          for (Annotation annotation : ((Declaration) directive).getAnnotations()) {
-            setIndentationToTwo(annotation.getSymbol());
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
+
+      // generate REST Resource URI template from annotation:
+      generateRestResourceUriTemplateConstant(primaryDeclaration.getAnnotation(REST_RESOURCE_ANNOTATION_NAME));
+
+      // fix MXML ASDoc:
+      if (compilationUnit instanceof MxmlCompilationUnit) {
+        for (Directive directive : classBodyDirectives) {
+          // Class body directives are indented by 4 spaces in MXML, but in TypeScript, as class members, they should
+          // only have 2 spaces. In combination with the new # private member syntax, ESLint cannot fix this, so we
+          // do it here.
+          setIndentationToTwo(directive.getSymbol());
+          if (directive instanceof Declaration) {
+            for (Annotation annotation : ((Declaration) directive).getAnnotations()) {
+              setIndentationToTwo(annotation.getSymbol());
+            }
           }
+        }
+      }
+
+      // complement 'config' type for classes w/o constructor (usually mixins):
+      if (classDeclaration.getConstructor() == null) {
+        ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+        if (configClassDeclaration != null) {
+          out.write(String.format("\n  declare readonly config: %s._;",
+                  compilationUnitAccessCode(configClassDeclaration)));
         }
       }
     }

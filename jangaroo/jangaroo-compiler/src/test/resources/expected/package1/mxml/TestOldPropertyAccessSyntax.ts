@@ -7,9 +7,9 @@ interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAcces
 }
 
 
-class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = TestOldPropertyAccessSyntax._> extends Object<Cfg>{
+class TestOldPropertyAccessSyntax extends Object{
 
-  static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
+  static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(readonly config:TestOldPropertyAccessSyntax._){
     super();
     this.foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
 }

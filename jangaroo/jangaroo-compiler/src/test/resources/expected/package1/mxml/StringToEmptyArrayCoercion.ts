@@ -5,7 +5,7 @@ interface StringToEmptyArrayCoercion_ {
 }
 
 
-class StringToEmptyArrayCoercion<Cfg extends StringToEmptyArrayCoercion._ = StringToEmptyArrayCoercion._> extends Panel<Cfg>{constructor(config:StringToEmptyArrayCoercion._=null){
+class StringToEmptyArrayCoercion extends Panel{constructor(readonly config:StringToEmptyArrayCoercion._){
     super( Exml.apply(new StringToEmptyArrayCoercion._({
   items:[]
 }),config));

@@ -7,7 +7,7 @@ interface MetadataMxmlClass_ extends ConfigClass._ {
 /**
  * @deprecated Use {@link use.this.please} instead.
  */
-class MetadataMxmlClass<Cfg extends MetadataMxmlClass._ = MetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataMxmlClass._=null){
+class MetadataMxmlClass extends ConfigClass{constructor(readonly config:MetadataMxmlClass._){
     super( Exml.apply(new MetadataMxmlClass._({
 }),config));
 }}

@@ -11,7 +11,7 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 
-class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
+class TestComponentBase implements TestInterface {
 
   static readonly DEFAULT:string = "_DEFAULT_";
 
@@ -21,7 +21,7 @@ class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implement
   #property_1:string = null;
   #property_2:int = 0;
 
-  constructor(config:TestComponent._ = null) {
+  constructor(readonly config:TestComponent._) {
     this.#property_1 = config.property_1 + "_HI";
     this.#property_2 = config.property_2 || 0;
   }

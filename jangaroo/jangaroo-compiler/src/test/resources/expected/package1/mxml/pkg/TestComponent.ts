@@ -9,9 +9,9 @@ interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent
 }
 
 
-class TestComponent<Cfg extends TestComponent._ = TestComponent._> extends TestComponentBase<Cfg>{
+class TestComponent extends TestComponentBase{
 
-  constructor(config:TestComponent._ = null){
+  constructor(readonly config:TestComponent._){
     config = Exml.apply({
     property_1: "withDefault"
     },config);

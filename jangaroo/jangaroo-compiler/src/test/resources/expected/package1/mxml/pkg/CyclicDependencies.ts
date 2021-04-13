@@ -6,9 +6,9 @@ interface CyclicDependencies_ extends Partial<Pick<CyclicDependencies,
 }
 
 
-class CyclicDependencies<Cfg extends CyclicDependencies._ = CyclicDependencies._> extends Object<Cfg>{
+class CyclicDependencies extends Object{
 
-  constructor(config:CyclicDependencies._ = null){
+  constructor(readonly config:CyclicDependencies._){
     super(); Exml.apply(this,config);
   }
 

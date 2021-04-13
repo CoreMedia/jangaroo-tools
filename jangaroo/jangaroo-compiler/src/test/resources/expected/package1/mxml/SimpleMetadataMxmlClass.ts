@@ -5,7 +5,7 @@ interface SimpleMetadataMxmlClass_ extends ConfigClass._ {
 }
 
 
-class SimpleMetadataMxmlClass<Cfg extends SimpleMetadataMxmlClass._ = SimpleMetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:SimpleMetadataMxmlClass._=null){
+class SimpleMetadataMxmlClass extends ConfigClass{constructor(readonly config:SimpleMetadataMxmlClass._){
     super( Exml.apply(new SimpleMetadataMxmlClass._({
 }),config));
 }}

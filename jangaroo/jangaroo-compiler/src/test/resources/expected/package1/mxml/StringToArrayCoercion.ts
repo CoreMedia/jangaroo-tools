@@ -5,7 +5,7 @@ interface StringToArrayCoercion_ {
 }
 
 
-class StringToArrayCoercion<Cfg extends StringToArrayCoercion._ = StringToArrayCoercion._> extends Panel<Cfg>{constructor(config:StringToArrayCoercion._=null){
+class StringToArrayCoercion extends Panel{constructor(readonly config:StringToArrayCoercion._){
     super( Exml.apply(new StringToArrayCoercion._({
            items: ["just a joke"]
 }),config));

@@ -7,7 +7,8 @@ interface TestMixin_ extends Partial<Pick<TestMixin,
 /**
  * This is a test mixin.
  */
-class TestMixin<Cfg extends TestMixin._ = TestMixin._> {
+class TestMixin {
+  declare readonly config: TestMixin._;
   /**
    * An accessor.
    */

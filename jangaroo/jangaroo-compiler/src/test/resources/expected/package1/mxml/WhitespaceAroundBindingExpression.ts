@@ -6,7 +6,7 @@ interface WhitespaceAroundBindingExpression_ {
 }
 
 
-class WhitespaceAroundBindingExpression<Cfg extends WhitespaceAroundBindingExpression._ = WhitespaceAroundBindingExpression._> extends Panel<Cfg>{constructor(config:WhitespaceAroundBindingExpression._=null){
+class WhitespaceAroundBindingExpression extends Panel{constructor(readonly config:WhitespaceAroundBindingExpression._){
     super( Exml.apply(new WhitespaceAroundBindingExpression._({
   layout: new ContainerLayout()
 }),config));

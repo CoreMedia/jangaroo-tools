@@ -9,11 +9,11 @@ interface SimpleMxmlClass_ {
 /**
  * Created by fwienber on 22.02.2021.
  */
-class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends panel<Cfg>{
+class SimpleMxmlClass extends panel{
 
   static readonly xtype:string = "testNamespace.pkg.config.simpleMxmlClass";
 
-  constructor(config:SimpleMxmlClass._ = null){
+  constructor(readonly config:SimpleMxmlClass._){
     super( Exml.apply(new SimpleMxmlClass._({
         title: Exml.asString( package1_mxml_SimpleMxmlClass.xtype)
 

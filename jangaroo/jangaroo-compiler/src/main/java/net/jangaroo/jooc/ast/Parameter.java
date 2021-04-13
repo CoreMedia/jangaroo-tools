@@ -18,7 +18,7 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
-import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.jooc.mxml.MxmlUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -87,6 +87,21 @@ public class Parameter extends IdeDeclaration implements Typed {
         throw JangarooParser.error(getOptInitializer().getSymbol(), "Parameter initializer must be compile-time constant.");
       }
     }
+  }
+
+  public ClassDeclaration getConfigType() {
+    if (MxmlUtils.CONFIG.equals(getName()) && getOptTypeRelation() != null) {
+      FunctionDeclaration functionDeclaration = ((FunctionExpr) getParentDeclaration()).getFunctionDeclaration();
+      if (functionDeclaration != null && functionDeclaration.isConstructor()) {
+        TypeDeclaration declaration = getOptTypeRelation().getType().getDeclaration();
+        if (getClassDeclaration().equals(declaration)
+                // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+                || getClassDeclaration().equals(declaration.getSuperTypeDeclaration())) {
+          return (ClassDeclaration) declaration;
+        }
+      }
+    }
+    return null;
   }
 
   public boolean isRest() {

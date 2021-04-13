@@ -348,14 +348,9 @@ public class ClassDeclaration extends TypeDeclaration {
     if (constructor != null) {
       Parameters params = constructor.getParams();
       while (params != null) {
-        Parameter param = params.getHead();
-        if ("config".equals(param.getName()) && param.getOptTypeRelation() != null) {
-          TypeDeclaration declaration = param.getOptTypeRelation().getType().getDeclaration();
-          if (equals(declaration)
-                  // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
-                  || equals(declaration.getSuperTypeDeclaration())) {
-            return (ClassDeclaration) declaration;
-          }
+        ClassDeclaration configType = params.getHead().getConfigType();
+        if (configType != null) {
+          return configType;
         }
         params = params.getTail();
       }

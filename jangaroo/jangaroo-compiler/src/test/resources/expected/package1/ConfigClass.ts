@@ -11,9 +11,9 @@ interface ConfigClass_ extends Partial<Pick<ConfigClass,
 
 
 
-class ConfigClass<Cfg extends ConfigClass._ = ConfigClass._> extends Observable<Cfg> {
+class ConfigClass extends Observable {
 
-  constructor(config:ConfigClass._ = null) {
+  constructor(readonly config:ConfigClass._) {
     super();
   }
 

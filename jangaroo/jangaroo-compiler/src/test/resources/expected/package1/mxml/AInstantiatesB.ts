@@ -6,9 +6,9 @@ interface AInstantiatesB_ {
 }
 
 
-class AInstantiatesB<Cfg extends AInstantiatesB._ = AInstantiatesB._> extends Panel<Cfg>{
+class AInstantiatesB extends Panel{
 
-  constructor(config:AInstantiatesB._ = null){
+  constructor(readonly config:AInstantiatesB._){
     super( Exml.apply(new AInstantiatesB._({
 
   items:[

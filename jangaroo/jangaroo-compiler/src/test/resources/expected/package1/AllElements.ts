@@ -18,7 +18,7 @@ interface AllElements_ extends Partial<Pick<AllElements,
 /**
  * This is my <b>TestComponent</b>
  */
-class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
+class AllElements extends panel{
 
     /**
      * This is my <b>constant</b>
@@ -43,7 +43,7 @@ class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
       };
     }
 
-  constructor(config:AllElements._ = null){
+  constructor(readonly config:AllElements._){
     super((()=>{this.#__initialize__(config);
   
     this.#myVar3 = new button(_<button._>({

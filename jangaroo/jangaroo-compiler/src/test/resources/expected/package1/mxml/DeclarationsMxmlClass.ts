@@ -15,7 +15,7 @@ interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
 }
 
 
-class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMxmlClass._> extends SomeNativeClass<Cfg>{constructor(config:DeclarationsMxmlClass._=null){
+class DeclarationsMxmlClass extends SomeNativeClass{constructor(readonly config:DeclarationsMxmlClass._){
     super();
     this.bar = "BAR!";
     /**

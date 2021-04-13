@@ -10,7 +10,7 @@ interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataM
 }
 
 
-class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._> extends ConfigClass<Cfg> implements SimpleInterface{
+class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
 
   #field1:SomeOtherClass = null;
   protected field2:Array<string> =["a", "b"];
@@ -20,7 +20,7 @@ class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlC
       for (var v in values) {
         throw "cannot do it with " + v;
       }
-    }constructor(config:ScriptCdataMxmlClass._=null){
+    }constructor(readonly config:ScriptCdataMxmlClass._){
     super( Exml.apply(new ScriptCdataMxmlClass._({
              foo: "bar"
 }),config));
