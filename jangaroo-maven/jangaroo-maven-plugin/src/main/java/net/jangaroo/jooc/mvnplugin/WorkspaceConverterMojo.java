@@ -306,11 +306,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             additionalJsonEntries.setTypesVersions(typesVersions);
           }
 
-          List<String> ignoreFromSrcMain = new ArrayList<>();
-          ignoreFromSrcMain.add("package.json");
+          List<String> ignoreFromSencha = new ArrayList<>();
+          ignoreFromSencha.add("package.json");
           CopyFromMavenResult copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
                   String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
-                  ignoreFromSrcMain, targetPackageDir
+                  ignoreFromSencha, targetPackageDir
           );
           if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
             devDependencies.put("eslint", "^7.23.0");
@@ -386,10 +386,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             typesVersions.put("*", allMapping);
             additionalJsonEntries.setTypesVersions(typesVersions);
           }
-          List<String> ignoreFromSrcMain = new ArrayList<>();
-          ignoreFromSrcMain.add("app.json");
+          List<String> ignoreFromSencha = new ArrayList<>();
+          ignoreFromSencha.add("app.json");
           CopyFromMavenResult copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
-                  ignoreFromSrcMain, targetPackageDir
+                  ignoreFromSencha, targetPackageDir
           );
           if (copyFromMavenResult.hasSourceTsFiles) {
             devDependencies.put("eslint", "^7.23.0");
@@ -577,7 +577,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return matchingFilePaths;
   }
 
-  private CopyFromMavenResult copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, List<String> ignoreFromSrcMainSencha, String targetPackageDir) throws IOException {
+  private CopyFromMavenResult copyCodeFromMaven(String baseDirectory, String generatedExtModuleDirectory, List<String> ignoreFromSencha, String targetPackageDir) throws IOException {
     AtomicBoolean hasSourceTsFiles = new AtomicBoolean(false);
     AtomicBoolean hasJooUnitTsFiles = new AtomicBoolean(false);
 
@@ -608,7 +608,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       });
     }
 
-    List<String> fullIgnoreFromSrcMainSencha = new ArrayList<>(ignoreFromSrcMainSencha);
+    List<String> fullIgnoreFromSrcMainSencha = new ArrayList<>(ignoreFromSencha);
     for (String dir : Arrays.asList("sass/var", "sass/src")) {
       fullIgnoreFromSrcMainSencha.add(dir);
       Path sassDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, dir);
@@ -617,11 +617,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         FileUtils.copyDirectory(sassDirPath.toFile(), targetDirPath.toFile());
       }
     }
-    Path srcMainSenchaPath = Paths.get(baseDirectory, "src", "main", "sencha");
     Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
-    if (srcMainSenchaPath.toFile().exists() && srcMainSenchaPath.toFile().isDirectory()) {
-      FileUtils.copyDirectory(srcMainSenchaPath.toFile(), targetSenchaPath.toFile(),
-              pathname -> acceptFile(pathname, srcMainSenchaPath, fullIgnoreFromSrcMainSencha));
+    for (Path senchaSrc : Arrays.asList(
+            Paths.get(baseDirectory, "src", "main", "sencha"),
+            Paths.get(baseDirectory, "target", "generated-sencha"))) {
+      if (senchaSrc.toFile().exists() && senchaSrc.toFile().isDirectory()) {
+        FileUtils.copyDirectory(senchaSrc.toFile(), targetSenchaPath.toFile(),
+                pathname -> acceptFile(pathname, senchaSrc, fullIgnoreFromSrcMainSencha));
+      }
     }
     return new CopyFromMavenResult(hasSourceTsFiles.get(), hasJooUnitTsFiles.get());
   }

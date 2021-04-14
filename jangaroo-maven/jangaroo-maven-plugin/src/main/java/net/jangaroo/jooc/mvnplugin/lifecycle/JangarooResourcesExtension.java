@@ -11,6 +11,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "JangarooResourcesExtension")
 public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipant {
@@ -20,6 +21,7 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
   private static final String DEFAULT_JOO_SOURCE_DIR = "src/main/joo";
   private static final String DEFAULT_JOO_TEST_SOURCE_DIR = "src/test/joo";
   private static final String DEFAULT_SENCHA_RESOURCES_DIR = "src/main/sencha";
+  private static final String DEFAULT_GENERATED_SENCHA_RESOURCES_DIR = "target/generated-sencha";
   private static final String DEFAULT_SENCHA_TEST_RESOURCES_DIR = "src/test/sencha";
 
   @Override
@@ -27,24 +29,26 @@ public class JangarooResourcesExtension extends AbstractMavenLifecycleParticipan
     for (MavenProject project : session.getProjects()) {
       if (Type.containsJangarooSources(project)) {
 
-        Resource resource = new Resource();
-        resource.setDirectory(DEFAULT_SENCHA_RESOURCES_DIR);
+        Arrays.asList(DEFAULT_SENCHA_RESOURCES_DIR, DEFAULT_GENERATED_SENCHA_RESOURCES_DIR).forEach(dir -> {
+          Resource resource = new Resource();
+          resource.setDirectory(dir);
 
-        // ".." unfortunately the target path is relative to the build.outputDir and it
-        // is not possible to define an absolute path.
-        String outDir = project.getBuild().getOutputDirectory();
-        String buildDir = project.getBuild().getDirectory();
-        String targetPath;
-        if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
-          targetPath = relativizePath(buildDir + SenchaUtils.APP_TARGET_DIRECTORY, outDir);
-        } else {
-          targetPath = relativizePath(buildDir + SenchaUtils.getPackagesPath(project), outDir);
-        }
-        resource.setTargetPath(targetPath);
-        resource.setFiltering(false);
-        resource.addExclude("sass/var/**");
-        resource.addExclude("sass/src/**");
-        project.addResource(resource);
+          // ".." unfortunately the target path is relative to the build.outputDir and it
+          // is not possible to define an absolute path.
+          String outDir = project.getBuild().getOutputDirectory();
+          String buildDir = project.getBuild().getDirectory();
+          String targetPath;
+          if (Type.JANGAROO_APP_PACKAGING.equals(project.getPackaging())) {
+            targetPath = relativizePath(buildDir + SenchaUtils.APP_TARGET_DIRECTORY, outDir);
+          } else {
+            targetPath = relativizePath(buildDir + SenchaUtils.getPackagesPath(project), outDir);
+          }
+          resource.setTargetPath(targetPath);
+          resource.setFiltering(false);
+          resource.addExclude("sass/var/**");
+          resource.addExclude("sass/src/**");
+          project.addResource(resource);
+        });
 
         Resource testResource = new Resource();
         testResource.setDirectory(DEFAULT_SENCHA_TEST_RESOURCES_DIR);
