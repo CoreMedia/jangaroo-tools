@@ -9,7 +9,8 @@ interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent
 }
 
 
-class TestComponent<Cfg extends TestComponent._ = TestComponent._> extends TestComponentBase<Cfg>{
+class TestComponent extends TestComponentBase{
+  declare readonly initialConfig: TestComponent._;
 
   constructor(config:TestComponent._ = null){
     config = Exml.apply({

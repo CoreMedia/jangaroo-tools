@@ -6,7 +6,8 @@ interface CyclicDependencies_ extends Partial<Pick<CyclicDependencies,
 }
 
 
-class CyclicDependencies<Cfg extends CyclicDependencies._ = CyclicDependencies._> extends Object<Cfg>{
+class CyclicDependencies extends Object{
+  declare readonly initialConfig: CyclicDependencies._;
 
   constructor(config:CyclicDependencies._ = null){
     super(); Exml.apply(this,config);

@@ -11,7 +11,8 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 
-class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
+class TestComponentBase implements TestInterface {
+  declare readonly initialConfig: TestComponent._;
 
   static readonly DEFAULT:string = "_DEFAULT_";
 

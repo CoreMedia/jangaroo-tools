@@ -10,7 +10,8 @@ interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataM
 }
 
 
-class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._> extends ConfigClass<Cfg> implements SimpleInterface{
+class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
+  declare readonly initialConfig: ScriptCdataMxmlClass._;
 
   #field1:SomeOtherClass = null;
   protected field2:Array<string> =["a", "b"];

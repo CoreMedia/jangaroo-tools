@@ -18,7 +18,8 @@ interface AllElements_ extends Partial<Pick<AllElements,
 /**
  * This is my <b>TestComponent</b>
  */
-class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
+class AllElements extends panel{
+  declare readonly initialConfig: AllElements._;
 
     /**
      * This is my <b>constant</b>

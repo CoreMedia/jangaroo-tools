@@ -17,7 +17,8 @@ interface MetadataCdataMxmlClass_ extends ConfigClass._ {
  * and does not require a CDATA block.
  * @deprecated Use {@link use.this.please} instead.
  */
-class MetadataCdataMxmlClass<Cfg extends MetadataCdataMxmlClass._ = MetadataCdataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:MetadataCdataMxmlClass._=null){
+class MetadataCdataMxmlClass extends ConfigClass{
+  declare readonly initialConfig: MetadataCdataMxmlClass._;constructor(config:MetadataCdataMxmlClass._=null){
     super( Exml.apply(new MetadataCdataMxmlClass._({
 }),config));
 }}

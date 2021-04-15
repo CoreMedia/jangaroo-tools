@@ -29,7 +29,8 @@ interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
  *  My config class subclass, authored in MXML.
  */
 
-class SimpleMxmlClass<Cfg extends SimpleMxmlClass._ = SimpleMxmlClass._> extends ConfigClass<Cfg>{
+class SimpleMxmlClass extends ConfigClass{
+  declare readonly initialConfig: SimpleMxmlClass._;
 
   static readonly xtype:string = "testNamespace.config.simpleMxmlClass";
 

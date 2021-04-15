@@ -5,7 +5,8 @@ interface PropertiesAccess_ extends PropertiesAccessBase._ {
 }
 
 
-class PropertiesAccess<Cfg extends PropertiesAccess._ = PropertiesAccess._> extends PropertiesAccessBase<Cfg>{constructor(config:PropertiesAccess._=null){
+class PropertiesAccess extends PropertiesAccessBase{
+  declare readonly initialConfig: PropertiesAccess._;constructor(config:PropertiesAccess._=null){
     super( Exml.apply(new PropertiesAccess._({
         property_1: "egal",
         property_2: "egaler",
