@@ -1,4 +1,4 @@
-import { _, asConfig } from "@jangaroo/joo/AS3";
+import { _, asConfig } from "@jangaroo/runtime/AS3";
 import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";

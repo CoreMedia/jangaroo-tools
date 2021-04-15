@@ -1,4 +1,4 @@
-import {cast} from '@jangaroo/joo/AS3';
+import {cast} from '@jangaroo/runtime/AS3';
 import Exml from '../../net/jangaroo/ext/Exml';
 import TestComponentBase2 from './pkg2/TestComponentBase2';
 interface UndefinedTypeInBinding_ extends TestComponentBase2._ {

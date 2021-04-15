@@ -1,4 +1,4 @@
-import { mixin } from "@jangaroo/joo/AS3";
+import { mixin } from "@jangaroo/runtime/AS3";
 import TestMixin from "./TestMixin";
 
 

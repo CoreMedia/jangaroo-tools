@@ -1,4 +1,4 @@
-import { _, asConfig, cast } from "@jangaroo/joo/AS3";
+import { _, asConfig, cast } from "@jangaroo/runtime/AS3";
 import button from "../ext/config/button";
 import menuitem from "../ext/config/menuitem";
 import allElements from "../exmlparser/config/allElements";

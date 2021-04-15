@@ -231,7 +231,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
-      out.write(String.format("import { %s } from \"@jangaroo/joo/AS3\";\n",
+      out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
               String.join(", ", compilationUnit.getUsedBuiltInIdentifiers())));
     }
 

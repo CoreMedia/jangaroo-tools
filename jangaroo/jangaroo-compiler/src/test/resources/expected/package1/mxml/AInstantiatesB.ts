@@ -1,4 +1,4 @@
-import { _, cast } from "@jangaroo/joo/AS3";
+import { _, cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import Panel from "../../ext/Panel";
 import BDeclaresA from "./BDeclaresA";

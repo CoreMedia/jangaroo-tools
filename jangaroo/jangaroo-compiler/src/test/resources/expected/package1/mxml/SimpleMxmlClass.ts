@@ -1,4 +1,4 @@
-import { _, asConfig, bind, cast } from "@jangaroo/joo/AS3";
+import { _, asConfig, bind, cast } from "@jangaroo/runtime/AS3";
 import SomeEvent from "../someOtherPackage/SomeEvent";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";

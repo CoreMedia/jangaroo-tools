@@ -1,4 +1,4 @@
-import { cast } from "@jangaroo/joo/AS3";
+import { cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import Panel from "../../ext/Panel";
 import ContainerLayout from "../../ext/layout/ContainerLayout";

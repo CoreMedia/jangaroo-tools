@@ -1,4 +1,4 @@
-import { cast, mixin } from "@jangaroo/joo/AS3";
+import { cast, mixin } from "@jangaroo/runtime/AS3";
 import SimpleInterface from "./SimpleInterface";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";

@@ -78,8 +78,8 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
     if (npmPackageName.startsWith("net.jangaroo__")) {
       // well-known vendor prefix net.jangaroo -> @jangaroo
       npmPackageName = npmPackageName.replace("net.jangaroo__", "@jangaroo/");
-      // very special case jangaroo-runtime -> joo
-      npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/joo");
+      // very special case jangaroo-runtime -> runtime
+      npmPackageName = npmPackageName.replace("/jangaroo-runtime", "/runtime");
       // another special case: 'ext-as' is replaced by 'ext-ts' for everything in namespace 'Ext' and
       // by 'joo' for everything else:
       if (npmPackageName.endsWith("ext-as")) {
