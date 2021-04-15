@@ -217,9 +217,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
       Iterator<Directive> iterator = classBodyDirectives.iterator();
       while (iterator.hasNext()) {
         Directive directive = iterator.next();
-        if (directive instanceof IdeDeclaration) {
-          IdeDeclaration declaration = (IdeDeclaration) directive;
-          if (declaration.isPrivate() && constructorParam.getName().equals(declaration.getName())) {
+        if (directive instanceof VariableDeclaration) {
+          VariableDeclaration declaration = (VariableDeclaration) directive;
+          if (declaration.isPrivate() && !declaration.isStatic() &&
+                  constructorParam.getName().equals(declaration.getName())) {
             iterator.remove();
             break;
           }
