@@ -1747,7 +1747,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
 
       // complement 'config' type for classes w/o constructor (usually mixins):
-      if (classDeclaration.getConstructor() == null) {
+      if (classDeclaration.getConstructor() == null && !companionInterfaceMode) {
         ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
         if (configClassDeclaration != null) {
           out.write(String.format("\n  declare readonly config: %s._;",
