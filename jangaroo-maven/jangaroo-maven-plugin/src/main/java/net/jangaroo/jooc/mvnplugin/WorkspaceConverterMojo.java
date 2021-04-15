@@ -496,6 +496,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             String gitignore = stringJoiner.toString();
             FileUtils.writeStringToFile(gitignoreFile, gitignore);
           }
+
+          File npmrcFile = Paths.get(convertedWorkspaceTarget, ".npmrc").toFile();
+          if (!npmrcFile.exists()) {
+            StringJoiner stringJoiner = new StringJoiner("\n");
+            stringJoiner.add("# as long as we use a typescript beta version we need this");
+            stringJoiner.add("# otherwise the wrong typescript is installed due to a peer dependency");
+            stringJoiner.add("legacy-peer-deps=true");
+            stringJoiner.add("");
+            String npmrc = stringJoiner.toString();
+            FileUtils.writeStringToFile(npmrcFile, npmrc);
+          }
         }
 
         String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
