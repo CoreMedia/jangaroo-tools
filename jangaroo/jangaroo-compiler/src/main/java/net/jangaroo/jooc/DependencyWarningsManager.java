@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -198,29 +199,23 @@ public class DependencyWarningsManager {
     }
 
 
-    public String[] createUsedUndeclaredDependencyWarning(boolean isTestCompile) {
-      String[] dependencyWarningString = {dependency};
+    public String createUsedUndeclaredDependencyWarning(boolean isTestCompile) {
       CompileDependency compileDependency = new CompileDependency(dependency);
       if (compileDependency.getArtifactId() == null || compileDependency.getGroupId() == null || compileDependency.getVersion() == null) {
-        return dependencyWarningString;
+        return dependency;
       }
+      StringJoiner stringJoiner = new StringJoiner("\n");
+      stringJoiner.add("<dependency>");
+      stringJoiner.add(String.format(" <groupId>%s</groupId>", compileDependency.getGroupId()));
+      stringJoiner.add(String.format(" <artifactId>%s</artifactId>", compileDependency.getArtifactId()));
+      stringJoiner.add(String.format(" <version>%s</version>", compileDependency.getVersion()));
+
+      stringJoiner.add(" <type>swc</type>");
       if (isTestCompile) {
-        dependencyWarningString = new String[7];
-      } else {
-        dependencyWarningString = new String[6];
+        stringJoiner.add(" <scope>test</scope>");
       }
-      dependencyWarningString[0] = "<dependency>";
-      dependencyWarningString[1] = String.format(" <groupId>%s</groupId>", compileDependency.getGroupId());
-      dependencyWarningString[2] = String.format(" <artifactId>%s</artifactId>", compileDependency.getArtifactId());
-      dependencyWarningString[3] = String.format(" <version>%s</version>", compileDependency.getVersion());
-      dependencyWarningString[4] = " <type>swc</type>";
-      if (isTestCompile) {
-        dependencyWarningString[5] = " <scope>test</scope>";
-        dependencyWarningString[6] = "</dependency>";
-      } else {
-        dependencyWarningString[5] = "</dependency>";
-      }
-      return dependencyWarningString;
+      stringJoiner.add("</dependency>");
+      return stringJoiner.toString();
     }
 
     public boolean warningOnlyInTests() {

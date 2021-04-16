@@ -290,8 +290,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
                 .forEach(dependencyWarning -> {
                   getLog().warning(String.format(getConfig().isTestCompile()? testDependencyCompileWarningFormat : dependencyCompileWarningFormat, dependencyWarning.getDependency()));
                   dependencyWarning.getUsages().forEach(s -> getLog().warning("    " + s));
-                  getLog().warning("Add the following to your pom:");
-                  Arrays.stream(dependencyWarning.createUsedUndeclaredDependencyWarning(getConfig().isTestCompile())).forEach(getLog()::warning);
+                  getLog().warning("Add the following to your pom:\n"+ dependencyWarning.createUsedUndeclaredDependencyWarning(getConfig().isTestCompile()));
                 });
       }
 
