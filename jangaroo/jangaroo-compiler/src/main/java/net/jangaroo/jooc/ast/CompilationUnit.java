@@ -278,6 +278,10 @@ public class CompilationUnit extends NodeImplBase {
     return getInputSource().isInSourcePath();
   }
 
+  public boolean isInCompilePath() {
+    return getInputSource().isInCompilePath();
+  }
+
   public void addBuiltInIdentifierUsage(String builtInIdentifier) {
     usedBuiltInIdentifiers.add(builtInIdentifier);
   }

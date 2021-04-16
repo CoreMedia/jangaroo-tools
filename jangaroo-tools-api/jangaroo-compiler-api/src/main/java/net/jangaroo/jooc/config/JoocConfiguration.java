@@ -44,6 +44,9 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private File catalogOutputDirectory;
   private File reportOutputDirectory;
 
+  private boolean enableUnusedDependenciesCheck;
+  private boolean testCompile;
+
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
   }
@@ -273,5 +276,25 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-report", aliases = "--reportDir", usage = "output directory for compilation reports like the cyclic classes report")
   public void setReportOutputDirectory(File reportOutputDirectory) {
     this.reportOutputDirectory = reportOutputDirectory;
+  }
+
+  @Override
+  public boolean isEnableUnusedDependenciesCheck() {
+    return this.enableUnusedDependenciesCheck;
+  }
+
+  @Option(name = "--enableUnusedDependenciesCheck", usage = "Should the check for unused dependencies be enabled.")
+  public void setEnableUnusedDependenciesCheck(boolean enableUnusedDependenciesCheck) {
+    this.enableUnusedDependenciesCheck = enableUnusedDependenciesCheck;
+  }
+
+  @Override
+  public boolean isTestCompile() {
+    return this.testCompile;
+  }
+
+  @Option(name = "--testCompile", usage = "Specify if the compiled code is test code. This is relevant for the dependency checks. This is especially relevant for the check for unused dependencies, as maven can not know if an unused test compile dependency was intended as a test runtime dependency")
+  public void setTestCompile(boolean checkForUnusedDependencies) {
+    this.testCompile = checkForUnusedDependencies;
   }
 }

@@ -37,6 +37,37 @@ public class ZipFileInputSource extends DirectoryInputSource {
    * @param file     a zip or jar file
    * @param rootDirs a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
    * @param inSourcePath whether this is part of the source path
+   * @param inCompilePath whether this is part of the compile path
+   * @throws IOException if an IO error occurs
+   */
+  public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath, boolean inCompilePath) throws IOException {
+    super(inSourcePath, inCompilePath);
+    this.file = file;
+    this.zipFile = new ZipFile(file);
+    this.rootDirs = rootDirs.clone();
+    final Enumeration<? extends ZipEntry> zipEntryEnum = zipFile.entries();
+    while (zipEntryEnum.hasMoreElements()) {
+      ZipEntry entry = zipEntryEnum.nextElement();
+      final String relativePath = getRelativePath(entry.getName());
+      if (relativePath != null && !entries.containsKey(relativePath)) {
+        ZipEntryInputSource zipEntryInputSource = new ZipEntryInputSource(this, entry, relativePath);
+        this.entries.put(relativePath, zipEntryInputSource);
+
+        int slashPos = relativePath.lastIndexOf('/');
+        String parent = relativePath.substring(0, slashPos + 1);
+        entriesByParent.put(removeTrailingSlash(parent), zipEntryInputSource);
+      }
+    }
+    readSenchaPackageJson();
+  }
+
+  /**
+   * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
+   * with all entries with paths relative to the given root directories
+   *
+   * @param file     a zip or jar file
+   * @param rootDirs a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
+   * @param inSourcePath whether this is part of the source path
    * @throws IOException if an IO error occurs
    */
   public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath) throws IOException {

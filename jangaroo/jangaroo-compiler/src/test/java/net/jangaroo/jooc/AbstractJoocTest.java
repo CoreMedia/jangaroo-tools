@@ -116,7 +116,7 @@ public class AbstractJoocTest {
   }
 
   void generateCatalogFromManifest(File manifestFile, File catalogFile) throws IOException {
-    InputSource inputSource = new FileInputSource(manifestFile, true);
+    InputSource inputSource = new FileInputSource(manifestFile, true, false);
     ComponentPackageModel componentPackageModel = new ComponentPackageManifestParser("library://test.namespace").parse(inputSource.getInputStream());
     MxmlComponentRegistry mxmlComponentRegistry = new MxmlComponentRegistry();
     mxmlComponentRegistry.add(componentPackageModel);

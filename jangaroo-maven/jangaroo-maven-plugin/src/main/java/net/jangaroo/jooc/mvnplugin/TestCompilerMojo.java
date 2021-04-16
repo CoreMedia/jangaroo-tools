@@ -68,7 +68,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   protected boolean skip;
 
   /**
-   * 
    * @return null as API stub generation does not make sense for test sources
    */
   @Override
@@ -80,7 +79,6 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   protected List<File> getCompileSourceRoots() {
     return Arrays.asList(testSourceDirectory, generatedTestSourcesDirectory);
   }
-
 
   @Override
   protected File getOutputDirectory() {
@@ -98,6 +96,15 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   @Override
+  protected List<File> getActionScriptCompilePath() {
+    List<File> actionScriptCompilePath = getMavenPluginHelper().getActionScriptCompilePath(true);
+    actionScriptCompilePath.add(0, getSourceDirectory());
+    actionScriptCompilePath.add(0, getGeneratedSourcesDirectory());
+    actionScriptCompilePath.add(getCatalogOutputDirectory());
+    return actionScriptCompilePath;
+  }
+
+  @Override
   protected List<File> getActionScriptClassPath() {
     final List<File> classPath = new ArrayList<>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, getSourceDirectory());
@@ -108,8 +115,18 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if(!skip) {
+    if (!skip) {
       super.execute();
     }
+  }
+
+  @Override
+  protected boolean checkForUnusedDependencies() {
+    return false;
+  }
+
+  @Override
+  protected boolean isTestRun() {
+    return true;
   }
 }

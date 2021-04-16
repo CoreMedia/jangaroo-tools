@@ -7,6 +7,7 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -37,7 +38,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MavenPluginHelper {
   public static final String META_INF_RESOURCES = "META-INF/resources/";
@@ -52,6 +56,7 @@ public class MavenPluginHelper {
 
   /**
    * Creates a default manifest file for any Jangaroo-packaged Maven project
+   *
    * @param project the Maven project with packaging type "jangaroo-app" or "pkg"
    * @return the default manifest file
    * @throws ManifestException
@@ -60,7 +65,7 @@ public class MavenPluginHelper {
    */
   @Nonnull
   public static File createDefaultManifest(MavenProject project)
-      throws ManifestException, IOException, ArchiverException {
+          throws ManifestException, IOException, ArchiverException {
     Manifest manifest = new Manifest();
     Manifest.Attribute attr = new Manifest.Attribute("Created-By", "Apache Maven");
     manifest.addConfiguredAttribute(attr);
@@ -172,6 +177,38 @@ public class MavenPluginHelper {
       classPath.add(0, jooApiDir);
     }
     return classPath;
+  }
+
+  private Artifact dependencyToArtifact(Dependency dependency) {
+    return project.getArtifacts().stream()
+            .filter(artifact -> artifact.getGroupId().equals(dependency.getGroupId()))
+            .filter(artifact -> artifact.getArtifactId().equals(dependency.getArtifactId()))
+            .findFirst()
+            .orElse(null);
+  }
+
+  public List<File> getActionScriptCompilePath(boolean includeInTestScope) {
+    return project.getDependencies().stream()
+            .map(this::dependencyToArtifact)
+            .filter(Objects::nonNull)
+            .filter(artifact -> {
+              if (log.isDebugEnabled()) {
+                log.debug("Dependency: " + artifact.getGroupId() + ":" + artifact.getArtifactId() + " type: " + artifact.getType());
+              }
+              if (!artifact.isOptional()
+                      && (Artifact.SCOPE_COMPILE.equals(artifact.getScope())
+                      || Artifact.SCOPE_PROVIDED.equals(artifact.getScope())
+                      || includeInTestScope && Artifact.SCOPE_TEST.equals(artifact.getScope()))
+                      && Type.SWC_EXTENSION.equals(artifact.getType())) {
+                if (log.isDebugEnabled()) {
+                  log.debug("adding to compile path: compile artifact [" + artifact.toString() + "]");
+                }
+                return true;
+              }
+              return false;
+            })
+            .map(Artifact::getFile)
+            .collect(Collectors.toList());
   }
 
   public static void extractFileTemplate(File targetDirectory,

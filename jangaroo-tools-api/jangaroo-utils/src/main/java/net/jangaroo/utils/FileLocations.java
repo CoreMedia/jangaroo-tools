@@ -26,6 +26,9 @@ public class FileLocations {
   private Map<String, List<File>> sassSourceFilesByType = new HashMap<>();
   // the class path (including directories and jars) from which referenced classes are loaded
   private List<File> classPath = new ArrayList<>(); // may contain directories and jar files
+  // the compile path (including directories and jars) from which referenced classes are loaded. This is the
+  // subset of the classPath that may be directly referenced by the sourcePath
+  private List<File> compilePath = new ArrayList<>(); // may contain directories and jar files
   // the directory into which output files are generated
   private File outputDirectory;
   // the directory into which sass output files are generated
@@ -71,6 +74,16 @@ public class FileLocations {
 
   public List<File> getClassPath() {
     return classPath;
+  }
+
+  @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows)")
+  public void setCompilePath(final List<File> compilePath) {
+    assert compilePath != null;
+    this.compilePath = Collections.unmodifiableList(compilePath);
+  }
+
+  public List<File> getCompilePath() {
+    return compilePath;
   }
 
   @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows)")

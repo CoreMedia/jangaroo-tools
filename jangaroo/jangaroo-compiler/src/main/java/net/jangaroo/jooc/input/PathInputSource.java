@@ -14,6 +14,28 @@ public class PathInputSource extends DirectoryInputSource {
     return fromFiles(files, rootDirs, inSourcePath, null);
   }
 
+  public static PathInputSource createCompilePathAwareClassPath(List<File> classPath, String[] rootDirs, String extNamespace, List<File> compilePath) throws IOException {
+    boolean inCompilePath = false;
+    List<InputSource> entries = new ArrayList<>();
+    StringBuilder name = new StringBuilder();
+    for (File file : classPath) {
+      //inCompilePath = compilePath.stream()
+              //.map(File::getAbsolutePath)
+              //.anyMatch(s -> file.getAbsolutePath().contains(s));
+      inCompilePath = compilePath.contains(file);
+      if (file.isDirectory()) {
+        entries.add(new FileInputSource(file, file, false, inCompilePath, extNamespace));
+      } else if (file.getName().endsWith(".swc") || file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
+        entries.add(new ZipFileInputSource(file, rootDirs, false, inCompilePath));
+      }
+      if (name.length() != 0) {
+        name.append(File.pathSeparatorChar);
+      }
+      name.append(file.getAbsolutePath());
+    }
+    return new PathInputSource(name.toString(), entries, false, inCompilePath);
+  }
+
   public static PathInputSource fromFiles(List<File> files, String[] rootDirs, boolean inSourcePath, String extNamespace) throws IOException {
     List<InputSource> entries = new ArrayList<InputSource>();
     StringBuilder name = new StringBuilder();
@@ -29,6 +51,12 @@ public class PathInputSource extends DirectoryInputSource {
       name.append(file.getAbsolutePath());
     }
     return new PathInputSource(name.toString(), entries, inSourcePath);
+  }
+
+  public PathInputSource(final String name, final List<InputSource> entries, boolean inSourcePath, boolean inCompilePath) {
+    super(inSourcePath, inCompilePath);
+    this.name = name;
+    this.entries = entries;
   }
 
   public PathInputSource(final String name, final List<InputSource> entries, boolean inSourcePath) {

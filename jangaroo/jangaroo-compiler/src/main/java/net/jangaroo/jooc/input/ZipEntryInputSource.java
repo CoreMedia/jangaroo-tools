@@ -37,6 +37,11 @@ public class ZipEntryInputSource implements InputSource {
   }
 
   @Override
+  public boolean isInCompilePath() {
+    return zipFileInputSource.isInCompilePath();
+  }
+
+  @Override
   public String getName() {
     return name;
   }

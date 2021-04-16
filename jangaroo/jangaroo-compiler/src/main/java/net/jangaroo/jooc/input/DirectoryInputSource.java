@@ -6,10 +6,17 @@ import java.io.InputStream;
 public abstract class DirectoryInputSource implements InputSource {
 
   private boolean inSourcePath;
+  private boolean inCompilePath;
   String extNamespace;
 
   protected DirectoryInputSource(boolean inSourcePath) {
     this.inSourcePath = inSourcePath;
+    this.inCompilePath = false;
+  }
+
+  public DirectoryInputSource(boolean inSourcePath, boolean inCompilePath) {
+    this.inSourcePath = inSourcePath;
+    this.inCompilePath = inCompilePath;
   }
 
   @Override
@@ -20,6 +27,11 @@ public abstract class DirectoryInputSource implements InputSource {
   @Override
   public boolean isInSourcePath() {
     return inSourcePath;
+  }
+
+  @Override
+  public boolean isInCompilePath() {
+    return inCompilePath;
   }
 
   @Override

@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -76,6 +77,16 @@ public class JoocTest extends AbstractJoocTest {
     jooc.run();
 
     checkForErrorMessage("Expected error (illegal modifier) did not occur", "illegal modifier: static", 4, 3);
+  }
+
+  @Test
+  public void testReportMissingDependencies() throws Exception{
+    File sourceFile = getFile("/package1/InterfaceInvalidModifier1.as");
+    File classFile = getFile("/directDependencies/Test.as");
+    config.addSourceFile(sourceFile);
+    config.setClassPath(Arrays.asList(classFile));
+    config.setCompilePath(Arrays.asList(classFile));
+    jooc.run();
   }
 
   @Test

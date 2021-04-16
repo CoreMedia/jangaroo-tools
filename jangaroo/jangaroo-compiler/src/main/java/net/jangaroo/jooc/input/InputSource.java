@@ -36,4 +36,6 @@ public interface InputSource {
   InputSource getParent();
 
   boolean isInSourcePath();
+
+  boolean isInCompilePath();
 }

@@ -160,7 +160,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(property = "extSassNamespace")
   private String extSassNamespace;
 
-  @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
+  @Parameter(defaultValue = "${project.basedir}/src/main/sencha")
   private File senchaSrcDir;
 
   /**
@@ -169,11 +169,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
    * An example would be
-   *     function foo(bar: string = "default"): string {
-   *       return bar;
-   *     }
-   *     foo(); // "default" for both AS3 and ECMAScript semantics
-   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   * function foo(bar: string = "default"): string {
+   * return bar;
+   * }
+   * foo(); // "default" for both AS3 and ECMAScript semantics
+   * foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
    */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
@@ -223,9 +223,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Nullable
   protected abstract File getApiOutputDirectory();
 
-  public boolean isMigrateToTypeScript() { return migrateToTypeScript; }
+  public boolean isMigrateToTypeScript() {
+    return migrateToTypeScript;
+  }
 
-  public boolean isSuppressCommentedActionScriptCode() { return suppressCommentedActionScriptCode; }
+  public boolean isSuppressCommentedActionScriptCode() {
+    return suppressCommentedActionScriptCode;
+  }
 
   protected File getCatalogOutputDirectory() {
     return catalogOutputDirectory;
@@ -313,7 +317,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setNpmPackageNameReplacers(
             npmPackageNameReplacers.stream()
                     .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
-            .collect(Collectors.toList())
+                    .collect(Collectors.toList())
     );
 
     if (StringUtils.isNotEmpty(debuglevel)) {
@@ -370,9 +374,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       throw new MojoFailureException("could not canonicalize source paths: " + getCompileSourceRoots(), e);
     }
     configuration.setClassPath(getActionScriptClassPath());
+    configuration.setCompilePath(getActionScriptCompilePath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
+    configuration.setTestCompile(checkForUnusedDependencies());
+    configuration.setEnableUnusedDependenciesCheck(checkForUnusedDependencies());
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {
@@ -410,6 +417,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     return configuration;
   }
 
+  protected abstract boolean checkForUnusedDependencies();
+
+  protected abstract boolean isTestRun();
+
   private String findConfigClassPackageInExmlPluginConfiguration() {
     String configClassPackage = null;
     @SuppressWarnings("unchecked")
@@ -433,6 +444,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
     return configClassPackage;
   }
+
+  protected abstract List<File> getActionScriptCompilePath();
 
   protected abstract List<File> getActionScriptClassPath();
 
