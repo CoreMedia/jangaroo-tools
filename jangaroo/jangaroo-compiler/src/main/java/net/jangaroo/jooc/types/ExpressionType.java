@@ -81,6 +81,11 @@ public class ExpressionType {
     return typeParameter;
   }
 
+  public boolean isObject() {
+    return getAS3Type() == AS3Type.OBJECT && getDeclaration() instanceof ClassDeclaration
+            && ((ClassDeclaration) getDeclaration()).isObject();
+  }
+
   public boolean isArrayLike() {
     return getAS3Type() == AS3Type.ARRAY || getAS3Type() == AS3Type.VECTOR;
   }
@@ -107,10 +112,7 @@ public class ExpressionType {
       return true;
     }
 
-    ClassDeclaration toCheckClassDeclaration = toCheck.getDeclaration() instanceof ClassDeclaration ?
-            (ClassDeclaration) toCheck.getDeclaration() : null;
-
-    if (toCheckClassDeclaration != null && toCheckClassDeclaration.isObject()) {
+    if (toCheck.isObject()) {
       // everything can be an object
       return true;
     }
@@ -135,7 +137,7 @@ public class ExpressionType {
 
     // what about simple types here? currently handled in Visitor
 
-    if (toCheckClassDeclaration == null || !(getDeclaration() instanceof ClassDeclaration)) {
+    if (!(toCheck.getDeclaration() instanceof ClassDeclaration && getDeclaration() instanceof ClassDeclaration)) {
       // this is either a void declaration, cannot be any as this was already checked
       return getAS3Type().equals(expectedAS3Type);
     }
