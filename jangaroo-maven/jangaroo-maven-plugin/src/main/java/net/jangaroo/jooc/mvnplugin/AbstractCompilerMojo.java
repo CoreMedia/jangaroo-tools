@@ -378,7 +378,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
-    configuration.setTestCompile(checkForUnusedDependencies());
+    configuration.setTestCompile(isTestRun());
     configuration.setEnableUnusedDependenciesCheck(checkForUnusedDependencies());
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
