@@ -1,4 +1,4 @@
-import { _, asConfig, cast } from "@jangaroo/joo/AS3";
+import { _, asConfig, cast } from "@jangaroo/runtime/AS3";
 import button from "../ext/config/button";
 import menuitem from "../ext/config/menuitem";
 import allElements from "../exmlparser/config/allElements";
@@ -18,7 +18,8 @@ interface AllElements_ extends Partial<Pick<AllElements,
 /**
  * This is my <b>TestComponent</b>
  */
-class AllElements<Cfg extends AllElements._ = AllElements._> extends panel<Cfg>{
+class AllElements extends panel{
+  declare readonly initialConfig: AllElements._;
 
     /**
      * This is my <b>constant</b>

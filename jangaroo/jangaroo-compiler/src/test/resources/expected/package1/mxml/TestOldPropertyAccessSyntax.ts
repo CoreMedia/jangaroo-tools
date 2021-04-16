@@ -1,4 +1,4 @@
-import { asConfig } from "@jangaroo/joo/AS3";
+import { asConfig } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import PropertiesTest_properties from "../../testPackage/PropertiesTest_properties";
 interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAccessSyntax,
@@ -7,7 +7,8 @@ interface TestOldPropertyAccessSyntax_ extends Partial<Pick<TestOldPropertyAcces
 }
 
 
-class TestOldPropertyAccessSyntax<Cfg extends TestOldPropertyAccessSyntax._ = TestOldPropertyAccessSyntax._> extends Object<Cfg>{
+class TestOldPropertyAccessSyntax extends Object{
+  declare readonly initialConfig: TestOldPropertyAccessSyntax._;
 
   static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
     super();

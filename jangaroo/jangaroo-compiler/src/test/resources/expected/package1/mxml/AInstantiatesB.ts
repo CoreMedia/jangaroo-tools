@@ -1,4 +1,4 @@
-import { _, cast } from "@jangaroo/joo/AS3";
+import { _, cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import Panel from "../../ext/Panel";
 import BDeclaresA from "./BDeclaresA";
@@ -6,7 +6,8 @@ interface AInstantiatesB_ {
 }
 
 
-class AInstantiatesB<Cfg extends AInstantiatesB._ = AInstantiatesB._> extends Panel<Cfg>{
+class AInstantiatesB extends Panel{
+  declare readonly initialConfig: AInstantiatesB._;
 
   constructor(config:AInstantiatesB._ = null){
     super( Exml.apply(new AInstantiatesB._({

@@ -1,4 +1,4 @@
-import { cast, mixin } from "@jangaroo/joo/AS3";
+import { cast, mixin } from "@jangaroo/runtime/AS3";
 import SimpleInterface from "./SimpleInterface";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
@@ -10,7 +10,8 @@ interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<In
 }
 
 
-class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._> extends ConfigClass<Cfg> implements YetAnotherInterface{
+class InterfaceImplementingMxmlClass extends ConfigClass implements YetAnotherInterface{
+  declare readonly initialConfig: InterfaceImplementingMxmlClass._;
 
   constructor(config:InterfaceImplementingMxmlClass._ = null){
     super( Exml.apply(new InterfaceImplementingMxmlClass._({
@@ -24,7 +25,7 @@ class InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass.
 
     /** @private */
    set someProperty(value:string) { this.#someProperty = value; }}
-interface InterfaceImplementingMxmlClass<Cfg extends InterfaceImplementingMxmlClass._ = InterfaceImplementingMxmlClass._>{
+interface InterfaceImplementingMxmlClass{
 
   createInstance(o:SimpleInterface):SimpleClass;}
 

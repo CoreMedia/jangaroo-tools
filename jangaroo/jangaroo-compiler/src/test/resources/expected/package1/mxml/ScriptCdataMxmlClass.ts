@@ -1,4 +1,4 @@
-import { cast, mixin } from "@jangaroo/joo/AS3";
+import { cast, mixin } from "@jangaroo/runtime/AS3";
 import SimpleInterface from "./SimpleInterface";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
@@ -10,7 +10,8 @@ interface ScriptCdataMxmlClass_ extends ConfigClass._, Partial<Pick<ScriptCdataM
 }
 
 
-class ScriptCdataMxmlClass<Cfg extends ScriptCdataMxmlClass._ = ScriptCdataMxmlClass._> extends ConfigClass<Cfg> implements SimpleInterface{
+class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
+  declare readonly initialConfig: ScriptCdataMxmlClass._;
 
   #field1:SomeOtherClass = null;
   protected field2:Array<string> =["a", "b"];

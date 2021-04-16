@@ -1,11 +1,12 @@
-import { cast, metadata } from "@jangaroo/joo/AS3";
+import { cast, metadata } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 interface SimpleMetadataMxmlClass_ extends ConfigClass._ {
 }
 
 
-class SimpleMetadataMxmlClass<Cfg extends SimpleMetadataMxmlClass._ = SimpleMetadataMxmlClass._> extends ConfigClass<Cfg>{constructor(config:SimpleMetadataMxmlClass._=null){
+class SimpleMetadataMxmlClass extends ConfigClass{
+  declare readonly initialConfig: SimpleMetadataMxmlClass._;constructor(config:SimpleMetadataMxmlClass._=null){
     super( Exml.apply(new SimpleMetadataMxmlClass._({
 }),config));
 }}

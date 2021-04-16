@@ -174,7 +174,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@coremedia/sencha-ext", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext-classic", "7.2.0"));
     packageRegistry.add(new Package("@coremedia/sencha-ext-classic-theme-triton", "7.2.0"));
-    packageRegistry.add(new Package("@jangaroo/joo", "1.0.0"));
+    packageRegistry.add(new Package("@jangaroo/runtime", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/jangaroo-net", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/jooflash-core", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/jooflexframework", "1.0.0"));
@@ -280,7 +280,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           }
 
           Map<String, String> dependencies = new TreeMap<>();
-          dependencies.put("@jangaroo/joo", "^1.0.0-alpha");
+          dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
@@ -363,7 +363,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           dependencies.put("@coremedia/sencha-ext", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
           dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-          dependencies.put("@jangaroo/joo", "^1.0.0-alpha");
+          dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
           additionalJsonEntries.setDependencies(dependencies);
           Map<String, String> devDependencies = new TreeMap<>();
           devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
@@ -495,6 +495,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             stringJoiner.add("");
             String gitignore = stringJoiner.toString();
             FileUtils.writeStringToFile(gitignoreFile, gitignore);
+          }
+
+          File npmrcFile = Paths.get(convertedWorkspaceTarget, ".npmrc").toFile();
+          if (!npmrcFile.exists()) {
+            StringJoiner stringJoiner = new StringJoiner("\n");
+            stringJoiner.add("# as long as we use a typescript beta version we need this");
+            stringJoiner.add("# otherwise the wrong typescript is installed due to a peer dependency");
+            stringJoiner.add("legacy-peer-deps=true");
+            stringJoiner.add("");
+            String npmrc = stringJoiner.toString();
+            FileUtils.writeStringToFile(npmrcFile, npmrc);
           }
         }
 
@@ -779,7 +790,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         return "@jangaroo/jangaroo-net";
       }
       if (Objects.equals(artifactId, "jangaroo-runtime")) {
-        return "@jangaroo/joo";
+        return "@jangaroo/runtime";
       }
       if (Objects.equals(artifactId, "jooflash-core")) {
         return "@jangaroo/jooflash-core";

@@ -1,4 +1,4 @@
-import { asConfig, mixin } from "@jangaroo/joo/AS3";
+import { asConfig, mixin } from "@jangaroo/runtime/AS3";
 import TestComponent from "./TestComponent";
 import TestInterface from "./TestInterface";
 import int from "../../../AS3/int_";
@@ -11,7 +11,8 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 
-class TestComponentBase<Cfg extends TestComponent._ = TestComponent._> implements TestInterface {
+class TestComponentBase implements TestInterface {
+  declare readonly initialConfig: TestComponent._;
 
   static readonly DEFAULT:string = "_DEFAULT_";
 

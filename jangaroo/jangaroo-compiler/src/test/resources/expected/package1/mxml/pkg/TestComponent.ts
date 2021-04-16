@@ -1,4 +1,4 @@
-import { cast } from "@jangaroo/joo/AS3";
+import { cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import TestComponentBase from "./TestComponentBase";
 import int from "../../../AS3/int_";
@@ -9,7 +9,8 @@ interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent
 }
 
 
-class TestComponent<Cfg extends TestComponent._ = TestComponent._> extends TestComponentBase<Cfg>{
+class TestComponent extends TestComponentBase{
+  declare readonly initialConfig: TestComponent._;
 
   constructor(config:TestComponent._ = null){
     config = Exml.apply({

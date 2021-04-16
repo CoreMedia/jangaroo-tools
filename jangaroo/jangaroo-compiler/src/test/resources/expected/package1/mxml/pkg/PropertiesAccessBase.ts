@@ -8,7 +8,8 @@ interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
 
 
 
-class PropertiesAccessBase<Cfg extends PropertiesAccess._ = PropertiesAccess._> {
+class PropertiesAccessBase {
+  declare readonly initialConfig: PropertiesAccess._;
 
   constructor(config:PropertiesAccess._ = null) {
     this.property_1 = config.property_1 += "_HI";

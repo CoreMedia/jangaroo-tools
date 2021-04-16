@@ -1,4 +1,4 @@
-import { asConfig, mixin } from "@jangaroo/joo/AS3";
+import { asConfig, mixin } from "@jangaroo/runtime/AS3";
 import Interface from "./Interface";
 import Panel from "../ext/Panel";
 

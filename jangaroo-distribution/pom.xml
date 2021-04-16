@@ -41,7 +41,7 @@
   <properties>
     <jangaroo.version>${project.version}</jangaroo.version>
   </properties>
-  
+
   <build>
     <plugins>
       <plugin>

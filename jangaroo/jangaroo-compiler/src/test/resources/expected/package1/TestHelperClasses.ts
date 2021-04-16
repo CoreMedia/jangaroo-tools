@@ -1,4 +1,4 @@
-import { bind } from "@jangaroo/joo/AS3";
+import { bind } from "@jangaroo/runtime/AS3";
 
 
 class TestHelperClasses {

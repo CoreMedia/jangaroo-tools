@@ -1,4 +1,4 @@
-import { is } from "@jangaroo/joo/AS3";
+import { is } from "@jangaroo/runtime/AS3";
 
 class WithStaticReference {
   static readonly BLA = "bla";

@@ -1,4 +1,4 @@
-import { _, asConfig } from "@jangaroo/joo/AS3";
+import { _, asConfig } from "@jangaroo/runtime/AS3";
 import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
@@ -15,7 +15,8 @@ interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
 }
 
 
-class DeclarationsMxmlClass<Cfg extends DeclarationsMxmlClass._ = DeclarationsMxmlClass._> extends SomeNativeClass<Cfg>{constructor(config:DeclarationsMxmlClass._=null){
+class DeclarationsMxmlClass extends SomeNativeClass{
+  declare readonly initialConfig: DeclarationsMxmlClass._;constructor(config:DeclarationsMxmlClass._=null){
     super();
     this.bar = "BAR!";
     /**

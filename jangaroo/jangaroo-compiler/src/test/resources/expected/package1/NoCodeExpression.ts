@@ -1,4 +1,4 @@
-import { metadata } from "@jangaroo/joo/AS3";
+import { metadata } from "@jangaroo/runtime/AS3";
 
 class NoCodeExpression {
 }
