@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,23 +200,22 @@ public class DependencyWarningsManager {
     }
 
 
-    public String createUsedUndeclaredDependencyWarning(boolean isTestCompile) {
+    public List<String> createUsedUndeclaredDependencyWarning(boolean isTestCompile) {
       CompileDependency compileDependency = new CompileDependency(dependency);
       if (compileDependency.getArtifactId() == null || compileDependency.getGroupId() == null || compileDependency.getVersion() == null) {
-        return dependency;
+        return Collections.singletonList(dependency);
       }
-      StringJoiner stringJoiner = new StringJoiner("\n");
-      stringJoiner.add("<dependency>");
-      stringJoiner.add(String.format(" <groupId>%s</groupId>", compileDependency.getGroupId()));
-      stringJoiner.add(String.format(" <artifactId>%s</artifactId>", compileDependency.getArtifactId()));
-      stringJoiner.add(String.format(" <version>%s</version>", compileDependency.getVersion()));
-
-      stringJoiner.add(" <type>swc</type>");
+      List<String> lines = new ArrayList<>();
+      lines.add("<dependency>");
+      lines.add(String.format("  <groupId>%s</groupId>", compileDependency.getGroupId()));
+      lines.add(String.format("  <artifactId>%s</artifactId>", compileDependency.getArtifactId()));
+      lines.add(String.format("  <version>%s</version>", compileDependency.getVersion()));
+      lines.add("  <type>swc</type>");
       if (isTestCompile) {
-        stringJoiner.add(" <scope>test</scope>");
+        lines.add("  <scope>test</scope>");
       }
-      stringJoiner.add("</dependency>");
-      return stringJoiner.toString();
+      lines.add("</dependency>");
+      return lines;
     }
 
     public String getDependency() {

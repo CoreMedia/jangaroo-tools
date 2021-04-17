@@ -19,7 +19,8 @@ public class PathInputSource extends DirectoryInputSource {
     List<InputSource> entries = new ArrayList<>();
     StringBuilder name = new StringBuilder();
     for (File file : classPath) {
-      inCompilePath = compilePath.contains(file);
+      // if not compile path is given, everything is considered to be inCompilePath:
+      inCompilePath = compilePath.isEmpty() || compilePath.contains(file);
       if (file.isDirectory()) {
         entries.add(new FileInputSource(file, file, false, inCompilePath, extNamespace));
       } else if (file.getName().endsWith(".swc") || file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {

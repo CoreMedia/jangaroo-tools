@@ -287,16 +287,20 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
       if (!dependencyWarningsManager.getDependencyWarnings().isEmpty()) {
         String dependencyNamePrefix = getConfig().isSourcesAreTests() ? TEST_DEPENDENCY_NAME_PREFIX : "";
-        getLog().warning(String.format(USED_UNDECLARED_DEPENDENCIES_WARNING, dependencyNamePrefix));
+        List<String> lines = new ArrayList<>();
+        lines.add(String.format(USED_UNDECLARED_DEPENDENCIES_WARNING, dependencyNamePrefix));
         dependencyWarningsManager.getDependencyWarnings()
                 .forEach(dependencyWarning -> {
-                  getLog().warning(String.format(UNDECLARED_DEPENDENCY_USED_BY_FORMAT, dependencyNamePrefix, dependencyWarning.getDependency()));
-                  dependencyWarning.getUsages().forEach(s -> getLog().warning("    " + s));
-                  getLog().warning("Add the following to your pom:\n"+ dependencyWarning.createUsedUndeclaredDependencyWarning(getConfig().isSourcesAreTests()));
+                  lines.add(String.format(UNDECLARED_DEPENDENCY_USED_BY_FORMAT, dependencyNamePrefix, dependencyWarning.getDependency()));
+                  dependencyWarning.getUsages().forEach(s -> lines.add("    " + s));
+                  lines.add("Add the following to your pom:");
+                  lines.addAll(dependencyWarning.createUsedUndeclaredDependencyWarning(getConfig().isSourcesAreTests()));
                 });
+        getLog().error(String.join("\n", lines));
       }
 
-      if (!dependencyWarningsManager.getUnusedDeclaredDependencies().isEmpty()) {
+      if (!getConfig().getCompilePath().isEmpty() &&
+              !dependencyWarningsManager.getUnusedDeclaredDependencies().isEmpty()) {
         getLog().warning(UNUSED_DECLARED_DEPENDENCIES_WARNING);
         dependencyWarningsManager.getUnusedDeclaredDependencies()
                 .forEach(unusedDependency -> getLog().warning("    " + unusedDependency));

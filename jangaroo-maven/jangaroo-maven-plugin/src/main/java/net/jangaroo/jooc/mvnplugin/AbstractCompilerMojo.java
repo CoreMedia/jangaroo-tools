@@ -51,6 +51,14 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean failOnError = true;
 
   /**
+   * Skip detecting, reporting and failing on dependency errors (undeclared
+   * compile dependencies).
+   * Defaults to "false".
+   */
+  @Parameter(property = "enforcer.skip")
+  private boolean skipDependencyChecks = false;
+
+  /**
    * Set "enableAssertions" to "true" in order to generate runtime checks for assert statements.
    */
   @Parameter(property = "maven.compile.ea")
@@ -370,7 +378,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       throw new MojoFailureException("could not canonicalize source paths: " + getCompileSourceRoots(), e);
     }
     configuration.setClassPath(getActionScriptClassPath());
-    configuration.setCompilePath(getActionScriptCompilePath());
+    // not setting a compile path lets the compiler skip dependency checks:
+    if (!skipDependencyChecks) {
+      configuration.setCompilePath(getActionScriptCompilePath());
+    }
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
