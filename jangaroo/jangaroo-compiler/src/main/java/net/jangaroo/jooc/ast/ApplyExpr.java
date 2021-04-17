@@ -192,10 +192,7 @@ public class ApplyExpr extends Expr {
             if (propertiesClass == null) {
               scope.getCompiler().getLog().error(arg.getSymbol(), String.format("Properties class '%s' corresponding to resource bundle '%s' not found.", propertiesClassName, resourceBundleName));
             } else {
-              if (!scope.getCompilationUnit().isRequiredDependency(propertiesClassName)) {
-                //scope.getCompiler().getLog().warning(arg.getSymbol(), String.format("Resource bundle '%s' usage not declared by [ResourceBundle] annotation.", resourceBundleName));
-                scope.getCompilationUnit().addDependency(propertiesClass, true);
-              }
+              scope.getCompilationUnit().addDependency(propertiesClass, true);
               argToPropertiesClass.put(arg, (ClassDeclaration) propertiesClass.getPrimaryDeclaration());
             }
           }
