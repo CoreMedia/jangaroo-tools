@@ -223,7 +223,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             .map(dependencyWarningsManager::convertInputSourceToDependency)
             .filter(Objects::nonNull)
             .distinct()
-            .filter(dependency -> !dependency.contains("jangaroo-runtime"))
+            .filter(dependency -> !dependency.contains("jangaroo-runtime") && !dependency.contains("jangaroo-browser"))
             .collect(Collectors.toList());
 
     usedUndeclaredDependencies.forEach(dependency ->
