@@ -252,7 +252,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // generate imports
     // first pass: detect import local name clashes:
     Set<String> localNameClashes = new HashSet<>();
-    for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
+    for (String dependentCUId : compilationUnit.getRuntimeDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
       if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
@@ -265,7 +265,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     // second pass: generate imports, using fully-qualified names for local name clashes:
-    for (String dependentCUId : compilationUnit.getTransitiveDependencies()) {
+    for (String dependentCUId : compilationUnit.getRuntimeDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);

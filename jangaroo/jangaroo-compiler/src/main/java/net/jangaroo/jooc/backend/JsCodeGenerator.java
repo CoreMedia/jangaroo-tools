@@ -363,12 +363,10 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private String[] collectDependencies(CompilationUnit compilationUnit, Boolean required) throws IOException {
     Set<String> requires = new TreeSet<>();
-    Collection<String> dependentCompilationUnits = compilationUnit.getTransitiveDependencies();
+    Collection<String> dependentCompilationUnits = required == null
+            ? compilationUnit.getRuntimeDependencies()
+            : compilationUnit.getRuntimeDependencies(required);
     for (String dependentCUId : dependentCompilationUnits) {
-      if (required != null && compilationUnit.isRequiredDependency(dependentCUId) != required) {
-        continue;
-      }
-
       String javaScriptName = dependentCUId;
       String javaScriptNameToRequire = "";
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);

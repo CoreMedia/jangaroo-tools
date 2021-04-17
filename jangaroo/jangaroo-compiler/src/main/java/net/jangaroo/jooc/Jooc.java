@@ -190,7 +190,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void findUnusedDependencies(CompilationUnit compilationUnit, InputSource classPathInputSource) {
     dependencyWarningsManager.loadInputSource(classPathInputSource);
-    dependencyWarningsManager.updateUsedCompileDependencies(compilationUnit.getTransitiveDependencies().stream()
+    dependencyWarningsManager.updateUsedCompileDependencies(compilationUnit.getRuntimeDependencies().stream()
             .map(this::findSource)
             .map(dependencyWarningsManager::convertInputSourceToDependency)
             .distinct()
@@ -216,7 +216,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
   private void checkUndeclaredDependencies(CompilationUnit compilationUnit) {
 
-    List<String> usedUndeclaredDependencies = compilationUnit.getTransitiveDependencies().stream()
+    List<String> usedUndeclaredDependencies = compilationUnit.getRuntimeDependencies().stream()
             .map(this::findSource)
             .filter(inputSource -> !IGNORE_DEPENDENCIES.contains(inputSource.getName()))
             .filter(inputSource -> !(inputSource.isInSourcePath() || inputSource.isInCompilePath()))
@@ -424,7 +424,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   }
 
   private void reportPublicApiViolations(CompilationUnit unit) {
-    Set<String> dependenciesForPublicAPICheck = new HashSet<>(unit.getDependencies());
+    Set<String> dependenciesForPublicAPICheck = new HashSet<>(unit.getRuntimeDependencies(true));
     dependenciesForPublicAPICheck.addAll(unit.getPublicApiDependencies());
     for (String qName : dependenciesForPublicAPICheck) {
       CompilationUnit compilationUnit = getCompilationUnit(qName);

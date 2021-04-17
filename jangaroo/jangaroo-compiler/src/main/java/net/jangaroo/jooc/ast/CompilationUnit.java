@@ -26,10 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -44,10 +42,10 @@ public class CompilationUnit extends NodeImplBase {
   protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
-  private Map<String, Boolean> dependencies = new LinkedHashMap<>();
   private List<String> resourceDependencies = new ArrayList<>();
   private Set<String> publicApiDependencies = new LinkedHashSet<>();
-  private Map<String, Boolean> usesDependencies = new LinkedHashMap<>();
+  private Set<String> usesDependencies = new LinkedHashSet<>();
+  private Set<String> requiresDependencies = new LinkedHashSet<>();
   private Set<String> usedBuiltInIdentifiers = new TreeSet<>();
   private Scope scope;
 
@@ -144,18 +142,14 @@ public class CompilationUnit extends NodeImplBase {
     return publicApiDependencies;
   }
 
-  public Set<String> getTransitiveDependencies() {
-    Set<String> transitiveDependencies = new HashSet<>(dependencies.keySet());
-    transitiveDependencies.addAll(usesDependencies.keySet());
+  public Set<String> getRuntimeDependencies() {
+    Set<String> transitiveDependencies = new HashSet<>(requiresDependencies);
+    transitiveDependencies.addAll(usesDependencies);
     return transitiveDependencies;
   }
 
-  public Set<String> getDependencies() {
-    return dependencies.keySet();
-  }
-
-  public boolean isRequiredDependency(String qName) {
-    return Boolean.TRUE.equals(usesDependencies.get(qName));
+  public Set<String> getRuntimeDependencies(boolean required) {
+    return required ? requiresDependencies : usesDependencies;
   }
 
   public InputSource getInputSource() {
@@ -210,13 +204,16 @@ public class CompilationUnit extends NodeImplBase {
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
       String qName = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
-      // Dependencies on other modules may always be considered required,
-      // because they cannot lead to cycles.
-      boolean alreadyRequired = Boolean.TRUE.equals(usesDependencies.get(qName));
-      boolean inModule = otherUnit.isInSourcePath();
-      usesDependencies.put(qName, required || alreadyRequired || !inModule);
-      if (Boolean.TRUE.equals(usesDependencies.get(qName))) {
-        dependencies.put(qName, true);
+      // not already required:
+      if (!requiresDependencies.contains(qName)) {
+        // Dependencies on other modules may always be considered required,
+        // because they cannot lead to cycles.
+        if (required || !otherUnit.isInSourcePath()) {
+          requiresDependencies.add(qName);
+          usesDependencies.remove(qName); // required implied used
+        } else {
+          usesDependencies.add(qName);
+        }
       }
     }
   }
