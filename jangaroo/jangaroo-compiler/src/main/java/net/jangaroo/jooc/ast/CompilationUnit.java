@@ -45,7 +45,6 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private Map<String, Boolean> dependencies = new LinkedHashMap<>();
-  private Set<String> dependenciesInModule = new LinkedHashSet<>();
   private List<String> resourceDependencies = new ArrayList<>();
   private Set<String> publicApiDependencies = new LinkedHashSet<>();
   private Map<String, Boolean> usesDependencies = new LinkedHashMap<>();
@@ -159,10 +158,6 @@ public class CompilationUnit extends NodeImplBase {
     return Boolean.TRUE.equals(usesDependencies.get(qName));
   }
 
-  public Set<String> getDependenciesInModule() {
-    return dependenciesInModule;
-  }
-
   public InputSource getInputSource() {
     return scope.getCompiler().getInputSource(this);
   }
@@ -222,9 +217,6 @@ public class CompilationUnit extends NodeImplBase {
       usesDependencies.put(qName, required || alreadyRequired || !inModule);
       if (Boolean.TRUE.equals(usesDependencies.get(qName))) {
         dependencies.put(qName, true);
-      }
-      if (inModule) {
-        dependenciesInModule.add(qName);
       }
     }
   }

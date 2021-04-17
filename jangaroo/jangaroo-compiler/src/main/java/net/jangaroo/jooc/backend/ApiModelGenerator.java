@@ -203,9 +203,6 @@ public class ApiModelGenerator {
     for (String publicApiDependency : new TreeSet<String>(compilationUnit.getPublicApiDependencies())) {
       compilationUnitModel.addImport(publicApiDependency);
     }
-    for (String qName : compilationUnit.getDependenciesInModule()) {
-      compilationUnitModel.addDependencyInModule(qName);
-    }
     visitAll(compilationUnit.getDirectives());
     compilationUnit.getPrimaryDeclaration().visit(this);
   }
