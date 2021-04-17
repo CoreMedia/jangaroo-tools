@@ -1,6 +1,6 @@
 import { asConfig, mixin } from "@jangaroo/runtime/AS3";
-import Interface from "./Interface";
 import Panel from "../ext/Panel";
+import Interface from "./Interface";
 
 
 class ImplementsInterface implements Interface {

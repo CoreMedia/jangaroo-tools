@@ -1,9 +1,9 @@
 import { _, asConfig, bind, cast } from "@jangaroo/runtime/AS3";
-import SomeEvent from "../someOtherPackage/SomeEvent";
+import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
+import SomeEvent from "../someOtherPackage/SomeEvent";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
-import int from "../../AS3/int_";
 interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
   "list" |
   "bar" |

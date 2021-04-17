@@ -1,9 +1,9 @@
 import { _, asConfig } from "@jangaroo/runtime/AS3";
-import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
+import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
+import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
-import int from "../../AS3/int_";
 interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
   "bar" |
   "num" |

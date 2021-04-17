@@ -70,6 +70,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -265,24 +266,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     // second pass: generate imports, using fully-qualified names for local name clashes:
+    Map<String, String> moduleNameToLocalName = new TreeMap<>();
     for (String dependentCUId : compilationUnit.getRuntimeDependencies()) {
       CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);
-      String localName = typeScriptModuleResolver.getDefaultImportName(dependentPrimaryDeclaration);
-      if (requireModuleName != null) {
+      String localName;
+      if (requireModuleName == null) {
+        localName = TypeScriptModuleResolver.getNonRequireNativeName(dependentPrimaryDeclaration);
+      } else {
         if (!isModule) {
           // import from non-module to module must be inlined:
           localName = String.format("import(\"%s\").default", requireModuleName);
-        } else if (localNameClashes.contains(localName)) {
-          // resolve name clashes by using transformed fully-qualified name ('.' -> '_'):
-          localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+        } else {
+          // for rare occasions that two ActionScript identifiers map to the same JavaScript/TypeScript name,
+          // do not import twice, but reuse the previous local name, found by the module name:
+          localName = moduleNameToLocalName.get(requireModuleName);
+          if (localName == null) {
+            localName = typeScriptModuleResolver.getDefaultImportName(dependentPrimaryDeclaration);
+            if (localNameClashes.contains(localName)) {
+              // resolve name clashes by using transformed fully-qualified name ('.' -> '_'):
+              localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
+            }
+            moduleNameToLocalName.put(requireModuleName, localName);
+          }
         }
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
-      if (isModule && requireModuleName != null) {
-        out.write(String.format("import %s from \"%s\";\n", localName, requireModuleName));
-      }
+    }
+
+    // now generate the import directives:
+    for (Map.Entry<String, String> importEntry : moduleNameToLocalName.entrySet()) {
+      out.write(String.format("import %s from \"%s\";\n", importEntry.getValue(), importEntry.getKey()));
     }
 
     primaryDeclaration.visit(this);

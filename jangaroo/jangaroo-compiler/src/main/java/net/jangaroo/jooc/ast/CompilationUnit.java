@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -43,9 +42,9 @@ public class CompilationUnit extends NodeImplBase {
   private JooSymbol rBrace;
 
   private List<String> resourceDependencies = new ArrayList<>();
-  private Set<String> publicApiDependencies = new LinkedHashSet<>();
-  private Set<String> usesDependencies = new LinkedHashSet<>();
-  private Set<String> requiresDependencies = new LinkedHashSet<>();
+  private Set<String> publicApiDependencies = new HashSet<>();
+  private Set<String> usesDependencies = new HashSet<>();
+  private Set<String> requiresDependencies = new HashSet<>();
   private Set<String> usedBuiltInIdentifiers = new TreeSet<>();
   private Scope scope;
 
@@ -143,9 +142,9 @@ public class CompilationUnit extends NodeImplBase {
   }
 
   public Set<String> getRuntimeDependencies() {
-    Set<String> transitiveDependencies = new HashSet<>(requiresDependencies);
-    transitiveDependencies.addAll(usesDependencies);
-    return transitiveDependencies;
+    Set<String> runtimeDependencies = new HashSet<>(requiresDependencies);
+    runtimeDependencies.addAll(usesDependencies);
+    return runtimeDependencies;
   }
 
   public Set<String> getRuntimeDependencies(boolean required) {

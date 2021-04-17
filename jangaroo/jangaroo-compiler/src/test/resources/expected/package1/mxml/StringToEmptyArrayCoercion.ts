@@ -1,6 +1,6 @@
 import { cast } from "@jangaroo/runtime/AS3";
-import Exml from "../../net/jangaroo/ext/Exml";
 import Panel from "../../ext/Panel";
+import Exml from "../../net/jangaroo/ext/Exml";
 interface StringToEmptyArrayCoercion_ {
 }
 
