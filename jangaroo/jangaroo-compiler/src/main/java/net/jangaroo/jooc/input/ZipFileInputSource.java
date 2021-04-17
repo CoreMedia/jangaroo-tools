@@ -23,11 +23,11 @@ import java.util.zip.ZipFile;
 
 public class ZipFileInputSource extends DirectoryInputSource {
 
-  private File file;
-  private ZipFile zipFile;
-  private String[] rootDirs;
-  private Map<String, ZipEntryInputSource> entries = new LinkedHashMap<String, ZipEntryInputSource>();
-  private Multimap<String, ZipEntryInputSource> entriesByParent = HashMultimap.create();
+  private final File file;
+  private final ZipFile zipFile;
+  private final String[] rootDirs;
+  private final Map<String, ZipEntryInputSource> entries = new LinkedHashMap<String, ZipEntryInputSource>();
+  private final Multimap<String, ZipEntryInputSource> entriesByParent = HashMultimap.create();
   private String senchaPackageName;
 
   /**
@@ -40,7 +40,21 @@ public class ZipFileInputSource extends DirectoryInputSource {
    * @throws IOException if an IO error occurs
    */
   public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath) throws IOException {
-    super(inSourcePath);
+    this(file, rootDirs, inSourcePath, false);
+  }
+
+  /**
+   * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
+   * with all entries with paths relative to the given root directories
+   *
+   * @param file     a zip or jar file
+   * @param rootDirs a list of directories to accept as roots (e.g. ["", "META-INF/joo-api"], in lookup order
+   * @param inSourcePath whether this is part of the source path
+   * @param inCompilePath whether this is part of the compile path
+   * @throws IOException if an IO error occurs
+   */
+  public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath, boolean inCompilePath) throws IOException {
+    super(inSourcePath, inCompilePath);
     this.file = file;
     this.zipFile = new ZipFile(file);
     this.rootDirs = rootDirs.clone();

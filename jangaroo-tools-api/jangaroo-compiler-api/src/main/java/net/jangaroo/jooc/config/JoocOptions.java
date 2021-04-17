@@ -36,5 +36,9 @@ public interface JoocOptions {
 
   boolean isGenerateSourceMaps();
 
+  boolean isFindUnusedDependencies();
+
+  boolean isSourcesAreTests();
+
   File getKeepGeneratedActionScriptDirectory();
 }

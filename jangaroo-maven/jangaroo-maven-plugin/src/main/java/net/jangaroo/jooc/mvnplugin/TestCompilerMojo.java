@@ -98,6 +98,15 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   @Override
+  protected List<File> getActionScriptCompilePath() {
+    List<File> actionScriptCompilePath = getMavenPluginHelper().getActionScriptCompilePath(true);
+    actionScriptCompilePath.add(0, getSourceDirectory());
+    actionScriptCompilePath.add(0, getGeneratedSourcesDirectory());
+    actionScriptCompilePath.add(getCatalogOutputDirectory());
+    return actionScriptCompilePath;
+  }
+
+  @Override
   protected List<File> getActionScriptClassPath() {
     final List<File> classPath = new ArrayList<>(getMavenPluginHelper().getActionScriptClassPath(true));
     classPath.add(0, getSourceDirectory());
@@ -108,8 +117,18 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if(!skip) {
+    if (!skip) {
       super.execute();
     }
+  }
+
+  @Override
+  protected boolean findUnusedDependencies() {
+    return false;
+  }
+
+  @Override
+  protected boolean isTestRun() {
+    return true;
   }
 }

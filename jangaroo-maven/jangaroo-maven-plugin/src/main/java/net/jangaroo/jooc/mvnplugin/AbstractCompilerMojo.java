@@ -160,7 +160,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter(property = "extSassNamespace")
   private String extSassNamespace;
 
-  @Parameter (defaultValue = "${project.basedir}/src/main/sencha")
+  @Parameter(defaultValue = "${project.basedir}/src/main/sencha")
   private File senchaSrcDir;
 
   /**
@@ -313,7 +313,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setNpmPackageNameReplacers(
             npmPackageNameReplacers.stream()
                     .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
-            .collect(Collectors.toList())
+                    .collect(Collectors.toList())
     );
 
     if (StringUtils.isNotEmpty(debuglevel)) {
@@ -370,9 +370,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
       throw new MojoFailureException("could not canonicalize source paths: " + getCompileSourceRoots(), e);
     }
     configuration.setClassPath(getActionScriptClassPath());
+    configuration.setCompilePath(getActionScriptCompilePath());
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
+    configuration.setSourcesAreTests(isTestRun());
+    configuration.setFindUnusedDependencies(findUnusedDependencies());
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {
@@ -410,6 +413,10 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     return configuration;
   }
 
+  protected abstract boolean findUnusedDependencies();
+
+  protected abstract boolean isTestRun();
+
   private String findConfigClassPackageInExmlPluginConfiguration() {
     String configClassPackage = null;
     @SuppressWarnings("unchecked")
@@ -433,6 +440,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
     return configClassPackage;
   }
+
+  protected abstract List<File> getActionScriptCompilePath();
 
   protected abstract List<File> getActionScriptClassPath();
 

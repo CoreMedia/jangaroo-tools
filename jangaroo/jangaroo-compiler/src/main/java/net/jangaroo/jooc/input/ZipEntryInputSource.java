@@ -8,10 +8,10 @@ import java.util.zip.ZipEntry;
 
 public class ZipEntryInputSource implements InputSource {
 
-  private ZipFileInputSource zipFileInputSource;
-  private ZipEntry zipEntry;
-  private String name;
-  private String relativePath;
+  private final ZipFileInputSource zipFileInputSource;
+  private final ZipEntry zipEntry;
+  private final String name;
+  private final String relativePath;
 
   public ZipEntryInputSource(final ZipFileInputSource zipFileInputSource, final ZipEntry zipEntry, final String relativePath) {
     this.zipFileInputSource = zipFileInputSource;
@@ -34,6 +34,11 @@ public class ZipEntryInputSource implements InputSource {
   @Override
   public boolean isInSourcePath() {
     return zipFileInputSource.isInSourcePath();
+  }
+
+  @Override
+  public boolean isInCompilePath() {
+    return zipFileInputSource.isInCompilePath();
   }
 
   @Override

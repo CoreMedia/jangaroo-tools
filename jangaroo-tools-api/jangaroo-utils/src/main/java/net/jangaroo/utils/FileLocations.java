@@ -24,8 +24,11 @@ public class FileLocations {
   private List<File> sourceFiles = new ArrayList<>();
   // the sass files to compile
   private Map<String, List<File>> sassSourceFilesByType = new HashMap<>();
-  // the class path (including directories and jars) from which referenced classes are loaded
+  // the class path (including directories and SWCs) from which referenced classes are loaded
   private List<File> classPath = new ArrayList<>(); // may contain directories and jar files
+  // the compile path (including directories and SWCs) from which referenced classes are loaded. This is the
+  // subset of the classPath that may be directly referenced by the sourcePath
+  private List<File> compilePath = new ArrayList<>(); // may contain directories and jar files
   // the directory into which output files are generated
   private File outputDirectory;
   // the directory into which sass output files are generated
@@ -73,7 +76,17 @@ public class FileLocations {
     return classPath;
   }
 
-  @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo jars of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows)")
+  @Option(name="-compilepath", handler = PathHandler.class, usage = "source root directories or jangaroo SWCs of dependent classes, separated by the system dependent path separator character (':' on Unix systems, ';' on Windows)")
+  public void setCompilePath(final List<File> compilePath) {
+    assert compilePath != null;
+    this.compilePath = Collections.unmodifiableList(compilePath);
+  }
+
+  public List<File> getCompilePath() {
+    return compilePath;
+  }
+
+  @Option(name="-classpath", handler = PathHandler.class, usage = "source root directories or jangaroo SWCs of dependent classes, separated by the system dependent path separator character (e.g. ':' on Unix systems, ';' on Windows)")
   public void setClassPath(final List<File> classPath) {
     assert classPath != null;
     this.classPath = Collections.unmodifiableList(classPath);

@@ -72,6 +72,11 @@ public class CompilerMojo extends AbstractCompilerMojo {
   }
 
   @Override
+  protected List<File> getActionScriptCompilePath() {
+    return getMavenPluginHelper().getActionScriptCompilePath(false);
+  }
+
+  @Override
   protected List<File> getActionScriptClassPath() {
     return getMavenPluginHelper().getActionScriptClassPath(false);
   }
@@ -108,6 +113,17 @@ public class CompilerMojo extends AbstractCompilerMojo {
       joocConfiguration.setReportOutputDirectory(getReportOutputDirectory());
     }
     return joocConfiguration;
+  }
+
+  @Override
+  protected boolean findUnusedDependencies() {
+    // todo: enable when the type only dependencies are properly handled by the compiler
+    return false;
+  }
+
+  @Override
+  protected boolean isTestRun() {
+    return false;
   }
 
   private File getPackageOutputDirectory() {

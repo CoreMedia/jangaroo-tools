@@ -14,15 +14,23 @@ import java.util.List;
 
 public class FileInputSource extends DirectoryInputSource {
 
-  private File sourceDir;
-  private File file;
+  private final File sourceDir;
+  private final File file;
   private List<InputSource> children;
 
-  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath, String extNamespace) {
-    super(inSourcePath);
+  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath, boolean inCompilePath, String extNamespace) {
+    super(inSourcePath, inCompilePath);
     this.extNamespace = extNamespace;
     this.sourceDir = sourceDir;
     this.file = file;
+  }
+
+  public FileInputSource(final File file, boolean inSourcePath, boolean inCompilePath) {
+    this(file, file, inSourcePath, inCompilePath, null);
+  }
+
+  public FileInputSource(final File sourceDir, final File file, boolean inSourcePath, String extNamespace) {
+    this(sourceDir, file, inSourcePath, false, extNamespace);
   }
 
   public FileInputSource(final File file, boolean inSourcePath) {
@@ -112,7 +120,7 @@ public class FileInputSource extends DirectoryInputSource {
         realPath = realPath.replace(File.separatorChar, '/');
       }
       if (path.equals(realPath)) {
-        return new FileInputSource(sourceDir, sourceFile, isInSourcePath(), getExtNamespace());
+        return new FileInputSource(sourceDir, sourceFile, isInSourcePath(), isInCompilePath(), getExtNamespace());
       }
     }
     return null;
