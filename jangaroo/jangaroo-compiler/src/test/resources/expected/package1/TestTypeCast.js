@@ -15,7 +15,7 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
   }/*
 
   public static*/ function testCastToUint$static(any/*:**/)/*:uint*/ {
-    return AS3.int_(any);
+    return AS3.uint_(any);
   }/*
 
   public static*/ function testCastToClassVar$static(clazz/*:Class*/, value/*:**/)/*:**/ {
@@ -33,6 +33,9 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
         testCastToUint: testCastToUint$static,
         testCastToClassVar: testCastToClassVar$static
       },
-      uses: ["AS3.int_"]
+      uses: [
+        "AS3.int_",
+        "AS3.uint_"
+      ]
     };
 });

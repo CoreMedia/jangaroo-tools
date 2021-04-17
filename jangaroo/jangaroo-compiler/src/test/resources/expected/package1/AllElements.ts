@@ -4,7 +4,7 @@ import menuitem from "../ext/config/menuitem";
 import allElements from "../exmlparser/config/allElements";
 import someMixin from "../ext/config/someMixin";
 import aplugin from "../ext/config/aplugin";
-import uint from "../AS3/int_";
+import uint from "../AS3/uint_";
 import int from "../AS3/int_";
 import panel from "../ext/config/panel";
 import Exml from "../net/jangaroo/ext/Exml";
