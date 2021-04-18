@@ -280,7 +280,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   @Override
   public boolean isFindUnusedDependencies() {
-    return this.findUnusedDependencies;
+    // cannot detect unused dependencies if compile path is empty:
+    return findUnusedDependencies && !getCompilePath().isEmpty();
   }
 
   @Option(name = "--findUnusedDependencies", usage = "Enable checking for unused dependencies, i.e. unused compilePath entries.")

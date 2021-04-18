@@ -270,7 +270,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         if (unit != null) {
           checkValidFileName(unit);
           unit.analyze(null);
-          if (getConfig().isFindUnusedDependencies() && getConfig().isSourcesAreTests()) {
+          if (getConfig().isFindUnusedDependencies()) {
             findUnusedDependencies(unit, classPathInputSource);
           }
           checkUndeclaredDependencies(unit);
@@ -299,11 +299,14 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
         getLog().error(String.join("\n", lines));
       }
 
-      if (!getConfig().getCompilePath().isEmpty() &&
-              !dependencyWarningsManager.getUnusedDeclaredDependencies().isEmpty()) {
-        getLog().warning(UNUSED_DECLARED_DEPENDENCIES_WARNING);
-        dependencyWarningsManager.getUnusedDeclaredDependencies()
-                .forEach(unusedDependency -> getLog().warning("    " + unusedDependency));
+      if (getConfig().isFindUnusedDependencies()) {
+        List<String> unusedDeclaredDependencies = dependencyWarningsManager.getUnusedDeclaredDependencies();
+        if (!unusedDeclaredDependencies.isEmpty()) {
+          getLog().warning(UNUSED_DECLARED_DEPENDENCIES_WARNING);
+          for (String unusedDeclaredDependency : unusedDeclaredDependencies) {
+            getLog().warning("    " + unusedDeclaredDependency);
+          }
+        }
       }
 
       for (InputSource source : compileQueue) {

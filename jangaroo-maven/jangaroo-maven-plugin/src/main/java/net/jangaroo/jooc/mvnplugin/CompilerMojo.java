@@ -117,8 +117,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected boolean findUnusedDependencies() {
-    // todo: enable when the type only dependencies are properly handled by the compiler
-    return false;
+    return true;
   }
 
   @Override
