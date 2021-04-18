@@ -71,9 +71,7 @@ public class Type extends NodeImplBase {
       if (!(declaration instanceof TypeDeclaration)) {
         compiler.getLog().error(ide.getSymbol(), "Type was not found or was not a compile-time constant: " + ide.getSymbol().getText());
       }
-      if (compiler instanceof Jooc && ((Jooc) compiler).getConfig().isMigrateToTypeScript()) {
-        ide.addExternalUsage(false);
-      }
+      ide.addExternalUsage(null);
     }
   }
 

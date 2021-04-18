@@ -140,7 +140,7 @@ public class Ide extends NodeImplBase {
     return false;
   }
 
-  public boolean addExternalUsage(boolean required) {
+  public boolean addExternalUsage(Boolean required) {
     IdeDeclaration decl = getDeclaration(false);
     if (decl != null && (decl.isPrimaryDeclaration() || decl.isClassMember() && decl.isStatic())) {
       Scope scope = getScope();

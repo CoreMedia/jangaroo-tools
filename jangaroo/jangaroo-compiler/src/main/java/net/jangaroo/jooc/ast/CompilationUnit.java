@@ -41,6 +41,7 @@ public class CompilationUnit extends NodeImplBase {
   protected IdeDeclaration primaryDeclaration;
   private JooSymbol rBrace;
 
+  private Set<String> compileDependencies = new HashSet<>();
   private List<String> resourceDependencies = new ArrayList<>();
   private Set<String> publicApiDependencies = new HashSet<>();
   private Set<String> usesDependencies = new HashSet<>();
@@ -151,6 +152,10 @@ public class CompilationUnit extends NodeImplBase {
     return required ? requiresDependencies : usesDependencies;
   }
 
+  public Set<String> getCompileDependencies() {
+    return compileDependencies;
+  }
+
   public InputSource getInputSource() {
     return scope.getCompiler().getInputSource(this);
   }
@@ -197,14 +202,15 @@ public class CompilationUnit extends NodeImplBase {
     return null;
   }
 
-  public void addDependency(CompilationUnit otherUnit, boolean required) {
+  public void addDependency(CompilationUnit otherUnit, Boolean required) {
     otherUnit = mapMixinInterface(otherUnit);
     // Predefined ides have a null unit.
     // Self dependencies are ignored.
     if (otherUnit != null && otherUnit != this) {
       String qName = otherUnit.getPrimaryDeclaration().getQualifiedNameStr();
-      // not already required:
-      if (!requiresDependencies.contains(qName)) {
+      compileDependencies.add(qName);
+      // not a type-only dependency and not already required:
+      if (required != null && !requiresDependencies.contains(qName)) {
         // Dependencies on other modules may always be considered required,
         // because they cannot lead to cycles.
         if (required || !otherUnit.isInSourcePath()) {
