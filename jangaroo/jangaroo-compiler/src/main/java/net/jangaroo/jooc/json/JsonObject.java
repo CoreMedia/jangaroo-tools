@@ -99,6 +99,10 @@ public class JsonObject implements Json {
    *         with <code>}</code>&nbsp;<small>(right brace)</small>.
    */
   public static String valueToString(Object value, int indentFactor, int indent) {
+    return valueToString(value, indentFactor, indent, false);
+  }
+
+  public static String valueToString(Object value, int indentFactor, int indent, boolean alwaysQuoteKeys) {
     if (value == null) {
       return "null";
     }
@@ -106,7 +110,7 @@ public class JsonObject implements Json {
         || value instanceof Boolean) {
       return value.toString();
     } else if (value instanceof JsonObject) {
-      return ((JsonObject)value).toString(indentFactor, indent);
+      return ((JsonObject)value).toString(indentFactor, indent, alwaysQuoteKeys);
     } else if (value instanceof JsonArray) {
       return ((JsonArray) value).toString(indentFactor, indent);
     } else if (value instanceof Code) {
@@ -131,6 +135,18 @@ public class JsonObject implements Json {
    *         with <code>}</code>&nbsp;<small>(right brace)</small>.
    */
   public String toString(int indentFactor, int indent) {
+    return toString(indentFactor, indent, false);
+  }
+
+  public String stringify() {
+    return stringify(2);
+  }
+
+  public String stringify(int indentFactor) {
+    return toString(indentFactor, 0, true);
+  }
+
+  public String toString(int indentFactor, int indent, boolean alwaysQuoteKeys) {
     Set<String> keySet = this.properties.keySet();
 
     StringBuilder sb = new StringBuilder();
@@ -144,7 +160,7 @@ public class JsonObject implements Json {
     int n = keySet.size();
     Iterator<String> keys = keySet.iterator();
     if (n == 1) {
-      writeKeyValue(keys.next(), indentFactor, indent, sb);
+      writeKeyValue(keys.next(), indentFactor, indent, sb, alwaysQuoteKeys);
     } else if (n > 1) {
       boolean isFirstAttribute = true;
       while (keys.hasNext()) {
@@ -154,7 +170,7 @@ public class JsonObject implements Json {
           sb.append(",");
         }
         newlineAndIndent(sb, newindent);
-        writeKeyValue(keys.next(), indentFactor, newindent, sb);
+        writeKeyValue(keys.next(), indentFactor, newindent, sb, alwaysQuoteKeys);
       }
       if (sb.length() > 1) {
         newlineAndIndent(sb, indent);
@@ -183,14 +199,14 @@ public class JsonObject implements Json {
     return AS3_IDENTIFIER_PATTERN.matcher(str).matches();
   }
 
-  private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb) {
-    if (isIdentifier(key)) {
-      sb.append(key);
-    } else {
+  private void writeKeyValue(String key, int indentFactor, int indent, StringBuilder sb, boolean alwaysQuoteKeys) {
+    if (alwaysQuoteKeys || !isIdentifier(key)) {
       sb.append(CompilerUtils.quote(key));
+    } else {
+      sb.append(key);
     }
     sb.append(": ");
-    sb.append(valueToString(this.properties.get(key), indentFactor, indent));
+    sb.append(valueToString(this.properties.get(key), indentFactor, indent, alwaysQuoteKeys));
   }
 
   public Object get(String property) {
