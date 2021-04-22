@@ -13,6 +13,7 @@ import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -24,12 +25,14 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,6 +45,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
+  protected static final String USED_UNDECLARED_DEPENDENCIES_WARNING = "Used undeclared %sdependencies found:";
+  protected static final String UNUSED_DECLARED_DEPENDENCIES_WARNING = "Unused declared dependencies found:";
   /**
    * Indicates whether the build will fail if there are compilation errors.
    * Defaults to "true".
@@ -177,11 +182,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
    * An example would be
-   *     function foo(bar: string = "default"): string {
-   *       return bar;
-   *     }
-   *     foo(); // "default" for both AS3 and ECMAScript semantics
-   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   *    function foo(bar: string = "default"): string {
+   *      return bar;
+   *    }
+   *    foo(); // "default" for both AS3 and ECMAScript semantics
+   *    foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
    */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
@@ -231,9 +236,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Nullable
   protected abstract File getApiOutputDirectory();
 
-  public boolean isMigrateToTypeScript() { return migrateToTypeScript; }
+  public boolean isMigrateToTypeScript() {
+    return migrateToTypeScript;
+  }
 
-  public boolean isSuppressCommentedActionScriptCode() { return suppressCommentedActionScriptCode; }
+  public boolean isSuppressCommentedActionScriptCode() {
+    return suppressCommentedActionScriptCode;
+  }
 
   protected File getCatalogOutputDirectory() {
     return catalogOutputDirectory;
@@ -292,6 +301,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
     int result = compile(jooc);
 
+    printDependencyWarnings(configuration);
+    Paths.get(configuration.getWarningsOutputDirectory(), "dependencyWarnings").toFile().delete();
     if ((result != CompilationResult.RESULT_CODE_OK) && failOnError) {
       log.info("-------------------------------------------------------------");
       if (result == CompilationResult.RESULT_CODE_COMPILATION_FAILED) {
@@ -385,8 +396,9 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setOutputDirectory(getClassesOutputDirectory());
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
-    configuration.setSourcesAreTests(isTestRun());
-    configuration.setFindUnusedDependencies(findUnusedDependencies());
+    configuration.setFindUnusedDependencies(findUnusedDependencies(staleMillis));
+    //todo: use proper directory
+    configuration.setWarningsOutputDirectory("dependencyWarnings");
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {
@@ -424,9 +436,9 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     return configuration;
   }
 
-  protected abstract boolean findUnusedDependencies();
-
-  protected abstract boolean isTestRun();
+  protected boolean findUnusedDependencies(int staleMillis) {
+    return staleMillis < 0 || !getClassesOutputDirectory().exists();
+  }
 
   private String findConfigClassPackageInExmlPluginConfiguration() {
     String configClassPackage = null;
@@ -455,6 +467,44 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   protected abstract List<File> getActionScriptCompilePath();
 
   protected abstract List<File> getActionScriptClassPath();
+
+  protected abstract void printDependencyWarnings(JoocConfiguration joocConfiguration);
+
+  protected void printUnusedDependencyWarnings(JoocConfiguration joocConfiguration, List<String> unusedDependencies) {
+    if (joocConfiguration.isFindUnusedDependencies() && !unusedDependencies.isEmpty()) {
+      getLog().warn(UNUSED_DECLARED_DEPENDENCIES_WARNING);
+      for (String unusedDeclaredDependency : unusedDependencies) {
+        resolveDependency(unusedDeclaredDependency).ifPresent(dependency -> getLog().warn("    " + formatDependency(dependency)));
+      }
+    }
+  }
+
+  private String formatDependency(Artifact dependency) {
+    return String.format("%s:%s:%s:%s:%s", dependency.getGroupId(), dependency.getArtifactId(), dependency.getType(), dependency.getVersion(), dependency.getScope());
+  }
+
+  protected void printUndeclaredDependencyWarnings(JoocConfiguration joocConfiguration, List<String> undeclaredDependencies, String dependencyNamePrefix) {
+    if (!undeclaredDependencies.isEmpty()) {
+      getLog().error(String.format(USED_UNDECLARED_DEPENDENCIES_WARNING, dependencyNamePrefix));
+      undeclaredDependencies.forEach(dependency -> {
+        Optional<Artifact> resolvedDependency = resolveDependency(dependency);
+        if (resolvedDependency.isPresent()) {
+          getLog().error(formatDependency(resolvedDependency.get()));
+          List<String> lines = new ArrayList<>(createUsedUndeclaredDependencyWarning(resolvedDependency.get()));
+          getLog().error("Add the following to your pom:\n" + String.join("\n", lines));
+        }
+      });
+    }
+  }
+
+  protected Optional<Artifact> resolveDependency(String combinedDependencyName) {
+    return getProject().getArtifacts().stream()
+            .filter(artifact -> artifact.getFile().getPath().equals(combinedDependencyName))
+            .distinct()
+            .findFirst();
+  }
+
+  protected abstract List<String> createUsedUndeclaredDependencyWarning(Artifact dependency);
 
   private int compile(Jooc jooc) throws MojoExecutionException {
     File outputDirectory = jooc.getConfig().getOutputDirectory();

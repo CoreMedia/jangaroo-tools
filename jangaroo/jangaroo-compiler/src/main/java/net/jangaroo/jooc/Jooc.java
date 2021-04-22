@@ -1,15 +1,15 @@
 /*
  * Copyright 2008 CoreMedia AG
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS
- * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- * express or implied. See the License for the specific language 
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -44,11 +44,13 @@ import net.jangaroo.jooc.mxml.MxmlComponentRegistry;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,11 +119,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   );
   public static final String TS_SUFFIX = ".ts";
   public static final String D_TS_SUFFIX = ".d" + TS_SUFFIX;
-
-  private static final String TEST_DEPENDENCY_NAME_PREFIX = "test-";
-  private static final String USED_UNDECLARED_DEPENDENCIES_WARNING = "Used undeclared %sdependencies found:";
-  private static final String UNDECLARED_DEPENDENCY_USED_BY_FORMAT = "Undeclared %sdependency %s was used by:";
-  private static final String UNUSED_DECLARED_DEPENDENCIES_WARNING = "Unused declared dependencies found:";
 
   private final DependencyWarningsManager dependencyWarningsManager;
 
@@ -192,7 +189,8 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     dependencyWarningsManager.loadInputSource(classPathInputSource);
     dependencyWarningsManager.updateUsedCompileDependencies(compilationUnit.getCompileDependencies().stream()
             .map(this::findSource)
-            .map(dependencyWarningsManager::convertInputSourceToDependency)
+            .map(InputSource::getPath)
+            .map(path -> path.split("!")[0])
             .distinct()
             .collect(Collectors.toList()));
   }
@@ -220,14 +218,15 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             .map(this::findSource)
             .filter(inputSource -> !IGNORE_DEPENDENCIES.contains(inputSource.getName()))
             .filter(inputSource -> !(inputSource.isInSourcePath() || inputSource.isInCompilePath()))
-            .map(dependencyWarningsManager::convertInputSourceToDependency)
+            .map(InputSource::getPath)
+            //.map(dependencyWarningsManager::convertInputSourceToDependency)
             .filter(Objects::nonNull)
             .distinct()
             .filter(dependency -> !dependency.contains("jangaroo-runtime") && !dependency.contains("jangaroo-browser"))
             .collect(Collectors.toList());
 
     usedUndeclaredDependencies.forEach(dependency ->
-            dependencyWarningsManager.addDependencyWarning(dependency, compilationUnit.getQualifiedNameStr())
+            dependencyWarningsManager.addDependencyWarning(dependency, compilationUnit.getInputSource().getName())
     );
   }
 
@@ -286,31 +285,17 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       }
 
       if (!dependencyWarningsManager.getDependencyWarnings().isEmpty()) {
-        String dependencyNamePrefix = getConfig().isSourcesAreTests() ? TEST_DEPENDENCY_NAME_PREFIX : "";
         List<String> lines = new ArrayList<>();
-        lines.add(String.format(USED_UNDECLARED_DEPENDENCIES_WARNING, dependencyNamePrefix));
         dependencyWarningsManager.getDependencyWarnings()
                 .forEach(dependencyWarning -> {
-                  lines.add(String.format(UNDECLARED_DEPENDENCY_USED_BY_FORMAT, dependencyNamePrefix, dependencyWarning.getDependency()));
+                  lines.add(String.format("Undeclared dependency %s was used by:", Paths.get(dependencyWarning.getDependency()).getFileName()));
                   dependencyWarning.getUsages().forEach(s -> lines.add("    " + s));
-                  lines.add("Add the following to your pom:");
-                  lines.addAll(dependencyWarning.createUsedUndeclaredDependencyWarning(getConfig().isSourcesAreTests()));
                 });
-        getLog().error(String.join("\n", lines));
-      }
-
-      if (getConfig().isFindUnusedDependencies()) {
-        List<String> unusedDeclaredDependencies = dependencyWarningsManager.getUnusedDeclaredDependencies();
-        if (!unusedDeclaredDependencies.isEmpty()) {
-          getLog().warning(UNUSED_DECLARED_DEPENDENCIES_WARNING);
-          for (String unusedDeclaredDependency : unusedDeclaredDependencies) {
-            getLog().warning("    " + unusedDeclaredDependency);
-          }
-        }
+        getLog().warning(String.join("\n", lines));
       }
 
       for (InputSource source : compileQueue) {
-        File sourceFile = ((FileInputSource)source).getFile();
+        File sourceFile = ((FileInputSource) source).getFile();
         File outputFile = null;
         try {
           String sourceName = source.getName();
@@ -352,6 +337,17 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
       compileQueue.clear();
 
       copySassFiles();
+
+      File dependencyWarningsFile = Paths.get(getConfig().getWarningsOutputDirectory(), "dependencyWarnings").toFile();
+      if (!dependencyWarningsFile.getParentFile().exists()) {
+        dependencyWarningsFile.getParentFile().mkdirs();
+      }
+      if (!dependencyWarningsFile.exists()) {
+        dependencyWarningsFile.createNewFile();
+      }
+      try (FileWriter fileWriter = new FileWriter(dependencyWarningsFile)) {
+        fileWriter.write(dependencyWarningsManager.createFileString());
+      }
 
       int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;
       return new CompilationResultImpl(result, outputFileMap);
@@ -431,7 +427,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
     for (String qName : dependenciesForPublicAPICheck) {
       CompilationUnit compilationUnit = getCompilationUnit(qName);
       if (getInputSource(compilationUnit) instanceof ZipEntryInputSource
-        && compilationUnit.getPackageDeclaration().getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
+              && compilationUnit.getPackageDeclaration().getAnnotation(PUBLIC_API_EXCLUSION_ANNOTATION_NAME) != null) {
         String msg = "PUBLIC API VIOLATION: " + compilationUnit.getPrimaryDeclaration().getQualifiedNameStr();
         File sourceFile = new File(unit.getSymbol().getFileName());
         if (getConfig().getPublicApiViolationsMode() == PublicApiViolationsMode.WARN) {

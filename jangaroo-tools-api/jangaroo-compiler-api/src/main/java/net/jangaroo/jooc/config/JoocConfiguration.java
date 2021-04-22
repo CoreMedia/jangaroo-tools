@@ -46,6 +46,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean findUnusedDependencies;
   private boolean sourcesAreTests;
+  private String dependencyWarningsOutputDirectory;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -290,12 +291,12 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
-  public boolean isSourcesAreTests() {
-    return this.sourcesAreTests;
+  public String getWarningsOutputDirectory() {
+    return this.dependencyWarningsOutputDirectory;
   }
 
-  @Option(name = "--sourcesAreTests", usage = "Specify that the source to compile (sourcePath) are test code. This is relevant for dependency checks, especially for reporting unused dependencies, as Maven does not distinguish between test compile and test runtime dependencies.")
-  public void setSourcesAreTests(boolean sourcesAreTests) {
-    this.sourcesAreTests = sourcesAreTests;
+  @Option(name = "--warningsOutputDirectory", usage = "the directory to use for saving the dependency warnings")
+  public void setWarningsOutputDirectory(String warningsOutputDirectory) {
+    this.dependencyWarningsOutputDirectory = warningsOutputDirectory;
   }
 }
