@@ -46,7 +46,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private boolean findUnusedDependencies;
   private boolean sourcesAreTests;
-  private String dependencyWarningsOutputDirectory;
+  private String dependencyReportOutputFile;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -291,12 +291,12 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
-  public String getWarningsOutputDirectory() {
-    return this.dependencyWarningsOutputDirectory;
+  public String getDependencyReportOutputFile() {
+    return this.dependencyReportOutputFile;
   }
 
-  @Option(name = "--warningsOutputDirectory", usage = "the directory to use for saving the dependency warnings")
-  public void setWarningsOutputDirectory(String warningsOutputDirectory) {
-    this.dependencyWarningsOutputDirectory = warningsOutputDirectory;
+  @Option(name = "--dependencyReportOutputFile", usage = "the file to use for saving the dependency warnings. In order to execute the dependency checks, this need to be set.")
+  public void setDependencyReportOutputFile(String dependencyReportOutputFile) {
+    this.dependencyReportOutputFile = dependencyReportOutputFile;
   }
 }

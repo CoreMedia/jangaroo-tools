@@ -338,15 +338,17 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
 
       copySassFiles();
 
-      File dependencyWarningsFile = Paths.get(getConfig().getWarningsOutputDirectory(), "dependencyWarnings").toFile();
-      if (!dependencyWarningsFile.getParentFile().exists()) {
-        dependencyWarningsFile.getParentFile().mkdirs();
-      }
-      if (!dependencyWarningsFile.exists()) {
-        dependencyWarningsFile.createNewFile();
-      }
-      try (FileWriter fileWriter = new FileWriter(dependencyWarningsFile)) {
-        fileWriter.write(dependencyWarningsManager.createFileString());
+      if (getConfig().getDependencyReportOutputFile() != null) {
+        File dependencyWarningsFile = new File(getConfig().getDependencyReportOutputFile());
+        if (!dependencyWarningsFile.getParentFile().exists()) {
+          dependencyWarningsFile.getParentFile().mkdirs();
+        }
+        if (!dependencyWarningsFile.exists()) {
+          dependencyWarningsFile.createNewFile();
+        }
+        try (FileWriter fileWriter = new FileWriter(dependencyWarningsFile)) {
+          fileWriter.write(dependencyWarningsManager.createFileString());
+        }
       }
 
       int result = log.hasErrors() ? CompilationResult.RESULT_CODE_COMPILATION_FAILED : CompilationResult.RESULT_CODE_OK;

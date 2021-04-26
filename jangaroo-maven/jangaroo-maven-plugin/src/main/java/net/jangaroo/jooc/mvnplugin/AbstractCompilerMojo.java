@@ -182,11 +182,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
    * An example would be
-   *    function foo(bar: string = "default"): string {
-   *      return bar;
-   *    }
-   *    foo(); // "default" for both AS3 and ECMAScript semantics
-   *    foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   *     function foo(bar: string = "default"): string {
+   *       return bar;
+   *     }
+   *     foo(); // "default" for both AS3 and ECMAScript semantics
+   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
    */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
@@ -301,8 +301,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
     int result = compile(jooc);
 
-    printDependencyWarnings(configuration);
-    Paths.get(configuration.getWarningsOutputDirectory(), "dependencyWarnings").toFile().delete();
+    if (configuration.getDependencyReportOutputFile() == null) {
+      log.warn("No directory for dependency warnings specified, ignoring dependency warnings.");
+    } else {
+      printDependencyWarnings(configuration);
+      new File(configuration.getDependencyReportOutputFile()).delete();
+    }
     if ((result != CompilationResult.RESULT_CODE_OK) && failOnError) {
       log.info("-------------------------------------------------------------");
       if (result == CompilationResult.RESULT_CODE_COMPILATION_FAILED) {
@@ -398,7 +402,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setApiOutputDirectory(getApiOutputDirectory());
     configuration.setFindUnusedDependencies(findUnusedDependencies(staleMillis));
     //todo: use proper directory
-    configuration.setWarningsOutputDirectory("dependencyWarnings");
+    configuration.setDependencyReportOutputFile("target/dependencyReports/dependencyWarnings");
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {

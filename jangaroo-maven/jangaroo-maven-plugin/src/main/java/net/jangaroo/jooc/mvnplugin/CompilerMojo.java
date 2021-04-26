@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -124,7 +123,7 @@ public class CompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected void printDependencyWarnings(JoocConfiguration joocConfiguration) {
-    File dependencyWarningsFile = Paths.get(joocConfiguration.getWarningsOutputDirectory(), "dependencyWarnings").toFile();
+    File dependencyWarningsFile = new File(joocConfiguration.getDependencyReportOutputFile());
     if (dependencyWarningsFile.exists()) {
       try {
         Map<String, Object> dependencyWarnings = SenchaUtils.getObjectMapper().readValue(FileUtils.readFileToString(dependencyWarningsFile), Map.class);
