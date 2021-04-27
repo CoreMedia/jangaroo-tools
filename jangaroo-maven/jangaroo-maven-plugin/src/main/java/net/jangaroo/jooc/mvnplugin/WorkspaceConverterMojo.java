@@ -592,7 +592,28 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     AtomicBoolean hasSourceTsFiles = new AtomicBoolean(false);
     AtomicBoolean hasJooUnitTsFiles = new AtomicBoolean(false);
 
+    Path generatedSrc = Paths.get(baseDirectory, "target", "generated-sources", "joo");
+    List<Path> generatedTsFiles = match("glob:/**/*.{as,mxml}", generatedSrc.toString()).stream()
+            .map(filePathStr -> filePathStr.replaceAll("[.](as|mxml)$", ".ts"))
+            .map(Paths::get)
+            .map(generatedSrc::relativize)
+            .filter(filePath -> {
+              String filePathStr = filePath.toString();
+              if (!filePathStr.endsWith("_properties.ts")) {
+                return true;
+              }
+              String propertiesFile = filePathStr.replaceAll("_properties[.]ts$", ".properties");
+              return !Paths.get(baseDirectory, "src", "main", "joo", propertiesFile).toFile().exists();
+            })
+            .map(filePath -> {
+              if (!extNamespace.isEmpty()) {
+                String slashedExtNamespaceWithTrailingSlash = extNamespace.concat(".").replaceAll("[.]", File.separator);
+                return Paths.get(filePath.toString().replace(slashedExtNamespaceWithTrailingSlash, ""));
+              }
+              return filePath;
+            }).collect(Collectors.toList());
     final String srcFolderName = "src";
+    final String generatedFolderName = "generated";
     Path sourceDirPath = Paths.get(baseDirectory, generatedExtModuleDirectory, srcFolderName);
     if (sourceDirPath.toFile().exists() && sourceDirPath.toFile().isDirectory()) {
       Path targetDirPath = Paths.get(targetPackageDir, "sencha", srcFolderName);
@@ -603,8 +624,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (isTsFile) {
           hasSourceTsFiles.set(true);
         }
-        return pathname.isDirectory() || isTsFile;
+        return pathname.isDirectory() || isTsFile && !generatedTsFiles.contains(sourceDirPath.relativize(pathname.toPath()));
       });
+      if (generatedTsFiles.size() > 0) {
+        Path generatedTargetDirpath = Paths.get(targetPackageDir, generatedFolderName, srcFolderName);
+        FileUtils.copyDirectory(sourceDirPath.toFile(), generatedTargetDirpath.toFile(), pathname -> {
+          boolean isTsFile = pathname.getName().endsWith(".ts");
+          return pathname.isDirectory() || isTsFile && generatedTsFiles.contains(sourceDirPath.relativize(pathname.toPath()));
+        });
+      }
     }
 
     Path jooUnitSourcePath = Paths.get(baseDirectory, "target", "test-classes", srcFolderName);
@@ -628,14 +656,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         FileUtils.copyDirectory(sassDirPath.toFile(), targetDirPath.toFile());
       }
     }
-    Path targetSenchaPath = Paths.get(targetPackageDir, "sencha");
-    for (Path senchaSrc : Arrays.asList(
-            Paths.get(baseDirectory, "src", "main", "sencha"),
-            Paths.get(baseDirectory, "target", "generated-sencha"))) {
-      if (senchaSrc.toFile().exists() && senchaSrc.toFile().isDirectory()) {
-        FileUtils.copyDirectory(senchaSrc.toFile(), targetSenchaPath.toFile(),
-                pathname -> acceptFile(pathname, senchaSrc, fullIgnoreFromSrcMainSencha));
-      }
+    Path senchaSrc = Paths.get(baseDirectory, "src", "main", "sencha");
+    if (senchaSrc.toFile().exists() && senchaSrc.toFile().isDirectory()) {
+      FileUtils.copyDirectory(senchaSrc.toFile(), Paths.get(targetPackageDir, "sencha").toFile(),
+              pathname -> acceptFile(pathname, senchaSrc, fullIgnoreFromSrcMainSencha));
+    }
+    Path generatedSenchaSrc = Paths.get(baseDirectory, "target", "generated-sencha");
+    if (generatedSenchaSrc.toFile().exists() && generatedSenchaSrc.toFile().isDirectory()) {
+      FileUtils.copyDirectory(generatedSenchaSrc.toFile(), Paths.get(targetPackageDir, generatedFolderName, "sencha").toFile(),
+              pathname -> acceptFile(pathname, generatedSenchaSrc, fullIgnoreFromSrcMainSencha));
     }
     return new CopyFromMavenResult(hasSourceTsFiles.get(), hasJooUnitTsFiles.get());
   }
