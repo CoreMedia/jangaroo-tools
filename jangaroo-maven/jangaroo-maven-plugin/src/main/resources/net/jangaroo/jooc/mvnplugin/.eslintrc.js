@@ -37,6 +37,7 @@ module.exports = {
     "@typescript-eslint/space-infix-ops": "error",
     "array-bracket-newline": ["error", "consistent"],
     "arrow-parens": ["error", "as-needed"],
+    "prefer-const": "error",
     "import/newline-after-import": [
       "error", {"count": 1}
     ],
@@ -57,6 +58,7 @@ module.exports = {
     }],
     "no-multi-spaces": "error",
     "no-trailing-spaces": "error",
+    "no-var": "error",
     "no-whitespace-before-property": "error",
     "object-curly-newline": ["error", {
       "multiline": true
