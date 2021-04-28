@@ -38,7 +38,7 @@ public interface JoocOptions {
 
   boolean isFindUnusedDependencies();
 
-  boolean isSourcesAreTests();
+  String getDependencyReportOutputFile();
 
   File getKeepGeneratedActionScriptDirectory();
 }
