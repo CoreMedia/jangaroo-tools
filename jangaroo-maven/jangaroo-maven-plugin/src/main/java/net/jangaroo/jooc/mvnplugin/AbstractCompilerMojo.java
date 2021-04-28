@@ -402,7 +402,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setApiOutputDirectory(getApiOutputDirectory());
     configuration.setFindUnusedDependencies(findUnusedDependencies(staleMillis));
     //todo: use proper directory
-    configuration.setDependencyReportOutputFile("target/dependencyReports/dependencyWarnings");
+    configuration.setDependencyReportOutputFile("target/dependencyReports/dependencyWarnings.txt");
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {
