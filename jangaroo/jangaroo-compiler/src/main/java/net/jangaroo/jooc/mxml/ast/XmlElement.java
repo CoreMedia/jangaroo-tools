@@ -12,16 +12,21 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class XmlElement extends NodeImplBase {
 
+  public static final String CDATA_START_TOKEN = "<![CDATA[";
+  public static final String CDATA_END_TOKEN = "]]>";
   private final List<XmlElement> elements = new LinkedList<>();
 
   private final XmlTag openingMxmlTag;
-  private final List children;
+  private List children;
   private final XmlTag closingMxmlTag;
 
   private XmlElement parent;
@@ -81,6 +86,17 @@ public class XmlElement extends NodeImplBase {
   @Override
   public void analyze(AstNode parentNode) {
 
+  }
+
+  void removeFromParent() {
+    int removeIndex = parent.children.indexOf(this);
+    if (removeIndex > 0 && parent.children.get(removeIndex - 1) instanceof JooSymbol) {
+      parent.children.remove(--removeIndex);
+    }
+    parent.children.remove(removeIndex);
+    if (parent.getChildren().isEmpty()) {
+      parent.removeFromParent();
+    }
   }
 
   @Override
@@ -145,5 +161,37 @@ public class XmlElement extends NodeImplBase {
   String getAttributeNS(String namespaceUri, String localName) {
     XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
     return null != attribute ? (String) attribute.getValue().getJooValue() : "";
+  }
+
+  void prependTextNode(String text) {
+    children = new ArrayList(children);
+    JooSymbol firstSymbol = (JooSymbol) children.get(0);
+    final String oldText = firstSymbol.getText();
+    String pre = "";
+    String post = oldText;
+    if (oldText.startsWith(CDATA_START_TOKEN)) {
+      pre = CDATA_START_TOKEN;
+      post = oldText.substring(CDATA_START_TOKEN.length());
+    }
+    children.set(0, new JooSymbol(pre + text + post));
+  }
+
+  void appendTextNode(String text) {
+    children = new ArrayList(children);
+    int last = children.size() - 1;
+    JooSymbol lastSymbol = (JooSymbol) children.get(last);
+    final String oldText = lastSymbol.getText();
+    String pre = oldText;
+    String post = "";
+    if (oldText.endsWith(CDATA_END_TOKEN)) {
+      pre = oldText.substring(0, oldText.length() - CDATA_END_TOKEN.length());
+      post = CDATA_END_TOKEN;
+    }
+    Matcher matcher = Pattern.compile("\\s*$").matcher(pre);
+    if (matcher.find()) {
+      post = pre.substring(matcher.start()) + post;
+      pre = pre.substring(0, matcher.start());
+    }
+    children.set(last, new JooSymbol(pre + text + post));
   }
 }

@@ -4,6 +4,7 @@ import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
@@ -23,6 +24,8 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.VariableDeclaration;
+import net.jangaroo.jooc.config.JoocConfiguration;
+import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
@@ -30,6 +33,10 @@ import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -38,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * AST node for an MXML compilation unit, represented by its root node.
@@ -157,6 +165,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
       constructorBodyDirectives.add(MxmlAstUtils.createSemicolonTerminatedStatement(assignmentOpExpr));
     }
 
+    if (((JoocConfiguration) parser.getConfig()).isMigrateMxmlDeclarations()) {
+      migrateMxmlDeclarations(parser.getLog());
+    }
+
     mxmlToModelParser.processAttributesAndChildNodes(rootNode, superConfigVar, new Ide(Ide.THIS), superConfigVar != null);
     constructorBodyDirectives.addAll(mxmlToModelParser.getConstructorBodyDirectives());
     classBodyDirectives.addAll(mxmlToModelParser.getClassBodyDirectives());
@@ -173,6 +185,31 @@ public class MxmlCompilationUnit extends CompilationUnit {
     postProcessClassBodyDirectives();
 
     super.scope(scope);
+  }
+
+  private void migrateMxmlDeclarations(CompileLog log) {
+    if (!mxmlToModelParser.additionalDeclarations.isEmpty()) {
+      File outputFile = ((FileInputSource) getInputSource()).getFile();
+      System.out.printf("Refactoring <fx:Declarations> in %s...%n", outputFile.getPath());
+      Optional<? extends AstNode> optFirstScriptBlock = rootNode.getChildren().stream()
+              .filter(xmlElement -> xmlElement instanceof XmlElement
+                      && MxmlUtils.isMxmlNamespace(((XmlElement) xmlElement).getNamespaceURI())
+                      && MxmlUtils.MXML_SCRIPT.equals(((XmlElement) xmlElement).getName()))
+              .findFirst();
+      if (!optFirstScriptBlock.isPresent()) {
+        log.error("<fx:Declarations> without <fx:Script> block!");
+      } else {
+        XmlElement firstScriptBlock = (XmlElement) optFirstScriptBlock.get();
+        firstScriptBlock.prependTextNode(String.join("", mxmlToModelParser.additionalImports));
+        firstScriptBlock.appendTextNode("\n" + String.join("", mxmlToModelParser.additionalDeclarations));
+        try {
+          String xmlDump = (optXmlHeader == null ? "" : optXmlHeader.toString()) + rootNode.toString() + "\n";
+          Files.write(outputFile.toPath(), xmlDump.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+          log.error(rootNode.getSymbol(), "Could not overwrite MXML file for migration: " + e.getMessage());
+        }
+      }
+    }
   }
 
   Ide createAuxVar(String name) {

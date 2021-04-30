@@ -37,6 +37,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File catalogOutputDirectory;
   private File reportOutputDirectory;
+  private boolean migrateMxmlDeclarations = false;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
     return semicolonInsertionMode;
@@ -208,5 +209,13 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name="-report", aliases = "--reportDir", usage = "output directory for compilation reports like the cyclic classes report")
   public void setReportOutputDirectory(File reportOutputDirectory) {
     this.reportOutputDirectory = reportOutputDirectory;
+  }
+
+  public void setMigrateMxmlDeclarations(boolean migrateMxmlDeclarations) {
+    this.migrateMxmlDeclarations = migrateMxmlDeclarations;
+  }
+
+  public boolean isMigrateMxmlDeclarations() {
+    return migrateMxmlDeclarations;
   }
 }

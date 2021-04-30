@@ -36,9 +36,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.APPLY;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
@@ -68,7 +70,8 @@ final class MxmlToModelParser {
 
   private final Collection<Directive> constructorBodyDirectives = new LinkedList<>();
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
-  String additionalDeclarations = "";
+  List<String> additionalImports = new ArrayList<>();
+  Set<String> additionalDeclarations = new LinkedHashSet<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
@@ -347,7 +350,17 @@ final class MxmlToModelParser {
             && objectElement.getAttributes().size() == 1 // ...with only an id attribute...
             && objectElement.getChildren().isEmpty() && objectElement.getTextNodes().isEmpty()) {
       // prevent assigning a default value for such an empty declaration:
-      additionalDeclarations += additionalDeclaration;
+      if (additionalDeclaration != null) {
+        // For MXML Declarations migration: record migrate such declarations to ActionScript!
+        if (className.contains(".") && !CompilerUtils.packageName(className).equals(compilationUnit.getPackageDeclaration().getQualifiedNameStr())) {
+          additionalImports.add(String.format("\n    import %s;", className));
+        }
+        additionalDeclarations.add(additionalDeclaration);
+        // The objectElement has been processed now and can now safely be removed.
+        // This only affects dumping the MXML again for migration, where the MXML node is replaced by the
+        // ActionScript field declaration.
+        objectElement.removeFromParent();
+      }
       return null;
     }
 
