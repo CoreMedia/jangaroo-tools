@@ -31,6 +31,7 @@ import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,9 +40,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
@@ -63,6 +66,8 @@ final class MxmlToModelParser {
   private final MxmlCompilationUnit compilationUnit;
 
   private final Collection<Directive> classBodyDirectives = new LinkedList<>();
+  List<String> additionalImports = new ArrayList<>();
+  Set<String> additionalDeclarations = new LinkedHashSet<>();
 
   MxmlToModelParser(JangarooParser jangarooParser, MxmlParserHelper mxmlParserHelper, MxmlCompilationUnit mxmlCompilationUnit) {
     this.jangarooParser = jangarooParser;
@@ -390,7 +395,7 @@ final class MxmlToModelParser {
     Ide typeIde = compilationUnit.addImport(className);
     XmlAttribute idAttribute = objectElement.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
     String id = null;
-    String additionalDeclaration;
+    String additionalDeclaration = null;
     if (null != idAttribute) {
       JooSymbol idSymbol = idAttribute.getValue();
       id = (String) idSymbol.getJooValue();
@@ -428,6 +433,17 @@ final class MxmlToModelParser {
     if (textContent.isEmpty()) {
       // suppress fields with only an id attribute (no other attributes, no sub-elements, no text content):
       if (idAttribute != null && objectElement.getElements().isEmpty() && objectElement.getAttributes().size() == 1) {
+        if (additionalDeclaration != null) {
+          // For MXML Declarations migration: record migrate such declarations to ActionScript!
+          if (className.contains(".") && !CompilerUtils.packageName(className).equals(compilationUnit.getPackageDeclaration().getQualifiedNameStr())) {
+            additionalImports.add(String.format("\n    import %s;", className));
+          }
+          additionalDeclarations.add(additionalDeclaration);
+          // The objectElement has been processed now and can now safely be removed.
+          // This only affects dumping the MXML again for migration, where the MXML node is replaced by the
+          // ActionScript field declaration.
+          objectElement.removeFromParent();
+        }
         return null;
       }
       if ("Array".equals(className)) {

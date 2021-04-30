@@ -150,6 +150,37 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private File catalogOutputDirectory;
 
   /**
+   * A utility to migrate MXML config declarations without a default value to ActionScript,
+   * in order to change MXML declaration semantics to always create a default value, which is
+   * the original MXML semantics.
+   *
+   * <p>
+   *   For example, a declaration like
+   * <pre>
+   *   &lt;fx:Declarations>
+   *     &lt;fx:String id="foo"/>
+   *   &lt;/fx:Declarations>
+   * </pre>
+   *   currently results in a pure declaration of a public, bindable field "foo" <i>without</i>
+   *   a default value (null), but only if the "id" attribute is the only one and the element is empty.
+   *   The actual MXML semantics would create a new String() as the default value, resulting in an
+   *   empty string.
+   * </p>
+   * <p>
+   *   Especially when using more complex objects like Ext components or actions, it comes as a
+   *   surprise for the developer that these objects are <i>not</i> instantiated when there are
+   *   no additional attributes or sub-elements.
+   * </p>
+   * <p>
+   *   Before we can change the Jangaroo MXML compiler to conform to the standard MXML semantics, we
+   *   have to migrate all usages of &lt;fx:Declarations> with only an "id" attribute to instead use
+   *   a corresponding ActionScript declaration in the &lt;fx:Script> block.
+   * </p>
+   */
+  @Parameter(property = "maven.compiler.migrateMxmlDeclarations")
+  private boolean migrateMxmlDeclarations = false;
+
+  /**
    * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
    */
   @Parameter(property = "maven.compiler.migrateToTypeScript")
@@ -365,6 +396,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
                 + "' is unsupported. " + "Legal values are 'error', 'warn', and 'allow'.");
       }
     }
+
+    configuration.setMigrateMxmlDeclarations(migrateMxmlDeclarations);
 
     HashSet<File> sources = new HashSet<>();
     log.debug("starting source inclusion scanner");

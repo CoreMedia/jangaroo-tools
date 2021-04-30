@@ -43,6 +43,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File catalogOutputDirectory;
   private File reportOutputDirectory;
+  private boolean migrateMxmlDeclarations = false;
 
   private boolean findUnusedDependencies;
   private boolean sourcesAreTests;
@@ -298,5 +299,13 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   @Option(name = "--dependencyReportOutputFile", usage = "the file to use for saving the dependency warnings. In order to execute the dependency checks, this need to be set.")
   public void setDependencyReportOutputFile(String dependencyReportOutputFile) {
     this.dependencyReportOutputFile = dependencyReportOutputFile;
+  }
+
+  public void setMigrateMxmlDeclarations(boolean migrateMxmlDeclarations) {
+    this.migrateMxmlDeclarations = migrateMxmlDeclarations;
+  }
+
+  public boolean isMigrateMxmlDeclarations() {
+    return migrateMxmlDeclarations;
   }
 }
