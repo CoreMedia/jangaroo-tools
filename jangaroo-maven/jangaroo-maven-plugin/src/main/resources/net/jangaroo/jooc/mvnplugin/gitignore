@@ -1,0 +1,6 @@
+# NodeJS
+node_modules/
+
+# Jangaroo Build
+dist/
+build/
