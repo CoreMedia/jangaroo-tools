@@ -1,0 +1,9 @@
+{
+  "useWorkspaces": true,
+  "version": "0.0.0",
+  "command": {
+    "run": {
+      "stream": true
+    }
+  }
+}

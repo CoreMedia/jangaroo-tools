@@ -1,0 +1,23 @@
+{
+  "name": "studio-client-workspace",
+  "version": "1.0.0-SNAPSHOT",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": "^14.16.1",
+    "npm": "^7.8.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/parser": "^4.19.0",
+    "eslint": "^7.22.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^32.3.0",
+    "eslint-plugin-padding": "^0.0.4",
+    "lerna": "^3.0.0"
+  },
+  "scripts": {
+    "lerna": "lerna"
+  },
+  "workspaces": []
+}

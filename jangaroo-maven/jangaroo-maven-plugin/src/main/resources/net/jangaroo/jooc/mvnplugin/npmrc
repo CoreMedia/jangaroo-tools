@@ -1,0 +1,3 @@
+# as long as we use a typescript beta version we need this
+# otherwise the wrong typescript is installed due to a peer dependency
+legacy-peer-deps=true
