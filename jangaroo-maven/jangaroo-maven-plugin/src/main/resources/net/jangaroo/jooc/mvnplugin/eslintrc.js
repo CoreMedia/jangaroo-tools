@@ -12,7 +12,8 @@ module.exports = {
     "@typescript-eslint",
     "import",
     "jsdoc",
-    "padding"
+    "padding",
+    "unused-imports",
   ],
   "rules": {
     "@typescript-eslint/brace-style": "error",
@@ -77,5 +78,6 @@ module.exports = {
       "always"
     ],
     "space-in-parens": "error",
+    "unused-imports/no-unused-imports": "error",
   }
 };
