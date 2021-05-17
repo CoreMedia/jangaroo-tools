@@ -233,16 +233,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   private CompilationResult run1() {
     InputSource sourcePathInputSource;
     InputSource classPathInputSource;
-    File propertiesOutputDirectory;
-    if (getConfig().isMigrateToTypeScript()) {
-      propertiesOutputDirectory = getConfig().getOutputDirectory();
-    } else {
-      propertiesOutputDirectory = getConfig().getLocalizedOutputDirectory();
-      if (propertiesOutputDirectory == null) {
-        // temporary fix until the new configuration option can be used by IDEA Plugin:
-        propertiesOutputDirectory = new File(getConfig().getOutputDirectory().getParentFile(), "locale");
-      }
-    }
     try {
       String extNamespace = getConfig().getExtNamespace();
       sourcePathInputSource = PathInputSource.fromFiles(getConfig().getSourcePath(), new String[]{""}, true, extNamespace);

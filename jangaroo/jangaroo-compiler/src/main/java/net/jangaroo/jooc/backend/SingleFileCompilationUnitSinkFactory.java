@@ -58,8 +58,11 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             ? primaryDeclaration.getQualifiedNameStr() : primaryDeclaration.getExtNamespaceRelativeTargetQualifiedNameStr();
     if (!generateApi && !options.isMigrateToTypeScript() && qName.endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX)) {
       Locale locale = PropcHelper.computeLocale(qName);
-      outputDirectory = new File(((JoocConfiguration) options).getLocalizedOutputDirectory(),
-            PropcHelper.localeOrDefaultLocaleString(locale));
+      File propertiesOutputDirectory = ((JoocConfiguration) options).getLocalizedOutputDirectory();
+      if (propertiesOutputDirectory == null) {
+        propertiesOutputDirectory = new File(((JoocConfiguration) options).getOutputDirectory().getParentFile(), "locale");
+      }
+      outputDirectory = new File(propertiesOutputDirectory, PropcHelper.localeOrDefaultLocaleString(locale));
       if (locale != null) {
         qName = PropcHelper.computeBaseClassName(qName);
       }
@@ -154,6 +157,6 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
       // ignore, old front ends did not know that you can exclude classes by default
       return false;
     }
-    
+
   }
 }
