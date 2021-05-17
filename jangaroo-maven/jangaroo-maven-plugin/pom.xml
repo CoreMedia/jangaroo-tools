@@ -82,7 +82,7 @@
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-io</artifactId>
-      <version>2.7</version>
+      <version>3.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -236,6 +236,8 @@
         <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
           <skipInvocation>${skipITs}</skipInvocation>
+          <settingsFile>src/it/settings.xml</settingsFile>
+          <mergeUserSettings>true</mergeUserSettings>
         </configuration>
       </plugin>
       <plugin>

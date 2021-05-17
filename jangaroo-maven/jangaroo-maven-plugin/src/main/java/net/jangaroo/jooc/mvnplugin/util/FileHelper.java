@@ -218,6 +218,7 @@ public final class FileHelper {
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
     mavenArchiver.setOutputFile(jarFile);
+    mavenArchiver.configureReproducible(project.getProperties().getProperty("project.build.outputTimestamp"));
     try {
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
@@ -300,6 +301,7 @@ public final class FileHelper {
 
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
+    mavenArchiver.configureReproducible(project.getProperties().getProperty("project.build.outputTimestamp"));
     mavenArchiver.setOutputFile(jarFile);
     try {
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
