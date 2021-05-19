@@ -28,6 +28,10 @@ under the License.
   <name>simple-project</name>
   <url>http://www.jangaroo.net</url>
 
+  <properties>
+    <!-- This is an arbitrary date for reproducible builds, should be set by the release pipeline only-->
+    <project.build.outputTimestamp>2021-03-23T09:00:00Z</project.build.outputTimestamp>
+  </properties>
   <build>
     <resources>
     </resources>

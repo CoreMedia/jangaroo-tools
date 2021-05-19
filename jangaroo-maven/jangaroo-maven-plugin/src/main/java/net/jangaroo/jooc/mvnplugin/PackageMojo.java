@@ -103,6 +103,7 @@ public class PackageMojo extends AbstractMojo {
     File zipFile = new File(targetDir, finalName + '.' + extension);
     MavenArchiver mavenArchiver = new MavenArchiver();
     mavenArchiver.setArchiver(archiver);
+    mavenArchiver.configureReproducible(project.getProperties().getProperty("project.build.outputTimestamp"));
     mavenArchiver.setOutputFile(zipFile);
     try {
       if (archive.getManifestFile() == null) {
