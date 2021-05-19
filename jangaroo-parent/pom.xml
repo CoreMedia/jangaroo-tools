@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jangaroo</groupId>
   <artifactId>jangaroo-parent</artifactId>
-  <version>4.1.0-alpha-4-SNAPSHOT</version>
+  <version>4.1.0-alpha-4</version>
   <packaging>pom</packaging>
   <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -692,7 +692,7 @@
     <connection>scm:git:git://github.com/CoreMedia/jangaroo-tools.git</connection>
     <developerConnection>scm:git:git@github.com:CoreMedia/jangaroo-tools.git</developerConnection>
     <url>http://github.com/CoreMedia/jangaroo-tools</url>
-    <tag>HEAD</tag>
+    <tag>jangaroo-tools-4.1.0-alpha-4</tag>
   </scm>
   <prerequisites>
     <maven>${maven.version}</maven>
