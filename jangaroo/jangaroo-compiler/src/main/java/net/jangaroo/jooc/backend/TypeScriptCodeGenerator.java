@@ -1268,7 +1268,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
         Expr typeExpr = current.getHead();
         if (typeExpr instanceof IdeExpr) {
-          out.write(((IdeExpr) typeExpr).getIde().getName() + "._");
+          out.write(compilationUnitAccessCode(((IdeExpr) typeExpr).getIde().getDeclaration()) + "._");
         } else {
           ArrayLiteral untypedProperties = (ArrayLiteral) typeExpr;
           writeSymbolReplacement(untypedProperties.getLParen(), "{");
