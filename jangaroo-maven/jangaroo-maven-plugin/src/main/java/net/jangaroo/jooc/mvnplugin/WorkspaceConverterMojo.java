@@ -241,6 +241,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
       if (mavenModule.getModuleType() == ModuleType.SWC) {
         jangarooConfig.setType(packageType);
+        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
         jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
 
         jangarooConfig.setExtNamespace(extNamespace);
@@ -356,6 +357,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
         excludePaths.add(targetPackageDir + "/build");
         jangarooConfig.setType("app");
+        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
         setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
         jangarooConfig.setExtNamespace(extNamespace);
         jangarooConfig.setExtSassNamespace(extSassNamespace);
