@@ -3,7 +3,14 @@ import ManyConstructorParameters from "./ManyConstructorParameters";
 
 class SuperCallParameters extends ManyConstructorParameters {
   constructor() {
-    super("bar", -1, -4.2, true, {}, []);
+    var foo: boolean;
+    super(...(():[any,any,any,any,any,any]=>{
+    foo = this.isEmpty("");
+    var bar = "BAR";
+    return ["bar", -1, -4.2, true, {}, []];})());
+    if (foo) {
+      super.isEmpty("FOO");
+    }
   }
 
   isEmpty(str:string):boolean {

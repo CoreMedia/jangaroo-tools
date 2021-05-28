@@ -1138,6 +1138,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void visitSuperCallWithWrappedDirectives(SuperConstructorCallStatement superCall, List<Directive> directivesToWrap) throws IOException {
+    List<VariableDeclaration> pulledOutVariableDeclarations = new ArrayList<>();
+    for (Iterator<Directive> iterator = directivesToWrap.iterator(); iterator.hasNext(); ) {
+      Directive directive = iterator.next();
+      if (directive instanceof VariableDeclaration) {
+        VariableDeclaration variableDeclaration = (VariableDeclaration) directive;
+        // Only pull declarations out of directivesToWrap that are used outside directivesToWrap!
+        AstNode body = directive.getParentNode();
+        if (variableDeclaration.getUsages().stream()
+                .anyMatch(usage -> !directivesToWrap.contains(getParentDirective(usage, body)))) {
+          pulledOutVariableDeclarations.add(variableDeclaration);
+
+          visitDeclarationAnnotationsAndModifiers(variableDeclaration);
+          writeSymbolReplacement(variableDeclaration.getOptSymConstOrVar(), "var");
+          variableDeclaration.getIde().visit(this);
+          variableDeclaration.getOptTypeRelation().visit(this);
+          visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
+          writeOptSymbol(variableDeclaration.getOptSymSemicolon());
+
+          if (variableDeclaration.getOptInitializer() == null) {
+            iterator.remove();
+          }
+        }
+      }
+    }
+
     superCall.getFun().visit(this);
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = superCall.getArgs();
     out.writeSymbol(args.getLParen());
@@ -1161,7 +1186,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.write("=>");
     if (!directivesToWrap.isEmpty()) {
       out.write("{");
-      visitAll(directivesToWrap);
+      for (AstNode directive : directivesToWrap) {
+        if (directive instanceof VariableDeclaration && pulledOutVariableDeclarations.contains(directive)) {
+          renderVariableDeclarationAsAssignment((VariableDeclaration) directive);
+        } else {
+          directive.visit(this);
+        }
+      }
       out.write("\n    return ");
     }
     if (!hasOneParameter) {
@@ -1178,6 +1209,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.write(")()");
     out.writeSymbol(args.getRParen());
     writeOptSymbol(superCall.getSymSemicolon());
+  }
+
+  private static Directive getParentDirective(IdeExpr usage, AstNode container) {
+    AstNode current = usage;
+    while (current != null && !container.equals(current.getParentNode())) {
+      current = current.getParentNode();
+    }
+    return current instanceof Directive ? (Directive) current : null;
+  }
+
+  private void renderVariableDeclarationAsAssignment(VariableDeclaration variableDeclaration) throws IOException {
+    out.write(variableDeclaration.getOptSymConstOrVar().getWhitespace());
+    variableDeclaration.getIde().visit(this);
+    variableDeclaration.getOptInitializer().visit(this);
+    writeOptSymbol(variableDeclaration.getOptSymSemicolon());
   }
 
   private static boolean hasSetter(FunctionDeclaration getter) {
