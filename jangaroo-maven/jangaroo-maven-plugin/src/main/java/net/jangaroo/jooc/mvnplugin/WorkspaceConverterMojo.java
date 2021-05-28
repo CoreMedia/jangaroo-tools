@@ -240,7 +240,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
       if (mavenModule.getModuleType() == ModuleType.SWC) {
         jangarooConfig.setType(packageType);
-        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
         jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
 
         jangarooConfig.setExtNamespace(extNamespace);
@@ -327,6 +326,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
         if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
+          setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
           devDependencies.put("eslint", "^7.23.0");
           List<String> eslintPatterns = new ArrayList<>();
           if (copyFromMavenResult.hasSourceTsFiles) {
@@ -356,7 +356,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
         excludePaths.add(targetPackageDir + "/build");
         jangarooConfig.setType("app");
-        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
         setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
         jangarooConfig.setExtNamespace(extNamespace);
         jangarooConfig.setExtSassNamespace(extSassNamespace);
@@ -416,6 +415,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
         if (copyFromMavenResult.hasSourceTsFiles) {
+          setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
           devDependencies.put("eslint", "^7.23.0");
           scripts.put("lint", "eslint --fix 'src/**/*.ts'");
         }
