@@ -136,11 +136,14 @@ public class IdeExpr extends Expr {
             && !ide.isDeclared()) {
       ide.getScope().getCompiler().getLog().error(ide.getSymbol(), "undeclared identifier '" + ide.getName() + "'.");
     }
+    IdeDeclaration declaration = ide.getDeclaration(false);
+    if (declaration != null) {
+      declaration.addUsage(this);
+    }
     ExpressionType type = null;
     if (normalizedExpr != this) {
       type = normalizedExpr.getType();
     } else {
-      IdeDeclaration declaration = ide.getDeclaration(false);
       if (declaration != null) {
         type = declaration.getType();
         if (type == null) {

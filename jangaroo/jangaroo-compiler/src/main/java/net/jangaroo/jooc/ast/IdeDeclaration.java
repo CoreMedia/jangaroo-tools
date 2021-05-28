@@ -22,7 +22,10 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.types.ExpressionType;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -35,6 +38,7 @@ public abstract class IdeDeclaration extends Declaration {
 
   private Ide ide;
   private ExpressionType type;
+  private Set<IdeExpr> usages = new HashSet<>();
 
   protected IdeDeclaration(AnnotationsAndModifiers am, Ide ide) {
     super(am.getAnnotations(), toSymbolArray(am.getModifiers()));
@@ -157,6 +161,17 @@ public abstract class IdeDeclaration extends Declaration {
     if (ide != null) {
       ide.analyze(this);
     }
+  }
+
+  void addUsage(IdeExpr usage) {
+    // only for local declarations, record usages:
+    if (!isPrimaryDeclaration() && !isClassMember()) {
+      usages.add(usage);
+    }
+  }
+
+  public Set<IdeExpr> getUsages() {
+    return Collections.unmodifiableSet(usages);
   }
 
   public void handleDuplicateDeclaration(Scope scope, AstNode oldNode) {
