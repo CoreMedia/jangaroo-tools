@@ -266,7 +266,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
           }
         }
-        if (jooUnitTestExecutionTimeout != null) {
+        if (jooUnitTestExecutionTimeout != null && jooUnitTestExecutionTimeout != 30000) {
           setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
         }
         if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
