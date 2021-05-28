@@ -63,7 +63,7 @@ class AllElements extends panel{
       cast(someMixin,{
         ...Exml.append({someList: [
           cast(button,{ text: "click me!", id: "myId",
-            baseAction: new ext.Action(_<Action._>({
+            baseAction: new ext.Action(_<ext.Action._>({
             }))
           })
         ]})
