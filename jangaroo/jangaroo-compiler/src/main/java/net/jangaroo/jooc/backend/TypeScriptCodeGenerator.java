@@ -551,7 +551,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       do {
         Ide head = current.getHead();
         // head must be included in filter and
-        // must not be a mixin class's mixin interface: 
+        // must not be a mixin class's mixin interface:
         if (filter.contains(head) && !isCurrentMixinInterface(head)) {
           out.writeSymbol(lastSym);
           lastSym = current.getSymComma();
@@ -571,7 +571,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (parentNode instanceof IdeDeclaration) {
       out.writeSymbol(typeRelation.getSymbol());
       ExpressionType expressionType = ((IdeDeclaration) parentNode).getType();
-      // a non-getter-setter function declaration returns its function signature, but we are just interested 
+      // a non-getter-setter function declaration returns its function signature, but we are just interested
       // in its return value, which is contained in the type parameter:
       if (expressionType instanceof FunctionSignature) {
         expressionType = expressionType.getTypeParameter();
@@ -616,6 +616,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // special case: built-in TypeScript 'Promise' type needs a type parameter:
         if ("js.Promise".equals(qualifiedNameStr)) {
           return "Promise<any>";
+        }
+        // special case: built-in TypeScript 'Map' type needs type parameters:
+        if ("js.Map".equals(qualifiedNameStr)) {
+          return "Map<any, any>";
         }
         // use class name:
         String tsType = getLocalName(declaration, true);
@@ -1081,7 +1085,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     return null;
   }
-  
+
   private static boolean containsASDoc(JooSymbol symbol) {
     return symbol.getWhitespace().contains("/**");
   }
@@ -1264,7 +1268,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
         Expr typeExpr = current.getHead();
         if (typeExpr instanceof IdeExpr) {
-          out.write(((IdeExpr) typeExpr).getIde().getName() + "._");
+          out.write(compilationUnitAccessCode(((IdeExpr) typeExpr).getIde().getDeclaration()) + "._");
         } else {
           ArrayLiteral untypedProperties = (ArrayLiteral) typeExpr;
           writeSymbolReplacement(untypedProperties.getLParen(), "{");
@@ -1383,7 +1387,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       expr = ((ApplyExpr) expr).getArgs().getExpr().getTail().getHead();
     }
     // for the following conditions, the type cast is rewritten to the config class:
-    return expr instanceof ObjectLiteral  // an object literal can only be cast into a config type 
+    return expr instanceof ObjectLiteral  // an object literal can only be cast into a config type
             || expr.getType() != null && expr.getType().isConfigType() // argument has a config type
             // Ext.apply() hands-through its argument type(s), so if any is of config type, so is the result:
             || isExtApply(expr) && isAnyOfConfigType(((ApplyExpr) expr).getArgs().getExpr());
