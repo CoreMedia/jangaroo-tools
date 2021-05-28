@@ -299,10 +299,12 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   protected void writeSymbolReplacement(JooSymbol symbol, String replacementToken) throws IOException {
-    if (symbol != null) {
+    if (symbol == null) {
+      out.writeToken(replacementToken);
+    } else {
       out.writeSymbolWhitespace(symbol);
+      out.writeTokenForSymbol(replacementToken, symbol);
     }
-    out.writeTokenForSymbol(replacementToken, symbol);
   }
 
   protected void visitIfNotNull(AstNode args) throws IOException {
