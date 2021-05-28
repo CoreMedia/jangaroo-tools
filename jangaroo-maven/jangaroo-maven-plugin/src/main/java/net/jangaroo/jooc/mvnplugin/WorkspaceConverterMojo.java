@@ -217,7 +217,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       loadAndCopyResource("eslintrc.js", ".eslintrc.js");
       loadAndCopyResource("lerna.json", "lerna.json");
       loadAndCopyResource("gitignore", ".gitignore");
-      loadAndCopyResource("npmrc", ".npmrc");
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
