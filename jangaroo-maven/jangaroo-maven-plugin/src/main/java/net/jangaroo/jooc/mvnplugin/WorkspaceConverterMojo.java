@@ -327,7 +327,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         }
         if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
           setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
-          devDependencies.put("eslint", "^7.23.0");
+          devDependencies.put("eslint", "7.27.0");
           List<String> eslintPatterns = new ArrayList<>();
           if (copyFromMavenResult.hasSourceTsFiles) {
             eslintPatterns.add("'src/**/*.ts'");
