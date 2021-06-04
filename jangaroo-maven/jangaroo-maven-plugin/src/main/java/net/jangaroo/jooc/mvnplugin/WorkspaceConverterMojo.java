@@ -221,7 +221,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
 
-    List<String> excludePaths = new ArrayList<>();
     if (!optionalPackage.isPresent()) {
       logger.warn("Package was null");
       return;
@@ -234,7 +233,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       String targetPackageDir = convertedWorkspaceTarget + "/" + packageFolderName;
       logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getPath()));
       String targetPackageJson = targetPackageDir + "/package.json";
-      excludePaths.add(targetPackageDir + "/dist");
 
       final JangarooConfig jangarooConfig = new JangarooConfig();
       AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
@@ -278,7 +276,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         Map<String, String> testDependencies = new TreeMap<>();
         Map<String, String> testScripts = new LinkedHashMap<>();
         if (jangarooConfig.getTestSuite() != null) {
-          excludePaths.add(targetPackageDir + "/build");
           testDependencies.put("@jangaroo/joounit", "^1.0.0-alpha");
           testDependencies.put("@coremedia/sencha-ext", "7.2.0");
           testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
@@ -354,7 +351,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           additionalJsonEntries.setCoremedia(coremedia);
         }
       } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
-        excludePaths.add(targetPackageDir + "/build");
         jangarooConfig.setType("app");
         setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
         jangarooConfig.setExtNamespace(extNamespace);
@@ -420,7 +416,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           scripts.put("lint", "eslint --fix 'src/**/*.ts'");
         }
       } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
-        excludePaths.add(targetPackageDir + "/build");
         jangarooConfig.setType("app-overlay");
         setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
 
@@ -437,7 +432,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         scripts.put("start", "jangaroo run");
         additionalJsonEntries.setScripts(scripts);
       } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
-        excludePaths.add(targetPackageDir + "/build");
         jangarooConfig.setType("apps");
         setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
         if (rootApp != null && !rootApp.isEmpty()) {
