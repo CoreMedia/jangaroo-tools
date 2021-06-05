@@ -9,8 +9,11 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RootPackageJson {
@@ -41,7 +44,7 @@ public class RootPackageJson {
     return this.packageJson;
   }
 
-  public void writePackageJson(List<String> newWorkspaces) throws IOException {
+  public void writePackageJson(List<String> newWorkspaces, List<String> newProjectExtensionWorkspacePaths) throws IOException {
     File packageJsonFile = Paths.get(path + "/package.json").toFile();
     if (!packageJsonFile.exists()) {
       packageJsonFile.createNewFile();
@@ -52,6 +55,26 @@ public class RootPackageJson {
       if (this.packageJson.getWorkspaces() != null) {
         this.packageJson.getWorkspaces().sort(Comparator.naturalOrder());
       }
+
+      if (!newProjectExtensionWorkspacePaths.isEmpty()) {
+        Map<String, Object> coremedia = this.packageJson.getCoremedia();
+        if (coremedia == null) {
+          coremedia = new LinkedHashMap<>();
+        }
+        @SuppressWarnings("unchecked") List<String> projectExtensionWorkspacePaths = (List<String>) coremedia.get("projectExtensionWorkspacePaths");
+        if (projectExtensionWorkspacePaths == null) {
+          projectExtensionWorkspacePaths = new ArrayList<>();
+        }
+        for (String newProjectExtensionWorkspacePath : newProjectExtensionWorkspacePaths) {
+          if (!projectExtensionWorkspacePaths.contains(newProjectExtensionWorkspacePath)) {
+            projectExtensionWorkspacePaths.add(newProjectExtensionWorkspacePath);
+          }
+        }
+        projectExtensionWorkspacePaths.sort(Comparator.naturalOrder());
+        coremedia.put("projectExtensionWorkspacePaths", projectExtensionWorkspacePaths);
+        this.packageJson.setCoremedia(coremedia);
+      }
+
       randomAccessFile.write(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n").getBytes(StandardCharsets.UTF_8));
     }
   }

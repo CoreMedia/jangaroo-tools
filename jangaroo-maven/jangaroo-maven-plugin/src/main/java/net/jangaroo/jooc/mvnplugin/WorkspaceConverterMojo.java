@@ -43,6 +43,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,13 +71,25 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter(property = "convertedWorkspaceTarget", required = true)
   private String convertedWorkspaceTarget;
 
-  @Parameter
+  @Parameter(property = "npmPackageNameReplacers")
   private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
-  @Parameter
+  @Parameter(property = "npmPackageFolderNameReplacers")
   private List<SearchAndReplaceConfiguration> npmPackageFolderNameReplacers = new ArrayList<>();
 
-  @Parameter
+  @Parameter(property = "projectExtensionWorkspacePath")
+  private File projectExtensionWorkspacePath;
+
+  @Parameter(property = "relativeProjectExtensionsPath", defaultValue = "modules/extensions")
+  private String relativeProjectExtensionsPath;
+
+  @Parameter(property = "relativeProjectExtensionPointsPath", defaultValue = "modules/extension-config")
+  private String relativeProjectExtensionPointsPath;
+
+  @Parameter(property = "relativeNpmProjectExtensionWorkspacePath", defaultValue="")
+  private String relativeNpmProjectExtensionWorkspacePath;
+
+  @Parameter(property = "useTypesVersions")
   private boolean useTypesVersions = false;
 
   // --- ACTUAL JANGAROO MAVEN CONFIGURATION --- //
@@ -154,6 +167,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       extSassNamespace = "";
     }
 
+    if (relativeNpmProjectExtensionWorkspacePath == null || ".".equals(relativeNpmProjectExtensionWorkspacePath)) {
+      relativeNpmProjectExtensionWorkspacePath = "";
+    }
+
     PackageJsonPrettyPrinter prettyPrinter = new PackageJsonPrettyPrinter();
 
     objectMapper = new ObjectMapper()
@@ -185,29 +202,360 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
     Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
+
+    if (!optionalPackage.isPresent()) {
+      logger.info("Current Maven Project does not need to be converted.");
+      return;
+    }
+
+    Package aPackage = optionalPackage.get();
+    MavenModule mavenModule = moduleMappings.get(aPackage.getName());
+
+    if (mavenModule == null) {
+      // should never happen
+      throw new MojoFailureException("An internal error occured during conversion.");
+    }
+
+    ModuleType moduleType = mavenModule.getModuleType();
+    if (ModuleType.IGNORE.equals(moduleType)) {
+      logger.info("Skipping conversion of current Maven project as packaging cannot be handled.");
+      return;
+    }
+    if (ModuleType.AGGREGATOR.equals(moduleType) && getProjectExtensionPoint(mavenModule) == null) {
+      logger.info("Skipping conversion of current Maven project as it is an aggregator. Dependencies of aggregators are moved to every package depending on the former aggregator as long as they are not marked as extension points.");
+      return;
+    }
+
     if (!new File(convertedWorkspaceTarget).exists()) {
       new File(convertedWorkspaceTarget).mkdirs();
     }
+
+    String projectExtensionFor = getProjectExtensionFor(mavenModule);
+    String projectExtensionPoint = getProjectExtensionPoint(mavenModule);
+    String relativePackageFolderName = getPackageFolderName(aPackage.getName(), mavenModule);
+
+    final JangarooConfig jangarooConfig = new JangarooConfig();
+    AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
+
+    String targetPackageDir = convertedWorkspaceTarget + "/" + relativePackageFolderName;
+    logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getPath()));
+    String targetPackageJson = targetPackageDir + "/package.json";
+
+    if (moduleType == ModuleType.SWC) {
+      jangarooConfig.setType(packageType);
+      jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
+
+      jangarooConfig.setExtNamespace(extNamespace);
+      jangarooConfig.setExtSassNamespace(extSassNamespace);
+
+      if (theme != null) {
+        String themePackageName = findPackageNameByReference(theme, moduleMappings);
+        jangarooConfig.setTheme(themePackageName);
+      }
+      jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
+      jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
+      jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
+      jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
+      jangarooConfig.setGlobalResourcesMap(globalResourcesMap);
+      if (testSuite != null) {
+        jangarooConfig.setTestSuite(testSuite);
+        if (!extNamespace.isEmpty()) {
+          String extNamespaceWithTrailingDot = extNamespace.concat(".");
+          if (!jangarooConfig.getTestSuite().startsWith(extNamespaceWithTrailingDot)) {
+            logger.error(String.format("Invalid testSuite configuration \"jangarooConfig.testSuite\". When Using extNamespace \"%s\" the test suite cannot exist.", extNamespace));
+            return;
+          }
+          jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
+        }
+      }
+      if (jooUnitTestExecutionTimeout != null && jooUnitTestExecutionTimeout != 30000) {
+        setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
+      }
+      if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
+        try {
+          jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
+        } catch (IOException e) {
+          throw new MojoFailureException(e.getMessage(), e.getCause());
+        }
+      }
+      Map<String, String> testDependencies = new TreeMap<>();
+      Map<String, String> testScripts = new LinkedHashMap<>();
+      if (jangarooConfig.getTestSuite() != null) {
+        testDependencies.put("@jangaroo/joounit", "^1.0.0-alpha");
+        testDependencies.put("@coremedia/sencha-ext", "7.2.0");
+        testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
+        testDependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
+
+        testScripts.put("test", "jangaroo joounit");
+      }
+
+      Map<String, String> dependencies = new TreeMap<>();
+      dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
+      additionalJsonEntries.setDependencies(dependencies);
+      Map<String, String> devDependencies = new TreeMap<>();
+      devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
+      devDependencies.putAll(testDependencies);
+      devDependencies.put("rimraf", "^3.0.2");
+      additionalJsonEntries.setDevDependencies(devDependencies);
+      Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("clean", "rimraf ./dist && rimraf ./build");
+      scripts.put("build", "jangaroo build");
+      scripts.put("watch", "jangaroo watch");
+      scripts.put("publish", "jangaroo publish dist");
+      scripts.putAll(testScripts);
+      additionalJsonEntries.setScripts(scripts);
+      if (useTypesVersions) {
+        List<String> typesPaths = new ArrayList<>();
+        typesPaths.add("./src/*");
+        Map<String, List> allMapping = new HashMap<>();
+        allMapping.put("*", typesPaths);
+        Map<String, Object> typesVersions = new HashMap<>();
+        typesVersions.put("*", allMapping);
+        additionalJsonEntries.setTypesVersions(typesVersions);
+      }
+
+      List<String> ignoreFromSencha = new ArrayList<>();
+      ignoreFromSencha.add("package.json");
+      CopyFromMavenResult copyFromMavenResult = null;
+      try {
+        copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
+                String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
+                ignoreFromSencha, targetPackageDir
+        );
+      } catch (IOException e) {
+        throw new MojoFailureException(e.getMessage(), e.getCause());
+      }
+      if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
+        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
+        devDependencies.put("eslint", "7.27.0");
+        List<String> eslintPatterns = new ArrayList<>();
+        if (copyFromMavenResult.hasSourceTsFiles) {
+          eslintPatterns.add("'src/**/*.ts'");
+        }
+        if (copyFromMavenResult.hasJooUnitTsFiles) {
+          eslintPatterns.add("'joounit/**/*.ts'");
+        }
+        scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
+      }
+      if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
+        if (useTypesVersions) {
+          // although this is the default value, explicitly add this entry
+          additionalJsonEntries.setTypes("index.d.ts");
+          additionalJsonEntries.addPublishOverride("types", "index.d.ts");
+        } else {
+          additionalJsonEntries.setTypes("src/index.d.ts");
+          additionalJsonEntries.addPublishOverride("types", "src/index.d.ts");
+        }
+      }
+      if (projectExtensionFor != null) {
+        Map<String, Object> coremedia = new LinkedHashMap<>();
+        coremedia.put("projectExtensionFor", renameLegacyProjectExtensionPoint(projectExtensionFor));
+        additionalJsonEntries.setCoremedia(coremedia);
+      }
+    } else if (moduleType == ModuleType.JANGAROO_APP) {
+      jangarooConfig.setType("app");
+      setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
+      jangarooConfig.setExtNamespace(extNamespace);
+      jangarooConfig.setExtSassNamespace(extSassNamespace);
+      if (theme != null) {
+        String themePackageName = findPackageNameByReference(theme, moduleMappings);
+        jangarooConfig.setTheme(themePackageName);
+      }
+      jangarooConfig.setApplicationClass(applicationClass);
+      jangarooConfig.setAdditionalLocales(additionalLocales);
+      jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
+      jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
+      jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
+      jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
+      if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
+        try {
+          jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
+        } catch (IOException e) {
+          throw new MojoFailureException(e.getMessage(), e.getCause());
+        }
+      }
+
+      Map<String, String> dependencies = new TreeMap<>();
+      dependencies.put("@coremedia/sencha-ext", "7.2.0");
+      dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
+      dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
+      dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
+      additionalJsonEntries.setDependencies(dependencies);
+      Map<String, String> devDependencies = new TreeMap<>();
+      devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
+      devDependencies.put("rimraf", "^3.0.2");
+      additionalJsonEntries.setDevDependencies(devDependencies);
+      Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("clean", "rimraf ./dist && rimraf ./build");
+      scripts.put("build", "jangaroo build");
+      scripts.put("watch", "jangaroo watch");
+      scripts.put("start", "jangaroo run");
+      additionalJsonEntries.setScripts(scripts);
+      if (useTypesVersions) {
+        List<String> typesPaths = new ArrayList<>();
+        typesPaths.add("./src/*");
+        Map<String, List> allMapping = new LinkedHashMap<>();
+        allMapping.put("*", typesPaths);
+        Map<String, Object> typesVersions = new LinkedHashMap<>();
+        typesVersions.put("*", allMapping);
+        additionalJsonEntries.setTypesVersions(typesVersions);
+      }
+      List<String> ignoreFromSencha = new ArrayList<>();
+      ignoreFromSencha.add("app.json");
+      CopyFromMavenResult copyFromMavenResult = null;
+      try {
+        copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
+                ignoreFromSencha, targetPackageDir
+        );
+      } catch (IOException e) {
+        throw new MojoFailureException(e.getMessage(), e.getCause());
+      }
+      if (copyFromMavenResult.hasSourceTsFiles) {
+        setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
+        devDependencies.put("eslint", "^7.23.0");
+        scripts.put("lint", "eslint --fix 'src/**/*.ts'");
+      }
+    } else if (moduleType == ModuleType.JANGAROO_APP_OVERLAY) {
+      jangarooConfig.setType("app-overlay");
+      setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
+
+      Map<String, String> devDependencies = new TreeMap<>();
+      devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
+      devDependencies.put("rimraf", "^3.0.2");
+      additionalJsonEntries.setDevDependencies(devDependencies);
+      Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("clean", "rimraf ./dist");
+      scripts.put("build", "jangaroo build");
+      scripts.put("watch", "jangaroo watch");
+      scripts.put("start", "jangaroo run");
+      additionalJsonEntries.setScripts(scripts);
+    } else if (moduleType == ModuleType.JANGAROO_APPS) {
+      jangarooConfig.setType("apps");
+      setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
+      if (rootApp != null && !rootApp.isEmpty()) {
+        String[] splitName = rootApp.split(":");
+        if (splitName.length == 2) {
+          jangarooConfig.setRootApp(calculateMavenName(splitName[0], splitName[1]));
+        }
+      }
+
+      Map<String, String> devDependencies = new TreeMap<>();
+      devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
+      devDependencies.put("rimraf", "^3.0.2");
+      additionalJsonEntries.setDevDependencies(devDependencies);
+      Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("clean", "rimraf ./dist");
+      scripts.put("build", "jangaroo build");
+      scripts.put("watch", "jangaroo watch");
+      scripts.put("start", "jangaroo run");
+      additionalJsonEntries.setScripts(scripts);
+    } else if (moduleType == ModuleType.AGGREGATOR) {
+      jangarooConfig.setType("code");
+      Map<String, String> devDependencies = new TreeMap<>();
+      devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
+      devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
+      devDependencies.put("rimraf", "^3.0.2");
+      additionalJsonEntries.setDevDependencies(devDependencies);
+      Map<String, String> scripts = new LinkedHashMap<>();
+      scripts.put("clean", "rimraf ./dist && rimraf ./build");
+      scripts.put("build", "jangaroo build");
+      scripts.put("watch", "jangaroo watch");
+      scripts.put("publish", "jangaroo publish dist");
+      additionalJsonEntries.setScripts(scripts);
+      if (projectExtensionPoint != null) {
+        Map<String, Object> coremedia = new LinkedHashMap<>();
+        coremedia.put("projectExtensionPoint", projectExtensionPoint);
+        additionalJsonEntries.setCoremedia(coremedia);
+      }
+    } else {
+      throw new MojoExecutionException("Unknown maven module type: " + moduleType);
+    }
+
+    List<String> appManifestPaths = match("glob:/**/app-manifest-fragment*.json", mavenModule.getDirectory().getPath());
+    if (!appManifestPaths.isEmpty()) {
+      for (String appManifestPath : appManifestPaths) {
+        String fileName = new File(appManifestPath).getName();
+        if ("app-manifest-fragment.json".equals(fileName)) {
+          fileName = "app-manifest-fragment-en.json";
+        }
+        Matcher matcher = Pattern.compile("app-manifest-fragment-([^.]+).json").matcher(fileName);
+        if (matcher.find()) {
+          String locale = matcher.group(1);
+          try {
+            jangarooConfig.addAppManifest(locale, objectMapper.readValue(new File(appManifestPath), Map.class));
+          } catch (IOException ioException) {
+            logger.error("error while reading manifest file: " + appManifestPath);
+          }
+        } else {
+          logger.error("Could not detect locale for manifest file: " + appManifestPath);
+        }
+      }
+    }
+
+    try {
+      String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
+      FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
+    } catch (IOException e) {
+      throw new MojoFailureException(e.getMessage(), e.getCause());
+    }
+    if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
+      Optional<Package> optionalThemeDependency = packageRegistry.stream()
+              .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
+              .findFirst();
+      optionalThemeDependency.ifPresent(value -> additionalJsonEntries.getDependencies().put(value.getName(), value.getVersion()));
+    }
+
+
+    PackageJson packageJson = new PackageJson(additionalJsonEntries);
+    packageJson.setName(aPackage.getName());
+    packageJson.setVersion(aPackage.getVersion());
+    if (mavenModule.getData().getOrganization() != null) {
+      packageJson.setAuthor(mavenModule.getData().getOrganization().getName());
+    }
+    packageJson.setLicense("MIT");
+    packageJson.setPrivat(true);
+    aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
+    aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
+    Map<String, String> sortedDependencies = new TreeMap<>();
+    if (packageJson.getDependencies() != null) {
+      packageJson.getDependencies().entrySet().stream()
+              .sorted(Map.Entry.comparingByKey())
+              .forEach(entry -> sortedDependencies.put(entry.getKey(), entry.getValue()));
+    }
+    packageJson.setDependencies(sortedDependencies);
+    Map<String, String> sortedDevDependencies = new TreeMap<>();
+    if (packageJson.getDevDependencies() != null) {
+      packageJson.getDevDependencies().entrySet().stream()
+              .sorted(Map.Entry.comparingByKey())
+              .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
+    }
+    packageJson.setDevDependencies(sortedDevDependencies);
+    try {
+      FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
+    } catch (IOException e) {
+      throw new MojoFailureException(e.getMessage(), e.getCause());
+    }
+
     // Use this since for the synchronized keyword to properly work, we need one shared variable for all the threads.
     // A static field doesn`t suffice since maven used internally different classloaders, therefore not the same static
     // field is used. The session request is constant throughout the whole run an can therefore be used as lock for the
     // synchronized block.
     synchronized (session.getRequest()) {
       RootPackageJson rootPackageJson = new RootPackageJson(objectMapper, convertedWorkspaceTarget);
-      List<String> workspaces = moduleMappings.entrySet().stream()
-              .map(entry -> {
-                if (ModuleType.IGNORE == entry.getValue().getModuleType()) {
-                  return null;
-                } else if (ModuleType.AGGREGATOR == entry.getValue().getModuleType() && !isAggregatorToConvert(entry.getValue().getData())) {
-                  return null;
-                } else {
-                  return getPackageFolderName(entry.getKey());
-                }
-              })
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList());
       try {
-        rootPackageJson.writePackageJson(workspaces);
+        rootPackageJson.writePackageJson(
+                Collections.singletonList(relativePackageFolderName),
+                projectExtensionFor != null || projectExtensionPoint != null ? Collections.singletonList(relativeNpmProjectExtensionWorkspacePath) : Collections.emptyList()
+        );
       } catch (IOException e) {
         throw new MojoFailureException(e.getMessage(), e.getCause());
       }
@@ -220,328 +568,52 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
+  }
 
-    if (!optionalPackage.isPresent()) {
-      logger.warn("Package was null");
-      return;
+  private String getProjectExtensionPoint(MavenModule mavenModule) {
+    Matcher extensionPointMatcher = EXTENSION_POINT_PATTERN.matcher(mavenModule.getData().getArtifactId());
+    String projectExtensionPoint = extensionPointMatcher.matches() ? extensionPointMatcher.group(1) : null;
+    if (projectExtensionWorkspacePath == null && projectExtensionPoint != null) {
+      logger.warn("Maven project is marked as extension point but projectExtensionWorkspacePath is missing. Ignoring marker...");
+      return null;
     }
-    Package aPackage = optionalPackage.get();
+    return projectExtensionPoint;
+  }
 
-    MavenModule mavenModule = moduleMappings.get(aPackage.getName());
-    if (mavenModule != null && !ModuleType.IGNORE.equals(mavenModule.getModuleType())) {
-      String packageFolderName = getPackageFolderName(aPackage.getName());
-      String targetPackageDir = convertedWorkspaceTarget + "/" + packageFolderName;
-      logger.info(String.format("Generating npm workspace for module %s to directory %s", mavenModule.getData().getArtifactId(), new File(targetPackageDir).getPath()));
-      String targetPackageJson = targetPackageDir + "/package.json";
-
-      final JangarooConfig jangarooConfig = new JangarooConfig();
-      AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
-      if (mavenModule.getModuleType() == ModuleType.SWC) {
-        jangarooConfig.setType(packageType);
-        jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
-
-        jangarooConfig.setExtNamespace(extNamespace);
-        jangarooConfig.setExtSassNamespace(extSassNamespace);
-
-        if (theme != null) {
-          String themePackageName = findPackageNameByReference(theme, moduleMappings);
-          jangarooConfig.setTheme(themePackageName);
-        }
-        jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
-        jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
-        jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
-        jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
-        jangarooConfig.setGlobalResourcesMap(globalResourcesMap);
-        if (testSuite != null) {
-          jangarooConfig.setTestSuite(testSuite);
-          if (!extNamespace.isEmpty()) {
-            String extNamespaceWithTrailingDot = extNamespace.concat(".");
-            if (!jangarooConfig.getTestSuite().startsWith(extNamespaceWithTrailingDot)) {
-              logger.error(String.format("Invalid testSuite configuration \"jangarooConfig.testSuite\". When Using extNamespace \"%s\" the test suite cannot exist.", extNamespace));
-              return;
-            }
-            jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
-          }
-        }
-        if (jooUnitTestExecutionTimeout != null && jooUnitTestExecutionTimeout != 30000) {
-          setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
-        }
-        if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
-          try {
-            jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
-          } catch (IOException e) {
-            throw new MojoFailureException(e.getMessage(), e.getCause());
-          }
-        }
-        Map<String, String> testDependencies = new TreeMap<>();
-        Map<String, String> testScripts = new LinkedHashMap<>();
-        if (jangarooConfig.getTestSuite() != null) {
-          testDependencies.put("@jangaroo/joounit", "^1.0.0-alpha");
-          testDependencies.put("@coremedia/sencha-ext", "7.2.0");
-          testDependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
-          testDependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-
-          testScripts.put("test", "jangaroo joounit");
-        }
-
-        Map<String, String> dependencies = new TreeMap<>();
-        dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
-        additionalJsonEntries.setDependencies(dependencies);
-        Map<String, String> devDependencies = new TreeMap<>();
-        devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
-        devDependencies.putAll(testDependencies);
-        devDependencies.put("rimraf", "^3.0.2");
-        additionalJsonEntries.setDevDependencies(devDependencies);
-        Map<String, String> scripts = new LinkedHashMap<>();
-        scripts.put("clean", "rimraf ./dist && rimraf ./build");
-        scripts.put("build", "jangaroo build");
-        scripts.put("watch", "jangaroo watch");
-        scripts.put("publish", "jangaroo publish dist");
-        scripts.putAll(testScripts);
-        additionalJsonEntries.setScripts(scripts);
-        if (useTypesVersions) {
-          List<String> typesPaths = new ArrayList<>();
-          typesPaths.add("./src/*");
-          Map<String, List> allMapping = new HashMap<>();
-          allMapping.put("*", typesPaths);
-          Map<String, Object> typesVersions = new HashMap<>();
-          typesVersions.put("*", allMapping);
-          additionalJsonEntries.setTypesVersions(typesVersions);
-        }
-
-        List<String> ignoreFromSencha = new ArrayList<>();
-        ignoreFromSencha.add("package.json");
-        CopyFromMavenResult copyFromMavenResult = null;
-        try {
-          copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "packages",
-                  String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId())).toString(),
-                  ignoreFromSencha, targetPackageDir
-          );
-        } catch (IOException e) {
-          throw new MojoFailureException(e.getMessage(), e.getCause());
-        }
-        if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
-          setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
-          devDependencies.put("eslint", "7.27.0");
-          List<String> eslintPatterns = new ArrayList<>();
-          if (copyFromMavenResult.hasSourceTsFiles) {
-            eslintPatterns.add("'src/**/*.ts'");
-          }
-          if (copyFromMavenResult.hasJooUnitTsFiles) {
-            eslintPatterns.add("'joounit/**/*.ts'");
-          }
-          scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
-        }
-        if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
-          if (useTypesVersions) {
-            // although this is the default value, explicitly add this entry
-            additionalJsonEntries.setTypes("index.d.ts");
-            additionalJsonEntries.addPublishOverride("types", "index.d.ts");
-          } else {
-            additionalJsonEntries.setTypes("src/index.d.ts");
-            additionalJsonEntries.addPublishOverride("types", "src/index.d.ts");
-          }
-        }
-        String projectExtensionFor = mavenModule.getData().getProperties().getProperty("coremedia.project.extension.for");
-        if (projectExtensionFor != null) {
-          Map<String, Object> coremedia = new LinkedHashMap<>();
-          coremedia.put("projectExtensionFor", renameLegacyExtensionPoint(projectExtensionFor));
-          additionalJsonEntries.setCoremedia(coremedia);
-        }
-      } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP) {
-        jangarooConfig.setType("app");
-        setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-        jangarooConfig.setExtNamespace(extNamespace);
-        jangarooConfig.setExtSassNamespace(extSassNamespace);
-        if (theme != null) {
-          String themePackageName = findPackageNameByReference(theme, moduleMappings);
-          jangarooConfig.setTheme(themePackageName);
-        }
-        jangarooConfig.setApplicationClass(applicationClass);
-        jangarooConfig.setAdditionalLocales(additionalLocales);
-        jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
-        jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
-        jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
-        jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
-        if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
-          try {
-            jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
-          } catch (IOException e) {
-            throw new MojoFailureException(e.getMessage(), e.getCause());
-          }
-        }
-
-        Map<String, String> dependencies = new TreeMap<>();
-        dependencies.put("@coremedia/sencha-ext", "7.2.0");
-        dependencies.put("@coremedia/sencha-ext-classic", "7.2.0");
-        dependencies.put("@coremedia/sencha-ext-classic-locale", "7.2.0");
-        dependencies.put("@jangaroo/runtime", "^1.0.0-alpha");
-        additionalJsonEntries.setDependencies(dependencies);
-        Map<String, String> devDependencies = new TreeMap<>();
-        devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
-        devDependencies.put("rimraf", "^3.0.2");
-        additionalJsonEntries.setDevDependencies(devDependencies);
-        Map<String, String> scripts = new LinkedHashMap<>();
-        scripts.put("clean", "rimraf ./dist && rimraf ./build");
-        scripts.put("build", "jangaroo build");
-        scripts.put("watch", "jangaroo watch");
-        scripts.put("start", "jangaroo run");
-        additionalJsonEntries.setScripts(scripts);
-        if (useTypesVersions) {
-          List<String> typesPaths = new ArrayList<>();
-          typesPaths.add("./src/*");
-          Map<String, List> allMapping = new LinkedHashMap<>();
-          allMapping.put("*", typesPaths);
-          Map<String, Object> typesVersions = new LinkedHashMap<>();
-          typesVersions.put("*", allMapping);
-          additionalJsonEntries.setTypesVersions(typesVersions);
-        }
-        List<String> ignoreFromSencha = new ArrayList<>();
-        ignoreFromSencha.add("app.json");
-        CopyFromMavenResult copyFromMavenResult = null;
-        try {
-          copyFromMavenResult = copyCodeFromMaven(mavenModule.getDirectory().getPath(), Paths.get("target", "app").toString(),
-                  ignoreFromSencha, targetPackageDir
-          );
-        } catch (IOException e) {
-          throw new MojoFailureException(e.getMessage(), e.getCause());
-        }
-        if (copyFromMavenResult.hasSourceTsFiles) {
-          setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
-          devDependencies.put("eslint", "^7.23.0");
-          scripts.put("lint", "eslint --fix 'src/**/*.ts'");
-        }
-      } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APP_OVERLAY) {
-        jangarooConfig.setType("app-overlay");
-        setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-
-        Map<String, String> devDependencies = new TreeMap<>();
-        devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
-        devDependencies.put("rimraf", "^3.0.2");
-        additionalJsonEntries.setDevDependencies(devDependencies);
-        Map<String, String> scripts = new LinkedHashMap<>();
-        scripts.put("clean", "rimraf ./dist");
-        scripts.put("build", "jangaroo build");
-        scripts.put("watch", "jangaroo watch");
-        scripts.put("start", "jangaroo run");
-        additionalJsonEntries.setScripts(scripts);
-      } else if (mavenModule.getModuleType() == ModuleType.JANGAROO_APPS) {
-        jangarooConfig.setType("apps");
-        setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-        if (rootApp != null && !rootApp.isEmpty()) {
-          String[] splitName = rootApp.split(":");
-          if (splitName.length == 2) {
-            jangarooConfig.setRootApp(calculateMavenName(splitName[0], splitName[1]));
-          }
-        }
-
-        Map<String, String> devDependencies = new TreeMap<>();
-        devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/run", "^1.0.0-alpha");
-        devDependencies.put("rimraf", "^3.0.2");
-        additionalJsonEntries.setDevDependencies(devDependencies);
-        Map<String, String> scripts = new LinkedHashMap<>();
-        scripts.put("clean", "rimraf ./dist");
-        scripts.put("build", "jangaroo build");
-        scripts.put("watch", "jangaroo watch");
-        scripts.put("start", "jangaroo run");
-        additionalJsonEntries.setScripts(scripts);
-      } else if (mavenModule.getModuleType() == ModuleType.AGGREGATOR && isAggregatorToConvert(mavenModule.getData())) {
-        jangarooConfig.setType("code");
-        Map<String, String> devDependencies = new TreeMap<>();
-        devDependencies.put("@jangaroo/core", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/build", "^1.0.0-alpha");
-        devDependencies.put("@jangaroo/publish", "^1.0.0-alpha");
-        devDependencies.put("rimraf", "^3.0.2");
-        additionalJsonEntries.setDevDependencies(devDependencies);
-        Map<String, String> scripts = new LinkedHashMap<>();
-        scripts.put("clean", "rimraf ./dist && rimraf ./build");
-        scripts.put("build", "jangaroo build");
-        scripts.put("watch", "jangaroo watch");
-        scripts.put("publish", "jangaroo publish dist");
-        additionalJsonEntries.setScripts(scripts);
-        Matcher matcher = EXTENSION_POINT_PATTERN.matcher(mavenModule.getData().getArtifactId());
-        if (matcher.matches()) {
-          Map<String, Object> coremedia = new LinkedHashMap<>();
-          coremedia.put("projectExtensionPoint", matcher.group(1));
-          additionalJsonEntries.setCoremedia(coremedia);
-        }
-      } else {
-        return;
-      }
-
-      List<String> appManifestPaths = match("glob:/**/app-manifest-fragment*.json", mavenModule.getDirectory().getPath());
-      if (!appManifestPaths.isEmpty()) {
-        for (String appManifestPath : appManifestPaths) {
-          String fileName = new File(appManifestPath).getName();
-          if ("app-manifest-fragment.json".equals(fileName)) {
-            fileName = "app-manifest-fragment-en.json";
-          }
-          Matcher matcher = Pattern.compile("app-manifest-fragment-([^.]+).json").matcher(fileName);
-          if (matcher.find()) {
-            String locale = matcher.group(1);
-            try {
-              jangarooConfig.addAppManifest(locale, objectMapper.readValue(new File(appManifestPath), Map.class));
-            } catch (IOException ioException) {
-              logger.error("error while reading manifest file: " + appManifestPath);
-            }
-          } else {
-            logger.error("Could not detect locale for manifest file: " + appManifestPath);
-          }
-        }
-      }
-
-      try {
-        String jangarooConfigDocument = "/** @type { import('@jangaroo/core').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
-        FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
-      } catch (IOException e) {
-        throw new MojoFailureException(e.getMessage(), e.getCause());
-      }
-      if (jangarooConfig.getTheme() != null && !jangarooConfig.getTheme().isEmpty()) {
-        Optional<Package> optionalThemeDependency = packageRegistry.stream()
-                .filter(somePackage -> somePackage.matches(jangarooConfig.getTheme(), null))
-                .findFirst();
-        optionalThemeDependency.ifPresent(value -> additionalJsonEntries.getDependencies().put(value.getName(), value.getVersion()));
-      }
-
-
-      PackageJson packageJson = new PackageJson(additionalJsonEntries);
-      packageJson.setName(aPackage.getName());
-      packageJson.setVersion(aPackage.getVersion());
-      if (mavenModule.getData().getOrganization() != null) {
-        packageJson.setAuthor(mavenModule.getData().getOrganization().getName());
-      }
-      packageJson.setLicense("MIT");
-      packageJson.setPrivat(true);
-      aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
-      aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
-      Map<String, String> sortedDependencies = new TreeMap<>();
-      if (packageJson.getDependencies() != null) {
-        packageJson.getDependencies().entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> sortedDependencies.put(entry.getKey(), entry.getValue()));
-      }
-      packageJson.setDependencies(sortedDependencies);
-      Map<String, String> sortedDevDependencies = new TreeMap<>();
-      if (packageJson.getDevDependencies() != null) {
-        packageJson.getDevDependencies().entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> sortedDevDependencies.put(entry.getKey(), entry.getValue()));
-      }
-      packageJson.setDevDependencies(sortedDevDependencies);
-      try {
-        FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
-      } catch (IOException e) {
-        throw new MojoFailureException(e.getMessage(), e.getCause());
-      }
+  private String getProjectExtensionFor(MavenModule mavenModule) {
+    String projectExtensionFor = mavenModule.getData().getProperties().getProperty("coremedia.project.extension.for");
+    if (projectExtensionWorkspacePath == null && projectExtensionFor != null) {
+      logger.warn("Maven project is marked as extension but projectExtensionWorkspacePath is missing. Ignoring marker...");
+      return null;
     }
+    return projectExtensionFor;
+  }
+
+  private String renameLegacyProjectExtensionPoint(String projectExtensionPointName) {
+    if ("studio".equals(projectExtensionPointName)) {
+      return "studio-client";
+    } else if ("studio-dynamic".equals(projectExtensionPointName)) {
+      return "studio-client-dynamic";
+    }
+    return projectExtensionPointName;
+  }
+
+  private boolean isProjectExtensionPointDependency(Dependency dependency) {
+    boolean result = "pom".equals(dependency.getType()) && EXTENSION_POINT_PATTERN.matcher(dependency.getArtifactId()).matches();
+    if (projectExtensionWorkspacePath == null && result) {
+      logger.warn(String.format("Dependency %s is marked as project extension point but configuration 'projectExtensionWorkspacePath' is missing. Ignoring marker...", dependency));
+      return false;
+    }
+    return result;
+  }
+
+  private Path getRelativePathBelowRoot(Path rootPath, Path absolutePathBelowRoot) {
+    Path relativePath = rootPath.relativize(absolutePathBelowRoot).normalize();
+    int depth = relativePath.getNameCount();
+    if (depth >= 1 && !"..".equals(relativePath.getName(0).toString())) {
+      return relativePath;
+    }
+    return null;
   }
 
   private void loadAndCopyResource(String resourceName, String fileName) throws IOException {
@@ -557,13 +629,69 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
   }
 
-  private String getPackageFolderName(String packageName) {
-    String packageFolderName = packageName;
+  private String getPackageFolderName(String packageName, MavenModule mavenModule) throws MojoExecutionException {
+    if (projectExtensionWorkspacePath != null) {
+      // project extensions
+      Path projectExtensionsPath = projectExtensionWorkspacePath.toPath().resolve(relativeProjectExtensionsPath);
+      Path relativeProjectExtensionPath = getRelativePathBelowRoot(projectExtensionsPath, mavenModule.getDirectory().toPath());
+      // extensions must be in project extensions path
+      if (relativeProjectExtensionPath == null && getProjectExtensionFor(mavenModule) != null) {
+        throw new MojoExecutionException("Maven project is marked as project extension but is not below the given project extensions path: " + projectExtensionsPath);
+      }
+      // if project is in extensions path it will also be in the extensions path in NPM
+      if (relativeProjectExtensionPath != null) {
+        Path relativeNpmProjectExtensionsPath = Paths.get(relativeNpmProjectExtensionWorkspacePath, "extensions");
+
+        Path packageFolderName;
+        if (relativeProjectExtensionPath.getNameCount() > 1) {
+          packageFolderName = relativeNpmProjectExtensionsPath
+                  // keep parent folder as nesting of folders make a difference when enabling/disabling extensions
+                  .resolve(relativeProjectExtensionPath.subpath(0, relativeProjectExtensionPath.getNameCount() - 1))
+                  // but replace last segment with the generated name of the package
+                  .resolve(packageName);
+        } else {
+          // cannot use the generated packageName as foldername here as the name of the extension would be changed
+          packageFolderName = relativeNpmProjectExtensionsPath.resolve(relativeProjectExtensionPath);
+        }
+
+        packageFolderName = Paths.get(getReplacedPackageFolderName(packageFolderName.toString()));
+
+        // after replacers have run the path still has to be valid
+        if (getRelativePathBelowRoot(relativeNpmProjectExtensionsPath, packageFolderName) == null) {
+          throw new MojoExecutionException(String.format("NPM package folder name has been replaced with %s. This path is not below the given project extensions path %s. The extensions workspace path can be configured using 'relativeNpmProjectExtensionWorkspacePath'", packageFolderName, projectExtensionsPath));
+        }
+        return packageFolderName.toString();
+      }
+
+      // project extension points
+      Path projectExtensionPointsPath = projectExtensionWorkspacePath.toPath().resolve(relativeProjectExtensionPointsPath);
+      Path relativeProjectExtensionPointPath = getRelativePathBelowRoot(projectExtensionPointsPath, mavenModule.getDirectory().toPath());
+      // extension points must be in project extension points path
+      if (relativeProjectExtensionPointPath == null && getProjectExtensionPoint(mavenModule) != null) {
+        throw new MojoExecutionException("Maven project is marked as project extension point but is not below the given project extension points path: " + projectExtensionPointsPath);
+      }
+      // if project is in extensions path it will also be in the extensions path in NPM
+      if (relativeProjectExtensionPointPath != null) {
+        Path relativeNpmProjectExtensionPointsPath = Paths.get(relativeNpmProjectExtensionWorkspacePath, "extension-config");
+        Path packageFolderName = relativeNpmProjectExtensionPointsPath.resolve(packageName);
+        packageFolderName = Paths.get(getReplacedPackageFolderName(packageFolderName.toString()));
+        // after replacers have run the path still has to be valid
+        if (getRelativePathBelowRoot(relativeNpmProjectExtensionPointsPath, packageFolderName) == null) {
+          throw new MojoExecutionException(String.format("NPM package folder name has been replaced with %s. This path is not below the given project extension points path %s. The extensions workspace path can be configured using 'relativeNpmProjectExtensionWorkspacePath'.", packageFolderName, projectExtensionPointsPath));
+        }
+        return packageFolderName.toString();
+      }
+    }
+
+    // fallback to normal package name replacement
+    return getReplacedPackageFolderName(packageName);
+  }
+
+  private String getReplacedPackageFolderName(String packageFolderName) {
     for (SearchAndReplace searchAndReplace : resolvedNpmPackageFolderNameReplacers) {
       Matcher matcher = searchAndReplace.search.matcher(packageFolderName);
       if (matcher.matches()) {
-        packageFolderName = matcher.replaceAll(searchAndReplace.replace);
-        break;
+        return matcher.replaceAll(searchAndReplace.replace);
       }
     }
     return packageFolderName;
@@ -787,7 +915,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
       }
       if (Arrays.asList("swc", "jar").contains(dependency.getType())
-              || isAggregatorToConvert(dependency)) {
+              || isProjectExtensionPointDependency(dependency)) {
         newDependencies.add(createdPackage);
       } else {
         createdPackage = getOrCreateDependencyPackage(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), dependency).orElse(null);
@@ -955,7 +1083,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           entryValue) {
     Map<String, Map<String, Object>> commandsByName = jangarooConfig.getCommand();
     if (commandsByName == null) {
-      commandsByName = new LinkedHashMap<>();
+      commandsByName = new TreeMap<>();
       jangarooConfig.setCommand(commandsByName);
     }
     Map<String, Object> command = commandsByName.computeIfAbsent(commandName, k -> new LinkedHashMap<>());
@@ -972,20 +1100,4 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
   }
 
-  private String renameLegacyExtensionPoint(String extensionPoint) {
-    if ("studio".equals(extensionPoint)) {
-      return "studio-client";
-    } else if ("studio-dynamic".equals(extensionPoint)) {
-      return "studio-client-dynamic";
-    }
-    return extensionPoint;
-  }
-
-  private boolean isAggregatorToConvert(Model mavenProject) {
-    return "pom".equals(mavenProject.getPackaging()) && EXTENSION_POINT_PATTERN.matcher(mavenProject.getArtifactId()).matches();
-  }
-
-  private boolean isAggregatorToConvert(Dependency dependency) {
-    return "pom".equals(dependency.getType()) && EXTENSION_POINT_PATTERN.matcher(dependency.getArtifactId()).matches();
-  }
 }
