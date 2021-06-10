@@ -338,24 +338,42 @@ public class ClassDeclaration extends TypeDeclaration {
     return null;
   }
 
-  public ClassDeclaration getConfigClassDeclaration() {
+  public TypeDeclaration getConfigClassDeclaration() {
     // special cases: ext.Base and all Mixin implementations use Ext Config system, although
     // they don't have the corresponding constructor
     if ("ext.Base".equals(getQualifiedNameStr()) || isMixin()) {
       return this;
     }
+    TypeRelation configParameterType = getConstructorConfigParameterType();
+    if (configParameterType == null) {
+      return null;
+    }
+    TypeDeclaration declaration =  configParameterType.getType().getDeclaration();
+    return equals(declaration) || equals(declaration.getSuperTypeDeclaration()) || inheritsFromExtBaseExplicitly()
+            ? declaration  // use given Config type, even if incorrect
+            : null;  // has no Config type
+  }
+
+  // check whether this class explicitly inherits from ext.Base, which is a prerequisite to using the Config system
+  private boolean inheritsFromExtBaseExplicitly() {
+    for (ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
+         superTypeDeclaration != null;
+         superTypeDeclaration = superTypeDeclaration.getSuperTypeDeclaration()) {
+      if ("ext.Base".equals(superTypeDeclaration.getQualifiedNameStr())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public TypeRelation getConstructorConfigParameterType() {
     FunctionDeclaration constructor = getConstructor();
     if (constructor != null) {
       Parameters params = constructor.getParams();
       while (params != null) {
         Parameter param = params.getHead();
-        if ("config".equals(param.getName()) && param.getOptTypeRelation() != null) {
-          TypeDeclaration declaration = param.getOptTypeRelation().getType().getDeclaration();
-          if (equals(declaration)
-                  // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
-                  || equals(declaration.getSuperTypeDeclaration())) {
-            return (ClassDeclaration) declaration;
-          }
+        if ("config".equals(param.getName())) {
+          return param.getOptTypeRelation();
         }
         params = params.getTail();
       }

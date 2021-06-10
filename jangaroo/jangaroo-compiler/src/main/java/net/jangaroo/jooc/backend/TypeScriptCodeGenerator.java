@@ -346,11 +346,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } while (superTypes != null);
     }
 
-    ClassDeclaration configClass = classDeclaration.getConfigClassDeclaration();
-    String configClassName = null;
-    if (configClass != null) {
-      String configClassLocalName = compilationUnitAccessCode(configClass);
-      configClassName = configClassLocalName + "._";
+    boolean hasConfigClass = classDeclaration.hasConfigClass();
+    if (hasConfigClass) {
       List<String> configExtends = new ArrayList<>();
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
@@ -426,7 +423,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (classDeclaration.isPrimaryDeclaration()) {
       visitAll(classDeclaration.getSecondaryDeclarations());
 
-      if (configClassName != null) {
+      if (hasConfigClass) {
         out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
         out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
         out.write("  export const _: { new(config?: _): _; };\n");
@@ -1809,10 +1806,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!companionInterfaceMode) {
         TypedIdeDeclaration initialConfigDeclaration = classDeclaration.getMemberDeclaration("initialConfig");
         if (initialConfigDeclaration == null || initialConfigDeclaration.isPrivate()) {
-          ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+          TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
           if (configClassDeclaration != null) {
-            out.write(String.format("\n  declare readonly initialConfig: %s._;",
-                    compilationUnitAccessCode(configClassDeclaration)));
+            if (!(classDeclaration.equals(configClassDeclaration)
+                    // allow to deviate from the same class for some special cases: 
+                    // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+                    || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
+                    // some (base) classes simply reuse their super class as their config type :(
+                    || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
+              TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
+              classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
+                      String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
+                                      "Still generating a TypeScript Config class, but please fix this.",
+                              configParameterType.getType().getIde().getQualifiedNameStr()));
+            }
+            ExpressionType configType = new ExpressionType(configClassDeclaration);
+            configType.markAsConfigTypeIfPossible();
+            out.write(String.format("\n  declare readonly initialConfig: %s;", getTypeScriptTypeForActionScriptType(configType)));
           }
         }
       }
