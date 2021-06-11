@@ -17,6 +17,8 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,6 +57,13 @@ public class BinaryOpExpr extends OpExpr {
     super.analyze(parentNode);
     getArg1().analyze(this);
     getArg2().analyze(this);
+    if (getOp().sym == sym.PLUS) {
+      if (getArg1().isOfAS3Type(AS3Type.STRING)) {
+        setType(getArg1().getType());
+      } else if (getArg2().isOfAS3Type(AS3Type.STRING)) {
+        setType(getArg2().getType());
+      }
+    }
   }
 
   public JooSymbol getSymbol() {

@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 /**
  * @author Andreas Gawecki
@@ -27,6 +28,10 @@ public abstract class Expr extends NodeImplBase {
 
   public ExpressionType getType() {
     return type;
+  }
+
+  public boolean isOfAS3Type(AS3Type as3Type) {
+    return type != null && type.getAS3Type() == as3Type;
   }
 
   public void setType(final ExpressionType type) {//TODO compute type in more subclasses during analyze()
