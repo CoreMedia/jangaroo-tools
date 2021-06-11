@@ -114,7 +114,7 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
 
     prepareModule();
     packageModule();
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, senchaAppBuild);
+    FileHelper.createAppOrAppOverlayJar(session, archiver, getManifestEntries(), artifactHandlerManager, senchaAppBuild);
   }
 
   private void prepareModule() throws MojoExecutionException {

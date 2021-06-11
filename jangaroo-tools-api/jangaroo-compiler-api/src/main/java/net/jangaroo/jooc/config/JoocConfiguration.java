@@ -30,7 +30,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private boolean migrateToTypeScript = false;
   private String extNamespace = "";
   private String extSassNamespace = "";
-  private List<SearchAndReplace> npmPackageNameReplacers = new ArrayList<>();
+  private String npmPackageName;
   private boolean useEcmaParameterInitializerSemantics = false;
 
   private boolean mergeOutput = false;
@@ -126,8 +126,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
-  public List<SearchAndReplace> getNpmPackageNameReplacers() {
-    return npmPackageNameReplacers;
+  public String getNpmPackageName() {
+    return npmPackageName;
   }
 
   @Override
@@ -155,8 +155,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.useEcmaParameterInitializerSemantics = useEcmaParameterInitializerSemantics;
   }
 
-  public void setNpmPackageNameReplacers(List<SearchAndReplace> npmPackageNameReplacers) {
-    this.npmPackageNameReplacers = npmPackageNameReplacers;
+  public void setNpmPackageName(String npmPackageName) {
+    this.npmPackageName = npmPackageName;
   }
 
   @Override
@@ -199,7 +199,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   public boolean isEnableAssertions() {
     return enableAssertions;
   }
-  
+
   @Option(name="-ea", aliases = "--enableassertions", usage = "enable assertions")
   public void setEnableAssertions(boolean enableAssertions) {
     this.enableAssertions = enableAssertions;

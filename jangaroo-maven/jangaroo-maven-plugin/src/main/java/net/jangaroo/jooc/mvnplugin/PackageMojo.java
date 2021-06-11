@@ -1,6 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
+import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import net.jangaroo.jooc.mvnplugin.util.MavenPluginHelper;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -18,6 +20,9 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
@@ -83,7 +88,7 @@ public class PackageMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "${jar.useDefaultManifestFile}")
   private boolean useDefaultManifestFile;
-  
+
   /**
    * Location of files to be packaged, which are all files placed in the other goal's outputDirectory.
    * Defaults to ${project.build.outputDirectory}
@@ -91,8 +96,40 @@ public class PackageMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File outputDirectory;
 
+  /**
+   * Experimental:
+   * The configuration can be used to replace the generated npm package name of a Maven module by a different one.
+   * It defines a list of replacers consisting of a search and a replace field. The search is interpreted as
+   * a regular pattern matched against the generated npm package name while the replacement is a string which can
+   * contain tokens (e.g. $1) matching pattern groups. Order is important, the first matching replacer wins.
+   */
+  @Parameter
+  private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
+
   @Component
   private ArtifactHandlerManager artifactHandlerManager;
+
+  private String npmPackageName;
+  private String npmPackageVersion;
+
+  private String getNpmPackageName() {
+    if (npmPackageName == null) {
+      List<SearchAndReplace> resolvedNpmPackageNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageNameReplacers);
+      npmPackageName = ConversionUtils.getNpmPackageName(project.getGroupId(), project.getArtifactId(), resolvedNpmPackageNameReplacers);
+    }
+    return npmPackageName;
+  }
+
+  private String getNpmPackageVersion() {
+    if (npmPackageVersion == null) {
+      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion());
+    }
+    return npmPackageVersion;
+  }
+
+  protected Map<String, String> getManifestEntries() {
+    return ConversionUtils.getManifestEntries(getNpmPackageName(), getNpmPackageVersion());
+  }
 
   @Override
   public void execute()
@@ -113,6 +150,7 @@ public class PackageMojo extends AbstractMojo {
         } else {
           archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
         }
+        archive.addManifestEntries(getManifestEntries());
       }
       if (outputDirectory.exists()) {
         archiver.addDirectory(outputDirectory);

@@ -27,6 +27,6 @@ public class PackageAppOverlayMojo extends AbstractSenchaMojo {
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager);
+    FileHelper.createAppOrAppOverlayJar(session, archiver, getManifestEntries(), artifactHandlerManager);
   }
 }

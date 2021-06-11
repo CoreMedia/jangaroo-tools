@@ -212,7 +212,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   private Set<String> getRequiredDependencies() throws MojoExecutionException {
     Set<String> requiredDependencies = new LinkedHashSet<>();
-    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
+    Dependency themeDependency = SenchaUtils.getDependencyByRef(project, getTheme());
     List<Dependency> projectDependencies = resolveRequiredDependencies(project);
     for (Dependency dependency : projectDependencies) {
       String senchaPackageNameForArtifact = getSenchaPackageName(dependency.getGroupId(), dependency.getArtifactId());
@@ -288,7 +288,7 @@ public abstract class AbstractSenchaPackageOrAppMojo<T extends SenchaPackageOrAp
 
   @Nonnull
   private String getThemePackageName() {
-    Dependency themeDependency = SenchaUtils.getThemeDependency(getTheme(), project);
+    Dependency themeDependency = SenchaUtils.getDependencyByRef(project, getTheme());
     String themePackageName;
     if (themeDependency == null) {
       themePackageName = org.apache.commons.lang3.StringUtils.defaultString(getTheme());

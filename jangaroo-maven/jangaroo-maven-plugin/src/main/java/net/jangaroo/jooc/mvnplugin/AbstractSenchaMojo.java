@@ -1,9 +1,10 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.apprunner.util.AppManifestDeSerializer;
+import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
-import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
 import net.jangaroo.jooc.mvnplugin.util.MergeHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
@@ -30,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -102,9 +104,22 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter
   private String rootApp;
 
+  /**
+   * Experimental:
+   * The configuration can be used to replace the generated npm package name of a Maven module by a different one.
+   * It defines a list of replacers consisting of a search and a replace field. The search is interpreted as
+   * a regular pattern matched against the generated npm package name while the replacement is a string which can
+   * contain tokens (e.g. $1) matching pattern groups. Order is important, the first matching replacer wins.
+   */
+  @Parameter
+  private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
+
   private volatile Pattern extFrameworkArtifactPattern;
 
   private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
+
+  private String npmPackageName;
+  private String npmPackageVersion;
 
   // ***********************************************************************
   // ************************* GETTERS *************************************
@@ -129,7 +144,26 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     if (rootApp == null || rootApp.isEmpty()) {
       return null;
     }
-    return MavenDependencyHelper.fromKey(rootApp);
+    return SenchaUtils.getDependencyByRef(project, rootApp);
+  }
+
+  private String getNpmPackageName() {
+    if (npmPackageName == null) {
+      List<SearchAndReplace> resolvedNpmPackageNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageNameReplacers);
+      npmPackageName = ConversionUtils.getNpmPackageName(project.getGroupId(), project.getArtifactId(), resolvedNpmPackageNameReplacers);
+    }
+    return npmPackageName;
+  }
+
+  private String getNpmPackageVersion() {
+    if (npmPackageVersion == null) {
+      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion());
+    }
+    return npmPackageVersion;
+  }
+
+  protected Map<String, String> getManifestEntries() {
+    return ConversionUtils.getManifestEntries(getNpmPackageName(), getNpmPackageVersion());
   }
 
   // ***********************************************************************
@@ -385,7 +419,7 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
     JangarooApp(MavenProject mavenProject) {
       this.mavenProject = mavenProject;
     }
-    
+
     JangarooApp getRootBaseApp() {
       return this;
     }

@@ -9,9 +9,9 @@ import net.jangaroo.jooc.config.DebugMode;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.config.NamespaceConfiguration;
 import net.jangaroo.jooc.config.PublicApiViolationsMode;
-import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
@@ -25,7 +25,6 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Super class for mojos compiling Jangaroo sources.
@@ -200,8 +197,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   /**
    * Experimental:
-   * Only effective if {@link #migrateToTypeScript} is enabled. The configuration can be used to replace the generated
-   * npm package name of a converted Maven module by a different one.
+   * The configuration can be used to replace the generated npm package name of a Maven module by a different one.
    * It defines a list of replacers consisting of a search and a replace field. The search is interpreted as
    * a regular pattern matched against the generated npm package name while the replacement is a string which can
    * contain tokens (e.g. $1) matching pattern groups. Order is important, the first matching replacer wins.
@@ -333,10 +329,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setExtSassNamespace(extSassNamespace != null ? extSassNamespace : extNamespace);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);
     configuration.setSuppressCommentedActionScriptCode(suppressCommentedActionScriptCode);
-    configuration.setNpmPackageNameReplacers(
-            npmPackageNameReplacers.stream()
-                    .map(config -> new SearchAndReplace(Pattern.compile(config.getSearch()), config.getReplace()))
-                    .collect(Collectors.toList())
+    configuration.setNpmPackageName(
+            ConversionUtils.getNpmPackageName(
+                    getProject().getGroupId(),
+                    getProject().getArtifactId(),
+                    ConversionUtils.getSearchAndReplace(npmPackageNameReplacers)
+            )
     );
 
     if (StringUtils.isNotEmpty(debuglevel)) {

@@ -154,7 +154,7 @@ public final class FileHelper {
       DefaultExecutor executor = new DefaultExecutor();
       executor.setWorkingDirectory(link.toFile().getParentFile());
       // prevent command line tool output from appearing in Maven log:
-      executor.setStreamHandler(new PumpStreamHandler(null)); 
+      executor.setStreamHandler(new PumpStreamHandler(null));
 
       CommandLine mkLinkCommand = new CommandLine("CMD");
       mkLinkCommand.addArgument("/C");
@@ -172,25 +172,29 @@ public final class FileHelper {
 
   public static void createAppOrAppOverlayJar(MavenSession session,
                                               JarArchiver archiver,
+                                              Map<String, String> manifestEntries,
                                               ArtifactHandlerManager artifactHandlerManager) throws MojoExecutionException {
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, null);
+    FileHelper.createAppOrAppOverlayJar(session, archiver, manifestEntries, artifactHandlerManager, null);
   }
 
   public static void createAppOrAppOverlayJar(MavenSession session,
                                               JarArchiver archiver,
+                                              Map<String, String> manifestEntries,
                                               ArtifactHandlerManager artifactHandlerManager,
                                               String senchaAppBuild) throws MojoExecutionException {
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, senchaAppBuild, false);
+    FileHelper.createAppOrAppOverlayJar(session, archiver, manifestEntries, artifactHandlerManager, senchaAppBuild, false);
   }
 
   public static void createPluginZip(MavenSession session,
                                      JarArchiver archiver,
                                      ArtifactHandlerManager artifactHandlerManager) throws MojoExecutionException {
-    FileHelper.createAppOrAppOverlayJar(session, archiver, artifactHandlerManager, null, true);
+    // TODO: transform plugins?
+    FileHelper.createAppOrAppOverlayJar(session, archiver, null, artifactHandlerManager, null, true);
   }
 
   private static void createAppOrAppOverlayJar(MavenSession session,
                                                JarArchiver archiver,
+                                               Map<String, String> manifestEntries,
                                                ArtifactHandlerManager artifactHandlerManager,
                                                String senchaAppBuild,
                                                boolean zipMode) throws MojoExecutionException {
@@ -222,6 +226,9 @@ public final class FileHelper {
     try {
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
+      if (manifestEntries != null) {
+        archive.addManifestEntries(manifestEntries);
+      }
       mavenArchiver.createArchive(session, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);
@@ -234,6 +241,7 @@ public final class FileHelper {
 
   public static void createAppsJar(MavenSession session,
                                    JarArchiver archiver,
+                                   Map<String, String> manifestEntries,
                                    ArtifactHandlerManager artifactHandlerManager,
                                    String senchaAppBuild,
                                    File appsDir,
@@ -306,6 +314,9 @@ public final class FileHelper {
     try {
       MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
       archive.setManifestFile(MavenPluginHelper.createDefaultManifest(project));
+      if (manifestEntries != null) {
+        archive.addManifestEntries(manifestEntries);
+      }
       mavenArchiver.createArchive(session, project, archive);
     } catch (Exception e) { // NOSONAR
       throw new MojoExecutionException("Failed to create the javascript archive", e);

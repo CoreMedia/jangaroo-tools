@@ -152,8 +152,8 @@ public class SenchaUtils {
   }
 
   @Nullable
-  public static Dependency getThemeDependency(@Nullable String theme, @Nonnull MavenProject project) {
-    Dependency themeDependency = MavenDependencyHelper.fromKey(theme);
+  public static Dependency getDependencyByRef(@Nonnull MavenProject project, @Nullable String ref) {
+    Dependency themeDependency = MavenDependencyHelper.fromKey(ref);
     // verify that provided artifact is under project dependencies
     Set<Artifact> dependencyArtifacts = project.getDependencyArtifacts();
     for (Artifact artifact : dependencyArtifacts) {

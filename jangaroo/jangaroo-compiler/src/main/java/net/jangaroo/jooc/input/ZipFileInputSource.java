@@ -16,6 +16,8 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -24,11 +26,12 @@ import java.util.zip.ZipFile;
 public class ZipFileInputSource extends DirectoryInputSource {
 
   private final File file;
-  private final ZipFile zipFile;
+  private final JarFile jarFile;
   private final String[] rootDirs;
   private final Map<String, ZipEntryInputSource> entries = new LinkedHashMap<String, ZipEntryInputSource>();
   private final Multimap<String, ZipEntryInputSource> entriesByParent = HashMultimap.create();
   private String senchaPackageName;
+  private String npmPackageName;
 
   /**
    * Create an InputSource directory from the given zip or jar file, providing a "union view" over the zip file
@@ -56,9 +59,9 @@ public class ZipFileInputSource extends DirectoryInputSource {
   public ZipFileInputSource(final File file, String[] rootDirs, boolean inSourcePath, boolean inCompilePath) throws IOException {
     super(inSourcePath, inCompilePath);
     this.file = file;
-    this.zipFile = new ZipFile(file);
+    this.jarFile = new JarFile(file);
     this.rootDirs = rootDirs.clone();
-    final Enumeration<? extends ZipEntry> zipEntryEnum = zipFile.entries();
+    final Enumeration<? extends ZipEntry> zipEntryEnum = jarFile.entries();
     while (zipEntryEnum.hasMoreElements()) {
       ZipEntry entry = zipEntryEnum.nextElement();
       final String relativePath = getRelativePath(entry.getName());
@@ -71,7 +74,16 @@ public class ZipFileInputSource extends DirectoryInputSource {
         entriesByParent.put(removeTrailingSlash(parent), zipEntryInputSource);
       }
     }
+    readArchiveManifest();
     readSenchaPackageJson();
+  }
+
+  private void readArchiveManifest() throws IOException {
+    Manifest manifest = jarFile.getManifest();
+    if (manifest == null) {
+      return;
+    }
+    npmPackageName = manifest.getMainAttributes().getValue("Joo-Npm-Package-Name");
   }
 
   private static final Pattern JSON_PROPERTY_STRING_VALUE_PATTERN = Pattern.compile("\"([a-z]+)\"\\s*:\\s*\"(.*)\"");
@@ -98,6 +110,10 @@ public class ZipFileInputSource extends DirectoryInputSource {
         }
       }
     }
+  }
+
+  public String getNpmPackageName() {
+    return npmPackageName;
   }
 
   public String getSenchaPackageName() {
@@ -145,7 +161,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
 
   @Override
   public void close() throws IOException {
-    zipFile.close();
+    jarFile.close();
   }
 
   @Override
@@ -154,7 +170,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
   }
 
   public ZipFile getZipFile() {
-    return zipFile;
+    return jarFile;
   }
 
   @Override
@@ -182,7 +198,7 @@ public class ZipFileInputSource extends DirectoryInputSource {
 
   @Override
   public String toString() {
-    return zipFile.getName();
+    return jarFile.getName();
   }
 
   @Override

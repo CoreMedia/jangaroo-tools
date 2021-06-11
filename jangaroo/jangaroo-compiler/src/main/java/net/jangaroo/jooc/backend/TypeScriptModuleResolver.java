@@ -5,23 +5,18 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
-import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.input.ZipEntryInputSource;
+import net.jangaroo.jooc.input.ZipFileInputSource;
 import net.jangaroo.utils.CompilerUtils;
 
 import java.io.File;
-import java.util.List;
-import java.util.regex.Matcher;
 
 public class TypeScriptModuleResolver extends ModuleResolverBase {
 
-  private final List<SearchAndReplace> npmPackageNameReplacers;
-
-  public TypeScriptModuleResolver(CompilationUnitResolver compilationUnitModelResolver, List<SearchAndReplace> npmPackageNameReplacers) {
+  public TypeScriptModuleResolver(CompilationUnitResolver compilationUnitModelResolver) {
     super(compilationUnitModelResolver);
-    this.npmPackageNameReplacers = npmPackageNameReplacers;
   }
 
   public String getDefaultImportName(IdeDeclaration declaration) {
@@ -71,7 +66,11 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       throw new IllegalStateException("The input source for a compilation unit was not a file");
     }
     // compute target npm package name
-    String npmPackageName = ((ZipEntryInputSource) importedInputSource).getZipFileInputSource().getSenchaPackageName();
+    ZipFileInputSource inputSource = ((ZipEntryInputSource) importedInputSource).getZipFileInputSource();
+    String npmPackageName = inputSource.getNpmPackageName();
+    if (npmPackageName == null) {
+      npmPackageName = inputSource.getSenchaPackageName();
+    }
     if (npmPackageName == null) {
       return null;
     }
@@ -84,14 +83,6 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       // by 'joo' for everything else:
       if (npmPackageName.endsWith("ext-as")) {
         npmPackageName = npmPackageName.replace("/ext-as", moduleName.startsWith("joo/") ? "" : "/ext-ts");
-      }
-    } else {
-      for (SearchAndReplace searchAndReplace : npmPackageNameReplacers) {
-        Matcher matcher = searchAndReplace.search.matcher(npmPackageName);
-        if (matcher.matches()) {
-          npmPackageName = matcher.replaceAll(searchAndReplace.replace);
-          break;
-        }
       }
     }
     // prepend target npm package in front

@@ -12,6 +12,8 @@ import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJsonPrettyPrinter;
 import net.jangaroo.jooc.mvnplugin.converter.RootPackageJson;
+import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
+import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -40,7 +42,6 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,10 +49,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,7 +61,7 @@ import java.util.stream.Collectors;
 @Mojo(name = "convert-workspace",
         defaultPhase = LifecyclePhase.INSTALL,
         threadSafe = true,
-        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+        requiresDependencyResolution = ResolutionScope.TEST)
 public class WorkspaceConverterMojo extends AbstractMojo {
 
   private static final Pattern EXTENSION_POINT_PATTERN = Pattern.compile("^(.+)-extension-dependencies$");
@@ -200,8 +202,16 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     packageRegistry.add(new Package("@jangaroo/ext-ts", "1.0.0"));
     packageRegistry.add(new Package("@jangaroo/ckeditor4", "1.0.0"));
 
-    Map<String, MavenModule> moduleMappings = loadMavenModule(project.getFile().getPath().replace("pom.xml", ""));
-    Optional<Package> optionalPackage = getOrCreatePackage(packageRegistry, findPackageNameByReference(String.format("%s:%s", project.getGroupId(), project.getArtifactId()), moduleMappings), null, moduleMappings);
+    ConversionUtils.NpmPackageMetadata npmPackageMetadata = getNpmPackageMetadata(project.getArtifact());
+    String npmPackageName = npmPackageMetadata != null ? npmPackageMetadata.name : ConversionUtils.getNpmPackageName(project.getGroupId(), project.getArtifactId(), resolvedNpmPackageNameReplacers);
+    Map<String, MavenModule> modules = new TreeMap<>();
+    modules.put(npmPackageName, new MavenModule(project.getFile().getPath().replace("pom.xml", ""), project.getModel()));
+    Optional<Package> optionalPackage = getOrCreatePackage(
+            packageRegistry,
+            npmPackageName,
+            null,
+            modules
+    );
 
     if (!optionalPackage.isPresent()) {
       logger.info("Current Maven Project does not need to be converted.");
@@ -209,7 +219,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
 
     Package aPackage = optionalPackage.get();
-    MavenModule mavenModule = moduleMappings.get(aPackage.getName());
+    MavenModule mavenModule = modules.get(aPackage.getName());
 
     if (mavenModule == null) {
       // should never happen
@@ -249,8 +259,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setExtSassNamespace(extSassNamespace);
 
       if (theme != null) {
-        String themePackageName = findPackageNameByReference(theme, moduleMappings);
-        jangarooConfig.setTheme(themePackageName);
+        Package dependencyPackage = getDependencyPackageByRef(packageRegistry, theme);
+        if (dependencyPackage == null) {
+          getLog().warn(String.format("Could not find theme dependency for %s which is configured in the jangaroo-maven-plugin configuration.", theme));
+        } else {
+          jangarooConfig.setTheme(dependencyPackage.getName());
+        }
       }
       jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
       jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
@@ -360,8 +374,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setExtNamespace(extNamespace);
       jangarooConfig.setExtSassNamespace(extSassNamespace);
       if (theme != null) {
-        String themePackageName = findPackageNameByReference(theme, moduleMappings);
-        jangarooConfig.setTheme(themePackageName);
+        Package dependencyPackage = getDependencyPackageByRef(packageRegistry, theme);
+        if (dependencyPackage == null) {
+          getLog().warn(String.format("Could not find theme dependency for %s which is configured in the jangaroo-maven-plugin configuration.", theme));
+        } else {
+          jangarooConfig.setTheme(dependencyPackage.getName());
+        }
       }
       jangarooConfig.setApplicationClass(applicationClass);
       jangarooConfig.setAdditionalLocales(additionalLocales);
@@ -438,10 +456,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     } else if (moduleType == ModuleType.JANGAROO_APPS) {
       jangarooConfig.setType("apps");
       setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-      if (rootApp != null && !rootApp.isEmpty()) {
-        String[] splitName = rootApp.split(":");
-        if (splitName.length == 2) {
-          jangarooConfig.setRootApp(calculateMavenName(splitName[0], splitName[1]));
+      if (rootApp != null) {
+        Package dependencyPackage = getDependencyPackageByRef(packageRegistry, rootApp);
+        if (dependencyPackage == null) {
+          getLog().warn(String.format("Could not find rootApp dependency for %s which is configured in the jangaroo-maven-plugin configuration.", theme));
+        } else {
+          jangarooConfig.setRootApp(dependencyPackage.getName());
         }
       }
 
@@ -813,11 +833,72 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             .noneMatch(path -> file.getPath().contains(path.toString()));
   }
 
-
-  private Optional<Package> getOrCreateDependencyPackage(String name, Dependency dependency) {
-    Optional<Artifact> optionalArtifact = project.getArtifacts().stream()
+  private Optional<Artifact> getDependencyArtifact(Dependency dependency) {
+    return project.getArtifacts().stream()
             .filter(artifact -> artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId()))
             .findFirst();
+  }
+
+  private static Package findPackageInRegistry(List<Package> packageRegistry, String name) {
+    return packageRegistry.stream().filter(pkg -> pkg.getName().equals(name)).findFirst().orElse(null);
+  }
+
+  private Package getDependencyPackageByRef(List<Package> packageRegistry, String ref) {
+    Dependency dependency = SenchaUtils.getDependencyByRef(project, ref);
+    if (dependency != null) {
+      return getDependencyPackage(dependency);
+    }
+    if ("ext-classic".equals(ref)) {
+      return findPackageInRegistry(packageRegistry, "@coremedia/sencha-ext-classic");
+    }
+    if ("charts".equals(ref)) {
+      return findPackageInRegistry(packageRegistry, "@coremedia/sencha-ext-charts");
+    }
+    if (ref != null && ref.startsWith("theme-")) {
+      return findPackageInRegistry(packageRegistry, "@coremedia/sencha-ext-classic-" + ref);
+    }
+    return null;
+  }
+
+  private Package getDependencyPackage(Dependency dependency) {
+    ConversionUtils.NpmPackageMetadata npmPackageMetadata = getNpmPackageMetadata(dependency);
+    String dependencyPackageName = npmPackageMetadata != null ? npmPackageMetadata.name : ConversionUtils.getNpmPackageName(dependency.getGroupId(), dependency.getArtifactId(), resolvedNpmPackageNameReplacers);
+    String dependencyPackageVersion = npmPackageMetadata != null ? npmPackageMetadata.version : ConversionUtils.getNpmPackageVersion(dependency.getVersion());
+    return new Package(
+            dependencyPackageName,
+            isJangarooDependency(dependency) ? "^1.0.0-alpha" : dependencyPackageVersion
+    );
+  }
+
+  private ConversionUtils.NpmPackageMetadata getNpmPackageMetadata(Dependency dependency) {
+    Optional<Artifact> optionalArtifact = getDependencyArtifact(dependency);
+    return optionalArtifact.map(this::getNpmPackageMetadata).orElse(null);
+  }
+
+  private ConversionUtils.NpmPackageMetadata getNpmPackageMetadata(Artifact artifact) {
+    if (artifact.getFile() == null) {
+      return null;
+    }
+    Manifest manifest;
+    try {
+      manifest = new JarFile(artifact.getFile()).getManifest();
+    } catch (IOException e) {
+      getLog().warn(String.format("Artifact %s could not be read!", artifact));
+      return null;
+    }
+    if (manifest == null) {
+      return null;
+    }
+
+    Map<String, String> entries = new HashMap<>();
+    for (Map.Entry<Object, Object> mainAttribute : manifest.getMainAttributes().entrySet()) {
+      entries.put(mainAttribute.getKey().toString(), mainAttribute.getValue().toString());
+    }
+    return ConversionUtils.getNpmPackageMetadataFromManifestEntries(entries);
+  }
+
+  private Optional<Package> getOrCreateDependencyPackage(String name, Dependency dependency) {
+    Optional<Artifact> optionalArtifact = getDependencyArtifact(dependency);
     if (!optionalArtifact.isPresent()) {
       return Optional.empty();
     }
@@ -877,7 +958,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private Package handlePackageDependencies(String packageName, MavenModule mavenModule) {
-    String newPackageVersion = isValidVersion(mavenModule.getVersion()) ? mavenModule.getVersion() : "1.0.0-SNAPSHOT";
+    String newPackageVersion = ConversionUtils.getNpmPackageVersion(mavenModule.getVersion());
     List<Package> newDependencies = new ArrayList<>();
     List<Package> newDevDependencies = new ArrayList<>();
     List<Dependency> dependencies;
@@ -910,75 +991,29 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             .collect(Collectors.toList());
 
     for (Dependency dependency : dependencies) {
-      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
-      if (isJangarooDependency(dependency)) {
-        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
-      }
+      Package dependencyPackage = getDependencyPackage(dependency);
       if (Arrays.asList("swc", "jar").contains(dependency.getType())
               || isProjectExtensionPointDependency(dependency)) {
-        newDependencies.add(createdPackage);
+        newDependencies.add(dependencyPackage);
       } else {
-        createdPackage = getOrCreateDependencyPackage(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), dependency).orElse(null);
-        if (createdPackage != null) {
-          newDependencies.addAll(createdPackage.getDependencies());
+        dependencyPackage = getOrCreateDependencyPackage(dependencyPackage.getName(), dependency).orElse(null);
+        if (dependencyPackage != null) {
+          newDependencies.addAll(dependencyPackage.getDependencies());
         }
       }
     }
     for (Dependency dependency : testDependencies) {
-      Package createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), isValidVersion(dependency.getVersion()) ? dependency.getVersion() : "1.0.0-SNAPSHOT");
-      if (isJangarooDependency(dependency)) {
-        createdPackage = new Package(mapJangarooName(dependency.getGroupId(), dependency.getArtifactId()), "^1.0.0-alpha");
-      }
+      Package dependencyPackage = getDependencyPackage(dependency);
       if (Arrays.asList("swc", "jar").contains(dependency.getType())) {
-        newDevDependencies.add(createdPackage);
+        newDevDependencies.add(dependencyPackage);
       } else {
-        newDevDependencies.addAll(createdPackage.getDependencies());
+        newDevDependencies.addAll(dependencyPackage.getDependencies());
       }
     }
     return new Package(packageName, newPackageVersion, newDependencies, newDevDependencies);
   }
 
-  private String mapJangarooName(String groupId, String artifactId) {
-    if (Objects.equals(artifactId, "ext")) {
-      return "@coremedia/sencha-ext";
-    }
-    if (Objects.equals(artifactId, "ext-classic")) {
-      return "@coremedia/sencha-ext-classic";
-    }
-    if (Objects.equals(artifactId, "charts")) {
-      return "@coremedia/sencha-ext-charts";
-    }
-    if (artifactId.startsWith("theme-")) {
-      return "@coremedia/sencha-ext-classic-" + artifactId;
-    }
-    if (groupId != null && groupId.startsWith("net.jangaroo")) {
-      if (Objects.equals(artifactId, "jangaroo-net")) {
-        return "@jangaroo/jangaroo-net";
-      }
-      if (Objects.equals(artifactId, "jangaroo-runtime")) {
-        return "@jangaroo/runtime";
-      }
-      if (Objects.equals(artifactId, "jooflash-core")) {
-        return "@jangaroo/jooflash-core";
-      }
-      if (Objects.equals(artifactId, "jooflexframework")) {
-        return "@jangaroo/jooflexframework";
-      }
-      if (Objects.equals(artifactId, "joounit")) {
-        return "@jangaroo/joounit";
-      }
-      if (Objects.equals(artifactId, "ext-as")) {
-        return "@jangaroo/ext-ts";
-      }
-      if (Objects.equals(artifactId, "ckeditor4")) {
-        return "@jangaroo/ckeditor4";
-      }
-    }
-    return calculateMavenName(groupId, artifactId);
-  }
-
-
-  private boolean isJangarooDependency(Dependency dependency) {
+  private static boolean isJangarooDependency(Dependency dependency) {
     return Arrays.asList("net.jangaroo__jangaroo-browser",
             "net.jangaroo__ext-as",
             "net.jangaroo__jangaroo-net",
@@ -992,70 +1027,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   private boolean ignoreDependency(Dependency dependency) {
     return "net.jangaroo__jangaroo-browser".contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
-  }
-
-  public String findPackageNameByReference(String reference, Map<String, MavenModule> moduleMappings) {
-    Optional<String> packageName;
-    if (reference == null) {
-      return null;
-    }
-    String[] splitName = reference.split(":");
-    if (splitName.length == 2 && splitName[0] != null && splitName[1] != null) {
-      packageName = Optional.of(calculateMavenName(splitName[0], splitName[1]));
-    } else {
-      if (reference.startsWith("theme-")) {
-        return "@coremedia/sencha-ext-classic-theme-" + reference.substring("theme-".length());
-      }
-      packageName = moduleMappings.entrySet().stream()
-              .map(moduleEntry -> {
-                if (ModuleType.IGNORE.equals(moduleEntry.getValue().getModuleType())) {
-                  return new AbstractMap.SimpleEntry<>(moduleEntry.getKey(), moduleEntry.getValue().getData().getName());
-                } else {
-                  return new AbstractMap.SimpleEntry<>(moduleEntry.getKey(), calculateMavenName(moduleEntry.getValue().getData()));
-                }
-              })
-              .filter(entry -> reference.equals(entry.getValue()))
-              .map(Map.Entry::getKey)
-              .findFirst();
-    }
-    if (!packageName.isPresent()) {
-      logger.error(String.format("Could not resolve reference %s. No suitable module was found.", reference));
-      return null;
-    }
-    for (SearchAndReplace searchAndReplace : resolvedNpmPackageNameReplacers) {
-      Matcher matcher = searchAndReplace.search.matcher(packageName.get());
-      if (matcher.matches()) {
-        return matcher.replaceAll(searchAndReplace.replace);
-      }
-    }
-    return packageName.get();
-  }
-
-  private Map<String, MavenModule> loadMavenModule(String modulePath) {
-    Map<String, MavenModule> modules = new TreeMap<>();
-    modules.put(calculateMavenName(project.getModel()), new MavenModule(modulePath, project.getModel()));
-    return modules;
-  }
-
-  private String calculateMavenName(Model model) {
-    return calculateMavenName(model.getGroupId(), model.getArtifactId());
-  }
-
-  private String calculateMavenName(String groupId, String artifactId) {
-    String mavenName;
-    if ("com.coremedia.sencha".equals(groupId) && "ext-js-pkg".equals(artifactId) ||
-            "net.jangaroo.com.sencha".equals(groupId) && "ext-js-pkg-gpl".equals(artifactId)) {
-      mavenName = "ext";
-    } else {
-      mavenName = groupId + "__" + artifactId;
-    }
-    for (SearchAndReplace searchAndReplace : resolvedNpmPackageNameReplacers) {
-      Matcher matcher = searchAndReplace.search.matcher(mavenName);
-      if (matcher.matches()) {
-        return matcher.replaceAll(searchAndReplace.replace);
-      }
-    }
-    return mavenName;
   }
 
   private String convertJangarooConfig(String jangarooConfig) {
@@ -1099,5 +1070,4 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       this.hasJooUnitTsFiles = hasJooUnitTsFiles;
     }
   }
-
 }

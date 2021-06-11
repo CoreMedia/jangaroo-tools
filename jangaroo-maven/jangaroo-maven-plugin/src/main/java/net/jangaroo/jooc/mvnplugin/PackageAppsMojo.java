@@ -49,6 +49,6 @@ public class PackageAppsMojo extends AbstractSenchaMojo {
     }
     Dependency rootApp = getRootApp();
     String rootAppName = rootApp == null ? null : SenchaUtils.getSenchaPackageName(rootApp.getGroupId(), rootApp.getArtifactId());
-    FileHelper.createAppsJar(session, archiver, artifactHandlerManager, null, null, appNamesToDirsOrJars, rootAppName);
+    FileHelper.createAppsJar(session, archiver, getManifestEntries(), artifactHandlerManager, null, null, appNamesToDirsOrJars, rootAppName);
   }
 }
