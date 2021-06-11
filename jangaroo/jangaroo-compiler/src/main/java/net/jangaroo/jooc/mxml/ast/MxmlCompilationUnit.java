@@ -48,6 +48,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
 
   public static final String NET_JANGAROO_EXT_EXML = "net.jangaroo.ext.Exml";
   static final String APPLY = "apply";
+  public static final String AS_STRING = "asString";
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
 
   private final IsNativeConstructor isNativeConstructor = new IsNativeConstructor(this);

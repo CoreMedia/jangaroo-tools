@@ -24,14 +24,12 @@ import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
-import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
-import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import javax.annotation.Nonnull;
@@ -47,6 +45,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
 
 final class MxmlToModelParser {
 
@@ -527,7 +526,7 @@ final class MxmlToModelParser {
     // special case: String properties auto-cast any right-hand-side into a String:
     if ("String".equals(className) && !(valueExpr instanceof LiteralExpr && ((LiteralExpr)valueExpr).getValue().getJooValue() instanceof String)) {
       valueExpr = MxmlAstUtils.createApplyExpr(
-              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), "asString"),
+              MxmlAstUtils.createDotExpr(compilationUnit.addImport(NET_JANGAROO_EXT_EXML), AS_STRING),
               valueExpr);
     }
     return valueExpr;
