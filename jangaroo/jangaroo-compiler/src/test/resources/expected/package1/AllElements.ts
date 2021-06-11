@@ -1,4 +1,4 @@
-import { _, asConfig, cast } from "@jangaroo/runtime/AS3";
+import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import allElements from "../exmlparser/config/allElements";
@@ -47,8 +47,8 @@ class AllElements extends panel{
   constructor(config:AllElements._ = null){
     super((()=>{this.#__initialize__(config);
   
-    this.#myVar3 = new button(_<button._>({
-            text: "Foo"}));
+    this.#myVar3 = new button({
+            text: "Foo"});
   
     this.#myVar4 =[
       { header: "a", sortable: false, menuDisabled: true},
@@ -63,8 +63,8 @@ class AllElements extends panel{
       cast(someMixin,{
         ...Exml.append({someList: [
           cast(button,{ text: "click me!", id: "myId",
-            baseAction: new ext.Action(_<ext.Action._>({
-            }))
+            baseAction: new ext.Action({
+            })
           })
         ]})
       })

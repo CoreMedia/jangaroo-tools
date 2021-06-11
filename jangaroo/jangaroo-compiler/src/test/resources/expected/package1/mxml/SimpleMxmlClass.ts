@@ -51,14 +51,14 @@ class SimpleMxmlClass extends ConfigClass{
     joe: { name: "Joe"},
     list: [
       { name: "Joe"},
-      new ConfigClass(_<ConfigClass._>({items:[
-        new SomeOtherClass(_<SomeOtherClass._>({ bla: 123}))
-      ]}))
+      new ConfigClass({items:[
+        new SomeOtherClass({ bla: 123})
+      ]})
     ],
     otherByExpression: { foo: "bar"},
-    other: new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
+    other: new SomeOtherClass({ bla: 3,
                           blubb_config: "blub config expression",
-                          blubb_accessor: "blub accessor expression"}))
+                          blubb_accessor: "blub accessor expression"})
     },config);
     return  Exml.apply(new SimpleMxmlClass._({
              foo: "bar",
@@ -68,23 +68,23 @@ class SimpleMxmlClass extends ConfigClass{
                           "known-unknown": true
   }),
   ...Exml.append({items: [
-    new SomeOtherClass(_<SomeOtherClass._>({ bla: 23})),
-    new SomeOtherClass(_<SomeOtherClass._>({ bla: 1,
-    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_55_41))}})),
+    new SomeOtherClass({ bla: 23}),
+    new SomeOtherClass({ bla: 1,
+    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_55_41))}}),
     new SomeOtherClass(_<SomeOtherClass._&ConfigClass._>({ bla: 42, number: 24
     })),
-    new ConfigClass(_<ConfigClass._>({
+    new ConfigClass({
       items:[
-        new SomeOtherClass(_<SomeOtherClass._>({ doodle: "non-bound", bla: this.other.bla}))
+        new SomeOtherClass({ doodle: "non-bound", bla: this.other.bla})
       ],
       number: 12
-    })),
-    new ConfigClass(_<ConfigClass._>({
+    }),
+    new ConfigClass({
       ...Exml.prepend({items: [
-        new SomeOtherClass(_<SomeOtherClass._>({ bla: 12})),
-        this.no_config = new SomeOtherClass(_<SomeOtherClass._>({ bla: 13}))
+        new SomeOtherClass({ bla: 12}),
+        this.no_config = new SomeOtherClass({ bla: 13})
       ]})
-    }))
+    })
   ]}),
     listeners:{
              click: Exml.eventHandler( SomeEvent.CLICK,SomeEvent,bind(this,this.#$on_click_14_20))}

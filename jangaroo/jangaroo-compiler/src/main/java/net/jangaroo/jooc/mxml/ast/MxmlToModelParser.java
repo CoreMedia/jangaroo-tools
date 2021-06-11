@@ -24,12 +24,14 @@ import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
+import net.jangaroo.jooc.ast.TypeDeclaration;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import javax.annotation.Nonnull;
@@ -446,14 +448,13 @@ final class MxmlToModelParser {
         if ("Object".equals(className)) {
           valueExpr = configObjectLiteral;
         } else {
+          Expr configObjectLiteralExpr = types.size() == 1
+                  ? configObjectLiteral
+                  : createObjectLiteralTypeAssertion(types, configObjectLiteral);
           if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
-            valueExpr = MxmlAstUtils.createNewExpr(typeIde,
-                    createObjectLiteralTypeAssertion(types, configObjectLiteral));
+            valueExpr = MxmlAstUtils.createNewExpr(typeIde, configObjectLiteralExpr);
           } else {
-            valueExpr = MxmlAstUtils.createCastExpr(typeIde,
-                    types.size() == 1
-                            ? configObjectLiteral
-                            : createObjectLiteralTypeAssertion(types, configObjectLiteral));
+            valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteralExpr);
           }
         }
       }

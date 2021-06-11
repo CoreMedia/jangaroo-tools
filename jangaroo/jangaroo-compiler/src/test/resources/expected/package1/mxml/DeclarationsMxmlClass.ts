@@ -1,4 +1,4 @@
-import { _, asConfig } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime/AS3";
 import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
@@ -26,15 +26,15 @@ class DeclarationsMxmlClass extends SomeNativeClass{
     this.blub ={ name: "Kuno"};
     this.list =[
       { name: "Joe"},
-      new ConfigClass(_<ConfigClass._>({
+      new ConfigClass({
         items:[
-          new SomeOtherClass(_<SomeOtherClass._>({ bla: 123}))
+          new SomeOtherClass({ bla: 123})
         ]
-      }))
+      })
     ];
-    this.other = new SomeOtherClass(_<SomeOtherClass._>({ bla: 3,
+    this.other = new SomeOtherClass({ bla: 3,
                         blubb_config: "blub config expression",
-                        blubb_accessor: "blub accessor expression"})); Exml.apply(this,config);
+                        blubb_accessor: "blub accessor expression"}); Exml.apply(this,config);
 }
 
   #bar:string = null;

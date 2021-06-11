@@ -1,4 +1,4 @@
-import { _, cast } from "@jangaroo/runtime/AS3";
+import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
 import BDeclaresA from "./BDeclaresA";
@@ -13,7 +13,7 @@ class AInstantiatesB extends Panel{
     super( Exml.apply(new AInstantiatesB._({
 
   items:[
-    new BDeclaresA(_<BDeclaresA._>({ someProperty: "yes"}))
+    new BDeclaresA({ someProperty: "yes"})
   ]
 }),config));
   }}
