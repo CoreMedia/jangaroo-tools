@@ -12,7 +12,7 @@ class TestOldPropertyAccessSyntax extends Object{
 
   static readonly BUNDLE:PropertiesTest_properties = PropertiesTest_properties;constructor(config:TestOldPropertyAccessSyntax._=null){
     super();
-    this.foo = Exml.asString( TestOldPropertyAccessSyntax.BUNDLE.key + "\""); Exml.apply(this,config);
+    this.foo = TestOldPropertyAccessSyntax.BUNDLE.key + "\""; Exml.apply(this,config);
 }
 
   #foo:string = null;

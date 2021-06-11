@@ -30,7 +30,7 @@
 
     private var config:AllElements;
 
-    private var myProperty:String;
+    private var myProperty:*;
     private var myVar:String;
     private var myVar2:Object;
     private var myVar3:button;

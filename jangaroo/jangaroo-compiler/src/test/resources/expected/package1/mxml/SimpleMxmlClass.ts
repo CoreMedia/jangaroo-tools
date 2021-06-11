@@ -39,7 +39,7 @@ class SimpleMxmlClass extends ConfigClass{
     this.#blub ={ name: "Kuno"};
     config = Exml.apply({
     bar: "FOO & BAR!",
-    computed: Exml.asString( "B" + "AR!"),
+    computed:  "B" + "AR!",
     /**
      * Some number.
      */

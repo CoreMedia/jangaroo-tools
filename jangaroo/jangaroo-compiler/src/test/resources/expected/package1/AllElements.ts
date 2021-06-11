@@ -31,7 +31,7 @@ class AllElements extends panel{
   static readonly ANOTHER_CONSTANT:string = allElements.ANOTHER_CONSTANT;
   static readonly CODE_CONSTANT:int = allElements.CODE_CONSTANT;
 
-  #myProperty:string = null;
+  #myProperty:any;
   #myVar:string = null;
   #myVar2:any = null;
   #myVar3:button = null;

@@ -17,7 +17,7 @@ class TestComponent extends TestComponentBase{
     property_1: "withDefault"
     },config);
     super( Exml.apply(new TestComponent._({
-        emptyText: Exml.asString( "<div class='widget-content-list-empty'>" + TestComponentBase.DEFAULT + "</div>"),
+        emptyText:  "<div class='widget-content-list-empty'>" + TestComponentBase.DEFAULT + "</div>",
         letters: [
               "a",
               "b",

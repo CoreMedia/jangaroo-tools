@@ -76,6 +76,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
+
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private static final Collection<String> TYPESCRIPT_BUILT_IN_TYPES = Arrays.asList(
@@ -1359,7 +1362,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (propertyKey instanceof LiteralExpr) {
         Object jooValue = propertyKey.getSymbol().getJooValue();
         if (jooValue instanceof String && Ide.isValidIdentifier((String) jooValue)) {
-          key  = (String) jooValue;
+          key = (String) jooValue;
         }
       }
       if (key != null) {
@@ -1370,6 +1373,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         propertyKey.visit(this);
         out.writeToken("]");
       }
+    } else if (args != null &&
+            args.getExpr() != null &&
+            args.getExpr().getTail() == null &&
+            isApiCall(applyExpr, NET_JANGAROO_EXT_EXML, AS_STRING, true) &&
+            args.getExpr().getHead().isOfAS3Type(AS3Type.STRING)) {
+      // suppress obsolete net.jangaroo.ext.Exml.asString(<someString>):
+      args.getExpr().getHead().visit(this);
     } else {
       // check for set-Method call (within current class) that is really a Config write:
       CommaSeparatedList<Expr> expr = args.getExpr();
@@ -1409,20 +1419,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String staticMethodName) {
+  private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String methodName, boolean isStatic) {
     Expr fun = applyExpr.getFun();
     if (fun instanceof IdeExpr) {
       fun = ((IdeExpr) fun).getNormalizedExpr();
     }
-    if (fun instanceof DotExpr && staticMethodName.equals(((DotExpr) fun).getIde().getName())) {
+    if (fun instanceof DotExpr && methodName.equals(((DotExpr) fun).getIde().getName())) {
       ExpressionType type = ((DotExpr) fun).getArg().getType();
+      if (isStatic) {
+        type = type.getTypeParameter();
+      }
       return type != null && qualifiedClassName.equals(type.getDeclaration().getQualifiedNameStr());
     }
     return false;
   }
 
   private static boolean isIResourceManager_getString(ApplyExpr applyExpr) {
-    if (isApiCall(applyExpr, I_RESOURCE_MANAGER_QUALIFIED_NAME, GET_STRING_METHOD_NAME)) {
+    if (isApiCall(applyExpr, I_RESOURCE_MANAGER_QUALIFIED_NAME, GET_STRING_METHOD_NAME, false)) {
       CommaSeparatedList<Expr> argsExpressions = applyExpr.getArgs().getExpr();
       return argsExpressions != null && argsExpressions.getTail() != null && argsExpressions.getTail().getTail() == null // call uses exactly 2 arguments
               && applyExpr.getPropertiesClass(argsExpressions.getHead()) != null; // bundle name resolves to properties class

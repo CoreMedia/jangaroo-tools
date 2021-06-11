@@ -24,7 +24,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     public static const ANOTHER_CONSTANT:String =*/function ANOTHER_CONSTANT$static_(){AllElements.ANOTHER_CONSTANT=( exmlparser.config.allElements.ANOTHER_CONSTANT);}/*;
     public static const CODE_CONSTANT:int =*/function CODE_CONSTANT$static_(){AllElements.CODE_CONSTANT=( exmlparser.config.allElements.CODE_CONSTANT);}/*;
 
-    private var myProperty:String;
+    private var myProperty:*;
     private var myVar:String;
     private var myVar2:Object;
     private var myVar3:button;
@@ -128,7 +128,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
 ============================================== Jangaroo part ==============================================*/
     return {
       extend: "ext.config.panel",
-      myProperty$6tZL: null,
+      myProperty$6tZL: undefined,
       myVar$6tZL: null,
       myVar2$6tZL: null,
       myVar3$6tZL: null,

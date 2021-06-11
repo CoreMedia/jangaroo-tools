@@ -16,7 +16,7 @@ class SimpleMxmlClass extends panel{
 
   constructor(config:SimpleMxmlClass._ = null){
     super( Exml.apply(new SimpleMxmlClass._({
-        title: Exml.asString( package1_mxml_SimpleMxmlClass.xtype)
+        title:  package1_mxml_SimpleMxmlClass.xtype
 
 }),config));
   }}
