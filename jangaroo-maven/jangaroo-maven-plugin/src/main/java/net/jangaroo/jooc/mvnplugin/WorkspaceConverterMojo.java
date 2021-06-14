@@ -909,6 +909,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     Model model = new Model();
     model.setGroupId(optionalArtifact.get().getGroupId());
     model.setArtifactId(optionalArtifact.get().getArtifactId());
+    model.setVersion(optionalArtifact.get().getVersion());
     model.setPackaging(optionalArtifact.get().getArtifactHandler().getPackaging());
     model.setDependencies(
             project.getArtifacts().stream()
