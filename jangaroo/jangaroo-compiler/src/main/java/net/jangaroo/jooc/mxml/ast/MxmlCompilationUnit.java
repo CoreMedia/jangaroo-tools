@@ -230,12 +230,19 @@ public class MxmlCompilationUnit extends CompilationUnit {
     }
 
     if(null != initMethod) {
+      IdeExpr constructorId = null;
       CommaSeparatedList<Expr> args = null;
-      if(null != constructorParam && initMethod.getParams() != null) {
-        args = new CommaSeparatedList<>(new IdeExpr(constructorParam.getIde()));
+      if (null != constructorParam) {
+        constructorId = new IdeExpr(constructorParam.getIde());
+        if (initMethod.getParams() != null) {
+          args = new CommaSeparatedList<>(constructorId);
+        }
       }
       DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.sym_dot(), new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
-      Directive directive = MxmlAstUtils.createSemicolonTerminatedStatement(new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen()));
+      ApplyExpr applyExpr = new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen());
+      Directive directive = constructorParam == null || !getPrimaryDeclaration().getName().equals(initMethod.getOptTypeRelation().getType().getIde().getName())
+              ? MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr)
+              : MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(constructorId, MxmlAstUtils.sym_eq(), applyExpr));
       constructorBodyDirectives.add(directive);
     }
   }

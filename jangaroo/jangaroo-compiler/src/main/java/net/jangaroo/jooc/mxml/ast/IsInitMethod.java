@@ -6,7 +6,7 @@ import net.jangaroo.jooc.ast.FunctionDeclaration;
 
 import javax.annotation.Nullable;
 
-class IsInitMethod implements Predicate<Directive> {
+public class IsInitMethod implements Predicate<Directive> {
   @Override
   public boolean apply(@Nullable Directive directive) {
     if (directive instanceof FunctionDeclaration) {

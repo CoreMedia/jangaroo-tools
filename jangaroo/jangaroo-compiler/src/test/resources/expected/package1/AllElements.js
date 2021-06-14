@@ -30,14 +30,15 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     private var myVar3:button;
     private var myVar4:Array;
 
-    private*/ function __initialize__(config/*:AllElements*/)/*:void*/ {
+    private*/ function __initialize__(config/*:AllElements*/)/*:AllElements*/ {
       this.myVar$6tZL = config.myProperty$6tZL + '_suffix';
       this.myVar2$6tZL = {
         prop: config.myProperty$6tZL
       };
+      return config;
     }/*
 
-    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
+    public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;config=this.__initialize__$6tZL(config);
   
     this.myVar3$6tZL = new ext.config.button({
             text: "Foo"});

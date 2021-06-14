@@ -37,15 +37,16 @@ class AllElements extends panel{
   #myVar3:button = null;
   #myVar4:Array<any> = null;
 
-  #__initialize__(config:AllElements._):void {
+  #__initialize__(config:AllElements._):AllElements._ {
       this.#myVar = config.#myProperty + "_suffix";
       this.#myVar2 = {
         prop: config.#myProperty
       };
+      return config;
     }
 
   constructor(config:AllElements._ = null){
-    super((()=>{this.#__initialize__(config);
+    super((()=>{config=this.#__initialize__(config);
   
     this.#myVar3 = new button({
             text: "Foo"});

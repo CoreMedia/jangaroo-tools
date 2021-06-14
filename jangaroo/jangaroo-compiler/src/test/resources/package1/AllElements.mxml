@@ -36,11 +36,12 @@
     private var myVar3:button;
     private var myVar4:Array;
 
-    private function __initialize__(config:AllElements):void {
+    private function __initialize__(config:AllElements):AllElements {
       myVar = config.myProperty + '_suffix';
       myVar2 = {
         prop: config.myProperty
       };
+      return config;
     }
 
     public native function AllElements(config:AllElements = null);

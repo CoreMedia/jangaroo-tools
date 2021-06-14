@@ -52,6 +52,7 @@ import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.mxml.ast.IsInitMethod;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -124,10 +125,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
+  private IsInitMethod isInitMethod;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
     this.typeScriptModuleResolver = typeScriptModuleResolver;
+    this.isInitMethod = new IsInitMethod();
   }
 
   @Override
@@ -1037,6 +1040,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
       if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessor == null) {
         generateFunctionExprReturnTypeRelation(functionExpr);
+        if (isInitMethod.apply(functionDeclaration)
+                && functionDeclaration.getOptTypeRelation().getType().getIde().equals( functionDeclaration.getClassDeclaration().getIde())) {
+          out.write("._");
+        }
       }
       if (functionDeclaration.isConstructor()
               && !functionDeclaration.containsSuperConstructorCall()
@@ -1827,7 +1834,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
           if (configClassDeclaration != null) {
             if (!(classDeclaration.equals(configClassDeclaration)
-                    // allow to deviate from the same class for some special cases: 
+                    // allow to deviate from the same class for some special cases:
                     // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
                     || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
                     // some (base) classes simply reuse their super class as their config type :(
