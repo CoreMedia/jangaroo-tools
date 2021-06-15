@@ -188,6 +188,17 @@ public class JoocMxmlTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInvalidInitializeReturnType() throws Exception {
+    File sourceFile = getFile("/package1/mxml/InvalidInitializeReturnType.mxml");
+    config.addSourceFile(sourceFile);
+    jooc.run();
+    assertTrue("Expected error (Invalid MXML __initialize__ method return type, ...) did not occur",
+            testLog.hasError("Invalid MXML __initialize__ method return type, must be void or 'package1.mxml.InvalidInitializeReturnType'."));
+
+    assertErrorAt("Invalid MXML __initialize__ method return type, must be void or 'package1.mxml.InvalidInitializeReturnType'.", 6, 73);
+  }
+
+  @Test
   public void testScriptCdataMxml() throws Exception {
     assertCompilationResult("package1/mxml/ScriptCdataMxmlClass", ".mxml");
   }

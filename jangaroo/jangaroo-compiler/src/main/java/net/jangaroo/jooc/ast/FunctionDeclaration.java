@@ -21,7 +21,9 @@ import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.SyntacticKeywords;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.model.MethodType;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -234,6 +236,17 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
     // TODO: else check that method does not conflict with an existing member.
 
+    if (isInitMethod()) {
+      ExpressionType returnType = getType().getTypeParameter();
+      if (returnType != null && returnType.getAS3Type() != AS3Type.VOID) {
+        if (!returnType.equals(new ExpressionType(getClassDeclaration()))) {
+          scope.getCompiler().getLog().error(
+                  getOptTypeRelation().getType().getSymbol(),
+                  String.format("Invalid MXML __initialize__ method return type, must be void or '%s'.", getClassDeclaration().getQualifiedNameStr()));
+        }
+      }
+    }
+
     if (isPublicApi()) {
       // This method will be rendered into the public API stubs.
       Parameters params = getParams();
@@ -248,6 +261,10 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
       addPublicApiDependencyOn(fun.getOptTypeRelation());
     }
+  }
+
+  public boolean isInitMethod() {
+    return !isGetterOrSetter() && isPrivate() && getIde().getName().equals("__initialize__");
   }
 
   public FunctionSignature getMethodSignature() {

@@ -15,7 +15,6 @@ import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
@@ -27,6 +26,7 @@ import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.input.InputSource;
 import net.jangaroo.jooc.mxml.MxmlParserHelper;
 import net.jangaroo.jooc.mxml.MxmlUtils;
+import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
@@ -52,7 +52,6 @@ public class MxmlCompilationUnit extends CompilationUnit {
   private final RootElementProcessor rootElementProcessor = new RootElementProcessor();
 
   private final IsNativeConstructor isNativeConstructor = new IsNativeConstructor(this);
-  private final IsInitMethod isInitMethod = new IsInitMethod();
 
   private final Collection<String> importedSymbols = new HashSet<>();
 
@@ -202,7 +201,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
           constructorParam = params.getHead();
         }
         classBodyDirectives.set(i, constructor);
-      } else if (isInitMethod.apply(directive)) {
+      } else if (directive instanceof FunctionDeclaration && ((FunctionDeclaration) directive).isInitMethod()) {
         initMethod = (FunctionDeclaration) directive;
       }
     }
@@ -240,9 +239,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
       }
       DotExpr initFunctionInvocation = new DotExpr(MxmlAstUtils.createThisExpr(), MxmlAstUtils.sym_dot(), new Ide(initMethod.getIde().getSymbol().withoutWhitespace()));
       ApplyExpr applyExpr = new ApplyExpr(initFunctionInvocation, initMethod.getFun().getLParen(), args, initMethod.getFun().getRParen());
-      Directive directive = constructorParam == null || !getPrimaryDeclaration().getName().equals(initMethod.getOptTypeRelation().getType().getIde().getName())
-              ? MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr)
-              : MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(constructorId, MxmlAstUtils.sym_eq(), applyExpr));
+      Directive directive = constructorId != null && initMethod.getOptTypeRelation() != null
+              && initMethod.getOptTypeRelation().getType().getIde().getSymbol().sym != sym.VOID
+              ? MxmlAstUtils.createSemicolonTerminatedStatement(new AssignmentOpExpr(constructorId, MxmlAstUtils.sym_eq(), applyExpr))
+              : MxmlAstUtils.createSemicolonTerminatedStatement(applyExpr);
       constructorBodyDirectives.add(directive);
     }
   }

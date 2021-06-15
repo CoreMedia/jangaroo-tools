@@ -52,7 +52,6 @@ import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
-import net.jangaroo.jooc.mxml.ast.IsInitMethod;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.jooc.types.ExpressionType;
@@ -125,12 +124,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
-  private final IsInitMethod isInitMethod;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
     this.typeScriptModuleResolver = typeScriptModuleResolver;
-    this.isInitMethod = new IsInitMethod();
   }
 
   @Override
@@ -1039,9 +1036,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
       if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessor == null) {
-        if (isInitMethod.apply(functionDeclaration)
-                && functionDeclaration.getType().getTypeParameter() != null) {
-          functionDeclaration.getType().getTypeParameter().markAsConfigTypeIfPossible();
+        if (functionDeclaration.isInitMethod()) {
+          ExpressionType returnType = functionDeclaration.getType().getTypeParameter();
+          if (returnType != null) {
+            returnType.markAsConfigTypeIfPossible();
+          }
         }
         generateFunctionExprReturnTypeRelation(functionExpr);
       }
