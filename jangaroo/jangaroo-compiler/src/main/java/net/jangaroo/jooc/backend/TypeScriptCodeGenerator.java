@@ -1380,7 +1380,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             args.getExpr().getHead().isOfAS3Type(AS3Type.STRING)) {
       // suppress obsolete net.jangaroo.ext.Exml.asString(<someString>):
       args.getExpr().getHead().visit(this);
-    } else {
+    } else if (args != null) {
       // check for set-Method call (within current class) that is really a Config write:
       CommaSeparatedList<Expr> expr = args.getExpr();
       if (expr != null && expr.getTail() == null) {
