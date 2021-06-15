@@ -125,7 +125,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
-  private IsInitMethod isInitMethod;
+  private final IsInitMethod isInitMethod;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -1039,11 +1039,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       // in TypeScript, constructors and setters may not declare a return type, not even "void":
       if (!functionDeclaration.isConstructor() && !functionDeclaration.isSetter() && setAccessor == null) {
-        generateFunctionExprReturnTypeRelation(functionExpr);
         if (isInitMethod.apply(functionDeclaration)
-                && functionDeclaration.getOptTypeRelation().getType().getIde().equals( functionDeclaration.getClassDeclaration().getIde())) {
-          out.write("._");
+                && functionDeclaration.getType().getTypeParameter() != null) {
+          functionDeclaration.getType().getTypeParameter().markAsConfigTypeIfPossible();
         }
+        generateFunctionExprReturnTypeRelation(functionExpr);
       }
       if (functionDeclaration.isConstructor()
               && !functionDeclaration.containsSuperConstructorCall()
