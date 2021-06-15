@@ -10,7 +10,11 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
 
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
-    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;
+    private*/ function __initialize__(config/*:SimpleMxmlClass*/)/*:void*/ {
+      // nothing here
+    }/*
+
+    public*/function SimpleMxmlClass$(config/*:SimpleMxmlClass = null*/){if(arguments.length<=0)config=null;this.__initialize__$5_bR(config);
     this.blub$5_bR ={ name: "Kuno"};
     config = net.jangaroo.ext.Exml.apply({
     bar: "FOO & BAR!",
@@ -46,7 +50,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
   items:([
     new package1.someOtherPackage.SomeOtherClass({ bla: 23}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))}}),
+    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_59_41$5_bR"))}}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 42, number: 24
     }),
     new package1.ConfigClass({
@@ -127,7 +131,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
       var result/*:String*/ = 'gotcha!';
     }/*
 
-    private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+    private*/ function $on_clickClack_59_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
       var test=0;
     }/*
 
@@ -138,13 +142,14 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     return {
       extend: "package1.ConfigClass",
       alias: "widget.testNamespace.config.simpleMxmlClass",
+      __initialize__$5_bR: __initialize__,
       constructor: SimpleMxmlClass$,
       super$5_bR: function() {
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       blub$5_bR: undefined,
       $on_click_14_20$5_bR: $on_click_14_20,
-      $on_clickClack_55_41$5_bR: $on_clickClack_55_41,
+      $on_clickClack_59_41$5_bR: $on_clickClack_59_41,
       config: {
         list: null,
         bar: null,

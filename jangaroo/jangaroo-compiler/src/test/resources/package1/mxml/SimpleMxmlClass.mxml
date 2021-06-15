@@ -16,6 +16,10 @@
   <fx:Script><![CDATA[
     public static const xtype:String = "testNamespace.config.simpleMxmlClass";
 
+    private function __initialize__(config:SimpleMxmlClass):void {
+      // nothing here
+    }
+
     public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
     ]]></fx:Script>
   <fx:Declarations>

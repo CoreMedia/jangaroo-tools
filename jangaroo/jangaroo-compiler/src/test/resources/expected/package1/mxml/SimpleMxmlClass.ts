@@ -34,8 +34,12 @@ class SimpleMxmlClass extends ConfigClass{
 
   static readonly xtype:string = "testNamespace.config.simpleMxmlClass";
 
+  #__initialize__(config:SimpleMxmlClass._):void {
+      // nothing here
+    }
+
   constructor(config:SimpleMxmlClass._ = null){
-    super((()=>{
+    super((()=>{this.#__initialize__(config);
     this.#blub ={ name: "Kuno"};
     config = Exml.apply({
     bar: "FOO & BAR!",
@@ -70,7 +74,7 @@ class SimpleMxmlClass extends ConfigClass{
   ...Exml.append({items: [
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_55_41))}}),
+    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_59_41))}}),
     new SomeOtherClass(_<SomeOtherClass._&ConfigClass._>({ bla: 42, number: 24
     })),
     new ConfigClass({
@@ -181,7 +185,7 @@ class SimpleMxmlClass extends ConfigClass{
       var result = "gotcha!";
     }
 
-  #$on_clickClack_55_41 (event:SomeEvent) :void {
+  #$on_clickClack_59_41 (event:SomeEvent) :void {
       var test=0;
     }
 
