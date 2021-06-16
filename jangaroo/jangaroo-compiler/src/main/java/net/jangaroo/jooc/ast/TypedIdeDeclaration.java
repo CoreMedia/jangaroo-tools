@@ -20,7 +20,6 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
-import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.util.List;
 
@@ -172,8 +171,9 @@ public abstract class TypedIdeDeclaration extends IdeDeclaration implements Type
   }
 
   public boolean isExtConfig() {
-    return getClassDeclaration() != null && getClassDeclaration().hasConfigClass()
-            && isPublic() && isWritable() && !isStatic() && !isBindable();
+    return getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME) != null ||
+            getClassDeclaration() != null && getClassDeclaration().hasConfigClass()
+                    && isPublic() && isWritable() && !isStatic() && !isBindable();
   }
 
   public boolean isBindable() {
