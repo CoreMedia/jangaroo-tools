@@ -541,7 +541,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     if (mavenModule.getData().getOrganization() != null) {
       packageJson.setAuthor(mavenModule.getData().getOrganization().getName());
     }
-    packageJson.setLicense("MIT");
     packageJson.setPrivat(true);
     aPackage.getDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDependency);
     aPackage.getDevDependencies().stream().collect(Collectors.toMap(Package::getName, Package::getVersion)).forEach(packageJson::addDevDependency);
