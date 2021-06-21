@@ -14,7 +14,7 @@ class InterfaceImplementingMxmlClass extends ConfigClass implements YetAnotherIn
   declare readonly initialConfig: InterfaceImplementingMxmlClass._;
 
   constructor(config:InterfaceImplementingMxmlClass._ = null){
-    super( Exml.apply(new InterfaceImplementingMxmlClass._({
+    super( Exml.apply(InterfaceImplementingMxmlClass._({
 }),config));
   }
   #someProperty:string;
@@ -33,7 +33,7 @@ mixin(InterfaceImplementingMxmlClass, YetAnotherInterface);
 
 declare namespace InterfaceImplementingMxmlClass {
   export type _ = InterfaceImplementingMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

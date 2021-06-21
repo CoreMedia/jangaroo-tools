@@ -37,7 +37,7 @@ mixin(TestComponentBase, TestInterface);
 
 declare namespace TestComponentBase {
   export type _ = TestComponentBase_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

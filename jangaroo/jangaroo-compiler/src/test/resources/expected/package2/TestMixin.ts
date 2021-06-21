@@ -36,7 +36,7 @@ class TestMixin {
 }
 declare namespace TestMixin {
   export type _ = TestMixin_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

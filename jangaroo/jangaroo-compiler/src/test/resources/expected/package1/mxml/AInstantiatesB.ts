@@ -10,7 +10,7 @@ class AInstantiatesB extends Panel{
   declare readonly initialConfig: AInstantiatesB._;
 
   constructor(config:AInstantiatesB._ = null){
-    super( Exml.apply(new AInstantiatesB._({
+    super( Exml.apply(AInstantiatesB._({
 
   items:[
     new BDeclaresA({ someProperty: "yes"})
@@ -19,7 +19,7 @@ class AInstantiatesB extends Panel{
   }}
 declare namespace AInstantiatesB {
   export type _ = AInstantiatesB_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

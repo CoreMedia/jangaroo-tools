@@ -74,7 +74,7 @@ class DeclarationsMxmlClass extends SomeNativeClass{
   set other(value:SomeOtherClass) { this.#other = value; }}
 declare namespace DeclarationsMxmlClass {
   export type _ = DeclarationsMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

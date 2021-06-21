@@ -19,7 +19,7 @@ class CyclicDependencies extends Object{
   set cause_trouble(value:CyclicDependencies_1) { this.#cause_trouble = value; }}
 declare namespace CyclicDependencies {
   export type _ = CyclicDependencies_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

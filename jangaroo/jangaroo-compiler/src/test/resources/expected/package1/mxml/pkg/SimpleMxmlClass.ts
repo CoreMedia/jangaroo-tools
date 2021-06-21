@@ -15,14 +15,14 @@ class SimpleMxmlClass extends panel{
   static readonly xtype:string = "testNamespace.pkg.config.simpleMxmlClass";
 
   constructor(config:SimpleMxmlClass._ = null){
-    super( Exml.apply(new SimpleMxmlClass._({
+    super( Exml.apply(SimpleMxmlClass._({
         title:  package1_mxml_SimpleMxmlClass.xtype
 
 }),config));
   }}
 declare namespace SimpleMxmlClass {
   export type _ = SimpleMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

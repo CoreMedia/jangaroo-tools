@@ -9,14 +9,14 @@ interface MetadataMxmlClass_ extends ConfigClass._ {
  */
 class MetadataMxmlClass extends ConfigClass{
   declare readonly initialConfig: MetadataMxmlClass._;constructor(config:MetadataMxmlClass._=null){
-    super( Exml.apply(new MetadataMxmlClass._({
+    super( Exml.apply(MetadataMxmlClass._({
 }),config));
 }}
 metadata(MetadataMxmlClass, ["ThisIsJustATest"]);
 
 declare namespace MetadataMxmlClass {
   export type _ = MetadataMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

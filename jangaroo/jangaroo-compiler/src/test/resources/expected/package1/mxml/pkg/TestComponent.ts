@@ -16,7 +16,7 @@ class TestComponent extends TestComponentBase{
     config = Exml.apply({
     property_1: "withDefault"
     },config);
-    super( Exml.apply(new TestComponent._({
+    super( Exml.apply(TestComponent._({
         emptyText:  "<div class='widget-content-list-empty'>" + TestComponentBase.DEFAULT + "</div>",
         letters: [
               "a",
@@ -39,7 +39,7 @@ class TestComponent extends TestComponentBase{
   set property_2(value:int) { this.#property_2 = value; }}
 declare namespace TestComponent {
   export type _ = TestComponent_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

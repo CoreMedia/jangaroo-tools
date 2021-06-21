@@ -60,7 +60,7 @@ class SimpleMxmlClass extends ConfigClass{
                           blubb_config: "blub config expression",
                           blubb_accessor: "blub accessor expression"})
     },config);
-    return  Exml.apply(new SimpleMxmlClass._({
+    return  Exml.apply(SimpleMxmlClass._({
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,
   defaultType: SomeOtherClass.xtype,
@@ -191,7 +191,7 @@ class SimpleMxmlClass extends ConfigClass{
   set no_config(value:SomeOtherClass) { this.#no_config = value; }}
 declare namespace SimpleMxmlClass {
   export type _ = SimpleMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

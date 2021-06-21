@@ -429,7 +429,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (hasConfigClass) {
         out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
         out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
-        out.write("  export const _: { new(config?: _): _; };\n");
+        out.write("  export const _: (config?: _) => _;\n");
         out.write("}\n\n");
       }
     }
@@ -1340,7 +1340,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
         if (isOfConfigType(args.getExpr().getHead())) {
           // use config factory function instead of the class itself:
-          writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
+          writeSymbolReplacement(applyExpr.getSymbol(), compilationUnitAccessCode(declaration) + "._");
           args.visit(this);
           return;
         }

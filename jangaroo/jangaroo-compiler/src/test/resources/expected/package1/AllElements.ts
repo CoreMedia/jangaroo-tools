@@ -54,7 +54,7 @@ class AllElements extends panel{
       { header: "a", sortable: false, menuDisabled: true},
       { header: "b", sortable: true, menuDisabled: false}
     ];
-    return  Exml.apply(new AllElements._({
+    return  Exml.apply(AllElements._({
            title: "I am a panel",
            layout: Exml.asString( config.#myProperty),
 
@@ -134,7 +134,7 @@ class AllElements extends panel{
   set gear(value:any) { this.#gear = value; }}
 declare namespace AllElements {
   export type _ = AllElements_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

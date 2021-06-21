@@ -7,13 +7,13 @@ interface StringToArrayCoercion_ {
 
 class StringToArrayCoercion extends Panel{
   declare readonly initialConfig: StringToArrayCoercion._;constructor(config:StringToArrayCoercion._=null){
-    super( Exml.apply(new StringToArrayCoercion._({
+    super( Exml.apply(StringToArrayCoercion._({
            items: ["just a joke"]
 }),config));
 }}
 declare namespace StringToArrayCoercion {
   export type _ = StringToArrayCoercion_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

@@ -7,7 +7,7 @@ interface PropertiesAccess_ extends PropertiesAccessBase._ {
 
 class PropertiesAccess extends PropertiesAccessBase{
   declare readonly initialConfig: PropertiesAccess._;constructor(config:PropertiesAccess._=null){
-    super( Exml.apply(new PropertiesAccess._({
+    super( Exml.apply(PropertiesAccess._({
         property_1: "egal",
         property_2: "egaler",
         property_3: "am egalsten"
@@ -15,7 +15,7 @@ class PropertiesAccess extends PropertiesAccessBase{
 }}
 declare namespace PropertiesAccess {
   export type _ = PropertiesAccess_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

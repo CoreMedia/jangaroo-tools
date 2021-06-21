@@ -7,13 +7,13 @@ interface StringToEmptyArrayCoercion_ {
 
 class StringToEmptyArrayCoercion extends Panel{
   declare readonly initialConfig: StringToEmptyArrayCoercion._;constructor(config:StringToEmptyArrayCoercion._=null){
-    super( Exml.apply(new StringToEmptyArrayCoercion._({
+    super( Exml.apply(StringToEmptyArrayCoercion._({
   items:[]
 }),config));
 }}
 declare namespace StringToEmptyArrayCoercion {
   export type _ = StringToEmptyArrayCoercion_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

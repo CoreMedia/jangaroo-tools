@@ -21,7 +21,7 @@ class TestOldPropertyAccessSyntax extends Object{
   set foo(value:string) { this.#foo = value; }}
 declare namespace TestOldPropertyAccessSyntax {
   export type _ = TestOldPropertyAccessSyntax_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 
