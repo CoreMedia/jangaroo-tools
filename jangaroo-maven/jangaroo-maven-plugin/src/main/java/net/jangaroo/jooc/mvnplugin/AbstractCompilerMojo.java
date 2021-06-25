@@ -13,6 +13,7 @@ import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -179,11 +180,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
    * An example would be
-   *     function foo(bar: string = "default"): string {
-   *       return bar;
-   *     }
-   *     foo(); // "default" for both AS3 and ECMAScript semantics
-   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   * function foo(bar: string = "default"): string {
+   * return bar;
+   * }
+   * foo(); // "default" for both AS3 and ECMAScript semantics
+   * foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
    */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
@@ -300,8 +301,17 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     if (configuration.getDependencyReportOutputFile() == null) {
       log.warn("No directory for dependency warnings specified, ignoring dependency warnings.");
     } else {
-      printDependencyWarnings(configuration);
-      new File(configuration.getDependencyReportOutputFile()).delete();
+      File dependencyWarningsFile = new File(configuration.getDependencyReportOutputFile());
+      if (dependencyWarningsFile.exists()) {
+        try {
+          Map<String, Object> dependencyWarnings = SenchaUtils.getObjectMapper().readValue(FileUtils.readFileToString(dependencyWarningsFile), Map.class);
+          printDependencyWarnings(configuration, dependencyWarnings);
+        } catch (IOException e) {
+          getLog().error(String.format("There was an error while reading file %s", dependencyWarningsFile.getPath()));
+        } finally {
+          new File(configuration.getDependencyReportOutputFile()).delete();
+        }
+      }
     }
     if ((result != CompilationResult.RESULT_CODE_OK) && failOnError) {
       log.info("-------------------------------------------------------------");
@@ -470,7 +480,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected abstract List<File> getActionScriptClassPath();
 
-  protected abstract void printDependencyWarnings(JoocConfiguration joocConfiguration);
+  protected abstract void printDependencyWarnings(JoocConfiguration joocConfiguration, Map<String, Object> dependencyWarnings);
 
   protected void printUnusedDependencyWarnings(JoocConfiguration joocConfiguration, List<String> unusedDependencies) {
     if (joocConfiguration.isFindUnusedDependencies() && !unusedDependencies.isEmpty()) {
