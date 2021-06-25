@@ -131,11 +131,11 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
 
   @Override
   protected void printDependencyWarnings(JoocConfiguration joocConfiguration, Map<String, Object> dependencyWarnings) {
-    if (joocConfiguration.isFindUnusedDependencies() && dependencyWarnings.get("unusedDependencies") instanceof List) {
-      printUnusedDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get("unusedDependencies"));
+    if (joocConfiguration.isFindUnusedDependencies() && dependencyWarnings.get(UNUSED_DEPENDENCIES_KEY) instanceof List) {
+      printUnusedDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get(UNUSED_DEPENDENCIES_KEY));
     }
-    if (dependencyWarnings.get("undeclaredDependencies") instanceof List) {
-      printUndeclaredDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get("undeclaredDependencies"), "test-");
+    if (dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY) instanceof List) {
+      printUndeclaredDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY), "test-");
     }
   }
 

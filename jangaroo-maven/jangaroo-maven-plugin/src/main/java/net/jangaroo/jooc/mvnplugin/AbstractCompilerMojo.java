@@ -44,6 +44,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
   protected static final String USED_UNDECLARED_DEPENDENCIES_WARNING = "Used undeclared %sdependencies found:";
+  protected static final String UNUSED_DEPENDENCIES_KEY = "unusedDependencies";
+  protected static final String UNDECLARED_DEPENDENCIES_KEY = "undeclaredDependencies";
   protected static final String UNUSED_DECLARED_DEPENDENCIES_WARNING = "Unused declared dependencies found:";
   /**
    * Indicates whether the build will fail if there are compilation errors.
@@ -52,6 +54,14 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @SuppressWarnings("FieldCanBeLocal")
   @Parameter(property = "maven.compiler.failOnError")
   private boolean failOnError = true;
+
+  /**
+   * Indicates whether the build will fail if there are dependency errors discovered.
+   * Defaults to "false".
+   */
+  @SuppressWarnings("FieldCanBeLocal")
+  @Parameter(property = "maven.compiler.failOnDependencyError")
+  private boolean failOnDependencyError = true;
 
   /**
    * Skip detecting, reporting and failing on dependency errors (undeclared
@@ -298,7 +308,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
     int result = compile(jooc);
 
-    if (configuration.getDependencyReportOutputFile() == null) {
+    if (configuration.getDependencyReportOutputFile() == null && !failOnDependencyError) {
       log.warn("No directory for dependency warnings specified, ignoring dependency warnings.");
     } else {
       File dependencyWarningsFile = new File(configuration.getDependencyReportOutputFile());
@@ -306,6 +316,11 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
         try {
           Map<String, Object> dependencyWarnings = SenchaUtils.getObjectMapper().readValue(FileUtils.readFileToString(dependencyWarningsFile), Map.class);
           printDependencyWarnings(configuration, dependencyWarnings);
+          List<String> undeclaredDependencies = (List<String>) dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY);
+          if (failOnDependencyError && undeclaredDependencies != null && !undeclaredDependencies.isEmpty()) {
+            throw new MojoExecutionException("There were dependency errors detected, compilation failed. " +
+                    "Fix the dependency errors or disable fail on dependency errors by setting the \"failOnDependencyError\"-option to \"false\".");
+          }
         } catch (IOException e) {
           getLog().error(String.format("There was an error while reading file %s", dependencyWarningsFile.getPath()));
         } finally {
