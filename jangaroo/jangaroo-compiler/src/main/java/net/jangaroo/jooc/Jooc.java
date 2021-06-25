@@ -219,7 +219,6 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
             .filter(inputSource -> !IGNORE_DEPENDENCIES.contains(inputSource.getName()))
             .filter(inputSource -> !(inputSource.isInSourcePath() || inputSource.isInCompilePath()))
             .map(InputSource::getPath)
-            //.map(dependencyWarningsManager::convertInputSourceToDependency)
             .filter(Objects::nonNull)
             .distinct()
             .filter(dependency -> !dependency.contains("jangaroo-runtime") && !dependency.contains("jangaroo-browser"))
