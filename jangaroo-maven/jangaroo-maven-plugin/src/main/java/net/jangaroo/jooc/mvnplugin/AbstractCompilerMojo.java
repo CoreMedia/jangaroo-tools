@@ -57,7 +57,9 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   /**
    * Indicates whether the build will fail if there are dependency errors discovered.
-   * Defaults to "false".
+   * Used undeclared dependencies are considered as dependency errors, while declared but unused dependencies are
+   * just considered as warnings and therefore never result in a build failure.
+   * Defaults to "true".
    */
   @SuppressWarnings("FieldCanBeLocal")
   @Parameter(property = "maven.compiler.failOnDependencyError")
@@ -190,12 +192,13 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
    * An example would be
-   * function foo(bar: string = "default"): string {
-   * return bar;
-   * }
-   * foo(); // "default" for both AS3 and ECMAScript semantics
-   * foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
-   */
+   *     function foo(bar: string = "default"): string {
+   *       return bar;
+   *     }
+   *     foo(); // "default" for both AS3 and ECMAScript semantics
+   *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
+   *
+  */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
 
