@@ -197,8 +197,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
    *     }
    *     foo(); // "default" for both AS3 and ECMAScript semantics
    *     foo(undefined); // 'undefined' in AS3, "default" in ECMAScript semantics
-   *
-  */
+   */
   @Parameter(property = "maven.compiler.useEcmaParameterInitializerSemantics")
   private boolean useEcmaParameterInitializerSemantics = false;
 
