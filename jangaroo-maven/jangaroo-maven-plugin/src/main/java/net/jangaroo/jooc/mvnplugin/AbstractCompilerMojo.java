@@ -205,6 +205,12 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @Parameter
   private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
+  /**
+   * The path to the file where the dependency warnings discovered while compiling the sources should be saved.
+   */
+  @Parameter(property = "maven.compiler.dependencyWarningsOutputFile")
+  private String dependencyWarningsOutputFile = "target/dependencyReports/dependencyWarnings.txt";
+
   protected abstract List<File> getCompileSourceRoots();
 
   protected abstract File getOutputDirectory();
@@ -399,8 +405,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setLocalizedOutputDirectory(getLocalizedOutputDirectory());
     configuration.setApiOutputDirectory(getApiOutputDirectory());
     configuration.setFindUnusedDependencies(findUnusedDependencies(staleMillis));
-    //todo: use proper directory
-    configuration.setDependencyReportOutputFile("target/dependencyReports/dependencyWarnings.txt");
+    configuration.setDependencyReportOutputFile(dependencyWarningsOutputFile);
 
     configuration.setSassSourceFilesByType(sassSourceFilesByType);
     try {
