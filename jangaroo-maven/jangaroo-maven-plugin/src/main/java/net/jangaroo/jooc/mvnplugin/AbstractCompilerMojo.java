@@ -13,6 +13,7 @@ import net.jangaroo.jooc.config.SemicolonInsertionMode;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -43,6 +44,8 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
   protected static final String USED_UNDECLARED_DEPENDENCIES_WARNING = "Used undeclared %sdependencies found:";
+  protected static final String UNUSED_DEPENDENCIES_KEY = "unusedDependencies";
+  protected static final String UNDECLARED_DEPENDENCIES_KEY = "undeclaredDependencies";
   protected static final String UNUSED_DECLARED_DEPENDENCIES_WARNING = "Unused declared dependencies found:";
   /**
    * Indicates whether the build will fail if there are compilation errors.
@@ -51,6 +54,16 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   @SuppressWarnings("FieldCanBeLocal")
   @Parameter(property = "maven.compiler.failOnError")
   private boolean failOnError = true;
+
+  /**
+   * Indicates whether the build will fail if there are dependency errors discovered.
+   * Used undeclared dependencies are considered as dependency errors, while declared but unused dependencies are
+   * just considered as warnings and therefore never result in a build failure.
+   * Defaults to "true".
+   */
+  @SuppressWarnings("FieldCanBeLocal")
+  @Parameter(property = "maven.compiler.failOnDependencyError")
+  private boolean failOnDependencyError = true;
 
   /**
    * Skip detecting, reporting and failing on dependency errors (undeclared
@@ -303,11 +316,25 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
     int result = compile(jooc);
 
-    if (configuration.getDependencyReportOutputFile() == null) {
+    if (configuration.getDependencyReportOutputFile() == null && !failOnDependencyError) {
       log.warn("No directory for dependency warnings specified, ignoring dependency warnings.");
     } else {
-      printDependencyWarnings(configuration);
-      new File(configuration.getDependencyReportOutputFile()).delete();
+      File dependencyWarningsFile = new File(configuration.getDependencyReportOutputFile());
+      if (dependencyWarningsFile.exists()) {
+        try {
+          Map<String, Object> dependencyWarnings = SenchaUtils.getObjectMapper().readValue(FileUtils.readFileToString(dependencyWarningsFile), Map.class);
+          printDependencyWarnings(configuration, dependencyWarnings);
+          List<String> undeclaredDependencies = (List<String>) dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY);
+          if (failOnDependencyError && undeclaredDependencies != null && !undeclaredDependencies.isEmpty()) {
+            throw new MojoExecutionException("There were dependency errors detected, compilation failed. " +
+                    "Fix the dependency errors or disable fail on dependency errors by setting the \"failOnDependencyError\"-option to \"false\".");
+          }
+        } catch (IOException e) {
+          getLog().error(String.format("There was an error while reading file %s", dependencyWarningsFile.getPath()));
+        } finally {
+          new File(configuration.getDependencyReportOutputFile()).delete();
+        }
+      }
     }
     if ((result != CompilationResult.RESULT_CODE_OK) && failOnError) {
       log.info("-------------------------------------------------------------");
@@ -475,7 +502,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
 
   protected abstract List<File> getActionScriptClassPath();
 
-  protected abstract void printDependencyWarnings(JoocConfiguration joocConfiguration);
+  protected abstract void printDependencyWarnings(JoocConfiguration joocConfiguration, Map<String, Object> dependencyWarnings);
 
   protected void printUnusedDependencyWarnings(JoocConfiguration joocConfiguration, List<String> unusedDependencies) {
     if (joocConfiguration.isFindUnusedDependencies() && !unusedDependencies.isEmpty()) {

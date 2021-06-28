@@ -1,8 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import net.jangaroo.jooc.config.JoocConfiguration;
-import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -12,8 +10,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -134,34 +130,25 @@ public class TestCompilerMojo extends AbstractCompilerMojo {
   }
 
   @Override
-  protected void printDependencyWarnings(JoocConfiguration joocConfiguration) {
-    File dependencyWarningsFile = new File(joocConfiguration.getDependencyReportOutputFile());
-    if (dependencyWarningsFile.exists()) {
-      try {
-        Map<String, Object> dependencyWarnings = SenchaUtils.getObjectMapper().readValue(FileUtils.readFileToString(dependencyWarningsFile), Map.class);
-
-        if (joocConfiguration.isFindUnusedDependencies() && dependencyWarnings.get("unusedDependencies") instanceof List) {
-          printUnusedDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get("unusedDependencies"));
-        }
-        if (dependencyWarnings.get("undeclaredDependencies") instanceof List) {
-          printUndeclaredDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get("undeclaredDependencies"), "test-");
-        }
-      } catch (IOException e) {
-        getLog().error(String.format("There was an error while reading file %s", dependencyWarningsFile.getPath()));
-      }
+  protected void printDependencyWarnings(JoocConfiguration joocConfiguration, Map<String, Object> dependencyWarnings) {
+    if (joocConfiguration.isFindUnusedDependencies() && dependencyWarnings.get(UNUSED_DEPENDENCIES_KEY) instanceof List) {
+      printUnusedDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get(UNUSED_DEPENDENCIES_KEY));
+    }
+    if (dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY) instanceof List) {
+      printUndeclaredDependencyWarnings(joocConfiguration, (List<String>) dependencyWarnings.get(UNDECLARED_DEPENDENCIES_KEY), "test-");
     }
   }
 
   @Override
   protected List<String> createUsedUndeclaredDependencyWarning(Artifact dependency) {
     List<String> lines = new ArrayList<>();
-      lines.add("<dependency>");
-      lines.add(String.format("  <groupId>%s</groupId>", dependency.getGroupId()));
-      lines.add(String.format("  <artifactId>%s</artifactId>", dependency.getArtifactId()));
-      lines.add(String.format("  <version>%s</version>", dependency.getVersion()));
-      lines.add("  <type>swc</type>");
-      lines.add("  <scope>test</scope>");
-      lines.add("</dependency>");
+    lines.add("<dependency>");
+    lines.add(String.format("  <groupId>%s</groupId>", dependency.getGroupId()));
+    lines.add(String.format("  <artifactId>%s</artifactId>", dependency.getArtifactId()));
+    lines.add(String.format("  <version>%s</version>", dependency.getVersion()));
+    lines.add("  <type>swc</type>");
+    lines.add("  <scope>test</scope>");
+    lines.add("</dependency>");
     return lines;
   }
 }
