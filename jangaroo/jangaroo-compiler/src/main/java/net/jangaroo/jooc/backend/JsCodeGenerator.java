@@ -282,6 +282,12 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     if (isPropertiesSubclass) {
       out.write("\n  override: " + CompilerUtils.quote(PropcHelper.computeBaseClassName(propertiesClassName)));
       startWithComma = true;
+    } else {
+      String alternateClassName = getAlternateClassName(classDeclaration);
+      if (alternateClassName != null) {
+        out.write("\n  alternateClassName: " + CompilerUtils.quote(alternateClassName));
+        startWithComma = true;
+      }
     }
     // for some reason, References end up in 'uses', not in 'requires':
     if (uses.length > 0) {
@@ -397,14 +403,23 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     return requires.toArray(new String[requires.size()]);
   }
 
-  private JsonObject createClassDefinition(ClassDeclaration classDeclaration) throws IOException {
+  private JsonObject createClassDefinition(ClassDeclaration classDeclaration) {
     JsonObject classDefinition = new JsonObject();
     if (classDeclaration.notExtendsObject()) {
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       classDefinition.set("extend", compilationUnitAccessCode(superTypeDeclaration));
     }
     addOptImplements(classDeclaration, classDefinition);
+    String alternateClassName = getAlternateClassName(classDeclaration);
+    if (alternateClassName != null) {
+      classDefinition.set("alternateClassName", alternateClassName);
+    }
     return classDefinition;
+  }
+
+  private static String getAlternateClassName(ClassDeclaration classDeclaration) {
+    String alternateClassName = classDeclaration.getTargetQualifiedNameStrWithoutRename();
+    return classDeclaration.getTargetQualifiedNameStr().equals(alternateClassName) ? null : alternateClassName;
   }
 
   private void fillClassDefinition(JsonObject classDefinition, ClassDefinitionBuilder classDefinitionBuilder) throws IOException {

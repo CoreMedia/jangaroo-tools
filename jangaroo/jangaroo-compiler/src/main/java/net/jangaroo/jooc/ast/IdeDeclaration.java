@@ -92,19 +92,17 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getTargetQualifiedNameStr() {
+    Annotation renameAnnotation = getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+    return renameAnnotation != null
+            ? (String) renameAnnotation.getPropertiesByName().get(null)
+            : getTargetQualifiedNameStrWithoutRename();
+  }
+
+  public String getTargetQualifiedNameStrWithoutRename() {
     Annotation nativeAnnotation = getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     String targetName = null;
-    boolean require = true;
     if (nativeAnnotation != null) {
       targetName = (String) nativeAnnotation.getPropertiesByName().get(null);
-      if (!nativeAnnotation.getPropertiesByName().containsKey(Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY)) {
-        require = false;
-      }
-    } else {
-      Annotation renameAnnotation = getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-      if (renameAnnotation != null) {
-        targetName = (String) renameAnnotation.getPropertiesByName().get(null);
-      }
     }
     if (targetName == null || targetName.isEmpty()) {
       targetName = getQualifiedNameStr();
