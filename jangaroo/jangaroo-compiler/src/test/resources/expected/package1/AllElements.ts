@@ -79,9 +79,9 @@ class AllElements extends panel{
      */
     items:[
       cast(button,{ text: "Save",
-        handler: ():void => {
-          MessageBox.alert("gotcha!");
-        }
+        handler: ():void => 
+          MessageBox.alert("gotcha!")
+        
       }),
       {xtype: "editortreepanel"},
       {}

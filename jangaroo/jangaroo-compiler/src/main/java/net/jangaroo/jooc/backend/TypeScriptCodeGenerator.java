@@ -43,6 +43,7 @@ import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
+import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
@@ -1262,25 +1263,33 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // then just render this expression:
       List<Directive> statements = functionExpr.getBody().getDirectives();
       if (statements.size() == 1) {
+        Expr returnExpr;
+        ReturnStatement returnStatement = null;
         Directive firstStatement = statements.get(0);
         if (firstStatement instanceof ReturnStatement) {
+          returnStatement = (ReturnStatement) firstStatement;
+          returnExpr = returnStatement.getOptExpr();
+          if (returnExpr == null) {
+            // a sole return without any value should be a rare case, but who knows:
+            returnExpr = new IdeExpr(new JooSymbol(sym.IDE, "undefined"));
+          }
+        } else {
+          // check whether a void expression is evaluated, then "return" it to avoid the block:
+          returnExpr = getExpressionIfVoid(firstStatement);
+        }
+        if (returnExpr != null) {
           out.writeSymbolWhitespace(functionExpr.getBody().getLBrace());
-          ReturnStatement returnStatement = (ReturnStatement) firstStatement;
-          out.writeSymbolWhitespace(returnStatement.getSymbol());
-          Expr expr = returnStatement.getOptExpr();
-          if (expr != null) {
-            boolean needsInnerParenthesis = expr instanceof ObjectLiteral;
-            if (needsInnerParenthesis) {
-              out.writeSymbolWhitespace(expr.getSymbol());
-              out.write("(");
-            }
-            expr.visit(this);
-            if (needsInnerParenthesis) {
-              out.write(")");
-            }
-          } else {
-            // a sole return without and value should be a rare case, but who knows:
-            out.writeToken("undefined");
+          if (returnStatement != null) {
+            out.writeSymbolWhitespace(returnStatement.getSymKeyword());
+          }
+          boolean needsInnerParenthesis = returnExpr instanceof ObjectLiteral;
+          if (needsInnerParenthesis) {
+            out.writeSymbolWhitespace(returnExpr.getSymbol());
+            out.write("(");
+          }
+          returnExpr.visit(this);
+          if (needsInnerParenthesis) {
+            out.write(")");
           }
           out.writeSymbolWhitespace(functionExpr.getBody().getRBrace());
           if (needsParenthesis) {
@@ -1298,6 +1307,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (needsParenthesis) {
       out.write(")");
     }
+  }
+
+  private Expr getExpressionIfVoid(Directive firstStatement) {
+    if (firstStatement.getClass().equals(SemicolonTerminatedStatement.class)) {
+      AstNode statement = ((SemicolonTerminatedStatement) firstStatement).getOptStatement();
+      if (statement instanceof Expr) {
+        Expr expr = (Expr) statement;
+        if (expr.isOfAS3Type(AS3Type.VOID)) {
+          return expr;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
