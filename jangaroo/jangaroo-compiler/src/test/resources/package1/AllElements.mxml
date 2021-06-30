@@ -113,7 +113,7 @@
         handler:function(){} }
       ]
       -->
-      <fx:Object id="gear" handler="{function(x){return ''+x;}}"/>
+      <fx:Object id="gear" handler="{function gear(x){return ''+x;}}"/>
     </tools>
 
     <plugins>

@@ -103,7 +103,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
         handler:function(){} }
       ]
        */
-      this.gear ={ handler: function(x){return ''+x;}}
+      this.gear ={ handler: function gear(x){return ''+x;}}
     ],
 
     plugins:[

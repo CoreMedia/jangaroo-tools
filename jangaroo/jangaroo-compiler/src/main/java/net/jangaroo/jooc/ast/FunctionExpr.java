@@ -48,6 +48,7 @@ public class FunctionExpr extends Expr {
 
   private List<Parameter> implicitParams = new LinkedList<>();
   private FunctionDeclaration functionDeclaration; // null for function expressions
+  private VariableDeclaration variableDeclaration; // if function expression is named (has ide), it creates this declaration
   private boolean thisDefined = false;
   private boolean explicitThisUsed = false;
   private final Parameter argumentsParameter;
@@ -149,8 +150,8 @@ public class FunctionExpr extends Expr {
       public void run(final Scope scope) {
         //declare ide inside Function if not already scoped:
         if ((functionDeclaration == null || !functionDeclaration.isMethod()) && ide != null && ide.getScope() == null) {
-          IdeDeclaration decl = new VariableDeclaration(null, ide, null, null);
-          decl.scope(scope);
+          variableDeclaration = new VariableDeclaration(null, ide, null, null);
+          variableDeclaration.scope(scope);
         }
         // declare implicitParams
         scope(implicitParams, scope);
@@ -260,7 +261,8 @@ public class FunctionExpr extends Expr {
 
   public boolean rewriteToArrowFunction() {
     return !isExplicitThisUsed() && !argumentsUsed && getBody() != null
-            && getIde() == null && getFunctionDeclaration() == null;
+            && (variableDeclaration == null || variableDeclaration.getUsages().isEmpty())
+            && getFunctionDeclaration() == null;
   }
 
   boolean isMyArguments(Parameter maybeArgumentsParameter) {
