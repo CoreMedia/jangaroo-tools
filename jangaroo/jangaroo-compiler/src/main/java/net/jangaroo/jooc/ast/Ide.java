@@ -244,13 +244,16 @@ public class Ide extends NodeImplBase {
   public void analyzeAsExpr(AstNode exprParent, Expr parentExpr) {
     FunctionExpr funExpr = scope.getFunctionExpr();
     if (funExpr != null) {
+      boolean isInConstructor = funExpr.getFunctionDeclaration() != null && funExpr.getFunctionDeclaration().isConstructor();
       if (isThis() && !isRewriteThis()) {
         funExpr.notifyExplicitThisUsed();
-        notifyInstanceThisUsed();
+        if (isInConstructor) {
+          notifyInstanceThisUsed();
+        }
       }
       if (needsThisAtRuntime()) {
         setRewriteThis(funExpr.notifyThisUsed(scope));
-        if (!isSuper()) {
+        if (!isSuper() && isInConstructor) {
           notifyInstanceThisUsed();
         }
       }
