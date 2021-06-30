@@ -114,6 +114,10 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
   }
 
   public static String getNonRequireNativeName(IdeDeclaration primaryDeclaration) {
+    // special case: In TypeScript, native "Error" need not be imported:
+    if ("Error".equals(primaryDeclaration.getQualifiedNameStr())) {
+      return "Error";
+    }
     Annotation nativeAnnotation = primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
     if (nativeAnnotation != null && getAnnotationParameterValue(nativeAnnotation, Jooc.NATIVE_ANNOTATION_REQUIRE_PROPERTY, "") == null) {
       String nativeName = getNativeAnnotationValue(nativeAnnotation);
