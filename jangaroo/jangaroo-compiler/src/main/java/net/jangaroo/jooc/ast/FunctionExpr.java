@@ -56,6 +56,7 @@ public class FunctionExpr extends Expr {
   private boolean argumentsUsedAsArray = false;
   private IdeDeclaration classDeclaration;
   private Scope bodyScope;
+  private boolean thisAliased;
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
                       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
@@ -237,18 +238,20 @@ public class FunctionExpr extends Expr {
   }
 
   boolean notifyThisUsed(Scope scope) {
+    thisAliased = true;
     if (functionDeclaration == null || !functionDeclaration.isClassMember()) {
-      if (functionDeclaration != null) {
-        functionDeclaration.aliasThis();
-      }
       FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
       // if "this" is used inside non-static method, remember that:
       if (methodDeclaration != null && !methodDeclaration.isStatic()) {
-        methodDeclaration.aliasThis();
+        methodDeclaration.addFunctionExpr(this);
         return true;
       }
     }
     return false;
+  }
+
+  boolean isThisAliased(boolean allowArrowFunctions) {
+    return thisAliased && !(allowArrowFunctions && rewriteToArrowFunction());
   }
 
   void notifyExplicitThisUsed() {

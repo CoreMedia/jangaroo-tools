@@ -12,7 +12,7 @@ class UsingSomeNativeClass {
   someOtherNative:SomeOtherNativeClass = new SomeOtherNativeClass();
   readonly someNative2:SomeNativeClass;
 
-  constructor() {const this$=this;
+  constructor() {
     new package1_someOtherPackage_SomeNativeClass();
     this.someNative.baz = "foo";
     this.someNative2.baz = "foo";

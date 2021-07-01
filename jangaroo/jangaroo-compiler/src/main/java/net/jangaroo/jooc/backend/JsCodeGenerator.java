@@ -1303,7 +1303,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       factory = "function() {\n        return " + functionDeclaration.getName() + ";\n      }";
     }
     handleParameters(functionDeclaration.getFun());
-    if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased()) {
+    if (functionDeclaration.isClassMember() && functionDeclaration.isThisAliased(false)) {
       addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
     }
     if (functionDeclaration.isConstructor() && !functionDeclaration.containsSuperConstructorCall() && functionDeclaration.hasBody()

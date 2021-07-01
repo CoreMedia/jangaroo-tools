@@ -24,13 +24,13 @@ class TestArrowFunctions {
     var y = fun1();
   }
 
-  main1():string {const this$=this;
+  main1():string {
     return ((): string => 
        "" + this.compute(42)
     )();
   }
 
-  main2():string {const this$=this;
+  main2():string {
     return ((): string => 
        "" + this.compute(42)
     )();

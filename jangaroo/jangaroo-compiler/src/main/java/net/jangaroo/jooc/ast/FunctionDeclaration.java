@@ -24,6 +24,8 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,7 +41,7 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean isConstructor = false;
   private boolean isDeclaredInInterface = false;
   private boolean containsSuperConstructorCall = false;
-  private boolean thisAliased;
+  private Collection<FunctionExpr> functionExprs = new ArrayList<>();
 
   private Scope scope;
 
@@ -267,14 +269,12 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  void aliasThis() {
-    if (!thisAliased) {
-      thisAliased = true;
-    }
+  void addFunctionExpr(FunctionExpr functionExpr) {
+    functionExprs.add(functionExpr);
   }
 
-  public boolean isThisAliased() {
-    return thisAliased;
+  public boolean isThisAliased(boolean allowArrowFunctions) {
+    return functionExprs.stream().anyMatch(functionExpr -> functionExpr.isThisAliased(allowArrowFunctions));
   }
 
   @Override

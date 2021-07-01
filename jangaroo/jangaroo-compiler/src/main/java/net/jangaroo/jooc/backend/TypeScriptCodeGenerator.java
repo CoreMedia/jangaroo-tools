@@ -1044,7 +1044,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               && functionDeclaration.getClassDeclaration().getOptExtends() != null) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), (out, first) -> out.write("\n    super();"));
       }
-      if (functionDeclaration.isThisAliased() && !functionDeclaration.isContainsSuperConstructorCall()) {
+      if (functionDeclaration.isThisAliased(true) && !functionDeclaration.isContainsSuperConstructorCall()) {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
@@ -1240,7 +1240,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // so leave out the ActionScript call:
     if (functionDeclaration == null || functionDeclaration.getClassDeclaration().notExtendsObject()) {
       super.visitSuperConstructorCallStatement(superConstructorCallStatement);
-      if (functionDeclaration != null && functionDeclaration.isThisAliased()) {
+      if (functionDeclaration != null && functionDeclaration.isThisAliased(true)) {
         ALIAS_THIS_CODE_GENERATOR.generate(out, false);
       }
     }

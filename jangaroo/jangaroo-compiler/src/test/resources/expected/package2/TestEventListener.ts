@@ -12,7 +12,7 @@ class TestEventListener {
     return this.#panels;
   }
 
-  constructor() {const this$=this;
+  constructor() {
     asConfig(this.#panel).title = "not yet clicked.";
     this.#panel.addEventListener( PanelEvent.FLOPS, (event:PanelEvent):void => {
       asConfig(this.getThis().getPanel()).title = "clicked!";
