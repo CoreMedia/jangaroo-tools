@@ -346,7 +346,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           mixinClasses.add(maybeMixinDeclaration);
           mixins.add(superTypes.getHead());
           if (maybeMixinDeclaration.hasConfigClass()) {
-            configMixins.add(compilationUnitAccessCode(maybeMixinDeclaration) + "._");
+            configMixins.add(configType(maybeMixinDeclaration));
           }
         } else {
           realInterfaces.add(superTypes.getHead());
@@ -360,7 +360,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       List<String> configExtends = new ArrayList<>();
       ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
       if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
-        configExtends.add(compilationUnitAccessCode(superTypeDeclaration) + "._");
+        configExtends.add(configType(superTypeDeclaration));
       }
       configExtends.addAll(configMixins);
       List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
@@ -629,7 +629,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         // use class name:
         String tsType = getLocalName(declaration, true);
-        return expressionType.isConfigType() ? tsType + "._" : tsType;
+        return expressionType.isConfigType() ? configType(tsType) : tsType;
       case ANY:
         return "any";
       case VECTOR:
@@ -1489,7 +1489,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // parameter, allows additional untyped properties. So
     //   <Foo u:untyped="foo"/>
     // becomes
-    //   new Foo(<Foo._>{ untyped: "foo" })
+    //   new Foo({ untyped: "foo" } as Foo._)
 
     // If the parameter has a type and the argument is an object literal...
     if (parameterType != null && argument instanceof ObjectLiteral) {
@@ -1862,6 +1862,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return useQualifiedName ? TypeScriptModuleResolver.toLocalName(declaration.getQualifiedName()) : declaration.getName();
     }
     return localName;
+  }
+
+  private String configType(ClassDeclaration targetClass) {
+    return configType(compilationUnitAccessCode(targetClass));
+  }
+
+  private static String configType(String targetClass) {
+    return String.format("%s._", targetClass);
   }
 
   private static boolean rewriteThis(Ide ide) {
