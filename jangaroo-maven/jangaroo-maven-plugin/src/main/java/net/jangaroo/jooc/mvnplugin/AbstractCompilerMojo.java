@@ -1,7 +1,6 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.google.common.collect.Lists;
-import net.jangaroo.exml.api.Exmlc;
 import net.jangaroo.jooc.AbstractCompileLog;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.api.CompilationResult;
@@ -41,6 +40,7 @@ import java.util.Set;
 @SuppressWarnings({"UnusedDeclaration", "UnusedPrivateField"})
 public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private static final String JANGAROO_GROUP_ID = "net.jangaroo";
+  private static final String EXML_CONFIG_URI_PREFIX = "exml:";
   private static final String EXML_MAVEN_PLUGIN_ARTIFACT_ID = "exml-maven-plugin";
 
   protected static final String USED_UNDECLARED_DEPENDENCIES_WARNING = "Used undeclared %sdependencies found:";
@@ -452,7 +452,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     }
     String configClassPackage = findConfigClassPackageInExmlPluginConfiguration();
     if (configClassPackage != null) {
-      String namespace = Exmlc.EXML_CONFIG_URI_PREFIX + configClassPackage;
+      String namespace = EXML_CONFIG_URI_PREFIX + configClassPackage;
       getLog().info(String.format("Adding namespace %s derived from %s configuration.",
               namespace, EXML_MAVEN_PLUGIN_ARTIFACT_ID));
       allNamespaces.add(new NamespaceConfiguration(namespace, null));

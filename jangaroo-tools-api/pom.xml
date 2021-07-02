@@ -6,7 +6,6 @@
   <modules>
     <module>jangaroo-utils</module>
     <module>jangaroo-compiler-api</module>
-    <module>exml-compiler-api</module>
   </modules>
   <parent>
     <groupId>net.jangaroo</groupId>

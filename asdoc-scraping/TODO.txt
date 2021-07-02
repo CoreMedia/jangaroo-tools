@@ -1,2 +1,0 @@
-* treat <pre> like <listing>
-* in both, entity-escape "<" and "*" (&lt;, &lowast;)

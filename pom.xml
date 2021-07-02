@@ -9,7 +9,6 @@
     <module>jangaroo-parent</module>
     <module>jangaroo-tools-api</module>
     <module>jangaroo</module>
-    <module>exml</module>
     <module>sencha-app-template</module>
     <module>sencha-test-app-template</module>
     <module>jangaroo-maven</module>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema attributeFormDefault="unqualified"
-           elementFormDefault="qualified"
-           targetNamespace="exml:untyped"
-           version="0.8"
-           xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <!-- just a marker namespace for exml attributes that are not part of any component xsd but should still be used. i.e. a lof of ExtJS layout attributes
-   can be used the with the exml:untyped namespace-->
-</xs:schema>

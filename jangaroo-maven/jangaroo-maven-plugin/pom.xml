@@ -55,16 +55,6 @@
     </dependency>
     <dependency>
       <groupId>net.jangaroo</groupId>
-      <artifactId>exml-compiler-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
-      <artifactId>exml-compiler</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.jangaroo</groupId>
       <artifactId>jangaroo-compiler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
