@@ -225,14 +225,20 @@ public abstract class AbstractScope implements Scope {
     }
     ExpressionType expressionType = null;
     if (declaration instanceof Typed) {
-      TypeRelation typeRelation = ((Typed) declaration).getOptTypeRelation();
-      if (typeRelation != null) {
-        expressionType = getExpressionType(typeRelation.getType());
-        if (expressionType != null) {
-          if (expressionType.getAS3Type() == AS3Type.ARRAY) {
-            TypeDeclaration typeDeclaration = findArrayElementType(declaration);
-            if (typeDeclaration != null) {
-              expressionType = new ExpressionType(typeRelation.getType().getDeclaration(), new ExpressionType(typeDeclaration));
+      // If [Return("this")] annotation is present, patch return type to the declaring class:
+      if (declaration instanceof FunctionDeclaration && declaration.isClassMember()
+              && Ide.THIS.equals(((FunctionDeclaration) declaration).getFun().getReturnTypeFromAnnotation())) {
+        expressionType = declaration.getClassDeclaration().getType();
+      } else {
+        TypeRelation typeRelation = ((Typed) declaration).getOptTypeRelation();
+        if (typeRelation != null) {
+          expressionType = getExpressionType(typeRelation.getType());
+          if (expressionType != null) {
+            if (expressionType.getAS3Type() == AS3Type.ARRAY) {
+              TypeDeclaration typeDeclaration = findArrayElementType(declaration);
+              if (typeDeclaration != null) {
+                expressionType = new ExpressionType(typeRelation.getType().getDeclaration(), new ExpressionType(typeDeclaration));
+              }
             }
           }
         }
