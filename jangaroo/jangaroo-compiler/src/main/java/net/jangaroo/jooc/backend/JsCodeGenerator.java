@@ -220,6 +220,21 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
+    if (prefixOpExpr instanceof Spread) {
+      Expr expr = prefixOpExpr.getArg();
+      if (expr instanceof ApplyExpr && ((ApplyExpr) expr).isTypeCheckObjectLiteralFunctionCall()) {
+        expr = ((ApplyExpr) expr).getArgs().getExpr().getTail().getHead();
+      }
+      assert expr instanceof ObjectLiteral;
+      // "flatten" spread inner objects:
+      visitIfNotNull(((ObjectLiteral) expr).getFields());
+    } else {
+      super.visitPrefixOpExpr(prefixOpExpr);
+    }
+  }
+
+  @Override
   public void visitTypeRelation(TypeRelation typeRelation) throws IOException {
     out.beginCommentWriteSymbol(typeRelation.getSymRelation());
     typeRelation.getType().getIde().visit(this);

@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author Andreas Gawecki
  */
-public class ObjectField extends NodeImplBase {
+public class ObjectField extends NodeImplBase implements ObjectFieldOrSpread {
 
   private AstNode label;
   private JooSymbol symColon;

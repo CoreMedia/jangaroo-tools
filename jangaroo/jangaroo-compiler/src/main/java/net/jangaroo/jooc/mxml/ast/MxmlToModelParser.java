@@ -21,9 +21,11 @@ import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
+import net.jangaroo.jooc.ast.Spread;
 import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
@@ -42,7 +44,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
@@ -71,10 +72,11 @@ final class MxmlToModelParser {
     this.compilationUnit = mxmlCompilationUnit;
   }
 
-  private List<ObjectField> processAttributes(List<ObjectField> listenerFields, List<String> untypedProperties, XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectFieldOrSpread> processAttributes(List<ObjectFieldOrSpread> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     boolean hasIdAttribute = false;
-    List<ObjectField> fields = new ArrayList<>();
+    List<ObjectFieldOrSpread> fields = new ArrayList<>();
+    List<ObjectFieldOrSpread> untypedFields = new ArrayList<>();
     for (XmlAttribute attribute : objectNode.getAttributes()) {
       if (RootElementProcessor.alreadyProcessed(attribute)) {
         continue;
@@ -107,20 +109,30 @@ final class MxmlToModelParser {
         }
         if (propertyModel == null) {
           propertyModel = createDynamicPropertyModel(objectNode, type, propertyName, isUntypedAccess);
-          if (isUntypedAccess) {
-            untypedProperties.add(propertyName);
-          }
         }
         String className = getTypeAsClassName(propertyModel);
         Expr valueExpr = createValueExprFromTextSymbol(value, className);
         if (valueExpr != null) {
           ObjectField propertyAssignmentCode = createPropertyAssignmentCode(propertyModel, valueExpr);
           transferWhitespace(propertyAssignmentCode, attribute);
-          fields.add(propertyAssignmentCode);
+          if (isUntypedAccess) {
+            untypedFields.add(propertyAssignmentCode);
+          } else {
+            flushUntypedFields(fields, untypedFields);
+            fields.add(propertyAssignmentCode);
+          }
         }
       }
     }
+    flushUntypedFields(fields, untypedFields);
     return fields;
+  }
+
+  private static void flushUntypedFields(List<ObjectFieldOrSpread> fields, List<ObjectFieldOrSpread> untypedFields) {
+    if (!untypedFields.isEmpty()) {
+      fields.add(MxmlAstUtils.createSpread(MxmlAstUtils.createObjectLiteral(untypedFields)));
+      untypedFields.clear();
+    }
   }
 
   private static String convertMxmlWhitespace(JooSymbol symbol) {
@@ -153,17 +165,17 @@ final class MxmlToModelParser {
     return null;
   }
 
-  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(List<Expr> types, List<String> untypedProperties, XmlElement objectNode) {
-    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(types, untypedProperties, objectNode));
+  ObjectLiteral createObjectLiteralForAttributesAndChildNodes(XmlElement objectNode) {
+    return MxmlAstUtils.createObjectLiteral(createObjectFieldsForAttributesAndChildNodes(objectNode));
   }
 
-  private List<ObjectField> createObjectFieldsForAttributesAndChildNodes(List<Expr> types, List<String> untypedProperties, XmlElement objectNode) {
-    List<ObjectField> fields = new ArrayList<>();
-    List<ObjectField> listenerFields = new ArrayList<>();
+  private List<ObjectFieldOrSpread> createObjectFieldsForAttributesAndChildNodes(XmlElement objectNode) {
+    List<ObjectFieldOrSpread> fields = new ArrayList<>();
+    List<ObjectFieldOrSpread> listenerFields = new ArrayList<>();
     if (!objectNode.getAttributes().isEmpty() || !objectNode.getElements().isEmpty()) {
       CompilationUnit type = getCompilationUnitModel(objectNode);
-      fields.addAll(processAttributes(listenerFields, untypedProperties, objectNode, type));
-      fields.addAll(processChildNodes(types, untypedProperties, listenerFields, objectNode, type));
+      fields.addAll(processAttributes(listenerFields, objectNode, type));
+      fields.addAll(processChildNodes(listenerFields, objectNode, type));
     }
     if (!listenerFields.isEmpty()) {
       ObjectField listeners = MxmlAstUtils.createObjectField("listeners",
@@ -174,12 +186,12 @@ final class MxmlToModelParser {
     return fields;
   }
 
-  private List<ObjectField> processChildNodes(List<Expr> types, List<String> untypedProperties, List<ObjectField> listenerFields, XmlElement objectNode, CompilationUnit type) {
+  private List<ObjectFieldOrSpread> processChildNodes(List<ObjectFieldOrSpread> listenerFields, XmlElement objectNode, CompilationUnit type) {
     ClassDeclaration classModel = type == null ? null : (ClassDeclaration) type.getPrimaryDeclaration();
     List<XmlElement> childNodes = objectNode.getElements();
     TypedIdeDeclaration defaultPropertyModel = findDefaultPropertyModel(classModel);
     List<XmlElement> defaultPropertyValues = new ArrayList<>();
-    List<ObjectField> fields = new ArrayList<>();
+    List<ObjectFieldOrSpread> fields = new ArrayList<>();
     for (XmlElement element : childNodes) {
       if (!MxmlUtils.isMxmlNamespace(element.getNamespaceURI())) { // ignore MXML namespace; has been handled before.
         TypedIdeDeclaration propertyModel = null;
@@ -203,7 +215,6 @@ final class MxmlToModelParser {
         } else {
           if (propertyModel == null) {
             propertyModel = createDynamicPropertyModel(element, type, propertyName, false);
-            untypedProperties.add(propertyName);
           }
           List<XmlElement> childElements = element.getElements();
           if (childElements.isEmpty()) {
@@ -219,9 +230,12 @@ final class MxmlToModelParser {
           } else {
             if (MxmlUtils.EXML_MIXINS_PROPERTY_NAME.equals(getConfigOptionName(propertyModel))) {
               for (XmlElement arrayItemNode : childElements) {
-                types.add(new IdeExpr(compilationUnit.addImport(getClassNameForElement(arrayItemNode))));
-                List<ObjectField> mixinFields = createObjectFieldsForAttributesAndChildNodes(types, untypedProperties, arrayItemNode);
-                fields.addAll(mixinFields);
+                IdeExpr mixinType = new IdeExpr(compilationUnit.addImport(getClassNameForElement(arrayItemNode)));
+                List<ObjectFieldOrSpread> mixinFields = createObjectFieldsForAttributesAndChildNodes(arrayItemNode);
+                Spread spread = MxmlAstUtils.createSpread(createObjectLiteralTypeAssertion(Collections.singletonList(mixinType),
+                        MxmlAstUtils.createObjectLiteral(mixinFields)));
+                transferWhitespace(spread, arrayItemNode);
+                fields.add(spread);
               }
             } else {
               List<ObjectField> childElementsPropertyAssignmentCode = createChildElementsPropertyAssignmentCode(childElements, propertyModel,
@@ -440,25 +454,14 @@ final class MxmlToModelParser {
         valueExpr = createArrayExprFromChildElements(objectElement.getElements(), true, defaultUseConfigObjects);
       } else  {
         // process attributes and children:
-        List<Expr> types = new ArrayList<>();
-        types.add(new IdeExpr(typeIde));
-        List<String> untypedProperties = new ArrayList<>();
-        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(types, untypedProperties, objectElement);
-        if (!untypedProperties.isEmpty()) {
-          types.add(MxmlAstUtils.createArrayLiteral(untypedProperties.stream()
-                  .map(MxmlAstUtils::createStringLiteral)
-                  .collect(Collectors.toList())));
-        }
+        ObjectLiteral configObjectLiteral = createObjectLiteralForAttributesAndChildNodes(objectElement);
         if ("Object".equals(className)) {
           valueExpr = configObjectLiteral;
         } else {
-          Expr configObjectLiteralExpr = types.size() == 1
-                  ? configObjectLiteral
-                  : createObjectLiteralTypeAssertion(types, configObjectLiteral);
           if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
-            valueExpr = MxmlAstUtils.createNewExpr(typeIde, configObjectLiteralExpr);
+            valueExpr = MxmlAstUtils.createNewExpr(typeIde, configObjectLiteral);
           } else {
-            valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteralExpr);
+            valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
           }
         }
       }

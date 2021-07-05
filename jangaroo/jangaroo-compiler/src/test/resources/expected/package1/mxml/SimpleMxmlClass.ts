@@ -64,15 +64,16 @@ class SimpleMxmlClass extends ConfigClass{
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,
   defaultType: SomeOtherClass.xtype,
-  defaults:_<SomeOtherClass._&{"known-unknown"}>({ bla: 99,
-                          "known-unknown": true
+  defaults:_<SomeOtherClass._>({ bla: 99,...{
+                          "known-unknown": true}
   }),
   ...Exml.append({items: [
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
     listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_55_41))}}),
-    new SomeOtherClass(_<SomeOtherClass._&ConfigClass._>({ bla: 42, number: 24
-    })),
+    new SomeOtherClass({ bla: 42,
+        ..._<ConfigClass._>({ number: 24})
+    }),
     new ConfigClass({
       items:[
         new SomeOtherClass({ doodle: "non-bound", bla: this.other.bla})

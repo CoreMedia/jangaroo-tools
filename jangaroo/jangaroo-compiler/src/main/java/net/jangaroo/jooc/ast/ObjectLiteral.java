@@ -28,18 +28,18 @@ import java.util.List;
 public class ObjectLiteral extends Expr {
 
   private JooSymbol lBrace;
-  private CommaSeparatedList<ObjectField> fields;
+  private CommaSeparatedList<ObjectFieldOrSpread> fields;
   private JooSymbol optComma;
   private JooSymbol rBrace;
   private Scope scope;
 
   /**
    * @param lBrace the left brace
-   * @param fields the object fields
+   * @param fields the object fields, either ObjectField or spread (UnaryOpExpr(sym.REST, expr))
    * @param optComma null for the time being, Flex compc does not accept a trailing comma, contrary to array literals...
    * @param rBrace the right brace
    */
-  public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectField> fields, JooSymbol optComma, JooSymbol rBrace) {
+  public ObjectLiteral(JooSymbol lBrace, CommaSeparatedList<ObjectFieldOrSpread> fields, JooSymbol optComma, JooSymbol rBrace) {
     this.lBrace = lBrace;
     this.fields = fields;
     this.optComma = optComma;
@@ -85,7 +85,7 @@ public class ObjectLiteral extends Expr {
     return lBrace;
   }
 
-  public CommaSeparatedList<ObjectField> getFields() {
+  public CommaSeparatedList<ObjectFieldOrSpread> getFields() {
     return fields;
   }
 

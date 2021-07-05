@@ -160,7 +160,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   @Override
-  public final void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
+  public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
     out.writeSymbol(prefixOpExpr.getOp());
     prefixOpExpr.getArg().visit(this);
   }

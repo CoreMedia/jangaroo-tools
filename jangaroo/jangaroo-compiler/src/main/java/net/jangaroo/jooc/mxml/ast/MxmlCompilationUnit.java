@@ -15,11 +15,11 @@ import net.jangaroo.jooc.ast.DotExpr;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
-import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
@@ -247,7 +247,7 @@ public class MxmlCompilationUnit extends CompilationUnit {
   }
 
   ObjectLiteral createFields(boolean useSuperConfig) {
-    List<ObjectField> defaults = new ArrayList<>();
+    List<ObjectFieldOrSpread> defaults = new ArrayList<>();
     for (XmlElement declaration : rootElementProcessor.getDeclarations()) {
       XmlAttribute fieldNameSym = declaration.getAttribute(MxmlUtils.MXML_ID_ATTRIBUTE);
       if (fieldNameSym != null) {

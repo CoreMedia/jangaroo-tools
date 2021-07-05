@@ -25,10 +25,12 @@ import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NewExpr;
 import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.Spread;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeRelation;
@@ -216,7 +218,12 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static ObjectLiteral createObjectLiteral( @Nonnull List<ObjectField> objectFields) {
+  static Spread createSpread(@Nonnull Expr expr) {
+    return new Spread(new JooSymbol(sym.REST, "..."), expr);
+  }
+
+  @Nonnull
+  static ObjectLiteral createObjectLiteral( @Nonnull List<ObjectFieldOrSpread> objectFields) {
     return new ObjectLiteral(
             sym_lbrace(),
             createCommaSeparatedList(objectFields),
