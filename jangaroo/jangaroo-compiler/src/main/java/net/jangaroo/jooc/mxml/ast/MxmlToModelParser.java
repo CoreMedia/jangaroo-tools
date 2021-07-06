@@ -232,10 +232,12 @@ final class MxmlToModelParser {
               for (XmlElement arrayItemNode : childElements) {
                 IdeExpr mixinType = new IdeExpr(compilationUnit.addImport(getClassNameForElement(arrayItemNode)));
                 List<ObjectFieldOrSpread> mixinFields = createObjectFieldsForAttributesAndChildNodes(arrayItemNode);
-                Spread spread = MxmlAstUtils.createSpread(createObjectLiteralTypeAssertion(mixinType,
-                        MxmlAstUtils.createObjectLiteral(mixinFields)));
-                transferWhitespace(spread, arrayItemNode);
-                fields.add(spread);
+                if (!mixinFields.isEmpty()) {
+                  Spread spread = MxmlAstUtils.createSpread(createObjectLiteralTypeAssertion(mixinType,
+                          MxmlAstUtils.createObjectLiteral(mixinFields)));
+                  transferWhitespace(spread, arrayItemNode);
+                  fields.add(spread);
+                }
               }
             } else {
               List<ObjectField> childElementsPropertyAssignmentCode = createChildElementsPropertyAssignmentCode(childElements, propertyModel,
