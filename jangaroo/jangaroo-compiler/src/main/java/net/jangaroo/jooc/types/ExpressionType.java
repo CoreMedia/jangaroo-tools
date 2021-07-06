@@ -118,6 +118,11 @@ public class ExpressionType {
     }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
+    if (AS3Type.ANY.equals(expectedAS3Type)) {
+      // everything is compatible with *
+      return true;
+    }
+
     if (!getAS3Type().equals(AS3Type.OBJECT) && getAS3Type().equals(expectedAS3Type)) {
       return true;
     }
