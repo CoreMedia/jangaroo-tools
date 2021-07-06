@@ -18,6 +18,7 @@ import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.TypeDeclaration;
@@ -200,21 +201,35 @@ public class TypeChecker extends AstVisitorBase {
       if (fieldOrSpread instanceof ObjectField) {
         ObjectField field = (ObjectField) fieldOrSpread;
         String propertyName = field.getSymbol().getText();
-        IdeDeclaration propertyDeclaration = classDeclaration.resolvePropertyDeclaration(propertyName);
-        if (propertyDeclaration != null) {
-          ExpressionType type = propertyDeclaration.getIde().getScope().getExpressionType(propertyDeclaration);
+          IdeDeclaration propertyDeclaration = classDeclaration.resolvePropertyDeclaration(propertyName);
+          if (propertyDeclaration != null) {
+            if (propertyDeclaration instanceof PropertyDeclaration) {
+              // always prefer the setter's (parameter) type, which might be more general than the getter's return type:
+              propertyDeclaration = ((PropertyDeclaration) propertyDeclaration).getSetter();
+            }
+            ExpressionType type = propertyDeclaration.getType();
+            if (type != null) {
+              type = type.getEvalType();
+            }
+            if (type == null) {
+              type = propertyDeclaration.getIde().getScope().getExpressionType(propertyDeclaration);
+            }
           validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
         } else if (!classDeclaration.isDynamic()) {
-          JooSymbol errorSymbol = field.getSymbol();
-          // MXML field label symbols are "virtual", resulting in no error location, so then use the value's symbol:
-          if (errorSymbol.getFileName().isEmpty()) {
-            errorSymbol = field.getValue().getSymbol();
-          }
-          log.error(errorSymbol,
+          log.error(getErrorSymbol(field),
                   String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
         }
       } // ignore Spreads, they are either untyped or contain their own __typeCheckObjectLiteral__ call
     }
+  }
+
+  private static JooSymbol getErrorSymbol(ObjectField field) {
+    JooSymbol errorSymbol = field.getSymbol();
+    // MXML field label symbols are "virtual", resulting in no error location, so then use the value's symbol:
+    if (errorSymbol.getFileName().isEmpty()) {
+      errorSymbol = field.getValue().getSymbol();
+    }
+    return errorSymbol;
   }
 
   private void logException(JooSymbol jooSymbol, String expectedType, String actualType, String logMessage) {
