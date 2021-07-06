@@ -88,9 +88,14 @@ final class MxmlToModelParser {
               isUntypedAccess) {
         JooSymbol value = attribute.getValue();
         TypedIdeDeclaration propertyModel = null;
-        if (!isUntypedAccess && classModel != null) {
+        if (classModel != null) {
           propertyModel = findPropertyModel(classModel, propertyName);
-          if (propertyModel == null) {
+          if (propertyModel != null) {
+            if (isUntypedAccess) {
+              jangarooParser.getLog().warning(attribute.getSymbol(), String.format("Property '%s' unnecessarily set via untyped MXML attribute (u:...), falling back to typed access.", propertyName));
+              isUntypedAccess = false;
+            }
+          } else if (!isUntypedAccess) {
             Annotation eventModel = findEvent(classModel, propertyName);
             if (eventModel != null) {
               ObjectField eventHandlerCode = createEventHandlerCode(value, eventModel);
