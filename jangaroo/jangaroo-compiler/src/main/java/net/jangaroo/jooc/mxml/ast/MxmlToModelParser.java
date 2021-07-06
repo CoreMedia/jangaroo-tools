@@ -232,7 +232,7 @@ final class MxmlToModelParser {
               for (XmlElement arrayItemNode : childElements) {
                 IdeExpr mixinType = new IdeExpr(compilationUnit.addImport(getClassNameForElement(arrayItemNode)));
                 List<ObjectFieldOrSpread> mixinFields = createObjectFieldsForAttributesAndChildNodes(arrayItemNode);
-                Spread spread = MxmlAstUtils.createSpread(createObjectLiteralTypeAssertion(Collections.singletonList(mixinType),
+                Spread spread = MxmlAstUtils.createSpread(createObjectLiteralTypeAssertion(mixinType,
                         MxmlAstUtils.createObjectLiteral(mixinFields)));
                 transferWhitespace(spread, arrayItemNode);
                 fields.add(spread);
@@ -360,7 +360,7 @@ final class MxmlToModelParser {
   static Expr reduceTypeCastToTypeAssertion(ApplyExpr typeCastExpr) {
     Expr typeCastArgExpr = typeCastExpr.getArgs().getExpr().getHead();
     if (typeCastArgExpr instanceof ObjectLiteral) {
-      return createObjectLiteralTypeAssertion(Collections.singletonList(new IdeExpr(((IdeExpr) typeCastExpr.getFun()).getIde())),
+      return createObjectLiteralTypeAssertion(new IdeExpr(((IdeExpr) typeCastExpr.getFun()).getIde()),
               (ObjectLiteral) typeCastArgExpr);
     }
     // it is already a type assertion!
@@ -488,10 +488,10 @@ final class MxmlToModelParser {
     return valueExpr;
   }
 
-  private static ApplyExpr createObjectLiteralTypeAssertion(List<Expr> types, ObjectLiteral objectLiteral) {
+  private static ApplyExpr createObjectLiteralTypeAssertion(Expr type, ObjectLiteral objectLiteral) {
     return MxmlAstUtils.createApplyExpr(
             new IdeExpr(new Ide(ApplyExpr.TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME)),
-            MxmlAstUtils.createArrayLiteral(types),
+            type,
             objectLiteral
     );
   }

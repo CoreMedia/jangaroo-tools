@@ -1327,33 +1327,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
       // it is an object literal type check call: transform
-      // __typeCheckObjectLiteral__([t1, ..., tn], { O }) -> AS3._<t1 & ... & tn>({ O })
-      CommaSeparatedList<Expr> typesAndObjectLiteral = args.getExpr();
-      ArrayLiteral typesArray = (ArrayLiteral) typesAndObjectLiteral.getHead();
-      Expr objectLiteral = typesAndObjectLiteral.getTail().getHead();
+      // __typeCheckObjectLiteral__(type, { O }) -> AS3._<type>({ O })
+      CommaSeparatedList<Expr> typeAndObjectLiteral = args.getExpr();
+      Expr typeExpr = typeAndObjectLiteral.getHead();
+      Expr objectLiteral = typeAndObjectLiteral.getTail().getHead();
       writeSymbolReplacement(applyExpr.getSymbol(), "_");
-      writeSymbolReplacement(typesArray.getLParen(), "<");
-      for (CommaSeparatedList<Expr> current = typesArray.getExpr(); current != null; current = current.getTail()) {
-        Expr typeExpr = current.getHead();
-        if (typeExpr instanceof IdeExpr) {
-          out.write(compilationUnitAccessCode(((IdeExpr) typeExpr).getIde().getDeclaration()) + "._");
-        } else {
-          ArrayLiteral untypedProperties = (ArrayLiteral) typeExpr;
-          writeSymbolReplacement(untypedProperties.getLParen(), "{");
-          for (CommaSeparatedList<Expr> currentProperty = untypedProperties.getExpr();
-               currentProperty != null;
-               currentProperty = currentProperty.getTail()) {
-            String propertyName = (String) ((LiteralExpr) currentProperty.getHead()).getValue().getJooValue();
-            out.write(Ide.isValidIdentifier(propertyName) ? propertyName : CompilerUtils.quote(propertyName));
-            writeOptSymbol(currentProperty.getSymComma());
-          }
-          writeSymbolReplacement(untypedProperties.getRParen(), "}");
-        }
-        if (current.getSymComma() != null) {
-          writeSymbolReplacement(current.getSymComma(), "&");
-        }
-      }
-      writeSymbolReplacement(typesArray.getRParen(), ">");
+      out.writeToken("<");
+      out.write(compilationUnitAccessCode(((IdeExpr) typeExpr).getIde().getDeclaration()) + "._");
+      out.writeToken(">");
       out.writeSymbol(args.getLParen());
       objectLiteral.visit(this);
       out.writeSymbol(args.getRParen());
