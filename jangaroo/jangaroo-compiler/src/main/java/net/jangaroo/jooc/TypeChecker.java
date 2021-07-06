@@ -11,8 +11,12 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
-import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.IdeDeclaration;
+import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.NewExpr;
+import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
+import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
@@ -24,8 +28,9 @@ import net.jangaroo.utils.AS3Type;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class TypeChecker extends AstVisitorBase {
@@ -42,7 +47,7 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
-  public void visitReturnStatement(ReturnStatement returnStatement) throws IOException {
+  public void visitReturnStatement(ReturnStatement returnStatement) {
     Expr returnExpr = returnStatement.getOptExpr();
     if (returnExpr != null) {
       AstNode parentNode = returnExpr.getParentNode();
@@ -62,7 +67,7 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
-  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) throws IOException {
+  public void visitSuperConstructorCallStatement(SuperConstructorCallStatement superConstructorCallStatement) {
     FunctionDeclaration superConstructor = superConstructorCallStatement.getClassDeclaration().getSuperTypeDeclaration().getConstructor();
     if (superConstructor != null) {
       if (superConstructor.getFun().getType() instanceof FunctionSignature) {
@@ -75,14 +80,31 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
-  public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
+  public void visitApplyExpr(ApplyExpr applyExpr) {
     ExpressionType type = applyExpr.getFun().getType();
+    if (applyExpr.getFun() instanceof IdeExpr) {
+      Scope scope = ((IdeExpr) applyExpr.getFun()).getIde().getScope();
+      if (applyExpr.isTypeCast() && applyExpr.getArgs().getExpr() != null
+              && applyExpr.getArgs().getExpr().getHead() instanceof ObjectLiteral) {
+        // special dynamic signature: type cast C(o: C) => C
+        ExpressionType typeToCast = applyExpr.getFun().getType().getTypeParameter();
+        type = new FunctionSignature(scope.getClassDeclaration(AS3Type.FUNCTION.name),
+                null, 1, false,
+                Collections.singletonList(typeToCast), typeToCast);
+      } else if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
+        // poor man's generics: compute type assertion function signature on the fly
+        ExpressionType typeToAssert = applyExpr.getArgs().getExpr().getHead().getType().getTypeParameter();
+        type = new FunctionSignature(scope.getClassDeclaration(AS3Type.FUNCTION.name),
+                null, 2, false,
+                Arrays.asList(scope.getExpressionType(AS3Type.CLASS), typeToAssert), typeToAssert);
+      }
+    }
     if (type != null && applyExpr.getFun() instanceof NewExpr) {
       ExpressionType classToConstruct = type.getTypeParameter();
       if (classToConstruct != null && classToConstruct.getDeclaration() instanceof ClassDeclaration) {
         FunctionDeclaration constructor = ((ClassDeclaration) classToConstruct.getDeclaration()).getConstructor();
         Scope scope = type.getDeclaration().getIde().getScope();
-        type = scope.getFunctionSignature(null, constructor == null ? null : constructor.getParams(), type);
+        type = scope.getFunctionSignature(null, constructor == null ? null : constructor.getParams(), classToConstruct);
       }
     }
     if (type instanceof FunctionSignature) {
@@ -114,7 +136,7 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
-  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) throws IOException {
+  public void visitAssignmentOpExpr(AssignmentOpExpr assignmentOpExpr) {
 
     long opSym = assignmentOpExpr.getOp().sym;
     if (opSym == sym.PLUSEQ) {
@@ -131,7 +153,7 @@ public class TypeChecker extends AstVisitorBase {
   }
 
   @Override
-  public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
+  public void visitVariableDeclaration(VariableDeclaration variableDeclaration) {
     if (variableDeclaration == null || variableDeclaration.getOptInitializer() == null) {
       return;
     }
@@ -147,22 +169,15 @@ public class TypeChecker extends AstVisitorBase {
                              @Nonnull Expr actualExpression,
                              String logMessage) {
 
-    if (expectedType == null
+    if (expectedType == null || actualExpression.getType() == null
             || AS3Type.ANY.equals(expectedType.getAS3Type()) ||  AS3Type.BOOLEAN.equals(expectedType.getAS3Type())) {
       return;
     }
 
     TypeDeclaration expectedTypeDeclaration = expectedType.getDeclaration();
 
-    /*  e.g. ArrayLiteral, type = null, LiteralExpression sym=95, 96, 98 (Int, Float,String) */
-    if ( actualExpression.getType() == null) {
-      if (actualExpression instanceof LiteralExpr
-              && (expectedType.getAS3Type().equals(AS3Type.VOID)
-              || expectedTypeDeclaration instanceof ClassDeclaration
-              && !((ClassDeclaration)expectedTypeDeclaration).isObject())) {
-        // this is a LiteralExpr, check types, but only if we do not expect it is supposed to be an object anyway
-        validateSimpleTypes(symbol, expectedType, actualExpression, logMessage);
-      }
+    if (actualExpression instanceof ObjectLiteral && expectedType.getDeclaration() instanceof ClassDeclaration) {
+      validateObjectLiteral((ClassDeclaration) expectedType.getDeclaration(), (ObjectLiteral) actualExpression);
       return;
     }
 
@@ -171,26 +186,35 @@ public class TypeChecker extends AstVisitorBase {
       logException(symbol, expectedTypeDeclaration.getQualifiedNameStr(),
               actualExpression.getType().getDeclaration().getQualifiedNameStr(), logMessage);
     }
-
   }
 
-  private void validateSimpleTypes(JooSymbol symbol, ExpressionType expectedType, Expr actualExpression, String logMessage) {
-
-    if ((actualExpression.getSymbol().sym == sym.INT_LITERAL) && !ExpressionType.isNumber(expectedType.getAS3Type())) {
-      // this is a number but is not supposed to be one
-      logException(symbol, expectedType, AS3Type.INT, logMessage);
-    } else if ((actualExpression.getSymbol().sym == sym.STRING_LITERAL ) && !AS3Type.STRING.equals(expectedType.getAS3Type()))  {
-      // this is a string but is not supposed to be one 
-      logException(symbol, expectedType, AS3Type.STRING, logMessage);
+  private void validateObjectLiteral(ClassDeclaration classDeclaration, ObjectLiteral objectLiteral) {
+    if (classDeclaration.isObject()) {
+      // nothing to check here, any property is allowed.
+      return;
     }
-  }
-
-
-  private void logException(JooSymbol jooSymbol, ExpressionType expectedType, AS3Type actualType, String logMessage) {
-    String actualTypeString = actualType == null ? null : actualType.name;
-    String expectedTypeString = expectedType == null ? null : expectedType.getDeclaration().getQualifiedNameStr();
-
-    logException(jooSymbol, expectedTypeString, actualTypeString, logMessage);
+    for (CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
+         fields != null;
+         fields = fields.getTail()) {
+      ObjectFieldOrSpread fieldOrSpread = fields.getHead();
+      if (fieldOrSpread instanceof ObjectField) {
+        ObjectField field = (ObjectField) fieldOrSpread;
+        String propertyName = field.getSymbol().getText();
+        IdeDeclaration propertyDeclaration = classDeclaration.resolvePropertyDeclaration(propertyName);
+        if (propertyDeclaration != null) {
+          ExpressionType type = propertyDeclaration.getIde().getScope().getExpressionType(propertyDeclaration);
+          validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
+        } else if (!classDeclaration.isDynamic()) {
+          JooSymbol errorSymbol = field.getSymbol();
+          // MXML field label symbols are "virtual", resulting in no error location, so then use the value's symbol:
+          if (errorSymbol.getFileName().isEmpty()) {
+            errorSymbol = field.getValue().getSymbol();
+          }
+          log.error(errorSymbol,
+                  String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
+        }
+      } // ignore Spreads, they are either untyped or contain their own __typeCheckObjectLiteral__ call
+    }
   }
 
   private void logException(JooSymbol jooSymbol, String expectedType, String actualType, String logMessage) {

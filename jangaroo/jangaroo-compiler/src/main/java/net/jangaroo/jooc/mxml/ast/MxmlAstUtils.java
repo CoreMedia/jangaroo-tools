@@ -257,8 +257,8 @@ class MxmlAstUtils {
   }
 
   @Nonnull
-  static NewExpr createNewExpr(Ide typeIde, Expr ...args) {
-    return new NewExpr(sym_new().withWhitespace(" "), createApplyExpr(new IdeExpr(typeIde), args));
+  static Expr createNewExpr(Ide typeIde, Expr ...args) {
+    return createApplyExpr(new NewExpr(sym_new().withWhitespace(" "), new IdeExpr(typeIde)), args);
   }
 
   @Nonnull

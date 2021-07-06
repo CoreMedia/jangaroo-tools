@@ -6,7 +6,7 @@ import ext.mixin.Observable;
 
 public class Panel extends Observable {
 
-  public function Panel(config:Object) {
+  public function Panel(config:Panel) {
   }
 
   [Bindable(style="methods")]

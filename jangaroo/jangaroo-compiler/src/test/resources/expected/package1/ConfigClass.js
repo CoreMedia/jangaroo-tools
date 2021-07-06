@@ -17,6 +17,10 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
   [ExtConfig(create)]
   public native function set items(value:Array):void;
 
+  public native function get defaultType():String;
+
+  public native function set defaultType(value:String):void;
+
   public native function get defaults():*;
 
   [ExtConfig(extractXType="defaultType")]

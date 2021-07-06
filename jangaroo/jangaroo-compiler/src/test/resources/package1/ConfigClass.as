@@ -17,6 +17,10 @@ public class ConfigClass extends Observable {
   [ExtConfig(create)]
   public native function set items(value:Array):void;
 
+  public native function get defaultType():String;
+
+  public native function set defaultType(value:String):void;
+
   public native function get defaults():*;
 
   [ExtConfig(extractXType="defaultType")]

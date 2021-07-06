@@ -14,7 +14,7 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
   }/*
 
   public*/ function TestEventListener$() {var _this=this;this.super$iwqQ();
-    AS3.setBindable(this.panel$iwqQ,"title" , "not yet clicked.");
+    this.panel$iwqQ.title = "not yet clicked.";
     AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(_this.getThis().getPanel(),"title" , "clicked!");
       AS3.setBindable(_this.panel$iwqQ.layout.getOwner(),"title" , "clicked!");

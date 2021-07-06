@@ -2,7 +2,7 @@ import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
 import BDeclaresA from "./BDeclaresA";
-interface AInstantiatesB_ {
+interface AInstantiatesB_ extends Panel._ {
 }
 
 

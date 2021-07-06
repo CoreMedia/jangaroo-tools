@@ -20,12 +20,15 @@ public class SomeOtherClass extends Observable {
 
   public var doodle:String;
 
+  public var blubb_accessor:String;
+
   public native function get blubbAccessor():String;
 
   [ExtConfig("blubb_accessor")]
   [Bindable]
   public native function set blubbAccessor(value:String):void;
 
+  public var blubb_config: String;
 
   public native function get blubbConfig():String;
 
@@ -40,7 +43,7 @@ public class SomeOtherClass extends Observable {
   [ExtConfig("__mixins__")]
   public native function set mixins(value:Array):void;
 
-  public function SomeOtherClass(config:Object = null) {
+  public function SomeOtherClass(config:SomeOtherClass = null) {
   }
 }
 }

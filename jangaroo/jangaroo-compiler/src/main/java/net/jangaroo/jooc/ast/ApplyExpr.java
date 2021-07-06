@@ -127,9 +127,7 @@ public class ApplyExpr extends Expr {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
     } else if (isAssert()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
-    }
-    if (isTypeCheckObjectLiteralFunctionCall()) {
-      // TODO: type-check the object literal!
+    } else if (isTypeCheckObjectLiteralFunctionCall()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("_");
     }
     ExpressionType type = getFun().getType();

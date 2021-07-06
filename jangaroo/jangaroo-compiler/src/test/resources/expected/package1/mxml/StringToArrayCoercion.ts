@@ -1,7 +1,7 @@
 import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
-interface StringToArrayCoercion_ {
+interface StringToArrayCoercion_ extends Panel._ {
 }
 
 

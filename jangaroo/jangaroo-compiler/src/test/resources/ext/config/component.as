@@ -10,6 +10,15 @@ public class component {
   /**
    * Id of the component
    */
+  public native function get id():String;
+  /**
+   * @private
+   */
+  public native function set id(value:String):void;
+
+  /**
+   * Alias for id to make it accessible from MXML
+   */
   public native function get extId():String;
 
   [ExtConfig("id")]

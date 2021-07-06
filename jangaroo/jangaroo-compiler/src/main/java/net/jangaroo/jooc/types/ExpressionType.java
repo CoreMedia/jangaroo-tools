@@ -106,20 +106,14 @@ public class ExpressionType {
    * @return whether the assignment to an expression of this type is valid
    */
   public boolean isAssignableTo(@Nonnull ExpressionType toCheck) {
-
-    if (AS3Type.ANY.equals(getAS3Type()) ||  AS3Type.BOOLEAN.equals(getAS3Type())) {
-      // this expression type can be anything
-      return true;
-    }
-
-    if (toCheck.isObject()) {
-      // everything can be an object
-      return true;
-    }
     AS3Type expectedAS3Type = toCheck.getAS3Type();
 
-    if (AS3Type.ANY.equals(expectedAS3Type)) {
-      // everything is compatible with *
+    // Check all "any" types on both sides.
+    // Boolean is treated as any, as in JavaScript "truthy" and "falsy" is too often used in an untyped fashion.  
+    if (AS3Type.ANY.equals(getAS3Type()) || AS3Type.BOOLEAN.equals(getAS3Type()) ||
+            AS3Type.ANY.equals(expectedAS3Type) ||  AS3Type.BOOLEAN.equals(expectedAS3Type) ||
+            toCheck.isObject()) {
+      // this expression type can be anything
       return true;
     }
 
@@ -139,8 +133,6 @@ public class ExpressionType {
     /* if (AS3Type.REG_EXP.equals(expectedAS3Type) && sym.REGEXP_LITERAL == actualSym) {
       return true;
     }*/
-
-    // what about simple types here? currently handled in Visitor
 
     if (!(toCheck.getDeclaration() instanceof ClassDeclaration && getDeclaration() instanceof ClassDeclaration)) {
       // this is either a void declaration, cannot be any as this was already checked

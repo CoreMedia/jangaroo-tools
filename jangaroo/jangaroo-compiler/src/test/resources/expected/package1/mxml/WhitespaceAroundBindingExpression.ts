@@ -2,7 +2,7 @@ import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import ContainerLayout from "../../ext/layout/ContainerLayout";
 import Exml from "../../net/jangaroo/ext/Exml";
-interface WhitespaceAroundBindingExpression_ {
+interface WhitespaceAroundBindingExpression_ extends Panel._ {
 }
 
 

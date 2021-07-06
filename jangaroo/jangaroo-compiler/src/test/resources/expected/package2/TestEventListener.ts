@@ -5,7 +5,7 @@ import PanelEvent from "../ext/events/PanelEvent";
 
 class TestEventListener {
 
-  #panel:Panel = cast(Panel,{});
+  #panel:Panel._ = new Panel._({});
   #panels:Array<Panel> = [];
 
   #getPanels():Array<Panel> {
@@ -13,7 +13,7 @@ class TestEventListener {
   }
 
   constructor() {
-    asConfig(this.#panel).title = "not yet clicked.";
+    this.#panel.title = "not yet clicked.";
     this.#panel.addEventListener( PanelEvent.FLOPS, (event:PanelEvent):void => {
       asConfig(this.getThis().getPanel()).title = "clicked!";
       asConfig(this.#panel.layout.getOwner()).title = "clicked!";

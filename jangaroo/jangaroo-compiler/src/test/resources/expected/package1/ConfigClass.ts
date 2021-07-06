@@ -4,6 +4,7 @@ interface ConfigClass_ extends Partial<Pick<ConfigClass,
   "foo" |
   "number" |
   "items" |
+  "defaultType" |
   "defaults" |
   "title"
 >> {
@@ -22,6 +23,8 @@ class ConfigClass extends Observable {
           number:int = 0;
 
   items:Array<any>;
+
+  defaultType:string;
 
   defaults:any;
 
