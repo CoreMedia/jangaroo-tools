@@ -4,7 +4,6 @@ import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -96,13 +95,17 @@ public class MxmlUtils {
     return endPos + 1;
   }
 
-  public static Object getAttributeValue(String attributeValue, String type) {
-    if (!MxmlUtils.isBindingExpression(attributeValue)) {
+  @Nonnull
+  public static String mxmlValueToActionScriptExpr(String attributeValue, String type) {
+    String trimmedAttributeValue = attributeValue.trim();
+    if (MxmlUtils.isBindingExpression(trimmedAttributeValue)) {
+      return MxmlUtils.getBindingExpression(trimmedAttributeValue);
+    } else {
       AS3Type as3Type = type == null ? AS3Type.ANY : AS3Type.typeByName(type);
       attributeValue = attributeValue.trim();
       if (attributeValue.isEmpty() && !AS3_TYPES_THAT_ALLOW_EMPTY_STRING.contains(as3Type)) {
         // empty string is only kept if type is compatible with "String" or "Array", otherwise, we use null:
-        return null;
+        return "null";
       }
       if (AS3Type.ANY.equals(as3Type)) {
         as3Type = CompilerUtils.guessType(attributeValue);
@@ -110,47 +113,19 @@ public class MxmlUtils {
       if (as3Type != null) {
         switch (as3Type) {
           case BOOLEAN:
-            return Boolean.parseBoolean(attributeValue);
           case NUMBER:
-            return Double.parseDouble(attributeValue);
           case UINT:
           case INT:
-            return Long.parseLong(attributeValue);
+            return attributeValue;
           case ARRAY:
-            String code = attributeValue.isEmpty()
+            return trimmedAttributeValue.isEmpty()
                     ? "[]"
-                    : String.format("[%s]", valueToString(getAttributeValue(attributeValue, AS3Type.ANY.name)));
-            return  MxmlUtils.createBindingExpression(code);
+                    : String.format("[%s]", mxmlValueToActionScriptExpr(attributeValue, AS3Type.ANY.name));
         }
       }
+      // quote and restore MXML-binding-expression-escaped opening curly brace:
+      return CompilerUtils.quote(attributeValue.replaceAll("\\\\\\{", "{"));
     }
-    // code expression, Object or specific type. We don't care (for now).
-    return attributeValue;
-  }
-
-  /**
-   * Return a stringified representation of an object value.
-   * This method can handle <code>Number</code>, <code>Boolean</code>,
-   * <code>String</code> and strings containing a binding expression (curly braces).
-   *
-   * @param value        The value to be serialized.
-   * @return a stringified representation of the object value
-   */
-  @Nonnull
-  public static String valueToString(@Nullable Object value) {
-    if (value == null) {
-      return "null";
-    }
-    String valueStr = value.toString();
-    if (value instanceof Number
-            || value instanceof Boolean) {
-      return valueStr;
-    }
-    String trimmedValueStr = valueStr.trim();
-    if (MxmlUtils.isBindingExpression(trimmedValueStr)) {
-      return MxmlUtils.getBindingExpression(trimmedValueStr);
-    }
-    return CompilerUtils.quote(valueStr.replaceAll("\\\\\\{", "{"));
   }
 
   public static String capitalize(String name) {

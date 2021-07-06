@@ -5,16 +5,16 @@ import ext.mixin.Observable;
 [ExtConfig]
 public class SomeOtherClass extends Observable {
   public static const xtype:String = "someotherclass";
-  public static const BLA:int = 0;
-  private var _bla:int = BLA;
+  public static const BLA:Number = 0;
+  private var _bla:Number = BLA;
 
   [Bindable(event="bla_has_changed")]
-  public function get bla():int {
+  public function get bla():Number {
     return bla;
   }
 
   [Bindable]
-  public function set bla(value:int):void {
+  public function set bla(value:Number):void {
     this.bla = value;
   }
 

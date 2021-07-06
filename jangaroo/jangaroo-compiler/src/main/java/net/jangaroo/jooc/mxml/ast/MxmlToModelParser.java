@@ -524,7 +524,7 @@ final class MxmlToModelParser {
       }
       return null;
     }
-    String value = MxmlUtils.valueToString(MxmlUtils.getAttributeValue(textContent, className));
+    String value = MxmlUtils.mxmlValueToActionScriptExpr(textContent, className);
     Expr valueExpr = mxmlParserHelper.parseExpression(value.equals(textContentSymbol.getText())
             ? textContentSymbol
             : textContentSymbol.replacingSymAndTextAndJooValue(textContentSymbol.sym, value, value));
