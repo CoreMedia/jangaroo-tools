@@ -114,6 +114,9 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
   @Parameter
   private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
+  @Parameter
+  private List<SearchAndReplaceConfiguration> npmPackageVersionReplacers = new ArrayList<>();
+
   private volatile Pattern extFrameworkArtifactPattern;
 
   private Map<String, MavenProject> mavenProjectByDependencyCache = new HashMap<>();
@@ -157,7 +160,8 @@ public abstract class AbstractSenchaMojo extends AbstractMojo {
 
   private String getNpmPackageVersion() {
     if (npmPackageVersion == null) {
-      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion());
+      List<SearchAndReplace> resolvedNpmPackageVersionReplacers = ConversionUtils.getSearchAndReplace(npmPackageVersionReplacers);
+      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion(), resolvedNpmPackageVersionReplacers);
     }
     return npmPackageVersion;
   }

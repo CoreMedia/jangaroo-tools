@@ -106,6 +106,9 @@ public class PackageMojo extends AbstractMojo {
   @Parameter
   private List<SearchAndReplaceConfiguration> npmPackageNameReplacers = new ArrayList<>();
 
+  @Parameter
+  private List<SearchAndReplaceConfiguration> npmPackageVersionReplacers = new ArrayList<>();
+
   @Component
   private ArtifactHandlerManager artifactHandlerManager;
 
@@ -122,7 +125,8 @@ public class PackageMojo extends AbstractMojo {
 
   private String getNpmPackageVersion() {
     if (npmPackageVersion == null) {
-      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion());
+      List<SearchAndReplace> resolvedNpmPackageVersionReplacers = ConversionUtils.getSearchAndReplace(npmPackageVersionReplacers);
+      npmPackageVersion = ConversionUtils.getNpmPackageVersion(project.getVersion(), resolvedNpmPackageVersionReplacers);
     }
     return npmPackageVersion;
   }

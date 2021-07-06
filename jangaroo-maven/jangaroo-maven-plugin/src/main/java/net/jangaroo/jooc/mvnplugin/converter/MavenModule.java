@@ -1,18 +1,19 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Model;
 
 import java.io.File;
 
 public class MavenModule {
-  private ModuleType moduleType;
   private File directory;
   private Model data;
+  private Artifact artifact;
 
-  public MavenModule(String moduleDir, Model model) {
+  public MavenModule(String moduleDir, Model model, Artifact artifact) {
     this.directory = new File(moduleDir);
-    this.moduleType = calculateModuleType(model.getPackaging());
     this.data = model;
+    this.artifact = artifact;
   }
 
   public static ModuleType calculateModuleType(String packaging) {
@@ -39,16 +40,6 @@ public class MavenModule {
     return moduleType;
   }
 
-  public MavenModule(ModuleType moduleType, File directory, Model data) {
-    this.moduleType = moduleType;
-    this.directory = directory;
-    this.data = data;
-  }
-
-  public ModuleType getModuleType() {
-    return moduleType;
-  }
-
   public File getDirectory() {
     return directory;
   }
@@ -59,5 +50,9 @@ public class MavenModule {
 
   public String getVersion() {
     return getData().getVersion();
+  }
+
+  public Artifact getArtifact() {
+    return this.artifact;
   }
 }
