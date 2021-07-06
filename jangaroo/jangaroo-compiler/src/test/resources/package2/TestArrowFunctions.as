@@ -42,6 +42,14 @@ public class TestArrowFunctions {
     })(3);
   }
 
+  public function main4():Number {
+    return fun3(42);
+
+    function fun3(x:Number):Number {
+      return (function():Number { return compute(x); })();
+    }
+  }
+
   internal function compute(x:Number):Number {
     return x + 42;
   }

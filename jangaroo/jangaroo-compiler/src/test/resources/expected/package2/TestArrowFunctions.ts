@@ -42,6 +42,14 @@ class TestArrowFunctions {
     })(3);
   }
 
+  main4():number {const this$=this;
+    return fun3(42);
+
+    function fun3(x:number):number {
+      return (():number =>   this$.compute(x) )();
+    }
+  }
+
   compute(x:number):number {
     return x + 42;
   }

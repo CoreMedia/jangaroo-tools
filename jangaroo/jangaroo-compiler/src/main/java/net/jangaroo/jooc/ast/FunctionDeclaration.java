@@ -24,8 +24,6 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.types.FunctionSignature;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -41,9 +39,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   private boolean isConstructor = false;
   private boolean isDeclaredInInterface = false;
   private boolean containsSuperConstructorCall = false;
-  private Collection<FunctionExpr> functionExprs = new ArrayList<>();
-
-  private Scope scope;
 
   private static final int DEFAULT_ALLOWED_METHOD_MODIFIERS = // NOSONAR there is no simpler way to tell it; we need all these flags
           MODIFIER_OVERRIDE | MODIFIER_ABSTRACT | MODIFIER_VIRTUAL | MODIFIER_FINAL | MODIFIERS_SCOPE | MODIFIER_STATIC | MODIFIER_NATIVE;
@@ -159,7 +154,6 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
 
   @Override
   public void scope(Scope scope) {
-    this.scope = scope;
     final ClassDeclaration classDeclaration = scope.getClassDeclaration();
     // todo: temporarily resetting the ide field looks weird
     Ide oldIde = getIde();
@@ -269,12 +263,8 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     }
   }
 
-  void addFunctionExpr(FunctionExpr functionExpr) {
-    functionExprs.add(functionExpr);
-  }
-
   public boolean isThisAliased(boolean allowArrowFunctions) {
-    return functionExprs.stream().anyMatch(functionExpr -> functionExpr.isThisAliased(allowArrowFunctions));
+    return getFun().isThisAliased(allowArrowFunctions);
   }
 
   @Override

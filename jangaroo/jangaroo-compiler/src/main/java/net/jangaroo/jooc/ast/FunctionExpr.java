@@ -22,6 +22,8 @@ import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,6 +59,7 @@ public class FunctionExpr extends Expr {
   private IdeDeclaration classDeclaration;
   private Scope bodyScope;
   private boolean thisAliased;
+  private Collection<FunctionExpr> functionExprs = new HashSet<>();
 
   public FunctionExpr(FunctionDeclaration functionDeclaration, JooSymbol symFunction, Ide ide, JooSymbol lParen,
                       Parameters params, JooSymbol rParen, TypeRelation optTypeRelation, BlockStatement optBody) {
@@ -238,20 +241,30 @@ public class FunctionExpr extends Expr {
   }
 
   boolean notifyThisUsed(Scope scope) {
-    thisAliased = true;
-    if (functionDeclaration == null || !functionDeclaration.isClassMember()) {
-      FunctionDeclaration methodDeclaration = scope.getMethodDeclaration();
-      // if "this" is used inside non-static method, remember that:
-      if (methodDeclaration != null && !methodDeclaration.isStatic()) {
-        methodDeclaration.addFunctionExpr(this);
-        return true;
+    if (!thisAliased) {
+      if (getFunctionDeclaration() != null && getFunctionDeclaration().isClassMember()) {
+        return false;
+      }
+      thisAliased = true;
+      Scope parentScope = scope.getParentScope().getParentScope();
+      FunctionExpr parentFunctionExpr = parentScope.getFunctionExpr();
+      if (parentFunctionExpr != null) {
+        // if we are nested inside another function, register there:
+        parentFunctionExpr.addFunctionExpr(this);
+        // ...and propagate this usage to parent function:
+        parentFunctionExpr.notifyThisUsed(parentScope);
       }
     }
-    return false;
+    return true;
+  }
+
+  private void addFunctionExpr(FunctionExpr functionExpr) {
+    functionExprs.add(functionExpr);
   }
 
   boolean isThisAliased(boolean allowArrowFunctions) {
-    return thisAliased && !(allowArrowFunctions && rewriteToArrowFunction());
+    return thisAliased ? !(allowArrowFunctions && rewriteToArrowFunction()) :
+            functionExprs.stream().anyMatch(functionExpr -> functionExpr.isThisAliased(allowArrowFunctions));
   }
 
   void notifyExplicitThisUsed() {

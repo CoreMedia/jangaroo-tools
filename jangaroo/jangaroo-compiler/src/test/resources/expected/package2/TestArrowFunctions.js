@@ -42,6 +42,14 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
     })(3);
   }/*
 
+  public*/ function main4()/*:Number*/ {var _this=this;
+    return fun3(42);
+
+    function fun3(x/*:Number*/)/*:Number*/ {
+      return (function()/*:Number*/ { return _this.compute(x); })();
+    }
+  }/*
+
   internal*/ function compute(x/*:Number*/)/*:Number*/ {
     return x + 42;
   }/*
@@ -54,6 +62,7 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
       main1: main1,
       main2: main2,
       main3: main3,
+      main4: main4,
       compute: compute
     };
 });
