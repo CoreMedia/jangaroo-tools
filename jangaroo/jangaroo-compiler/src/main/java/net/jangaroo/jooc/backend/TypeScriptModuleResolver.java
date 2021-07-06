@@ -58,7 +58,9 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       // Only modules in the same source dir or non modules that are not in test source or generated source keep can
       // reference their target files using the normal relative path without prefix
       if (isModule && importedSourceDir.equals(currentSourceDir)
-              || !isModule && !isGeneratedSource(importedSourceDir) && !isTestSource(importedSourceDir)) {
+              || !isModule && !isGeneratedSource(importedSourceDir) && !isTestSource(importedSourceDir)
+              // incomplete, special treatment for properties api generated from .properties (enough for our use cases)
+              || isModule && new File(currentSourceDir, importedInputSource.getRelativePath().replace(CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".as", CompilerUtils.PROPERTIES_SUFFIX)).exists()) {
         prefix = "";
       } else {
         // otherwise a prefix is required based on the source root of the imported source
