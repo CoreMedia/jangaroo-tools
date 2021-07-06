@@ -11,6 +11,7 @@ import net.jangaroo.jooc.ast.CommaSeparatedList;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.FunctionExpr;
+import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.NewExpr;
@@ -171,7 +172,7 @@ public class TypeChecker extends AstVisitorBase {
                              String logMessage) {
 
     if (expectedType == null || actualExpression.getType() == null
-            || AS3Type.ANY.equals(expectedType.getAS3Type()) ||  AS3Type.BOOLEAN.equals(expectedType.getAS3Type())) {
+            || AS3Type.ANY.equals(expectedType.getAS3Type()) || AS3Type.BOOLEAN.equals(expectedType.getAS3Type())) {
       return;
     }
 
@@ -200,7 +201,10 @@ public class TypeChecker extends AstVisitorBase {
       ObjectFieldOrSpread fieldOrSpread = fields.getHead();
       if (fieldOrSpread instanceof ObjectField) {
         ObjectField field = (ObjectField) fieldOrSpread;
-        String propertyName = field.getSymbol().getText();
+        AstNode fieldLabel = field.getLabel();
+        // only check object fields with a non-quoted identifier label:
+        if (fieldLabel instanceof Ide) {
+          String propertyName = ((Ide) fieldLabel).getName();
           IdeDeclaration propertyDeclaration = classDeclaration.resolvePropertyDeclaration(propertyName);
           if (propertyDeclaration != null) {
             if (propertyDeclaration instanceof PropertyDeclaration) {
@@ -214,10 +218,11 @@ public class TypeChecker extends AstVisitorBase {
             if (type == null) {
               type = propertyDeclaration.getIde().getScope().getExpressionType(propertyDeclaration);
             }
-          validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
-        } else if (!classDeclaration.isDynamic()) {
-          log.error(getErrorSymbol(field),
-                  String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
+            validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
+          } else if (!classDeclaration.isDynamic()) {
+            log.error(getErrorSymbol(field),
+                    String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
+          }
         }
       } // ignore Spreads, they are either untyped or contain their own __typeCheckObjectLiteral__ call
     }
