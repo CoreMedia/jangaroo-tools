@@ -50,6 +50,14 @@ public class TestArrowFunctions {
     }
   }
 
+  public function main5():void {
+    var fun4 = function() {
+      function fun5():void {
+        compute(42);
+      }
+    }
+  }
+
   internal function compute(x:Number):Number {
     return x + 42;
   }

@@ -50,6 +50,14 @@ class TestArrowFunctions {
     }
   }
 
+  main5():void {const this$=this;
+    var fun4 = () => {
+      function fun5():void {
+        this$.compute(42);
+      }
+    };
+  }
+
   compute(x:number):number {
     return x + 42;
   }

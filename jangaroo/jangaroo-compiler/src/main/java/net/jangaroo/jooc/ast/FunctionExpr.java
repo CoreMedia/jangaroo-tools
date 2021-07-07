@@ -263,7 +263,7 @@ public class FunctionExpr extends Expr {
   }
 
   boolean isThisAliased(boolean allowArrowFunctions) {
-    return thisAliased ? !(allowArrowFunctions && rewriteToArrowFunction()) :
+    return thisAliased && !(allowArrowFunctions && rewriteToArrowFunction()) ||
             functionExprs.stream().anyMatch(functionExpr -> functionExpr.isThisAliased(allowArrowFunctions));
   }
 
