@@ -17,6 +17,7 @@ import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.Directive;
 import net.jangaroo.jooc.ast.Expr;
 import net.jangaroo.jooc.ast.Extends;
+import net.jangaroo.jooc.ast.FunctionDeclaration;
 import net.jangaroo.jooc.ast.Ide;
 import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.LiteralExpr;
@@ -461,7 +462,18 @@ final class MxmlToModelParser {
           valueExpr = configObjectLiteral;
         } else {
           if (idAttribute != null || !useConfigObjects(defaultUseConfigObjects, className)) {
-            valueExpr = MxmlAstUtils.createNewExpr(typeIde, configObjectLiteral);
+            CompilationUnit classToInstantiate = jangarooParser.resolveCompilationUnit(className);
+            FunctionDeclaration constructor = ((ClassDeclaration) classToInstantiate.getPrimaryDeclaration()).getConstructor();
+            if (constructor == null || constructor.getParams() == null) {
+              // no-arg constructor: generate Object.assign(new Foo(), { ... })
+              Expr newExpr = MxmlAstUtils.createNewExpr(typeIde);
+              valueExpr = configObjectLiteral.getFields() == null ? newExpr
+                      : MxmlAstUtils.createApplyExpr(
+                      MxmlAstUtils.createDotExpr(new Ide(AS3Type.OBJECT.name), "assign"),
+                      newExpr, configObjectLiteral);
+            } else {
+              valueExpr = MxmlAstUtils.createNewExpr(typeIde, configObjectLiteral);
+            }
           } else {
             valueExpr = MxmlAstUtils.createCastExpr(typeIde, configObjectLiteral);
           }

@@ -60,7 +60,8 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
         new package1.someOtherPackage.SomeOtherClass({ bla: 12}),
         this.no_config = new package1.someOtherPackage.SomeOtherClass({ bla: 13})
       ])
-    })
+    }),
+    Object.assign( new package1.FieldInitializer(),{ myConfigOption: "BAZ"})
   ]),
     listeners:{
              click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))}
@@ -169,6 +170,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
       requires: ["package1.ConfigClass"],
       uses: [
         "net.jangaroo.ext.Exml",
+        "package1.FieldInitializer",
         "package1.someOtherPackage.SomeEvent",
         "package1.someOtherPackage.SomeOtherClass"
       ]

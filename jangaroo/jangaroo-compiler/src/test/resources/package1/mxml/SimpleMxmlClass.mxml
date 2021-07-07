@@ -70,6 +70,7 @@
         <other-ns:SomeOtherClass id="no_config" bla="13"/>
       </items>
     </ConfigClass>
+    <FieldInitializer myConfigOption="BAZ"/>
   </items>
   <fx:Script>
     private var blub:*;

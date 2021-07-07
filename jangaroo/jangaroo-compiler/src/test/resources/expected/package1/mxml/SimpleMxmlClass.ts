@@ -2,6 +2,7 @@ import { _, asConfig, bind, cast } from "@jangaroo/runtime/AS3";
 import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
+import FieldInitializer from "../FieldInitializer";
 import SomeEvent from "../someOtherPackage/SomeEvent";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
 interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
@@ -85,7 +86,8 @@ class SimpleMxmlClass extends ConfigClass{
         new SomeOtherClass({ bla: 12}),
         this.no_config = new SomeOtherClass({ bla: 13})
       ]})
-    })
+    }),
+    Object.assign( new FieldInitializer(),{ myConfigOption: "BAZ"})
   ]}),
     listeners:{
              click: Exml.eventHandler( SomeEvent.CLICK,SomeEvent,bind(this,this.#$on_click_14_20))}
