@@ -32,16 +32,6 @@ public class ConversionUtils {
 
   public static String getNpmPackageName(String groupId, String artifactId, List<SearchAndReplace> npmPackageNameReplacers) {
     String npmPackageName = SenchaUtils.getSenchaPackageName(groupId, artifactId);
-    // can be removed as soon as all jangaroo artifacts have a npm package name in their manifest
-    if (groupId != null && groupId.startsWith("net.jangaroo")) {
-      if (Objects.equals(artifactId, "jangaroo-runtime")) {
-        return "@jangaroo/runtime";
-      }
-      if (Objects.equals(artifactId, "ext-as")) {
-        return "@jangaroo/ext-ts";
-      }
-      return "@jangaroo/" + artifactId;
-    }
     for (SearchAndReplace searchAndReplace : npmPackageNameReplacers) {
       Matcher matcher = searchAndReplace.search.matcher(npmPackageName);
       if (matcher.matches()) {
@@ -51,7 +41,7 @@ public class ConversionUtils {
     return npmPackageName;
   }
 
-  public static String getNpmPackageVersion(String version) {
+  public static String getNpmPackageVersion(String version, List<SearchAndReplace> npmPackageVersionReplacers) {
     String[] versionParts = version.split("-", 2);
     List<String> majorMinorPatch = new ArrayList<>(Arrays.asList(versionParts[0].split("[.]")));
     if (majorMinorPatch.size() > 3) {
@@ -62,7 +52,14 @@ public class ConversionUtils {
       }
     }
     versionParts[0] = StringUtils.join(majorMinorPatch.toArray(), ".");
-    return StringUtils.join(versionParts, "-");
+    String npmPackageVersion = StringUtils.join(versionParts, "-");
+    for (SearchAndReplace searchAndReplace : npmPackageVersionReplacers) {
+      Matcher matcher = searchAndReplace.search.matcher(npmPackageVersion);
+      if (matcher.matches()) {
+        return matcher.replaceAll(searchAndReplace.replace);
+      }
+    }
+    return npmPackageVersion;
   }
 
   public static Map<String, String> getManifestEntries(String npmPackageName, String npmPackageVersion) {
@@ -82,7 +79,7 @@ public class ConversionUtils {
     public final String name;
     public final String version;
 
-    private NpmPackageMetadata(String name, String version) {
+    public NpmPackageMetadata(String name, String version) {
       this.name = name;
       this.version = version;
     }

@@ -34,33 +34,44 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
     return declaration.getName();
   }
 
+  private boolean isGeneratedSource(File sourceDir) {
+    return sourceDir.getPath().replace(File.separatorChar, '/').endsWith("generated-sources/joo");
+  }
+
+  private boolean isTestSource(File sourceDir) {
+    return sourceDir.getPath().replace(File.separatorChar, '/').endsWith("test/joo");
+  }
+
   public String getRequireModuleName(CompilationUnit compilationUnit, IdeDeclaration declaration) {
     String moduleName = getRequireModulePath(declaration);
     if (moduleName == null) {
       return null;
     }
     InputSource importedInputSource = declaration.getCompilationUnit().getInputSource();
-    FileInputSource currentInputSource = (FileInputSource) compilationUnit.getInputSource();
     if (importedInputSource instanceof FileInputSource) {
-      FileInputSource fileInputSource = (FileInputSource) importedInputSource;
+      FileInputSource currentFileInputSource = (FileInputSource) compilationUnit.getInputSource();
+      FileInputSource importedFileInputSource = (FileInputSource) importedInputSource;
       boolean isModule = getRequireModulePath(compilationUnit.getPrimaryDeclaration()) != null;
-      File sourceDir = currentInputSource.getSourceDir();
-      File currentTargetFile = isModule
-              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getExtNamespaceRelativeTargetQualifiedNameStr(),
-              sourceDir, Jooc.TS_SUFFIX)
-              : new File(sourceDir, "index.d.ts");
-      // All source code from the same Maven module ends up in the same source directory, *but* test code:
-      if (fileInputSource.getSourceDir().equals(sourceDir)
-              || !sourceDir.getPath().replace(File.separatorChar, '/').endsWith("src/test/joo")) {
-        // same input source or non-test-sources: relativize against current file
-        return computeRelativeModulePath(currentTargetFile,
-                new File(sourceDir, moduleName));
+      File currentSourceDir = currentFileInputSource.getSourceDir();
+      File importedSourceDir = importedFileInputSource.getSourceDir();
+      String prefix;
+      // Only modules in the same source dir or non modules that are not in test source or generated source keep can
+      // reference their target files using the normal relative path without prefix
+      if (isModule && importedSourceDir.equals(currentSourceDir)
+              || !isModule && !isGeneratedSource(importedSourceDir) && !isTestSource(importedSourceDir)
+              // incomplete, special treatment for properties api generated from .properties (enough for our use cases)
+              || isModule && new File(currentSourceDir, importedInputSource.getRelativePath().replace(CompilerUtils.PROPERTIES_CLASS_SUFFIX + ".as", CompilerUtils.PROPERTIES_SUFFIX)).exists()) {
+        prefix = "";
+      } else {
+        // otherwise a prefix is required based on the source root of the imported source
+        prefix = isGeneratedSource(importedSourceDir) ? "../generated/src/" : "../src/";
       }
-      // Only references from test code to non-test code must be rewritten.
-      // We know that in the target TypeScript workspace, the relative path from the test source root
-      // directory to the source root directory is "../src".
-      return computeRelativeModulePath(currentTargetFile,
-              new File(sourceDir, "../src/" + moduleName));
+      File currentDir = isModule
+              ? CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration().getExtNamespaceRelativeTargetQualifiedNameStr(),
+              currentSourceDir, Jooc.TS_SUFFIX).getParentFile()
+              : currentSourceDir;
+      return computeRelativeModulePath(currentDir,
+              new File(currentSourceDir, prefix + moduleName));
     }
     if (!(importedInputSource instanceof ZipEntryInputSource)) {
       throw new IllegalStateException("The input source for a compilation unit was not a file");
@@ -89,8 +100,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
     return npmPackageName + (moduleName.isEmpty() ? "" : "/" + moduleName);
   }
 
-  private String computeRelativeModulePath(File currentFile, File importedFile) {
-    File currentDir = currentFile.getParentFile();
+  private String computeRelativeModulePath(File currentDir, File importedFile) {
     String relativeModulePath = CompilerUtils.getRelativePath(currentDir,
             importedFile, false);
     relativeModulePath = relativeModulePath.replace(File.separatorChar, '/');

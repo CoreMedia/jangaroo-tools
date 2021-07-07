@@ -848,7 +848,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else if (variableDeclaration.isPrimaryDeclaration()
             && !variableDeclaration.isConst()
             && typeScriptModuleResolver.getRequireModuleName(compilationUnit, variableDeclaration) != null) {
-      out.writeSymbol(ide.getSymbol()); // do not rewrite var name (no underscore)!
+      // do not rewrite var name (no underscore)!
+      writeSymbolReplacement(ide.getSymbol(), CompilerUtils.className(variableDeclaration.getTargetQualifiedNameStr()));
       if (typeRelation != null) {
         out.writeSymbol(typeRelation.getSymRelation());
         // wrap type by simple object:
@@ -1830,7 +1831,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
           if (configClassDeclaration != null) {
             if (!(classDeclaration.equals(configClassDeclaration)
-                    // allow to deviate from the same class for some special cases: 
+                    // allow to deviate from the same class for some special cases:
                     // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
                     || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
                     // some (base) classes simply reuse their super class as their config type :(
