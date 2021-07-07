@@ -58,6 +58,14 @@ public class TestArrowFunctions {
     }
   }
 
+  public function main6():void {
+    var fun5 = function() {
+      for (var i:int = 0; i < 42; ++i) {
+        compute(42);
+      }
+    }
+  }
+
   internal function compute(x:Number):Number {
     return x + 42;
   }

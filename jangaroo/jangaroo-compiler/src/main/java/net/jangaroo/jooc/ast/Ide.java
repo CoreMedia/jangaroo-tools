@@ -252,7 +252,7 @@ public class Ide extends NodeImplBase {
         }
       }
       if (needsThisAtRuntime()) {
-        setRewriteThis(funExpr.notifyThisUsed(scope));
+        setRewriteThis(funExpr.notifyThisUsed());
         if (!isSuper() && isInConstructor) {
           notifyInstanceThisUsed();
         }

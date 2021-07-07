@@ -240,19 +240,19 @@ public class FunctionExpr extends Expr {
     return symFunction;
   }
 
-  boolean notifyThisUsed(Scope scope) {
+  boolean notifyThisUsed() {
     if (!thisAliased) {
       if (getFunctionDeclaration() != null && getFunctionDeclaration().isClassMember()) {
         return false;
       }
       thisAliased = true;
-      Scope parentScope = scope.getParentScope().getParentScope();
+      Scope parentScope = bodyScope.getParentScope().getParentScope();
       FunctionExpr parentFunctionExpr = parentScope.getFunctionExpr();
       if (parentFunctionExpr != null) {
         // if we are nested inside another function, register there:
         parentFunctionExpr.addFunctionExpr(this);
         // ...and propagate this usage to parent function:
-        parentFunctionExpr.notifyThisUsed(parentScope);
+        parentFunctionExpr.notifyThisUsed();
       }
     }
     return true;

@@ -58,6 +58,14 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
     };
   }/*
 
+  public*/ function main6()/*:void*/ {var _this=this;
+    var fun5 = function() {
+      for (var i/*:int*/ = 0; i < 42; ++i) {
+        _this.compute(42);
+      }
+    };
+  }/*
+
   internal*/ function compute(x/*:Number*/)/*:Number*/ {
     return x + 42;
   }/*
@@ -72,6 +80,7 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
       main3: main3,
       main4: main4,
       main5: main5,
+      main6: main6,
       compute: compute
     };
 });

@@ -1,3 +1,4 @@
+import int from "../AS3/int_";
 
 
 class TestArrowFunctions {
@@ -54,6 +55,14 @@ class TestArrowFunctions {
     var fun4 = () => {
       function fun5():void {
         this$.compute(42);
+      }
+    };
+  }
+
+  main6():void {
+    var fun5 = () => {
+      for (var i = 0; i < 42; ++i) {
+        this.compute(42);
       }
     };
   }
