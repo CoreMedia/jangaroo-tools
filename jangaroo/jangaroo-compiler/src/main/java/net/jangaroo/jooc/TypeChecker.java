@@ -3,6 +3,7 @@ package net.jangaroo.jooc;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.ast.ApplyExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.AstVisitorBase;
@@ -41,6 +42,8 @@ public class TypeChecker extends AstVisitorBase {
   static final String VARIABLE_DECLARATION_ERROR_MESSAGE = "Initializer type %s is not assignable to variable type %s";
   static final String ARGUMENT_EXPRESSION_ERROR_MESSAGE = "Argument type %s is not assignable to parameter type %s";
   static final String RETURN_EXPRESSION_ERROR_MESSAGE = "Return value type %s is not assignable to return type %s";
+  static final String OBJECT_FIELD_EXPRESSION_ERROR_MESSAGE = "Object literal field value of type %s is not assignable to property type %s";
+  static final String ARRAY_ELEMENT_EXPRESSION_ERROR_MESSAGE = "Array literal element type %s is not assignable to array element type %s";
 
   private CompileLog log;
 
@@ -187,6 +190,8 @@ public class TypeChecker extends AstVisitorBase {
     if (!actualExpression.getType().isAssignableTo(expectedType)) {
       logException(symbol, expectedTypeDeclaration.getQualifiedNameStr(),
               actualExpression.getType().getDeclaration().getQualifiedNameStr(), logMessage);
+    } else if (actualExpression instanceof ArrayLiteral && expectedType.isArrayLike()) {
+      validateArrayLiteral(expectedType.getTypeParameter(), (ArrayLiteral) actualExpression);
     }
   }
 
@@ -218,13 +223,24 @@ public class TypeChecker extends AstVisitorBase {
             if (type == null) {
               type = propertyDeclaration.getIde().getScope().getExpressionType(propertyDeclaration);
             }
-            validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
+            validateTypes(field.getValue().getSymbol(), type, field.getValue(), OBJECT_FIELD_EXPRESSION_ERROR_MESSAGE);
           } else if (!classDeclaration.isDynamic()) {
             log.warning(getErrorSymbol(field),
                     String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
           }
         }
       } // ignore Spreads, they are either untyped or contain their own __typeCheckObjectLiteral__ call
+    }
+  }
+
+  private void validateArrayLiteral(ExpressionType itemType, ArrayLiteral arrayLiteral) {
+    if (itemType != null && !AS3Type.ANY.equals(itemType.getAS3Type()) && !itemType.isObject()) {
+      for (CommaSeparatedList<Expr> arrayItems = arrayLiteral.getExpr();
+           arrayItems != null;
+           arrayItems = arrayItems.getTail()) {
+        Expr arrayItem = arrayItems.getHead();
+        validateTypes(arrayItem.getSymbol(), itemType, arrayItem, ARRAY_ELEMENT_EXPRESSION_ERROR_MESSAGE);
+      }
     }
   }
 

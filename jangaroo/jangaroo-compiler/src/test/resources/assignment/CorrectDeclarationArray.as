@@ -5,7 +5,7 @@ public class CorrectDeclarationArray {
   private var nestedArray:Array = [[]];
 
   [ArrayElementType("String")]
-  private var stringArray:Array = [[]];
+  private var stringArray:Array = [""];
 
   [ArrayElementType("assignment.Square")]
   private var squareArray:Array = [new Square()];
