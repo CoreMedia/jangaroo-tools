@@ -220,7 +220,7 @@ public class TypeChecker extends AstVisitorBase {
             }
             validateTypes(field.getValue().getSymbol(), type, field.getValue(), ASSIGNED_EXPRESSION_ERROR_MESSAGE);
           } else if (!classDeclaration.isDynamic()) {
-            log.error(getErrorSymbol(field),
+            log.warning(getErrorSymbol(field),
                     String.format("Property '%s' not found in type %s.", propertyName, classDeclaration.getQualifiedNameStr()));
           }
         }
