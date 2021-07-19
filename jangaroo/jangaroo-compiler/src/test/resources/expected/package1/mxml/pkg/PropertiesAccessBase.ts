@@ -32,7 +32,7 @@ class PropertiesAccessBase {
 }
 declare namespace PropertiesAccessBase {
   export type _ = PropertiesAccessBase_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

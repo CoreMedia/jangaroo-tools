@@ -40,7 +40,7 @@ class ConfigClass extends Observable {
 }
 declare namespace ConfigClass {
   export type _ = ConfigClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 

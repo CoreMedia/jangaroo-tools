@@ -22,7 +22,7 @@ class ScriptCdataMxmlClass extends ConfigClass implements SimpleInterface{
         throw "cannot do it with " + v;
       }
     }constructor(config:ScriptCdataMxmlClass._=null){
-    super( Exml.apply(new ScriptCdataMxmlClass._({
+    super( Exml.apply(ScriptCdataMxmlClass._({
              foo: "bar"
 }),config));
 }}
@@ -30,7 +30,7 @@ mixin(ScriptCdataMxmlClass, SimpleInterface);
 
 declare namespace ScriptCdataMxmlClass {
   export type _ = ScriptCdataMxmlClass_;
-  export const _: { new(config?: _): _; };
+  export const _: (config?: _) => _;
 }
 
 
