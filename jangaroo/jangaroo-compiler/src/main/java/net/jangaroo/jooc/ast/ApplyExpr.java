@@ -142,10 +142,18 @@ public class ApplyExpr extends Expr {
 
   public FunctionDeclaration resolveFunction() {
     Expr fun = this.getFun();
+    boolean isNew = false;
+    if (fun instanceof NewExpr) {
+      fun = ((NewExpr) fun).getApplyConstructor();
+      isNew = true;
+    }
     if (fun instanceof IdeExpr) {
       fun = ((IdeExpr) fun).getNormalizedExpr();
       if (fun instanceof IdeExpr) {
         IdeDeclaration declaration = ((IdeExpr) fun).getIde().getDeclaration(false);
+        if (isNew) {
+          return declaration instanceof ClassDeclaration ? ((ClassDeclaration) declaration).getConstructor() : null;
+        }
         if (declaration instanceof FunctionDeclaration) {
           return (FunctionDeclaration) declaration;
         }
