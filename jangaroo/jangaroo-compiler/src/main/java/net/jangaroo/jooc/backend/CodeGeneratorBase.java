@@ -701,6 +701,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
             }
           }
         }
+        argument = adjustArgument(parameter, argument);
         if (!coerced) {
           argument.visit(this);
         }
@@ -725,6 +726,10 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       first = false;
     }
     out.writeSymbol(args.getRParen());
+  }
+
+  Expr adjustArgument(Parameter parameter, Expr argument) throws IOException {
+    return argument;
   }
 
   void generateTypeAssertion(Expr argument, String type) throws IOException {

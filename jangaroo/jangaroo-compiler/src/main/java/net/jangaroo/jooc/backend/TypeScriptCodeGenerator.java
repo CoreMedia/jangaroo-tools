@@ -37,6 +37,7 @@ import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.ObjectField;
+import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
@@ -44,6 +45,7 @@ import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
 import net.jangaroo.jooc.ast.SemicolonTerminatedStatement;
+import net.jangaroo.jooc.ast.Spread;
 import net.jangaroo.jooc.ast.SuperConstructorCallStatement;
 import net.jangaroo.jooc.ast.Type;
 import net.jangaroo.jooc.ast.TypeDeclaration;
@@ -1421,6 +1423,36 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       super.visitApplyExpr(applyExpr);
     }
+  }
+
+  @Override
+  Expr adjustArgument(Parameter parameter, Expr argument) throws IOException {
+    // We use nested object literals + spread operator for assigning untyped Config properties,
+    // but the special case that there are _only_ untyped properties results in an outer object
+    // that only contains _one_ spread inner object ({...{ untyped: "foo"}}), and that does _not_
+    // prevent the type error as originally intended. It seems TypeScript cannot accurately type
+    // spread expression, _only_ the special case { ...T } => T.
+    // Thus, Config objects with _only_ untyped properties must be represent differently. We chose
+    // to use a type assertion on the object literal, which, in contrast to a typed function call
+    // parameter, allows additional untyped properties. So
+    //   <Foo u:untyped="foo"/>
+    // becomes
+    //   new Foo(<Foo._>{ untyped: "foo" })
+
+    // If the parameter has a type and the argument is an object literal...
+    if (parameter != null && parameter.getOptTypeRelation() != null && argument instanceof ObjectLiteral) {
+      ObjectLiteral objectLiteral = (ObjectLiteral) argument;
+      CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
+      // ...and the argument object literal only consists of one spread...
+      if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
+        // ...then insert a type assertion to match the parameter type:
+        String typeScriptType = getTypeScriptTypeForActionScriptType(parameter.getIde().getScope().getExpressionType(parameter));
+        writeSymbolReplacement(objectLiteral.getSymbol(), String.format("<%s>", typeScriptType));
+        // ...and skip the outer, obsolete object literal:
+        argument = ((Spread) fields.getHead()).getArg();
+      }
+    }
+    return argument;
   }
 
   private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String methodName, boolean isStatic) {

@@ -51,6 +51,7 @@
                           u:known-unknown="true"/>
   </defaults>
   <items exml:mode="append">
+    <other-ns:SomeOtherClass u:onlyUntyped="42"/>
     <other-ns:SomeOtherClass bla="23"/>
     <other-ns:SomeOtherClass clickClack="var test=0;" bla="1"/>
     <other-ns:SomeOtherClass bla="42">

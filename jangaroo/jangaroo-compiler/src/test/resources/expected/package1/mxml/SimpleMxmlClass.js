@@ -44,9 +44,10 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
                           "known-unknown": true
   },items$at: net.jangaroo.ext.Exml.APPEND, 
   items:([
+    new package1.someOtherPackage.SomeOtherClass({ onlyUntyped: 42}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 23}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_55_41$5_bR"))}}),
+    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_56_41$5_bR"))}}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 42, number: 24
     }),
     new package1.ConfigClass({
@@ -128,7 +129,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
       var result/*:String*/ = 'gotcha!';
     }/*
 
-    private*/ function $on_clickClack_55_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+    private*/ function $on_clickClack_56_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
       var test=0;
     }/*
 
@@ -145,7 +146,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
       },
       blub$5_bR: undefined,
       $on_click_14_20$5_bR: $on_click_14_20,
-      $on_clickClack_55_41$5_bR: $on_clickClack_55_41,
+      $on_clickClack_56_41$5_bR: $on_clickClack_56_41,
       config: {
         list: null,
         bar: null,

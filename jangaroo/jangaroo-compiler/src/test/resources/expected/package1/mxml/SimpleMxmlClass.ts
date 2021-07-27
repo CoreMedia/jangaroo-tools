@@ -69,9 +69,10 @@ class SimpleMxmlClass extends ConfigClass{
                           "known-unknown": true}
   }),
   ...Exml.append({items: [
+    new SomeOtherClass(<SomeOtherClass._>{ onlyUntyped: 42}),
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_55_41))}}),
+    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_56_41))}}),
     new SomeOtherClass({ bla: 42,
         ..._<ConfigClass._>({ number: 24})
     }),
@@ -184,7 +185,7 @@ class SimpleMxmlClass extends ConfigClass{
       var result = "gotcha!";
     }
 
-  #$on_clickClack_55_41 (event:SomeEvent) :void {
+  #$on_clickClack_56_41 (event:SomeEvent) :void {
       var test=0;
     }
 
