@@ -701,8 +701,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
             }
           }
         }
-        argument = adjustArgument(parameter, argument);
-        if (!coerced) {
+        if (!handleArgument(parameter, argument) && !coerced) {
           argument.visit(this);
         }
         writeOptSymbol(arguments.getSymComma());
@@ -728,8 +727,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(args.getRParen());
   }
 
-  Expr adjustArgument(Parameter parameter, Expr argument) throws IOException {
-    return argument;
+  boolean handleArgument(Parameter parameter, Expr argument) throws IOException {
+    return false;
   }
 
   void generateTypeAssertion(Expr argument, String type) throws IOException {

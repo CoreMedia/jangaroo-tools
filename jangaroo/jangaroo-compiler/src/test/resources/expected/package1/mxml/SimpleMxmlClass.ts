@@ -69,7 +69,7 @@ class SimpleMxmlClass extends ConfigClass{
                           "known-unknown": true}
   }),
   ...Exml.append({items: [
-    new SomeOtherClass(<SomeOtherClass._>{ onlyUntyped: 42}),
+    new SomeOtherClass({ onlyUntyped: 42} as SomeOtherClass._),
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
     listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_56_41))}}),

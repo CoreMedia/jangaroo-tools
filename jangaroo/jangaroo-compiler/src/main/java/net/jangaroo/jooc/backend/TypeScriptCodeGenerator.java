@@ -12,7 +12,6 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
-import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
@@ -1426,7 +1425,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  Expr adjustArgument(Parameter parameter, Expr argument) throws IOException {
+  boolean handleArgument(Parameter parameter, Expr argument) throws IOException {
     // We use nested object literals + spread operator for assigning untyped Config properties,
     // but the special case that there are _only_ untyped properties results in an outer object
     // that only contains _one_ spread inner object ({...{ untyped: "foo"}}), and that does _not_
@@ -1445,14 +1444,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
       // ...and the argument object literal only consists of one spread...
       if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
-        // ...then insert a type assertion to match the parameter type:
-        String typeScriptType = getTypeScriptTypeForActionScriptType(parameter.getIde().getScope().getExpressionType(parameter));
-        writeSymbolReplacement(objectLiteral.getSymbol(), String.format("<%s>", typeScriptType));
-        // ...and skip the outer, obsolete object literal:
-        argument = ((Spread) fields.getHead()).getArg();
+        // Skip the outer, obsolete object literal, in other words, visit only the inner object:
+        writeOptSymbolWhitespace(objectLiteral.getSymbol());
+        ((Spread) fields.getHead()).getArg().visit(this);
+        // ...and insert a type assertion to match the parameter type:
+        out.write(" as " + getTypeScriptTypeForActionScriptType(parameter.getIde().getScope().getExpressionType(parameter)));
+        return true;
       }
     }
-    return argument;
+    return false;
   }
 
   private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String methodName, boolean isStatic) {
