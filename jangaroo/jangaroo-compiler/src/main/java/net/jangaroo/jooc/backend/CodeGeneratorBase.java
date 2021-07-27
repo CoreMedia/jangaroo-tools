@@ -701,8 +701,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
             }
           }
         }
-        if (!handleArgument(parameter, argument) && !coerced) {
-          argument.visit(this);
+        if (!coerced) {
+          visitApplyExprArgument(argument, parameter == null ? null : parameter.getIde().getScope().getExpressionType(parameter));
         }
         writeOptSymbol(arguments.getSymComma());
         arguments = arguments.getTail();
@@ -727,8 +727,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(args.getRParen());
   }
 
-  boolean handleArgument(Parameter parameter, Expr argument) throws IOException {
-    return false;
+  void visitApplyExprArgument(Expr argument, ExpressionType parameterType) throws IOException {
+    argument.visit(this);
   }
 
   void generateTypeAssertion(Expr argument, String type) throws IOException {

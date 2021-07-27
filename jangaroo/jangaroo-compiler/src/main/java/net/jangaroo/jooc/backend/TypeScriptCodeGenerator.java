@@ -1346,7 +1346,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (isOfConfigType(args.getExpr().getHead())) {
           // use config factory function instead of the class itself:
           writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
-          args.visit(this);
+          out.writeSymbol(args.getLParen());
+          visitApplyExprArgument(args.getExpr().getHead(), applyExpr.getFun().getType().getTypeParameter());
+          out.writeSymbol(args.getRParen());
           return;
         }
       }
@@ -1425,7 +1427,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  boolean handleArgument(Parameter parameter, Expr argument) throws IOException {
+  void visitApplyExprArgument(Expr argument, ExpressionType parameterType) throws IOException {
     // We use nested object literals + spread operator for assigning untyped Config properties,
     // but the special case that there are _only_ untyped properties results in an outer object
     // that only contains _one_ spread inner object ({...{ untyped: "foo"}}), and that does _not_
@@ -1439,7 +1441,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     //   new Foo(<Foo._>{ untyped: "foo" })
 
     // If the parameter has a type and the argument is an object literal...
-    if (parameter != null && parameter.getOptTypeRelation() != null && argument instanceof ObjectLiteral) {
+    if (parameterType != null && argument instanceof ObjectLiteral) {
       ObjectLiteral objectLiteral = (ObjectLiteral) argument;
       CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
       // ...and the argument object literal only consists of one spread...
@@ -1448,11 +1450,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         writeOptSymbolWhitespace(objectLiteral.getSymbol());
         ((Spread) fields.getHead()).getArg().visit(this);
         // ...and insert a type assertion to match the parameter type:
-        out.write(" as " + getTypeScriptTypeForActionScriptType(parameter.getIde().getScope().getExpressionType(parameter)));
-        return true;
+        out.write(" as " + getTypeScriptTypeForActionScriptType(parameterType));
+        return;
       }
     }
-    return false;
+    super.visitApplyExprArgument(argument, parameterType);
   }
 
   private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String methodName, boolean isStatic) {
