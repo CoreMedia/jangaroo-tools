@@ -1270,15 +1270,20 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     out.writeToken("function");
     out.writeToken(variableName + (variableDeclaration.isStatic() ? "$static" : "") + "_");
     out.writeToken("(){");
+    Expr initializerValue = initializer.getValue();
     if (variableDeclaration.isPrivateStatic()) {
       out.write(variableName + "$static=(");
-      initializer.getValue().visit(this);
+      initializerValue.visit(this);
     } else {
       String target = variableDeclaration.isStatic() ? variableDeclaration.getClassDeclaration().getName() : "this";
+      if (!variableDeclaration.isStatic() && initializerValue instanceof FunctionExpr
+              && ((FunctionExpr) initializerValue).isThisAliased(false)) {
+        ALIAS_THIS_CODE_GENERATOR.generate(out, true);
+      }
       String slotName = variableName + (variableDeclaration.isPrivate() ? "$" + variableDeclaration.getClassDeclaration().getQualifiedNameHash() : "");
       if (false /* variableDeclaration.isConst() */) { // keep it compatible, even for constants! 
         out.write("Object.defineProperty(" + target + ",\"" + slotName + "\",{value:");
-        initializer.getValue().visit(this);
+        initializerValue.visit(this);
         out.writeToken("}");
       } else {
         if (variableDeclaration.isPrimaryDeclaration()) {
@@ -1287,7 +1292,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
           out.write(target + "." + slotName + "=");
         }
         out.writeToken("(");
-        initializer.getValue().visit(this);
+        initializerValue.visit(this);
       }
     }
     out.writeToken(");}");

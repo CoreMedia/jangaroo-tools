@@ -2,6 +2,11 @@ package package2 {
 
 public class TestArrowFunctions {
 
+  private var myField: Function = function():String {
+    main(); // outer this access
+    return this.untyped; // own this access
+  }
+
   public function main():void {
     function fun1():Number {
       return 42;

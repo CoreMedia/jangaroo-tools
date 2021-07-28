@@ -3,6 +3,11 @@ import int from "../AS3/int_";
 
 class TestArrowFunctions {
 
+  #myField: AnyFunction = (this$ => function():string {
+    this$.main(); // outer this access
+    return this.untyped; // own this access
+  })(this);
+
   main():void {const this$=this;
     function fun1():number {
       return 42;

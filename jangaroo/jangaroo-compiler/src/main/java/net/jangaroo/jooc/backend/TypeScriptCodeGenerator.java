@@ -895,7 +895,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private void generateInitializer(VariableDeclaration variableDeclaration) throws IOException {
     Initializer initializer = variableDeclaration.getOptInitializer();
     if (initializer != null) {
-      initializer.visit(this);
+      if (!variableDeclaration.isStatic() && initializer.getValue() instanceof FunctionExpr
+              && ((FunctionExpr) initializer.getValue()).isThisAliased(true)) {
+        out.writeSymbol(initializer.getSymEq());
+        out.write(" (this$ =>");
+        initializer.getValue().visit(this);
+        out.write(")(this)");
+      } else {
+        initializer.visit(this);
+      }
     } else {
       // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
       // so we have to add an explicit initializer to keep semantics:

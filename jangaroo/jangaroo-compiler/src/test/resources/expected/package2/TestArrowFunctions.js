@@ -2,6 +2,11 @@
 
 Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public class TestArrowFunctions {
 
+  private var myField: Function =*/function myField_(){var _this=this;this.myField$I5Tc=( function()/*:String*/ {
+    _this.main(); // outer this access
+    return this.untyped; // own this access
+  });}/*;
+
   public*/ function main()/*:void*/ {var _this=this;
     function fun1()/*:Number*/ {
       return 42;
@@ -69,7 +74,7 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
   internal*/ function compute(x/*:Number*/)/*:Number*/ {
     return x + 42;
   }/*
-}
+}*/function TestArrowFunctions$() {this.super$I5Tc();}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
@@ -81,6 +86,10 @@ Ext.define("package2.TestArrowFunctions", function(TestArrowFunctions) {/*public
       main4: main4,
       main5: main5,
       main6: main6,
-      compute: compute
+      compute: compute,
+      super$I5Tc: function() {
+        myField_.call(this);
+      },
+      constructor: TestArrowFunctions$
     };
 });
