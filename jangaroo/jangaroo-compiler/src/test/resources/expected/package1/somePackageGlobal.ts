@@ -1,3 +1,4 @@
+import { lazyVar } from "@jangaroo/runtime/AS3";
 import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 
 
@@ -6,6 +7,6 @@ import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 /**
  * Some package-global documentation;
  */
-var somePackageGlobal:{_: SomeOtherClass}
-  ={_:  new SomeOtherClass()};
+const somePackageGlobal:{_: SomeOtherClass}
+  =lazyVar(() => new SomeOtherClass());
 export default somePackageGlobal;

@@ -260,6 +260,16 @@ public class JoocTest extends AbstractJoocTest {
   }
   
   @Test
+  public void testPackageGlobalConst() throws Exception {
+    assertCompilationResult("package1/somePackageGlobalConst");
+  }
+  
+  @Test
+  public void testPackageGlobalLazyConst() throws Exception {
+    assertCompilationResult("package1/somePackageGlobalLazyConst");
+  }
+  
+  @Test
   public void testPackageGlobalFun() throws Exception {
     assertCompilationResult("package1/somePackageGlobalFun");
   }

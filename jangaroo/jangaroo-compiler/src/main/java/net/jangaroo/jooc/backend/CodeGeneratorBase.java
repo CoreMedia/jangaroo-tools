@@ -1039,10 +1039,14 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitVariableDeclaration(VariableDeclaration variableDeclaration) throws IOException {
     visitDeclarationAnnotationsAndModifiers(variableDeclaration);
-    writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
+    writeVarOrConst(variableDeclaration);
     visitVariableDeclarationBase(variableDeclaration);
     visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
     writeOptSymbol(variableDeclaration.getOptSymSemicolon());
+  }
+
+  void writeVarOrConst(VariableDeclaration variableDeclaration) throws IOException {
+    writeOptSymbol(variableDeclaration.getOptSymConstOrVar());
   }
 
   void visitVariableDeclarationBase(VariableDeclaration variableDeclaration) throws IOException {

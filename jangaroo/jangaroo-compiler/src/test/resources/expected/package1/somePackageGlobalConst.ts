@@ -5,5 +5,6 @@ import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 /**
  * Some package-global documentation;
  */
-const uninitializedPackageGlobal:{_: SomeOtherClass}={_: null};
-export default uninitializedPackageGlobal;
+const somePackageGlobalConst
+  = new SomeOtherClass();
+export default somePackageGlobalConst;

@@ -234,6 +234,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (!getMetadata(primaryDeclaration).isEmpty()) {
       compilationUnit.addBuiltInIdentifierUsage("metadata");
     }
+    if (primaryDeclaration instanceof VariableDeclaration
+            && isLazy((VariableDeclaration) primaryDeclaration)) {
+      compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
+    }
 
     if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
       out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
@@ -822,6 +826,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  @Override
+  void writeVarOrConst(VariableDeclaration variableDeclaration) throws IOException {
+    if (isPrimaryVariableDeclaration(variableDeclaration)) {
+      writeSymbolReplacement(variableDeclaration.getOptSymConstOrVar(), "const");
+    } else {
+      super.writeVarOrConst(variableDeclaration);
+    }
+  }
+
   private void writeReadonlySuppressWhitespace(JooSymbol suppressWhitespaceOf) throws IOException {
     out.writeToken("readonly");
     // take care to not render new-lines after 'readonly', or TypeScript will interpret
@@ -846,15 +859,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!isAmbientOrInterface(compilationUnit)) {
         generateInitializer(variableDeclaration);
       }
-    } else if (variableDeclaration.isPrimaryDeclaration()
-            && !variableDeclaration.isConst()
-            && typeScriptModuleResolver.getRequireModuleName(compilationUnit, variableDeclaration) != null) {
+    } else if (isPrimaryVariableDeclaration(variableDeclaration)) {
       // do not rewrite var name (no underscore)!
       writeSymbolReplacement(ide.getSymbol(), CompilerUtils.className(variableDeclaration.getTargetQualifiedNameStr()));
       if (typeRelation != null) {
         out.writeSymbol(typeRelation.getSymRelation());
         // wrap type by simple object:
-        out.write("{_: ");
+        out.write("{");
+        if (variableDeclaration.isConst()) {
+          out.write("readonly ");
+        }
+        out.write("_: ");
         typeRelation.getType().visit(this);
         out.write("}");
       }
@@ -866,13 +881,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         } else {
           out.write("=");
         }
-        out.write("{_: ");
+        if (isLazy(variableDeclaration)) {
+          out.write(getLazyFactoryFunctionName(variableDeclaration) + "(() =>");
+        } else {
+          out.write("{_: ");
+        }
         if (initializer != null) {
           initializer.getValue().visit(this);
         } else {
           out.write(VariableDeclaration.getDefaultValue(typeRelation));
         }
-        out.write("}");
+        if (isLazy(variableDeclaration)) {
+          out.write(")");
+        } else {
+          out.write("}");
+        }
       }
     } else {
       ide.visit(this);
@@ -890,6 +913,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       visitIfNotNull(initializer);
     }
+  }
+
+  // is it a primary modifiable (var, not const) _or_ [Lazy] variable declaration?
+  private boolean isPrimaryVariableDeclaration(VariableDeclaration variableDeclaration) {
+    return variableDeclaration.isPrimaryDeclaration()
+            && (!variableDeclaration.isConst() || isLazy(variableDeclaration))
+            && typeScriptModuleResolver.getRequireModuleName(compilationUnit, variableDeclaration) != null;
+  }
+
+  private boolean isLazy(VariableDeclaration variableDeclaration) {
+    return variableDeclaration.getAnnotation(Jooc.LAZY_ANNOTATION_NAME) != null;
+  }
+
+  private String getLazyFactoryFunctionName(VariableDeclaration variableDeclaration) {
+    return variableDeclaration.isConst() ? "lazyConst" : "lazyVar";
   }
 
   private void generateInitializer(VariableDeclaration variableDeclaration) throws IOException {
@@ -1803,8 +1841,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (localName == null) {
         System.err.println("*** not found in imports: " + declaration.getQualifiedNameStr());
       } else {
-        if (declaration instanceof VariableDeclaration && !((VariableDeclaration) declaration).isConst()
-                && typeScriptModuleResolver.getRequireModuleName(compilationUnit, declaration) != null) {
+        if (declaration instanceof VariableDeclaration && isPrimaryVariableDeclaration((VariableDeclaration) declaration)) {
           // Modifiable singleton access:
           localName += "._";
         }
