@@ -129,6 +129,7 @@ public class ApplyExpr extends Expr {
       scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
     } else if (isTypeCheckObjectLiteralFunctionCall()) {
       scope.getCompilationUnit().addBuiltInIdentifierUsage("_");
+      getArgs().getExpr().getHead().getType().getTypeParameter().markAsConfigTypeIfPossible();
     }
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {

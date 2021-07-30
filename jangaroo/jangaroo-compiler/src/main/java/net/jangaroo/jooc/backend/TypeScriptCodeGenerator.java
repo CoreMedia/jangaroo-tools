@@ -1379,13 +1379,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<Expr> typeAndObjectLiteral = args.getExpr();
       Expr typeExpr = typeAndObjectLiteral.getHead();
       Expr objectLiteral = typeAndObjectLiteral.getTail().getHead();
-      writeSymbolReplacement(applyExpr.getSymbol(), "_");
-      out.writeToken("<");
-      out.write(compilationUnitAccessCode(((IdeExpr) typeExpr).getIde().getDeclaration()) + "._");
-      out.writeToken(">");
-      out.writeSymbol(args.getLParen());
-      objectLiteral.visit(this);
-      out.writeSymbol(args.getRParen());
+      ExpressionType typeParameter = typeExpr.getType().getTypeParameter();
+      if (!renderSingleSpreadValue(objectLiteral, typeParameter)) {
+        writeSymbolReplacement(applyExpr.getSymbol(), "_");
+        out.writeToken("<");
+        out.write(getTypeScriptTypeForActionScriptType(typeParameter));
+        out.writeToken(">");
+        out.writeSymbol(args.getLParen());
+        objectLiteral.visit(this);
+        out.writeSymbol(args.getRParen());
+      }
     } else if (applyExpr.isTypeCast()) {
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
       if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
@@ -1393,7 +1396,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // use config factory function instead of the class itself:
           writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
           out.writeSymbol(args.getLParen());
-          visitApplyExprArgument(args.getExpr().getHead(), applyExpr.getFun().getType().getTypeParameter());
+          if (!renderSingleSpreadValue(args.getExpr().getHead(), applyExpr.getFun().getType().getTypeParameter())) {
+            args.getExpr().getHead().visit(this);
+          }
           out.writeSymbol(args.getRParen());
           return;
         }
@@ -1473,7 +1478,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
-  void visitApplyExprArgument(Expr argument, ExpressionType parameterType) throws IOException {
+  boolean renderSingleSpreadValue(Expr argument, ExpressionType parameterType) throws IOException {
     // We use nested object literals + spread operator for assigning untyped Config properties,
     // but the special case that there are _only_ untyped properties results in an outer object
     // that only contains _one_ spread inner object ({...{ untyped: "foo"}}), and that does _not_
@@ -1497,10 +1502,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         ((Spread) fields.getHead()).getArg().visit(this);
         // ...and insert a type assertion to match the parameter type:
         out.write(" as " + getTypeScriptTypeForActionScriptType(parameterType));
-        return;
+        return true;
       }
     }
-    super.visitApplyExprArgument(argument, parameterType);
+    return false;
   }
 
   private static boolean isApiCall(ApplyExpr applyExpr, String qualifiedClassName, String methodName, boolean isStatic) {
