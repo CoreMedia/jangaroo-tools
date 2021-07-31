@@ -120,6 +120,13 @@ public class SenchaPackageAppMojo extends AbstractSenchaPackageOrAppMojo<SenchaA
   private void prepareModule() throws MojoExecutionException {
     FileHelper.ensureDirectory(senchaAppDirectory);
     if (migrateToTypeScript) {
+      File appSourceDirectory = new File(senchaAppDirectory, "src");
+      Map<String, String> classMapping = appSourceDirectory.exists() ? SenchaUtils.getClassMapping(appSourceDirectory, getExtNamespace(), appSourceDirectory) : new HashMap<>();
+      try {
+        SenchaUtils.getObjectMapper().writeValue(new File(senchaAppDirectory, "classMapping.json"), classMapping);
+      } catch (IOException e) {
+        throw new MojoExecutionException("Could not write class mapping!");
+      }
       return;
     }
 

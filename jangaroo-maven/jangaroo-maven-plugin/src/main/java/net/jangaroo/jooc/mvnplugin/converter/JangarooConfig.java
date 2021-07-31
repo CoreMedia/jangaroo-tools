@@ -13,7 +13,6 @@ public class JangarooConfig {
   private String extNamespace;
   private String extSassNamespace;
   private String theme;
-  private String testSuite;
   private Object sencha;
   private Map<String, Object> appManifests;
   private List<String> additionalLocales;
@@ -27,7 +26,7 @@ public class JangarooConfig {
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, String testSuite, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
+  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
     this.type = type;
     this.extName = extName;
     this.outputDirectory = outputDirectory;
@@ -35,7 +34,6 @@ public class JangarooConfig {
     this.rootApp = rootApp;
     this.extNamespace = extNamespace;
     this.theme = theme;
-    this.testSuite = testSuite;
     this.sencha = sencha;
     this.appManifests = appManifests;
     this.additionalLocales = additionalLocales;
@@ -110,14 +108,6 @@ public class JangarooConfig {
 
   public void setTheme(String theme) {
     this.theme = theme;
-  }
-
-  public String getTestSuite() {
-    return testSuite;
-  }
-
-  public void setTestSuite(String testSuite) {
-    this.testSuite = testSuite;
   }
 
   public Object getSencha() {

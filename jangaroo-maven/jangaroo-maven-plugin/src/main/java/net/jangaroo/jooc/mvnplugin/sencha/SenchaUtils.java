@@ -8,6 +8,7 @@ import net.jangaroo.jooc.mvnplugin.sencha.configbuilder.SenchaConfigBuilder;
 import net.jangaroo.jooc.mvnplugin.sencha.executor.SenchaCmdExecutor;
 import net.jangaroo.jooc.mvnplugin.util.FileHelper;
 import net.jangaroo.jooc.mvnplugin.util.MavenDependencyHelper;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -434,5 +436,23 @@ public class SenchaUtils {
       }
       currentBaseDir = baseParent;
     }
+  }
+
+  public static Map<String, String> getClassMapping(File sourceDir, String extNamespace, File currentDir) {
+    Map<String, String> result = new HashMap<>();
+    File[] children = currentDir.listFiles();
+    if (children != null) {
+      for (File child : children) {
+        if (child.isDirectory()) {
+          result.putAll(getClassMapping(sourceDir, extNamespace, child));
+        } else if (child.getName().endsWith(".ts")) {
+          result.put(
+                  CompilerUtils.qName(extNamespace, CompilerUtils.qNameFromFile(sourceDir, child)),
+                  sourceDir.toPath().relativize(child.toPath()).toString().replaceAll("\\\\", "/")
+          );
+        }
+      }
+    }
+    return result;
   }
 }
