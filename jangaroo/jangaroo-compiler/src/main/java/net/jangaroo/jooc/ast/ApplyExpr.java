@@ -123,21 +123,25 @@ public class ApplyExpr extends Expr {
       getArgs().analyze(this);
     }
     boolean isTypeCast = isTypeCast();
-    if (isTypeCast) {
-      scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
-    } else if (isAssert()) {
-      scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
-    } else if (isTypeCheckObjectLiteralFunctionCall()) {
-      scope.getCompilationUnit().addBuiltInIdentifierUsage("_");
-      getArgs().getExpr().getHead().getType().getTypeParameter().markAsConfigTypeIfPossible();
-    }
+    boolean mayBeConfigFactory = false;
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       ExpressionType classType = type.getTypeParameter();
       if (classType != null && isTypeCast && getArgs().getExpr().getHead() instanceof ObjectLiteral) {
         classType.markAsConfigTypeIfPossible();
+        mayBeConfigFactory = classType.isConfigType();
       }
       setType(classType);
+    }
+    if (isTypeCast) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
+      if (mayBeConfigFactory) {
+        scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
+      }
+    } else if (isAssert()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage(SyntacticKeywords.ASSERT);
+    } else if (isTypeCheckObjectLiteralFunctionCall()) {
+      scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
     }
   }
 

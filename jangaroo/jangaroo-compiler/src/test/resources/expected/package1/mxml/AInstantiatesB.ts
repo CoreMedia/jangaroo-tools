@@ -1,26 +1,21 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
 import BDeclaresA from "./BDeclaresA";
-interface AInstantiatesB_ extends Panel._ {
+interface AInstantiatesBConfig extends Config<Panel> {
 }
 
 
 class AInstantiatesB extends Panel{
-  declare readonly initialConfig: AInstantiatesB._;
+  declare Config: AInstantiatesBConfig;
 
-  constructor(config:AInstantiatesB._ = null){
-    super( Exml.apply(new AInstantiatesB._({
+  constructor(config:Config<AInstantiatesB> = null){
+    super( Exml.apply(Config(AInstantiatesB, {
 
   items:[
     new BDeclaresA({ someProperty: "yes"})
   ]
 }),config));
   }}
-declare namespace AInstantiatesB {
-  export type _ = AInstantiatesB_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default AInstantiatesB;

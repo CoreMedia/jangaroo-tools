@@ -1,3 +1,4 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
@@ -9,7 +10,7 @@ import menuitem from "../ext/config/menuitem";
 import panel from "../ext/config/panel";
 import someMixin from "../ext/config/someMixin";
 import Exml from "../net/jangaroo/ext/Exml";
-interface AllElements_ extends Partial<Pick<AllElements,
+interface AllElementsConfig extends Partial<Pick<AllElements,
   "gear"
 >> {
 }
@@ -19,7 +20,7 @@ interface AllElements_ extends Partial<Pick<AllElements,
  * This is my <b>TestComponent</b>
  */
 class AllElements extends panel{
-  declare readonly initialConfig: AllElements._;
+  declare Config: AllElementsConfig;
 
     /**
      * This is my <b>constant</b>
@@ -37,14 +38,14 @@ class AllElements extends panel{
   #myVar3:button = null;
   #myVar4:Array<any> = null;
 
-  #__initialize__(config:AllElements._):void {
+  #__initialize__(config:Config<AllElements>):void {
       this.#myVar = config.#myProperty + "_suffix";
       this.#myVar2 = {
         prop: config.#myProperty
       };
     }
 
-  constructor(config:AllElements._ = null){
+  constructor(config:Config<AllElements> = null){
     super((()=>{this.#__initialize__(config);
   
     this.#myVar3 = new button({
@@ -54,7 +55,7 @@ class AllElements extends panel{
       { header: "a", sortable: false, menuDisabled: true},
       { header: "b", sortable: true, menuDisabled: false}
     ];
-    return  Exml.apply(new AllElements._({
+    return  Exml.apply(Config(AllElements, {
            title: "I am a panel",
            layout: Exml.asString( config.#myProperty),
 
@@ -132,10 +133,4 @@ class AllElements extends panel{
        */
   get gear():any { return this.#gear; }
   set gear(value:any) { this.#gear = value; }}
-declare namespace AllElements {
-  export type _ = AllElements_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default AllElements;

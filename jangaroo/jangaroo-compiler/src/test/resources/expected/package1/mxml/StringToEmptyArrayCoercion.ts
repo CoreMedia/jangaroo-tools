@@ -1,20 +1,15 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
-interface StringToEmptyArrayCoercion_ extends Panel._ {
+interface StringToEmptyArrayCoercionConfig extends Config<Panel> {
 }
 
 
 class StringToEmptyArrayCoercion extends Panel{
-  declare readonly initialConfig: StringToEmptyArrayCoercion._;constructor(config:StringToEmptyArrayCoercion._=null){
-    super( Exml.apply(new StringToEmptyArrayCoercion._({
+  declare Config: StringToEmptyArrayCoercionConfig;constructor(config:Config<StringToEmptyArrayCoercion> =null){
+    super( Exml.apply(Config(StringToEmptyArrayCoercion, {
   items:[]
 }),config));
 }}
-declare namespace StringToEmptyArrayCoercion {
-  export type _ = StringToEmptyArrayCoercion_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default StringToEmptyArrayCoercion;

@@ -1,4 +1,4 @@
-interface TestMixin_ extends Partial<Pick<TestMixin,
+interface TestMixinConfig extends Partial<Pick<TestMixin,
   "foo"
 >> {
 }
@@ -8,7 +8,7 @@ interface TestMixin_ extends Partial<Pick<TestMixin,
  * This is a test mixin.
  */
 class TestMixin {
-  declare readonly initialConfig: TestMixin._;
+  declare Config: TestMixinConfig;
   /**
    * An accessor.
    */
@@ -34,10 +34,4 @@ class TestMixin {
     return "Mixed " + thing + "!";
   }
 }
-declare namespace TestMixin {
-  export type _ = TestMixin_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default TestMixin;

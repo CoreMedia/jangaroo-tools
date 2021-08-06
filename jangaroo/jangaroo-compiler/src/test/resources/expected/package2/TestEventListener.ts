@@ -1,3 +1,4 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import Panel from "../ext/Panel";
 import PanelEvent from "../ext/events/PanelEvent";
@@ -5,7 +6,7 @@ import PanelEvent from "../ext/events/PanelEvent";
 
 class TestEventListener {
 
-  #panel:Panel._ = new Panel._({});
+  #panel:Config<Panel> = Config(Panel);
   #panels:Array<Panel> = [];
 
   #getPanels():Array<Panel> {

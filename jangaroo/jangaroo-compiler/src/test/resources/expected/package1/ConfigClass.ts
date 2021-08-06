@@ -1,6 +1,7 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import int from "../AS3/int_";
 import Observable from "../ext/mixin/Observable";
-interface ConfigClass_ extends Partial<Pick<ConfigClass,
+interface ConfigClassConfig extends Partial<Pick<ConfigClass,
   "foo" |
   "number" |
   "items" |
@@ -13,9 +14,9 @@ interface ConfigClass_ extends Partial<Pick<ConfigClass,
 
 
 class ConfigClass extends Observable {
-  declare readonly initialConfig: ConfigClass._;
+  declare Config: ConfigClassConfig;
 
-  constructor(config:ConfigClass._ = null) {
+  constructor(config:Config<ConfigClass> = null) {
     super();
   }
 
@@ -38,10 +39,4 @@ class ConfigClass extends Observable {
     this.#_title = value;
   }
 }
-declare namespace ConfigClass {
-  export type _ = ConfigClass_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default ConfigClass;

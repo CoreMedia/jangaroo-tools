@@ -1,8 +1,9 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast } from "@jangaroo/runtime/AS3";
 import int from "../../../AS3/int_";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import TestComponentBase from "./TestComponentBase";
-interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent,
+interface TestComponentConfig extends Config<TestComponentBase>, Partial<Pick<TestComponent,
   "property_1" |
   "property_2"
 >> {
@@ -10,13 +11,13 @@ interface TestComponent_ extends TestComponentBase._, Partial<Pick<TestComponent
 
 
 class TestComponent extends TestComponentBase{
-  declare readonly initialConfig: TestComponent._;
+  declare Config: TestComponentConfig;
 
-  constructor(config:TestComponent._ = null){
+  constructor(config:Config<TestComponent> = null){
     config = Exml.apply({
     property_1: "withDefault"
     },config);
-    super( Exml.apply(new TestComponent._({
+    super( Exml.apply(Config(TestComponent, {
         emptyText:  "<div class='widget-content-list-empty'>" + TestComponentBase.DEFAULT + "</div>",
         letters: [
               "a",
@@ -37,10 +38,4 @@ class TestComponent extends TestComponentBase{
 
   get property_2():int { return this.#property_2; }
   set property_2(value:int) { this.#property_2 = value; }}
-declare namespace TestComponent {
-  export type _ = TestComponent_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default TestComponent;

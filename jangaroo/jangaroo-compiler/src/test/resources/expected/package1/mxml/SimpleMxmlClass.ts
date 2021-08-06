@@ -1,11 +1,12 @@
-import { _, asConfig, bind, cast } from "@jangaroo/runtime/AS3";
+import Config from "@jangaroo/runtime/AS3/Config";
+import { asConfig, bind, cast } from "@jangaroo/runtime/AS3";
 import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 import FieldInitializer from "../FieldInitializer";
 import SomeEvent from "../someOtherPackage/SomeEvent";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
-interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
+interface SimpleMxmlClassConfig extends Config<ConfigClass>, Partial<Pick<SimpleMxmlClass,
   "list" |
   "bar" |
   "computed" |
@@ -31,11 +32,11 @@ interface SimpleMxmlClass_ extends ConfigClass._, Partial<Pick<SimpleMxmlClass,
  */
 
 class SimpleMxmlClass extends ConfigClass{
-  declare readonly initialConfig: SimpleMxmlClass._;
+  declare Config: SimpleMxmlClassConfig;
 
   static readonly xtype:string = "testNamespace.config.simpleMxmlClass";
 
-  constructor(config:SimpleMxmlClass._ = null){
+  constructor(config:Config<SimpleMxmlClass> = null){
     super((()=>{
     this.#blub ={ name: "Kuno"};
     config = Exml.apply({
@@ -61,20 +62,20 @@ class SimpleMxmlClass extends ConfigClass{
                           blubb_config: "blub config expression",
                           blubb_accessor: "blub accessor expression"})
     },config);
-    return  Exml.apply(new SimpleMxmlClass._({
+    return  Exml.apply(Config(SimpleMxmlClass, {
              foo: "bar",
              number: 1 < 2  ? 1 + 1 : 3,
   defaultType: SomeOtherClass.xtype,
-  defaults:_<SomeOtherClass._>({ bla: 99,...{
+  defaults:Config<SomeOtherClass>({ bla: 99,...{
                           "known-unknown": true}
   }),
   ...Exml.append({items: [
-    new SomeOtherClass({ onlyUntyped: 42} as SomeOtherClass._),
+    new SomeOtherClass(<Config<SomeOtherClass>>{ onlyUntyped: 42}),
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
     listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_56_41))}}),
     new SomeOtherClass({ bla: 42,
-        ..._<ConfigClass._>({ number: 24})
+        ...Config<ConfigClass>({ number: 24})
     }),
     new ConfigClass({
       items:[
@@ -193,10 +194,4 @@ class SimpleMxmlClass extends ConfigClass{
 
   get no_config():SomeOtherClass { return this.#no_config; }
   set no_config(value:SomeOtherClass) { this.#no_config = value; }}
-declare namespace SimpleMxmlClass {
-  export type _ = SimpleMxmlClass_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default SimpleMxmlClass;

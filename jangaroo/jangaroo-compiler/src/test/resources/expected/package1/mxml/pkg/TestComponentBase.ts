@@ -1,8 +1,9 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, mixin } from "@jangaroo/runtime/AS3";
 import int from "../../../AS3/int_";
 import TestComponent from "./TestComponent";
 import TestInterface from "./TestInterface";
-interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
+interface TestComponentBaseConfig extends Partial<Pick<TestComponentBase,
   "emptyText" |
   "letters"
 >> {
@@ -12,7 +13,7 @@ interface TestComponentBase_ extends Partial<Pick<TestComponentBase,
 
 
 class TestComponentBase implements TestInterface {
-  declare readonly initialConfig: TestComponent._;
+  declare Config: TestComponentConfig;
 
   static readonly DEFAULT:string = "_DEFAULT_";
 
@@ -22,7 +23,7 @@ class TestComponentBase implements TestInterface {
   #property_1:string = null;
   #property_2:int = 0;
 
-  constructor(config:TestComponent._ = null) {
+  constructor(config:Config<TestComponent> = null) {
     this.#property_1 = config.property_1 + "_HI";
     this.#property_2 = config.property_2 || 0;
   }
@@ -34,11 +35,5 @@ class TestComponentBase implements TestInterface {
   }
 }
 mixin(TestComponentBase, TestInterface);
-
-declare namespace TestComponentBase {
-  export type _ = TestComponentBase_;
-  export const _: { new(config?: _): _; };
-}
-
 
 export default TestComponentBase;

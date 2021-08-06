@@ -1,7 +1,8 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast, metadata } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
-interface MetadataCdataMxmlClass_ extends ConfigClass._ {
+interface MetadataCdataMxmlClassConfig extends Config<ConfigClass> {
 }
 
 
@@ -18,16 +19,9 @@ interface MetadataCdataMxmlClass_ extends ConfigClass._ {
  * @deprecated Use {@link use.this.please} instead.
  */
 class MetadataCdataMxmlClass extends ConfigClass{
-  declare readonly initialConfig: MetadataCdataMxmlClass._;constructor(config:MetadataCdataMxmlClass._=null){
-    super( Exml.apply(new MetadataCdataMxmlClass._({
-}),config));
+  declare Config: MetadataCdataMxmlClassConfig;constructor(config:Config<MetadataCdataMxmlClass> =null){
+    super( Exml.apply(Config(MetadataCdataMxmlClass),config));
 }}
 metadata(MetadataCdataMxmlClass, ["ThisIsJustATest"]);
-
-declare namespace MetadataCdataMxmlClass {
-  export type _ = MetadataCdataMxmlClass_;
-  export const _: { new(config?: _): _; };
-}
-
 
 export default MetadataCdataMxmlClass;

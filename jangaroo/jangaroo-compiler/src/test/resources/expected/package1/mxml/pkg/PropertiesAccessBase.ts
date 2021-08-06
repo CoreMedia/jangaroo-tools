@@ -1,5 +1,6 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import PropertiesAccess from "./PropertiesAccess";
-interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
+interface PropertiesAccessBaseConfig extends Partial<Pick<PropertiesAccessBase,
   "property_1" |
   "property_2" |
   "property_3"
@@ -9,9 +10,9 @@ interface PropertiesAccessBase_ extends Partial<Pick<PropertiesAccessBase,
 
 
 class PropertiesAccessBase {
-  declare readonly initialConfig: PropertiesAccess._;
+  declare Config: PropertiesAccessConfig;
 
-  constructor(config:PropertiesAccess._ = null) {
+  constructor(config:Config<PropertiesAccess> = null) {
     this.property_1 = config.property_1 += "_HI";
     this.property_2 = 123;
     this.property_3 = config.property_3 || "";
@@ -30,10 +31,4 @@ class PropertiesAccessBase {
 
   property_3:string;
 }
-declare namespace PropertiesAccessBase {
-  export type _ = PropertiesAccessBase_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default PropertiesAccessBase;

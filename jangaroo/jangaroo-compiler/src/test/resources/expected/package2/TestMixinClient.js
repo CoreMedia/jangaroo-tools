@@ -2,8 +2,11 @@
 
 Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*public class TestMixinClient implements ITestMixin {
 
-  public*/ function TestMixinClient$(thing/*:String*/) {
-    this.mix(thing);
+  [ExtConfig]
+  public var thing: String;
+
+  public*/ function TestMixinClient$(config/*: TestMixinClient = null*/) {if(arguments.length<=0)config=null;
+    this.mix(config.thing);
   }/*
 
   /** @inheritDoc * /
@@ -22,6 +25,7 @@ Ext.define("package2.TestMixinClient", function(TestMixinClient) {/*public class
 ============================================== Jangaroo part ==============================================*/
     return {
       mixins: ["package2.TestMixin"],
+      thing: null,
       constructor: TestMixinClient$,
       requires: ["package2.TestMixin"]
     };

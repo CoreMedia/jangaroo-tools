@@ -1,21 +1,21 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast, mixin } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 import SimpleClass from "./SimpleClass";
 import SimpleInterface from "./SimpleInterface";
 import YetAnotherInterface from "./YetAnotherInterface";
-interface InterfaceImplementingMxmlClass_ extends ConfigClass._, Partial<Pick<InterfaceImplementingMxmlClass,
+interface InterfaceImplementingMxmlClassConfig extends Config<ConfigClass>, Partial<Pick<InterfaceImplementingMxmlClass,
   "someProperty"
 >> {
 }
 
 
 class InterfaceImplementingMxmlClass extends ConfigClass implements YetAnotherInterface{
-  declare readonly initialConfig: InterfaceImplementingMxmlClass._;
+  declare Config: InterfaceImplementingMxmlClassConfig;
 
-  constructor(config:InterfaceImplementingMxmlClass._ = null){
-    super( Exml.apply(new InterfaceImplementingMxmlClass._({
-}),config));
+  constructor(config:Config<InterfaceImplementingMxmlClass> = null){
+    super( Exml.apply(Config(InterfaceImplementingMxmlClass),config));
   }
   #someProperty:string;
 
@@ -30,11 +30,5 @@ interface InterfaceImplementingMxmlClass{
   createInstance(o:SimpleInterface):SimpleClass;}
 
 mixin(InterfaceImplementingMxmlClass, YetAnotherInterface);
-
-declare namespace InterfaceImplementingMxmlClass {
-  export type _ = InterfaceImplementingMxmlClass_;
-  export const _: { new(config?: _): _; };
-}
-
 
 export default InterfaceImplementingMxmlClass;

@@ -2,8 +2,11 @@ package package2 {
 
 public class TestMixinClient implements ITestMixin {
 
-  public function TestMixinClient(thing:String) {
-    mix(thing);
+  [ExtConfig]
+  public var thing: String;
+
+  public function TestMixinClient(config: TestMixinClient = null) {
+    mix(config.thing);
   }
 
   /** @inheritDoc */

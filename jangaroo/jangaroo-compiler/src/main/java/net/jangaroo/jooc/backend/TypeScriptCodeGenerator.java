@@ -239,9 +239,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
     }
 
-    if (!compilationUnit.getUsedBuiltInIdentifiers().isEmpty()) {
-      out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
-              String.join(", ", compilationUnit.getUsedBuiltInIdentifiers())));
+    Set<String> localNames = new HashSet<>();
+    Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
+    if (!usedBuiltInIdentifiers.isEmpty()) {
+      localNames.addAll(usedBuiltInIdentifiers);
+      // special case 'Config' is imported from its own ES module:
+      if (usedBuiltInIdentifiers.remove("Config")) {
+        out.write("import Config from \"@jangaroo/runtime/AS3/Config\";\n");
+      }
+      if (!usedBuiltInIdentifiers.isEmpty()) {
+        out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
+                String.join(", ", usedBuiltInIdentifiers)));
+      }
     }
 
     boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
@@ -256,8 +265,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    Set<String> localNames = new HashSet<>();
     localNames.add(primaryLocalName);
+    if (primaryDeclaration instanceof ClassDeclaration
+            && ((ClassDeclaration) primaryDeclaration).hasConfigClass()) {
+      localNames.add(primaryLocalName + "Config");
+    }
 
     // generate imports
     // first pass: detect import local name clashes:
@@ -370,7 +382,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
         configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
       }
-      out.write(String.format("interface %s_%s {\n}\n\n", classDeclarationLocalName, configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
+      out.write(String.format("interface %s%s {\n}\n\n", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
     }
 
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
@@ -431,13 +443,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     if (classDeclaration.isPrimaryDeclaration()) {
       visitAll(classDeclaration.getSecondaryDeclarations());
-
-      if (hasConfigClass) {
-        out.write(String.format("\ndeclare namespace %s {\n", classDeclarationLocalName));
-        out.write(String.format("  export type _ = %s_;\n", classDeclarationLocalName));
-        out.write("  export const _: { new(config?: _): _; };\n");
-        out.write("}\n\n");
-      }
     }
   }
 
@@ -1375,13 +1380,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
     if (applyExpr.isTypeCheckObjectLiteralFunctionCall()) {
       // it is an object literal type check call: transform
-      // __typeCheckObjectLiteral__(type, { O }) -> AS3._<type>({ O })
+      // __typeCheckObjectLiteral__(type, { O }) -> Config<type>({ O })
       CommaSeparatedList<Expr> typeAndObjectLiteral = args.getExpr();
       Expr typeExpr = typeAndObjectLiteral.getHead();
       Expr objectLiteral = typeAndObjectLiteral.getTail().getHead();
       ExpressionType typeParameter = typeExpr.getType().getTypeParameter();
       if (!renderSingleSpreadValue(objectLiteral, typeParameter)) {
-        writeSymbolReplacement(applyExpr.getSymbol(), "_");
+        writeSymbolReplacement(applyExpr.getSymbol(), "Config");
         out.writeToken("<");
         out.write(getTypeScriptTypeForActionScriptType(typeParameter));
         out.writeToken(">");
@@ -1392,12 +1397,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else if (applyExpr.isTypeCast()) {
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
       if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
-        if (isOfConfigType(args.getExpr().getHead())) {
-          // use config factory function instead of the class itself:
-          writeSymbolReplacement(applyExpr.getSymbol(), "new " + compilationUnitAccessCode(declaration) + "._");
-          out.writeSymbol(args.getLParen());
-          if (!renderSingleSpreadValue(args.getExpr().getHead(), applyExpr.getFun().getType().getTypeParameter())) {
-            args.getExpr().getHead().visit(this);
+        Expr firstParameter = args.getExpr().getHead();
+        if (isOfConfigType(firstParameter)) {
+          // use generic Config factory function with the class as first parameter:
+          writeSymbolReplacement(applyExpr.getSymbol(), "Config(" + compilationUnitAccessCode(declaration));
+          if (!(firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null)) {
+            writeSymbolReplacement(args.getLParen(), ", ");
+            if (!renderSingleSpreadValue(firstParameter, applyExpr.getFun().getType().getTypeParameter())) {
+              firstParameter.visit(this);
+            }
           }
           out.writeSymbol(args.getRParen());
           return;
@@ -1489,7 +1497,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // parameter, allows additional untyped properties. So
     //   <Foo u:untyped="foo"/>
     // becomes
-    //   new Foo({ untyped: "foo" } as Foo._)
+    //   new Foo(<Config<Foo>>{ untyped: "foo" })
 
     // If the parameter has a type and the argument is an object literal...
     if (parameterType != null && argument instanceof ObjectLiteral) {
@@ -1497,11 +1505,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
       // ...and the argument object literal only consists of one spread...
       if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
-        // Skip the outer, obsolete object literal, in other words, visit only the inner object:
         writeOptSymbolWhitespace(objectLiteral.getSymbol());
+        // Add a type assertion to match the parameter type:
+        out.write("<" + configType(getTypeScriptTypeForActionScriptType(parameterType.getType())) + ">");
+        // Skip the outer, obsolete object literal, in other words, visit only the inner object:
         ((Spread) fields.getHead()).getArg().visit(this);
-        // ...and insert a type assertion to match the parameter type:
-        out.write(" as " + getTypeScriptTypeForActionScriptType(parameterType));
         return true;
       }
     }
@@ -1868,8 +1876,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return configType(compilationUnitAccessCode(targetClass));
   }
 
-  private static String configType(String targetClass) {
-    return String.format("%s._", targetClass);
+  private String configType(String targetClass) {
+    compilationUnit.addBuiltInIdentifierUsage("Config");
+    return String.format("Config<%s>", targetClass);
   }
 
   private static boolean rewriteThis(Ide ide) {
@@ -1934,9 +1943,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                                       "Still generating a TypeScript Config class, but please fix this.",
                               configParameterType.getType().getIde().getQualifiedNameStr()));
             }
-            ExpressionType configType = new ExpressionType(configClassDeclaration);
-            configType.markAsConfigTypeIfPossible();
-            out.write(String.format("\n  declare readonly initialConfig: %s;", getTypeScriptTypeForActionScriptType(configType)));
+            out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(configClassDeclaration)));
           }
         }
       }

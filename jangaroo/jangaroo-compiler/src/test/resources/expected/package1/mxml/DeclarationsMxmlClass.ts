@@ -1,10 +1,11 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig } from "@jangaroo/runtime/AS3";
 import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 import SomeNativeClass from "../someOtherPackage/SomeNativeClass";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
-interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
+interface DeclarationsMxmlClassConfig extends Partial<Pick<DeclarationsMxmlClass,
   "bar" |
   "num" |
   "empty" |
@@ -16,7 +17,7 @@ interface DeclarationsMxmlClass_ extends Partial<Pick<DeclarationsMxmlClass,
 
 
 class DeclarationsMxmlClass extends SomeNativeClass{
-  declare readonly initialConfig: DeclarationsMxmlClass._;constructor(config:DeclarationsMxmlClass._=null){
+  declare Config: DeclarationsMxmlClassConfig;constructor(config:Config<DeclarationsMxmlClass> =null){
     super();
     this.bar = "BAR!";
     /**
@@ -72,10 +73,4 @@ class DeclarationsMxmlClass extends SomeNativeClass{
 
   get other():SomeOtherClass { return this.#other; }
   set other(value:SomeOtherClass) { this.#other = value; }}
-declare namespace DeclarationsMxmlClass {
-  export type _ = DeclarationsMxmlClass_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default DeclarationsMxmlClass;

@@ -1,15 +1,16 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import CyclicDependencies_1 from "./CyclicDependencies_1";
-interface CyclicDependencies_ extends Partial<Pick<CyclicDependencies,
+interface CyclicDependenciesConfig extends Partial<Pick<CyclicDependencies,
   "cause_trouble"
 >> {
 }
 
 
 class CyclicDependencies extends Object{
-  declare readonly initialConfig: CyclicDependencies._;
+  declare Config: CyclicDependenciesConfig;
 
-  constructor(config:CyclicDependencies._ = null){
+  constructor(config:Config<CyclicDependencies> = null){
     super(); Exml.apply(this,config);
   }
 
@@ -17,10 +18,4 @@ class CyclicDependencies extends Object{
 
   get cause_trouble():CyclicDependencies_1 { return this.#cause_trouble; }
   set cause_trouble(value:CyclicDependencies_1) { this.#cause_trouble = value; }}
-declare namespace CyclicDependencies {
-  export type _ = CyclicDependencies_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default CyclicDependencies;

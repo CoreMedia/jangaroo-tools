@@ -1,22 +1,17 @@
+import Config from "@jangaroo/runtime/AS3/Config";
 import { cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import PropertiesAccessBase from "./PropertiesAccessBase";
-interface PropertiesAccess_ extends PropertiesAccessBase._ {
+interface PropertiesAccessConfig extends Config<PropertiesAccessBase> {
 }
 
 
 class PropertiesAccess extends PropertiesAccessBase{
-  declare readonly initialConfig: PropertiesAccess._;constructor(config:PropertiesAccess._=null){
-    super( Exml.apply(new PropertiesAccess._({
+  declare Config: PropertiesAccessConfig;constructor(config:Config<PropertiesAccess> =null){
+    super( Exml.apply(Config(PropertiesAccess, {
         property_1: "egal",
         property_2: "egaler",
         property_3: "am egalsten"
 }),config));
 }}
-declare namespace PropertiesAccess {
-  export type _ = PropertiesAccess_;
-  export const _: { new(config?: _): _; };
-}
-
-
 export default PropertiesAccess;
