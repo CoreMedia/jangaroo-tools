@@ -1506,8 +1506,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // ...and the argument object literal only consists of one spread...
       if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
         writeOptSymbolWhitespace(objectLiteral.getSymbol());
-        // Add a type assertion to match the parameter type:
-        out.write("<" + configType(getTypeScriptTypeForActionScriptType(parameterType.getType())) + ">");
+        // Add a type assertion to match the parameter type (as Config type):
+        parameterType.markAsConfigTypeIfPossible();
+        out.write("<" + getTypeScriptTypeForActionScriptType(parameterType) + ">");
         // Skip the outer, obsolete object literal, in other words, visit only the inner object:
         ((Spread) fields.getHead()).getArg().visit(this);
         return true;
