@@ -301,11 +301,22 @@ final class MxmlToModelParser {
     return null;
   }
 
-  private static String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
+  private String getConfigMode(XmlElement element, TypedIdeDeclaration propertyModel) {
     if (hasArrayLikeType(propertyModel)) {
-      String configMode = element.getAttributeNS(EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
-      if (!configMode.isEmpty()) {
-        return configMode;
+      XmlAttribute configModeAttribute = element.getAttribute(EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
+      if (configModeAttribute != null) {
+        String configMode = (String) configModeAttribute.getValue().getJooValue();
+        if (!configMode.isEmpty()) {
+          if ("plugins".equals(propertyModel.getName()) && element.getParentNode().getParentNode() instanceof XmlElement
+                  && "rules".equals(((XmlElement) element.getParentNode().getParentNode()).getName())) {
+            jangarooParser.getLog().warning(configModeAttribute.getSymbol(), String.format(
+                    "Ignoring exml:mode=\"%s\" of <plugins> element inside <rules>, as plugin rules always append the given plugins.",
+                    configMode
+            ));
+            return "";
+          }
+          return configMode;
+        }
       }
       Annotation extConfigAnnotation = propertyModel.getAnnotation(Jooc.EXT_CONFIG_ANNOTATION_NAME);
       if (extConfigAnnotation != null) {

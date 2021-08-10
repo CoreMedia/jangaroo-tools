@@ -124,6 +124,10 @@ public class XmlElement extends NodeImplBase {
     return openingMxmlTag.getAttribute(name);
   }
 
+  XmlAttribute getAttribute(String namespaceUri, String localName) {
+    return openingMxmlTag.getAttribute(namespaceUri, localName);
+  }
+
   public String getLocalName() {
     return openingMxmlTag.getLocalName();
   }
@@ -143,11 +147,4 @@ public class XmlElement extends NodeImplBase {
     return null;
   }
 
-  /**
-   * @see Element#getAttributeNS(String, String)
-   */
-  String getAttributeNS(String namespaceUri, String localName) {
-    XmlAttribute attribute = openingMxmlTag.getAttribute(namespaceUri, localName);
-    return null != attribute ? (String) attribute.getValue().getJooValue() : "";
-  }
 }
