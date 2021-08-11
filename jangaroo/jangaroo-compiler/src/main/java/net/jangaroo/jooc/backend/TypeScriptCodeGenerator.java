@@ -203,16 +203,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   protected void writeModifiers(IdeDeclaration declaration) throws IOException {
-    boolean isPrimaryDeclaration = declaration.isPrimaryDeclaration();
-    for (JooSymbol modifier : declaration.getSymModifiers()) {
-      if (!isPrimaryDeclaration && !companionInterfaceMode) {
-        if (modifier.sym == sym.PROTECTED
-                || modifier.sym == sym.IDE &&
-                (SyntacticKeywords.STATIC.equals(modifier.getText())
-//                        || SyntacticKeywords.OVERRIDE.equals(modifier.getText())
-                )) {
-          out.writeSymbol(modifier);
-        }
+    if (!companionInterfaceMode && declaration.isClassMember()) {
+      // Generate in strict order required by TypeScript: protected -> static -> override
+
+      // Relevant whitespace has already been processed in TypeScript mode, so just use the tokens
+      if (declaration.isProtected()) {
+        out.writeToken("protected");
+      }
+      if (declaration.isStatic() && !(declaration instanceof ClassDeclaration)) {
+        out.writeToken(SyntacticKeywords.STATIC);
+      }
+      if (declaration.getSuperDeclaration() != null) {
+        out.writeToken(SyntacticKeywords.OVERRIDE);
       }
     }
   }
@@ -794,7 +796,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           String accessor = currentVariableDeclaration.getName();
 
           visitDeclarationAnnotationsAndModifiers(variableDeclaration);
-          out.write(String.format("get %s()", accessor));
+          out.writeToken("get");
+          out.write(" " + accessor + "()");
           visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
           out.write(String.format(" { return this.#%s; }", accessor));
 
@@ -803,6 +806,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           TypedIdeDeclaration setMethodDeclaration = classDeclaration.getMemberDeclaration(setMethodName);
           if (setMethodDeclaration == null || setMethodDeclaration.isPrivate()) {
             out.write("\n  ");
+            if (currentVariableDeclaration.getSuperDeclaration() != null) {
+              out.write("override ");
+            }
             out.write(String.format("set %s(value", accessor));
             visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
             out.write(String.format(") { this.#%s = value; }", accessor));

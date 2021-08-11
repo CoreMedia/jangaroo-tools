@@ -227,10 +227,31 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public IdeDeclaration getSuperDeclaration() {
-    if (isClassMember()) {
-      ClassDeclaration superTypeDeclaration = getClassDeclaration().getSuperTypeDeclaration();
-      if (superTypeDeclaration != null) {
-        return superTypeDeclaration.resolvePropertyDeclaration(getIde().getName(), isStatic());
+    if (isClassMember() && !isPrivate()) {
+      ClassDeclaration classDeclaration = getClassDeclaration();
+      if (classDeclaration != null) {
+        ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+        if (superTypeDeclaration != null) {
+          IdeDeclaration ideDeclaration = superTypeDeclaration.resolvePropertyDeclaration(getIde().getName(), isStatic());
+          if (ideDeclaration != null && !ideDeclaration.isPrivate()) {
+            // do we override an 'Object' member?
+            if (ideDeclaration.getClassDeclaration().isObject()) {
+              ClassDeclaration currentClassDeclaration = classDeclaration;
+              if (isStatic()) {
+                // if we override a static 'Object' member, determine our top superclass that is not 'Object':
+                while (!currentClassDeclaration.getSuperTypeDeclaration().isObject()) {
+                  currentClassDeclaration = currentClassDeclaration.getSuperTypeDeclaration();
+                }
+              } // instance members only need no 'override' modifier if the class itself does not extend anything
+              // does the relevant class only implicitly extend Object?
+              if (currentClassDeclaration.getOptExtends() == null) {
+                // ... then in TypeScript, this member is not inherited, so ignore this declaration:
+                return null;
+              }
+            }
+            return ideDeclaration;
+          }
+        }
       }
     }
     return null;

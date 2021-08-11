@@ -13,7 +13,7 @@ class SuperCallParameters extends ManyConstructorParameters {
     }
   }
 
-  isEmpty(str:string):boolean {
+  override isEmpty(str:string):boolean {
     return super.isEmpty(str);
   }
 }
