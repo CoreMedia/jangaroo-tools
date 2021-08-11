@@ -225,4 +225,14 @@ public abstract class IdeDeclaration extends Declaration {
     AstNode parentDeclaration = getParentDeclaration();
     return parentDeclaration instanceof IdeDeclaration ? ((IdeDeclaration)parentDeclaration).getPackageDeclaration() : null;
   }
+
+  public IdeDeclaration getSuperDeclaration() {
+    if (isClassMember()) {
+      ClassDeclaration superTypeDeclaration = getClassDeclaration().getSuperTypeDeclaration();
+      if (superTypeDeclaration != null) {
+        return superTypeDeclaration.resolvePropertyDeclaration(getIde().getName(), isStatic());
+      }
+    }
+    return null;
+  }
 }

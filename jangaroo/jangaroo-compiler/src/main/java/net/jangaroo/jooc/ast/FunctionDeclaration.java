@@ -212,11 +212,8 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
     fun.analyze(this);
 
     if (isOverride()) {
-      IdeDeclaration superDeclaration = getClassDeclaration().getSuperTypeDeclaration().resolvePropertyDeclaration(getIde().getName(), isStatic());
+      IdeDeclaration superDeclaration = getSuperDeclaration();
       CompileLog log = getIde().getScope().getCompiler().getLog();
-      if (superDeclaration instanceof PropertyDeclaration) {
-        superDeclaration = ((PropertyDeclaration) superDeclaration).getAccessor(isSetter());
-      }
       if (!(superDeclaration instanceof FunctionDeclaration)) {
         log.error(getFun().getSymbol(), "Method does not override method from super class");
       } else {
@@ -312,6 +309,15 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   @Override
   public boolean isExtConfig() {
     return false; // an accessor itself is never a config; only a PropertyDeclaration comprised of accessors may be one
+  }
+
+  @Override
+  public IdeDeclaration getSuperDeclaration() {
+    IdeDeclaration superDeclaration = super.getSuperDeclaration();
+    if (superDeclaration instanceof PropertyDeclaration) {
+      superDeclaration = ((PropertyDeclaration) superDeclaration).getAccessor(isSetter());
+    }
+    return superDeclaration;
   }
 
   @Override
