@@ -3,7 +3,7 @@
 /**
  * Irrelevant implementation comment.
  */
-Ext.define("package2.TestMixin", function(TestMixin) {/*public class TestMixin implements ITestMixin {
+Ext.define("package2.TestMixin", function(TestMixin) {/*public class TestMixin extends Base implements ITestMixin {
 
   /** @inheritDoc * /
   [Bindable]
@@ -23,14 +23,19 @@ Ext.define("package2.TestMixin", function(TestMixin) {/*public class TestMixin i
   public*/ function mix(thing/*:String*/)/*:String*/ {
     return "Mixed " + thing + "!";
   }/*
-}
+}*/function TestMixin$() {this.super$6qGj();}/*
 }
 
 ============================================== Jangaroo part ==============================================*/
     return {
+      extend: "Ext.Base",
       getFoo: get$foo,
       setFoo: set$foo,
       mix: mix,
+      super$6qGj: function() {
+        Ext.Base.prototype.constructor.apply(this, arguments);
+      },
+      constructor: TestMixin$,
       config: {foo: undefined}
     };
 });

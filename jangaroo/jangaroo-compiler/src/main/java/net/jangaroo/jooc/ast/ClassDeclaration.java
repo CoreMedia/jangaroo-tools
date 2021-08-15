@@ -1,15 +1,15 @@
 /*
  * Copyright 2008 CoreMedia AG
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS
- * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
- * express or implied. See the License for the specific language 
+ * IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -204,10 +204,10 @@ public class ClassDeclaration extends TypeDeclaration {
   }
 
   private void fixDefaultSuperClass() {
-    // several plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
+    // several mixins and plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
     // system defined by ext.Base, so patch "extends ext.Base" in:
     if (optExtends == null && optImplements != null
-            && "Plugin".equals(optImplements.getSuperTypes().getHead().getName())) {
+            && ("Plugin".equals(optImplements.getSuperTypes().getHead().getName()) || getSuperTypeDeclarations().stream().anyMatch(ClassDeclaration::isMixin))) {
       QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
       new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
       JooSymbol extendsSymbol = new JooSymbol(sym.EXTENDS, "<generated>", -1, -1, " ", "extends");

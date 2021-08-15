@@ -1,4 +1,6 @@
-interface TestMixinConfig extends Partial<Pick<TestMixin,
+import Config from "@jangaroo/runtime/AS3/Config";
+import Base from "../Ext/Base";
+interface TestMixinConfig extends Config<Base>, Partial<Pick<TestMixin,
   "foo"
 >> {
 }
@@ -7,7 +9,7 @@ interface TestMixinConfig extends Partial<Pick<TestMixin,
 /**
  * This is a test mixin.
  */
-class TestMixin {
+class TestMixin extends Base {
   declare Config: TestMixinConfig;
   /**
    * An accessor.
