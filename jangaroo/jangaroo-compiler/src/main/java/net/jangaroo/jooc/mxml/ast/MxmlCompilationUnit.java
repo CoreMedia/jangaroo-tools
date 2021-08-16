@@ -81,6 +81,10 @@ public class MxmlCompilationUnit extends CompilationUnit {
     classQName = CompilerUtils.qNameFromRelativePath(source.getRelativePath());
   }
 
+  public static boolean isValidConfigMode(String configMode) {
+    return configMode.equals("append") || configMode.equals("prepend");
+  }
+
   @Override
   public void scope(Scope scope) {
     packageDeclaration = mxmlParserHelper.parsePackageDeclaration(classQName);

@@ -48,6 +48,7 @@ import java.util.Map;
 
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.isValidConfigMode;
 
 final class MxmlToModelParser {
 
@@ -306,7 +307,7 @@ final class MxmlToModelParser {
       XmlAttribute configModeAttribute = element.getAttribute(EXML_NAMESPACE_URI, CONFIG_MODE_ATTRIBUTE_NAME);
       if (configModeAttribute != null) {
         String configMode = (String) configModeAttribute.getValue().getJooValue();
-        if (!configMode.isEmpty()) {
+        if (isValidConfigMode(configMode)) {
           if ("plugins".equals(propertyModel.getName()) && element.getParentNode().getParentNode() instanceof XmlElement
                   && "rules".equals(((XmlElement) element.getParentNode().getParentNode()).getName())) {
             jangarooParser.getLog().warning(configModeAttribute.getSymbol(), String.format(
@@ -328,7 +329,7 @@ final class MxmlToModelParser {
             if (value instanceof LiteralExpr) {
               Object jooValue = value.getSymbol().getJooValue();
               if (jooValue instanceof String) {
-                return (String) jooValue;
+                return isValidConfigMode((String) jooValue) ? (String) jooValue : null;
               }
             }
           }

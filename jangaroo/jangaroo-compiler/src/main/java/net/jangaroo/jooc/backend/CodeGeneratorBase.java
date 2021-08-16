@@ -100,6 +100,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.isValidConfigMode;
+
 public abstract class CodeGeneratorBase implements AstVisitor {
   protected static final String PROPERTY_CLASS_INSTANCE = "INSTANCE";
   protected final CompilationUnitResolver compilationUnitModelResolver;
@@ -456,7 +458,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       if (applyExpr.getFun() instanceof DotExpr) {
         DotExpr dotExpr = (DotExpr) applyExpr.getFun();
         String methodName = dotExpr.getIde().getName();
-        if ((methodName.equals("append") || methodName.equals("prepend"))
+        if (isValidConfigMode(methodName)
                 && MxmlCompilationUnit.NET_JANGAROO_EXT_EXML.equals(getArgFQN(dotExpr))) {
           return dotExpr;
         }
