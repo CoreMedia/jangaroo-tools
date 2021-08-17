@@ -23,11 +23,16 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
 import net.jangaroo.utils.AS3Type;
+import net.jangaroo.utils.CompilerUtils;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Andreas Gawecki
@@ -203,15 +207,31 @@ public class ClassDeclaration extends TypeDeclaration {
     });
   }
 
+  private boolean hasAssociatedScssFile() {
+    JoocConfiguration joocConfiguration = (JoocConfiguration) scope.getCompiler().getConfig();
+
+    for (String sassSourceSubFolderName : joocConfiguration.getSassSourceFilesByType().keySet()) {
+      File sassSourceSubFolder = joocConfiguration.getSassSourcePathByType().get(sassSourceSubFolderName);
+      Path associatedScssFilePath = Paths.get(sassSourceSubFolder.getPath(), CompilerUtils.fileNameFromQName(getQualifiedNameStr(), File.separatorChar, net.jangaroo.jooc.api.Jooc.SCSS_SUFFIX));
+      if (joocConfiguration.getSassSourceFilesByType().get(sassSourceSubFolderName).stream().anyMatch(
+              file -> file.toPath().equals(associatedScssFilePath)
+      )) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void fixDefaultSuperClass() {
     // several mixins and plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
     // system defined by ext.Base, so patch "extends ext.Base" in:
-    if (optExtends == null && optImplements != null
-            && ("Plugin".equals(optImplements.getSuperTypes().getHead().getName()) || getSuperTypeDeclarations().stream().anyMatch(ClassDeclaration::isMixin))) {
-      QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
-      new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
-      JooSymbol extendsSymbol = new JooSymbol(sym.EXTENDS, "<generated>", -1, -1, " ", "extends");
-      optExtends = new Extends(extendsSymbol, extDotBase);
+    if (optExtends == null) {
+      if ((optImplements != null && ("Plugin".equals(optImplements.getSuperTypes().getHead().getName()) || getSuperTypeDeclarations().stream().anyMatch(ClassDeclaration::isMixin))) || hasAssociatedScssFile()) {
+        QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
+        new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
+        JooSymbol extendsSymbol = new JooSymbol(sym.EXTENDS, "<generated>", -1, -1, " ", "extends");
+        optExtends = new Extends(extendsSymbol, extDotBase);
+      }
     }
   }
 
