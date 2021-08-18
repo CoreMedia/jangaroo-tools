@@ -338,7 +338,7 @@ public class ClassDeclaration extends TypeDeclaration {
     return null;
   }
 
-  public TypeDeclaration getConfigClassDeclaration() {
+  public ClassDeclaration getConfigClassDeclaration() {
     // special cases: ext.Base and all Mixin implementations use Ext Config system, although
     // they don't have the corresponding constructor
     if ("ext.Base".equals(getQualifiedNameStr()) || isMixin()) {
@@ -349,13 +349,14 @@ public class ClassDeclaration extends TypeDeclaration {
       return null;
     }
     TypeDeclaration declaration =  configParameterType.getType().getDeclaration();
-    return equals(declaration) || equals(declaration.getSuperTypeDeclaration()) || inheritsFromExtBaseExplicitly()
-            ? declaration  // use given Config type, even if incorrect
+    return declaration instanceof ClassDeclaration && !((ClassDeclaration) declaration).isInterface() &&
+            (equals(declaration) || equals(declaration.getSuperTypeDeclaration()) || inheritsFromExtBaseExplicitly())
+            ? (ClassDeclaration) declaration  // use given Config type, if Ext class, even an incorrect one
             : null;  // has no Config type
   }
 
   // check whether this class explicitly inherits from ext.Base, which is a prerequisite to using the Config system
-  private boolean inheritsFromExtBaseExplicitly() {
+  public boolean inheritsFromExtBaseExplicitly() {
     for (ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
          superTypeDeclaration != null;
          superTypeDeclaration = superTypeDeclaration.getSuperTypeDeclaration()) {

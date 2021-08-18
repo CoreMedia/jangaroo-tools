@@ -1402,16 +1402,44 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } else if (applyExpr.isTypeCast()) {
       IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration();
-      if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).hasConfigClass()) {
+      if (declaration instanceof ClassDeclaration) {
+        ClassDeclaration castToClass = (ClassDeclaration) declaration;
         Expr firstParameter = args.getExpr().getHead();
-        if (isOfConfigType(firstParameter)) {
-          // use generic Config factory function with the class as first parameter:
-          writeSymbolReplacement(applyExpr.getSymbol(), "Config(" + compilationUnitAccessCode(declaration));
-          if (!(firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null)) {
-            writeSymbolReplacement(args.getLParen(), ", ");
-            if (!renderSingleSpreadValue(firstParameter, applyExpr.getFun().getType().getTypeParameter())) {
-              firstParameter.visit(this);
+        boolean isExtConfig = castToClass.inheritsFromExtBaseExplicitly();
+        if (!castToClass.hasConfigClass() && !isExtConfig
+                && firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null) {
+          // Found a cast of an empty object literal into a non-config, non-Ext class.
+          // This has been used in Jangaroo-ActionScript to construct simple, typed objects that do *not*
+          // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can simply construct them using
+          //    new Clazz()
+          out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
+          out.writeToken("new");
+          applyExpr.getFun().visit(this);
+          out.writeSymbol(args.getLParen());
+          out.writeSymbol(args.getRParen());
+          return;
+        }
+        if (isOfConfigType(firstParameter) && castToClass.hasConfigClass()) {
+          writeSymbolReplacement(applyExpr.getSymbol(), "Config");
+          if (!isExtConfig) {
+            out.write("<" + compilationUnitAccessCode(declaration) + ">");
+            out.writeSymbolWhitespace(args.getLParen());
+          }
+          out.write("(");
+          boolean doRenderArg = true;
+          if (isExtConfig) {
+            // use generic Config factory function with the class as first parameter:
+            out.write(compilationUnitAccessCode(declaration));
+            if (firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null) {
+              // suppress second parameter if it is just an empty object:
+              doRenderArg = false;
+            } else {
+              writeSymbolReplacement(args.getLParen(), ", ");
             }
+          }
+          if (doRenderArg &&
+                  !renderSingleSpreadValue(firstParameter, applyExpr.getFun().getType().getTypeParameter())) {
+            firstParameter.visit(this);
           }
           out.writeSymbol(args.getRParen());
           return;
