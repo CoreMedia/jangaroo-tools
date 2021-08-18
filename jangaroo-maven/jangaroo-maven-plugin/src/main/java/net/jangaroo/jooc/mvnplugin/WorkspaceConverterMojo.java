@@ -3,6 +3,7 @@ package net.jangaroo.jooc.mvnplugin;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Lists;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
@@ -281,7 +282,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
       jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
       jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
-      jangarooConfig.setGlobalResourcesMap(globalResourcesMap);
+      if (globalResourcesMap != null && globalResourcesMap.size() > 0) {
+        jangarooConfig.setAutoLoad(Lists.newArrayList("./src/packageConfig"));
+      }
       if (testSuite != null) {
         String testSuiteImport;
         File testSourceDir = Paths.get(project.getBasedir().getPath(), "target", "test-classes", "src").toFile();

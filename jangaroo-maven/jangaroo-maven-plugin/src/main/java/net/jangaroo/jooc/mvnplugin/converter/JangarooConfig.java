@@ -20,7 +20,7 @@ public class JangarooConfig {
   private List<String> additionalCssNonBundle;
   private List<String> additionalJsIncludeInBundle;
   private List<String> additionalJsNonBundle;
-  private Map<String, String> globalResourcesMap;
+  private List<String> autoLoad;
   private Map<String, Map<String, Object>> command;
 
   public JangarooConfig() {
@@ -173,12 +173,12 @@ public class JangarooConfig {
     this.additionalJsNonBundle = additionalJsNonBundle;
   }
 
-  public Map<String, String> getGlobalResourcesMap() {
-    return globalResourcesMap;
+  public List<String> getAutoLoad() {
+    return autoLoad;
   }
 
-  public void setGlobalResourcesMap(Map<String, String> globalResourcesMap) {
-    this.globalResourcesMap = globalResourcesMap;
+  public void setAutoLoad(List<String> autoLoad) {
+    this.autoLoad = autoLoad;
   }
 
   public Map<String, Map<String, Object>> getCommand() {
