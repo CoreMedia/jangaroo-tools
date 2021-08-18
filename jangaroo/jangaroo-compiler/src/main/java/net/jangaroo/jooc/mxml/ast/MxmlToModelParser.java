@@ -383,7 +383,7 @@ final class MxmlToModelParser {
   }
 
   private static boolean hasArrayLikeType(TypedIdeDeclaration propertyModel) {
-    return propertyModel.getIde().getScope().getExpressionType(propertyModel.getOptTypeRelation()).isArrayLike();
+    return propertyModel.getIde().getScope() != null && propertyModel.getIde().getScope().getExpressionType(propertyModel.getOptTypeRelation()).isArrayLike();
   }
 
   private Expr createArrayExprFromChildElements(List<XmlElement> childElements, boolean forceArray, Boolean useConfigObjects) {
