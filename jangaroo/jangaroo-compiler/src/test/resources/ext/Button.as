@@ -1,9 +1,9 @@
-package ext.config {
+package ext {
+import ext.Component;
 
-[ExtConfig(target="ext.Button", xtype="button")]
-public class button extends component {
+public class Button extends Component {
 
-  public function button(config:Object = null) {
+  public function Button(config:Object = null) {
   }
 
   /**

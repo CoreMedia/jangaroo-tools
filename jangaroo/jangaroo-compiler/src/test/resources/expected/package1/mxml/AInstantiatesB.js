@@ -8,7 +8,7 @@ Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public cl
     this.super$2Olv(net.jangaroo.ext.Exml.apply(AS3.cast(AInstantiatesB,{
 
   items:[
-    new package1.mxml.BDeclaresA({ someProperty: "yes"})
+    AS3.cast(package1.mxml.BDeclaresA,{ someProperty: "yes"})
   ]
 }),config));
   }/*}}

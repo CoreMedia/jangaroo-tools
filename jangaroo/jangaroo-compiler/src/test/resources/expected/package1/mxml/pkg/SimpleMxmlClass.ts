@@ -1,16 +1,16 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import { cast } from "@jangaroo/runtime/AS3";
-import panel from "../../../ext/config/panel";
+import Panel from "../../../ext/Panel";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import package1_mxml_SimpleMxmlClass from "../SimpleMxmlClass";
-interface SimpleMxmlClassConfig {
+interface SimpleMxmlClassConfig extends Config<Panel> {
 }
 
 
 /**
  * Created by fwienber on 22.02.2021.
  */
-class SimpleMxmlClass extends panel{
+class SimpleMxmlClass extends Panel{
   declare Config: SimpleMxmlClassConfig;
 
   static readonly xtype:string = "testNamespace.pkg.config.simpleMxmlClass";

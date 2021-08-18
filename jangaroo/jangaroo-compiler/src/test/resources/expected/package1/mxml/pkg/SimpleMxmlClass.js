@@ -1,10 +1,10 @@
 /*package package1.mxml.pkg{
-import ext.config.*;
+import ext.*;
 import net.jangaroo.ext.Exml;*/
 /**
  * Created by fwienber on 22.02.2021.
  */
-Ext.define("package1.mxml.pkg.SimpleMxmlClass", function(SimpleMxmlClass) {/*public class SimpleMxmlClass extends panel{
+Ext.define("package1.mxml.pkg.SimpleMxmlClass", function(SimpleMxmlClass) {/*public class SimpleMxmlClass extends Panel{
 
         import package1.mxml.SimpleMxmlClass;
 
@@ -19,13 +19,13 @@ Ext.define("package1.mxml.pkg.SimpleMxmlClass", function(SimpleMxmlClass) {/*pub
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.config.panel",
+      extend: "ext.Panel",
       alias: "widget.testNamespace.pkg.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
       super$S4cv: function() {
-        ext.config.panel.prototype.constructor.apply(this, arguments);
+        ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.config.panel"],
+      requires: ["ext.Panel"],
       uses: [
         "net.jangaroo.ext.Exml",
         "package1.mxml.SimpleMxmlClass"

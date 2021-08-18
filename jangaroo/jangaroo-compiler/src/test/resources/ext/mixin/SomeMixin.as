@@ -1,9 +1,11 @@
-package ext.config {
+package ext.mixin {
 
-[ExtConfig(target="ext.layout.borderlayout.Region")]
-public class someMixin {
+import ext.Base;
 
-  public function someMixin(config:Object = null) {
+[ExtConfig]
+public class SomeMixin extends Base {
+
+  public function SomeMixin(config:Object = null) {
     super(config);
   }
 

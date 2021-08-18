@@ -1,7 +1,8 @@
 package package1.mxml.pkg {
+import ext.Component;
 
 
-public class TestComponentBase implements TestInterface {
+public class TestComponentBase extends Component implements TestInterface {
 
   public static const DEFAULT:String = "_DEFAULT_";
 
@@ -12,6 +13,7 @@ public class TestComponentBase implements TestInterface {
   private var property_2:int;
 
   public function TestComponentBase(config:TestComponent = null) {
+    super(config);
     this.property_1 = config.property_1 + "_HI";
     this.property_2 = config.property_2 || 0;
   }

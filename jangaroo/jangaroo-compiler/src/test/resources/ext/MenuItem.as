@@ -1,9 +1,8 @@
-package ext.config {
+package ext {
 
-[ExtConfig(target="ext.MenuItem", xtype="menuitem")]
-public class menuitem {
+public class MenuItem extends Component {
 
-  public function menuitem(config:Object = null) {
+  public function MenuItem(config:Object = null) {
   }
 
   /**

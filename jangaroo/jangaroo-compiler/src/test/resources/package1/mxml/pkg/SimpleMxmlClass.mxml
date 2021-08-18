@@ -2,9 +2,9 @@
 <!---
  Created by fwienber on 22.02.2021.
 -->
-<panel
+<Panel
         xmlns:fx="http://ns.adobe.com/mxml/2009"
-        xmlns="ext.config.*"
+        xmlns="ext.*"
         title="{package1.mxml.SimpleMxmlClass.xtype}">
     <fx:Script><![CDATA[
         import package1.mxml.SimpleMxmlClass;
@@ -16,4 +16,4 @@
         public native function SimpleMxmlClass(config:SimpleMxmlClass = null);
         ]]></fx:Script>
 
-</panel>
+</Panel>

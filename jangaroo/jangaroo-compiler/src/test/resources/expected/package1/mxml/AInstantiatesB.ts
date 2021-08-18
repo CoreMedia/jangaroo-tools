@@ -14,7 +14,7 @@ class AInstantiatesB extends Panel{
     super( Exml.apply(Config(AInstantiatesB, {
 
   items:[
-    new BDeclaresA({ someProperty: "yes"})
+    Config(BDeclaresA, { someProperty: "yes"})
   ]
 }),config));
   }}

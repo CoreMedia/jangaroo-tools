@@ -1,7 +1,17 @@
 package ext {
 
 [Native]
-public class Action {
+public class Action extends Base {
+
+  /**
+   True to disable all components using this action, false to enable them (defaults to false).
+   */
+  public native function get disabled():Boolean;
+
+  /**
+   * @private
+   */
+  public native function set disabled(value:Boolean):void;
 
   /**
    *

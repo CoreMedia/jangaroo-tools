@@ -89,7 +89,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     String expected = "Could not resolve class from MXML node <foo:UnknownClass/>";
     assertTrue("Expected error (cannot resolve class) did not occur",
             testLog.hasError(expected));
-    assertErrorAt(expected, 14, 7);
+    assertErrorAt(expected, 13, 7);
   }
 
   @Test
@@ -108,10 +108,10 @@ public class JoocMxmlTest extends AbstractJoocTest {
     File sourceFile = getFile("/package1/mxml/UndefinedType.mxml");
     config.addSourceFile(sourceFile);
     jooc.run();
-    String expected = "Undefined type: ext.config.UnknownClass";
+    String expected = "Undefined type: ext.UnknownClass";
     assertTrue("Expected error (undefined type) did not occur",
             testLog.hasError(expected));
-    assertErrorAt(expected, 12, 7);
+    assertErrorAt(expected, 11, 7);
   }
 
   @Test
@@ -124,10 +124,10 @@ public class JoocMxmlTest extends AbstractJoocTest {
             testLog.hasError(expected));
     assertErrorAt(expected, 4, 86);
 
-    String expected2 = "Undefined type: ext.config.UnknownClass";
+    String expected2 = "Undefined type: ext.UnknownClass";
     assertTrue("Expected error (undefined type) did not occur",
             testLog.hasError(expected2));
-    assertErrorAt(expected2, 12, 7);
+    assertErrorAt(expected2, 11, 7);
   }
 
   @Test
@@ -184,7 +184,7 @@ public class JoocMxmlTest extends AbstractJoocTest {
     assertTrue("Expected error (Unexpected text inside MXML element: 'Blablabla'.) did not occur",
             testLog.hasError("Unexpected text inside MXML element: 'Blablabla'."));
 
-    assertErrorAt("Unexpected text inside MXML element: 'Blablabla'.", 8, 30);
+    assertErrorAt("Unexpected text inside MXML element: 'Blablabla'.", 7, 30);
   }
 
   @Test

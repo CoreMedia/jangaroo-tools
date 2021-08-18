@@ -3,14 +3,14 @@ import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import allElements from "../exmlparser/config/allElements";
+import Button from "../ext/Button";
+import MenuItem from "../ext/MenuItem";
 import MessageBox from "../ext/MessageBox";
-import aplugin from "../ext/config/aplugin";
-import button from "../ext/config/button";
-import menuitem from "../ext/config/menuitem";
-import panel from "../ext/config/panel";
-import someMixin from "../ext/config/someMixin";
+import Panel from "../ext/Panel";
+import SomeMixin from "../ext/mixin/SomeMixin";
+import APlugin from "../ext/plugins/APlugin";
 import Exml from "../net/jangaroo/ext/Exml";
-interface AllElementsConfig extends Partial<Pick<AllElements,
+interface AllElementsConfig extends Config<Panel>, Partial<Pick<AllElements,
   "gear"
 >> {
 }
@@ -19,7 +19,7 @@ interface AllElementsConfig extends Partial<Pick<AllElements,
 /**
  * This is my <b>TestComponent</b>
  */
-class AllElements extends panel{
+class AllElements extends Panel{
   declare Config: AllElementsConfig;
 
     /**
@@ -35,7 +35,7 @@ class AllElements extends panel{
   #myProperty:any;
   #myVar:string = null;
   #myVar2:any = null;
-  #myVar3:button = null;
+  #myVar3:Button = null;
   #myVar4:Array<any> = null;
 
   #__initialize__(config:Config<AllElements>):void {
@@ -48,7 +48,7 @@ class AllElements extends panel{
   constructor(config:Config<AllElements> = null){
     super((()=>{this.#__initialize__(config);
   
-    this.#myVar3 = new button({
+    this.#myVar3 = new Button({
             text: "Foo"});
   
     this.#myVar4 =[
@@ -57,13 +57,13 @@ class AllElements extends panel{
     ];
     return  Exml.apply(Config(AllElements, {
            title: "I am a panel",
-           layout: Exml.asString( config.#myProperty),
+           layout: config.#myProperty,
 
     /* define some attributes through a typed mixin: */
     mixins:[
-      cast(someMixin,{
+      Config(SomeMixin, {
         ...Exml.append({someList: [
-          cast(button,{ text: "click me!", id: "myId",
+          Config(Button, { text: "click me!", id: "myId",
             baseAction: new ext.Action({
             })
           })
@@ -79,7 +79,7 @@ class AllElements extends panel{
     items:{xtype:"testAll", ...}
      */
     items:[
-      cast(button,{ text: "Save",
+      Config(Button, { text: "Save",
         handler: ():void => 
           MessageBox.alert("gotcha!")
         
@@ -96,9 +96,9 @@ class AllElements extends panel{
     ]
      */
     menu:[
-      cast(menuitem,{ text: "juhu1"}),
-      cast(menuitem,{ text: "juhu2"}),
-      cast(menuitem,{ text: "juhu3"})
+      Config(MenuItem, { text: "juhu1"}),
+      Config(MenuItem, { text: "juhu2"}),
+      Config(MenuItem, { text: "juhu3"})
     ],
 
     tools:[
@@ -114,8 +114,8 @@ class AllElements extends panel{
     ],
 
     plugins:[
-      cast(aplugin,{}),
-      cast(aplugin,{})
+      Config(APlugin),
+      Config(APlugin)
     ]
 
 }),config);})());

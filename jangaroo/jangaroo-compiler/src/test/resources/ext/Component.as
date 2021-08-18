@@ -1,10 +1,10 @@
-package ext.config {
-import ext.Action;
+package ext {
+import ext.mixin.Observable;
 
-[ExtConfig(target="ext.Component", xtype="component")]
-public class component {
+[ExtConfig]
+public class Component extends Observable {
 
-  public function component(config:Object = null) {
+  public function Component(config:Object = null) {
   }
 
   /**

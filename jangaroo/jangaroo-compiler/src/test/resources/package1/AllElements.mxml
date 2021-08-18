@@ -2,12 +2,13 @@
 <!---
  This is my <b>TestComponent</b>
 -->
-<panel
+<Panel
            xmlns:fx="http://ns.adobe.com/mxml/2009"
 
-           xmlns="ext.config.*"
+           xmlns="ext.*"
            xmlns:cfg="exmlparser.config.*"
-           xmlns:ext="ext.*"
+           xmlns:mixin="ext.mixin.*"
+           xmlns:plugins="ext.plugins.*"
            title="I am a panel"
            layout="{config.myProperty}">
 
@@ -33,7 +34,7 @@
     private var myProperty:*;
     private var myVar:String;
     private var myVar2:Object;
-    private var myVar3:button;
+    private var myVar3:Button;
     private var myVar4:Array;
 
     private function __initialize__(config:AllElements):void {
@@ -51,7 +52,7 @@
       <cfg:myPropertyWithDescription>false</cfg:myPropertyWithDescription>
     </cfg:allElements>
   
-    <button id="myVar3"
+    <Button id="myVar3"
             text="Foo"/>
   
     <fx:Array id="myVar4">
@@ -62,15 +63,15 @@
 
     <!-- define some attributes through a typed mixin: -->
     <mixins>
-      <someMixin>
-        <someList>
-          <button text="click me!" extId="myId">
+      <mixin:SomeMixin>
+        <mixin:someList>
+          <Button text="click me!" extId="myId">
             <baseAction>
-              <ext:Action/>
+              <Action/>
             </baseAction>
-          </button>
-        </someList>
-      </someMixin>
+          </Button>
+        </mixin:someList>
+      </mixin:SomeMixin>
     </mixins>
 
     <!-- attribute-->
@@ -82,11 +83,11 @@
     items:{xtype:"testAll", ...}
     -->
     <items>
-      <button text="Save">
+      <Button text="Save">
         <handler>{function():void {
           MessageBox.alert('gotcha!');
         }}</handler>
-      </button>
+      </Button>
       <fx:Object>{{xtype: "editortreepanel"}}</fx:Object>
       <fx:Object/>
     </items>
@@ -99,9 +100,9 @@
     ]
     -->
     <menu>
-      <menuitem text="juhu1"/>
-      <menuitem text="juhu2"/>
-      <menuitem text="juhu3"/>
+      <MenuItem text="juhu1"/>
+      <MenuItem text="juhu2"/>
+      <MenuItem text="juhu3"/>
     </menu>
 
     <tools>
@@ -117,8 +118,8 @@
     </tools>
 
     <plugins>
-      <aplugin/>
-      <aplugin/>
+      <plugins:APlugin/>
+      <plugins:APlugin/>
     </plugins>
 
-</panel>
+</Panel>

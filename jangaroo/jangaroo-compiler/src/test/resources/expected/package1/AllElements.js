@@ -1,12 +1,13 @@
 /*package package1{
-import ext.config.*;
-import exmlparser.config.*;
 import ext.*;
+import exmlparser.config.*;
+import ext.mixin.*;
+import ext.plugins.*;
 import net.jangaroo.ext.Exml;*/
 /**
  * This is my <b>TestComponent</b>
  */
-Ext.define("package1.AllElements", function(AllElements) {/*public class AllElements extends panel{
+Ext.define("package1.AllElements", function(AllElements) {/*public class AllElements extends Panel{
 
     /* add an extra import statement to the class * /
 
@@ -27,7 +28,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     private var myProperty:*;
     private var myVar:String;
     private var myVar2:Object;
-    private var myVar3:button;
+    private var myVar3:Button;
     private var myVar4:Array;
 
     private*/ function __initialize__(config/*:AllElements*/)/*:void*/ {
@@ -39,7 +40,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);
   
-    this.myVar3$6tZL = new ext.config.button({
+    this.myVar3$6tZL = new ext.Button({
             text: "Foo"});
   
     this.myVar4$6tZL =[
@@ -48,13 +49,13 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     ];
     this.super$6tZL( net.jangaroo.ext.Exml.apply(AS3.cast(AllElements,{
            title: "I am a panel",
-           layout:net.jangaroo.ext.Exml.asString( config.myProperty$6tZL),
+           layout: config.myProperty$6tZL,
 
     /* define some attributes through a typed mixin: */
     mixins:[
-      AS3.cast(ext.config.someMixin,{someList$at: net.jangaroo.ext.Exml.APPEND, 
+      AS3.cast(ext.mixin.SomeMixin,{someList$at:net.jangaroo.ext.Exml.APPEND, 
         someList:([
-          AS3.cast(ext.config.button,{ text: "click me!", id: "myId",
+          AS3.cast(ext.Button,{ text: "click me!", id: "myId",
             baseAction:
               new ext.Action({
             })
@@ -72,7 +73,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     items:{xtype:"testAll", ...}
      */
     items:[
-      AS3.cast(ext.config.button,{ text: "Save",
+      AS3.cast(ext.Button,{ text: "Save",
         handler: function()/*:void*/ {
           ext.MessageBox.alert('gotcha!');
         }
@@ -89,9 +90,9 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     ]
      */
     menu:[
-      AS3.cast(ext.config.menuitem,{ text: "juhu1"}),
-      AS3.cast(ext.config.menuitem,{ text: "juhu2"}),
-      AS3.cast(ext.config.menuitem,{ text: "juhu3"})
+      AS3.cast(ext.MenuItem,{ text: "juhu1"}),
+      AS3.cast(ext.MenuItem,{ text: "juhu2"}),
+      AS3.cast(ext.MenuItem,{ text: "juhu3"})
     ],
 
     tools:[
@@ -107,8 +108,8 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     ],
 
     plugins:[
-      AS3.cast(ext.config.aplugin,{}),
-      AS3.cast(ext.config.aplugin,{})
+      AS3.cast(ext.plugins.APlugin,{}),
+      AS3.cast(ext.plugins.APlugin,{})
     ]
 
 }),config));
@@ -127,7 +128,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.config.panel",
+      extend: "ext.Panel",
       myProperty$6tZL: undefined,
       myVar$6tZL: null,
       myVar2$6tZL: null,
@@ -136,7 +137,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       __initialize__$6tZL: __initialize__,
       constructor: AllElements$,
       super$6tZL: function() {
-        ext.config.panel.prototype.constructor.apply(this, arguments);
+        ext.Panel.prototype.constructor.apply(this, arguments);
       },
       config: {gear: null},
       statics: {
@@ -149,14 +150,14 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
           CODE_CONSTANT$static_();
         }
       },
-      requires: ["ext.config.panel"],
+      requires: ["ext.Panel"],
       uses: [
         "exmlparser.config.allElements",
+        "ext.Button",
+        "ext.MenuItem",
         "ext.MessageBox",
-        "ext.config.aplugin",
-        "ext.config.button",
-        "ext.config.menuitem",
-        "ext.config.someMixin",
+        "ext.mixin.SomeMixin",
+        "ext.plugins.APlugin",
         "net.jangaroo.ext.Exml"
       ]
     };

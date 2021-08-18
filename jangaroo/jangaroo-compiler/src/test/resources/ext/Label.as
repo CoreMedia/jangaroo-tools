@@ -1,9 +1,8 @@
-package ext.config {
+package ext {
 
-[ExtConfig(target="ext.Label", xtype="label")]
-public class label {
+public class Label {
 
-  public function label(config:Object = null) {
+  public function Label(config:Object = null) {
   }
 
   /**
