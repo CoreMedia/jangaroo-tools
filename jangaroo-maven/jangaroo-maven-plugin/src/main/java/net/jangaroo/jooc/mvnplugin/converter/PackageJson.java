@@ -33,6 +33,8 @@ public class PackageJson {
   private Map<String, String> scripts;
   @JsonProperty("workspaces")
   private List<String> workspaces;
+  @JsonProperty("exports")
+  private Map<String, Object> exports;
   @JsonProperty("typesVersions")
   private Map<String, Object> typesVersions;
   @JsonProperty("types")
@@ -42,7 +44,7 @@ public class PackageJson {
   @JsonProperty("publishOverrides")
   private Map<String, Object> publishOverrides;
 
-  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
+  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> exports, Map<String, Object> typesVersions) {
     this.name = name;
     this.author = author;
     this.description = description;
@@ -54,6 +56,7 @@ public class PackageJson {
     this.devDependencies = devDependencies;
     this.scripts = scripts;
     this.workspaces = workspaces;
+    this.exports = exports;
     this.typesVersions = typesVersions;
   }
 
@@ -63,6 +66,7 @@ public class PackageJson {
     this.dependencies = additionalPackageJsonEntries.getDependencies();
     this.devDependencies = additionalPackageJsonEntries.getDevDependencies();
     this.scripts = additionalPackageJsonEntries.getScripts();
+    this.exports = additionalPackageJsonEntries.getExports();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
     this.types = additionalPackageJsonEntries.getTypes();
     this.coremedia = additionalPackageJsonEntries.getCoremedia();
@@ -205,6 +209,16 @@ public class PackageJson {
   public void setWorkspaces(List<String> workspaces) {
     if (workspaces != null && !workspaces.isEmpty()) {
       this.workspaces = workspaces;
+    }
+  }
+
+  public Map<String, Object> getExports() {
+    return exports;
+  }
+
+  public void setExports(Map<String, Object> exports) {
+    if (exports != null && !exports.isEmpty()) {
+      this.exports = exports;
     }
   }
 

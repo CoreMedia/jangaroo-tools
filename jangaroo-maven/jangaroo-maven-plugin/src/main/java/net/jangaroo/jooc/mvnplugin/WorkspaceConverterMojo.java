@@ -346,6 +346,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         scripts.put("test", "jangaroo joounit");
       }
       additionalJsonEntries.setScripts(scripts);
+
+      Map<String, Object> exports = new HashMap<>();
+      exports.put("./*", "./dist/src/*.js");
+      additionalJsonEntries.setExports(exports);
+
       if (useTypesVersions) {
         List<String> typesPaths = new ArrayList<>();
         typesPaths.add("./src/*");
@@ -454,6 +459,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
       additionalJsonEntries.setScripts(scripts);
+
+      Map<String, Object> exports = new HashMap<>();
+      exports.put("./*", "./build/src/*.js");
+      additionalJsonEntries.setExports(exports);
+
       if (useTypesVersions) {
         List<String> typesPaths = new ArrayList<>();
         typesPaths.add("./src/*");
