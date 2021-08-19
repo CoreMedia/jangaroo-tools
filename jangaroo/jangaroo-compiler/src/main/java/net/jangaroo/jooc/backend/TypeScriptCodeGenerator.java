@@ -1408,15 +1408,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         boolean isExtConfig = castToClass.inheritsFromExtBaseExplicitly();
         if (!castToClass.hasConfigClass() && !isExtConfig
                 && firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null) {
-          // Found a cast of an empty object literal into a non-config, non-Ext class.
+          // Found a cast of an empty object literal into a non-config, non-Ext class or interface.
           // This has been used in Jangaroo-ActionScript to construct simple, typed objects that do *not*
           // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can simply construct them using
-          //    new Clazz()
+          //    new Foo() // for class or
+          //    <Foo>{} // for interface
           out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
-          out.writeToken("new");
-          applyExpr.getFun().visit(this);
-          out.writeSymbol(args.getLParen());
-          out.writeSymbol(args.getRParen());
+          if (castToClass.isInterface()) {
+            out.writeToken("<");
+            applyExpr.getFun().visit(this);
+            out.writeToken(">");
+            firstParameter.visit(this); // render empty object (with its whitespace)
+          } else {
+            out.writeToken("new");
+            applyExpr.getFun().visit(this);
+            out.writeSymbol(args.getLParen());
+            out.writeSymbol(args.getRParen());
+          }
           return;
         }
         if (isOfConfigType(firstParameter) && castToClass.hasConfigClass()) {
