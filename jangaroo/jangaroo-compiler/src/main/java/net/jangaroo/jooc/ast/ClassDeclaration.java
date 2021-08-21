@@ -17,7 +17,6 @@ package net.jangaroo.jooc.ast;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
-import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.CompilerError;
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.JangarooParser;
@@ -227,7 +226,8 @@ public class ClassDeclaration extends TypeDeclaration {
     // several mixins and plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
     // system defined by ext.Base, so patch "extends ext.Base" in:
     if (optExtends == null && scope.getCompiler().getCompilationUnit("ext.Base") != null) {
-      if ((optImplements != null && ("Plugin".equals(optImplements.getSuperTypes().getHead().getName()) || getSuperTypeDeclarations().stream().anyMatch(ClassDeclaration::isMixin))) || hasAssociatedScssFile()) {
+      if ((optImplements != null && (getSuperTypeDeclarations().stream().anyMatch(superType -> superType.isMixin() || "ext.Plugin".equals(superType.getQualifiedNameStr()))))
+              || hasAssociatedScssFile()) {
         QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
         new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
         JooSymbol extendsSymbol = new JooSymbol(sym.EXTENDS, "<generated>", -1, -1, " ", "extends");
