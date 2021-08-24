@@ -19,13 +19,13 @@ Ext.define("package1.mxml.pkg.SimpleMxmlClass", function(SimpleMxmlClass) {/*pub
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.Panel",
+      extend: "Ext.Panel",
       alias: "widget.testNamespace.pkg.config.simpleMxmlClass",
       constructor: SimpleMxmlClass$,
       super$S4cv: function() {
-        ext.Panel.prototype.constructor.apply(this, arguments);
+        Ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.Panel"],
+      requires: ["Ext.Panel"],
       uses: [
         "net.jangaroo.ext.Exml",
         "package1.mxml.SimpleMxmlClass"

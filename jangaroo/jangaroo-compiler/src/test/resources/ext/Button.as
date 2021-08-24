@@ -1,6 +1,7 @@
 package ext {
 import ext.Component;
 
+[Native("Ext.Button", require)]
 public class Button extends Component {
 
   public function Button(config:Object = null) {

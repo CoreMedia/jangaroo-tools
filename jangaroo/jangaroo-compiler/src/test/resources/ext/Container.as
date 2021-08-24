@@ -1,6 +1,7 @@
 package ext {
 import ext.layout.ContainerLayout;
 
+[Native("Ext.Container", require)]
 public class Container extends Component {
 
   public function Container(config:Object = null) {

@@ -1,6 +1,7 @@
 package ext {
 import ext.mixin.Observable;
 
+[Native("Ext.Component", require)]
 [ExtConfig]
 public class Component extends Observable {
 

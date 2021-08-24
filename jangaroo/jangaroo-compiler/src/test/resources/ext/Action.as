@@ -1,6 +1,6 @@
 package ext {
 
-[Native]
+[Native("Ext.Action", require)]
 public class Action extends Base {
 
   /**

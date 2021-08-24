@@ -9,12 +9,12 @@ Ext.define("package1.mxml.StringToArrayCoercion", function(StringToArrayCoercion
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.Panel",
+      extend: "Ext.Panel",
       constructor: StringToArrayCoercion$,
       super$Sy5g: function() {
-        ext.Panel.prototype.constructor.apply(this, arguments);
+        Ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.Panel"],
+      requires: ["Ext.Panel"],
       uses: ["net.jangaroo.ext.Exml"]
     };
 });

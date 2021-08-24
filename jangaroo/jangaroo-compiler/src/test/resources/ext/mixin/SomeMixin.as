@@ -2,6 +2,7 @@ package ext.mixin {
 
 import ext.Base;
 
+[Native("Ext.mixin.SomeMixin", require)]
 [ExtConfig]
 public class SomeMixin extends Base {
 

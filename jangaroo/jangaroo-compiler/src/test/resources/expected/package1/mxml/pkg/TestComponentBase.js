@@ -28,7 +28,7 @@ Ext.define("package1.mxml.pkg.TestComponentBase", function(TestComponentBase) {/
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.Component",
+      extend: "Ext.Component",
       mixins: ["package1.mxml.pkg.TestInterface"],
       emptyText: null,
       letters: null,
@@ -36,13 +36,13 @@ Ext.define("package1.mxml.pkg.TestComponentBase", function(TestComponentBase) {/
       property_2$00xv: 0,
       constructor: TestComponentBase$,
       super$00xv: function() {
-        ext.Component.prototype.constructor.apply(this, arguments);
+        Ext.Component.prototype.constructor.apply(this, arguments);
       },
       component$00xv: null,
       init: init,
       statics: {DEFAULT: "_DEFAULT_"},
       requires: [
-        "ext.Component",
+        "Ext.Component",
         "package1.mxml.pkg.TestInterface"
       ]
     };

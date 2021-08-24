@@ -5,20 +5,20 @@ Ext.define("package1.mxml.WhitespaceAroundBindingExpression", function(Whitespac
 
     import ext.layout.ContainerLayout;public*/function WhitespaceAroundBindingExpression$(config/*:WhitespaceAroundBindingExpression=null*/){if(arguments.length<=0)config=null;
     this.super$TIEI(net.jangaroo.ext.Exml.apply(AS3.cast(WhitespaceAroundBindingExpression,{
-  layout: new ext.layout.ContainerLayout()
+  layout: new Ext.layout.ContainerLayout()
 }),config));
 }/*}}
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.Panel",
+      extend: "Ext.Panel",
       constructor: WhitespaceAroundBindingExpression$,
       super$TIEI: function() {
-        ext.Panel.prototype.constructor.apply(this, arguments);
+        Ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.Panel"],
+      requires: ["Ext.Panel"],
       uses: [
-        "ext.layout.ContainerLayout",
+        "Ext.layout.ContainerLayout",
         "net.jangaroo.ext.Exml"
       ]
     };

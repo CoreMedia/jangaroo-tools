@@ -15,12 +15,12 @@ Ext.define("package1.mxml.AInstantiatesB", function(AInstantiatesB) {/*public cl
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.Panel",
+      extend: "Ext.Panel",
       constructor: AInstantiatesB$,
       super$2Olv: function() {
-        ext.Panel.prototype.constructor.apply(this, arguments);
+        Ext.Panel.prototype.constructor.apply(this, arguments);
       },
-      requires: ["ext.Panel"],
+      requires: ["Ext.Panel"],
       uses: [
         "net.jangaroo.ext.Exml",
         "package1.mxml.BDeclaresA"

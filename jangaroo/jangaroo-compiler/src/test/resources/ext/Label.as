@@ -1,5 +1,6 @@
 package ext {
 
+[Native("Ext.Label", require)]
 public class Label {
 
   public function Label(config:Object = null) {

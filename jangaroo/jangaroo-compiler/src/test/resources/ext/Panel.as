@@ -4,6 +4,7 @@ import ext.mixin.Observable;
 
 [Event(name="onFlipFlop", type="ext.events.PanelEvent")]
 
+[Native("Ext.Panel", require)]
 public class Panel extends Container {
 
   public function Panel(config:Panel) {

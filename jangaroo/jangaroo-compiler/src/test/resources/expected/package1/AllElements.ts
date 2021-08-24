@@ -3,6 +3,7 @@ import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import allElements from "../exmlparser/config/allElements";
+import Action from "../ext/Action";
 import Button from "../ext/Button";
 import MenuItem from "../ext/MenuItem";
 import MessageBox from "../ext/MessageBox";
@@ -64,7 +65,7 @@ class AllElements extends Panel{
       Config(SomeMixin, {
         ...Exml.append({someList: [
           Config(Button, { text: "click me!", id: "myId",
-            baseAction: new ext.Action({
+            baseAction: new Action({
             })
           })
         ]})

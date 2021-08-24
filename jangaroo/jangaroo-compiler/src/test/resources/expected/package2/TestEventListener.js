@@ -4,7 +4,7 @@ import ext.events.PanelEvent;*/
 
 Ext.define("package2.TestEventListener", function(TestEventListener) {/*public class TestEventListener {
 
-  private var panel:Panel =*/function panel_(){this.panel$iwqQ=( AS3.cast(ext.Panel,{}));}/*;
+  private var panel:Panel =*/function panel_(){this.panel$iwqQ=( AS3.cast(Ext.Panel,{}));}/*;
   [ArrayElementType("ext.Panel")]
   private var panels:Array =*/function panels_(){this.panels$iwqQ=( []);}/*;
 
@@ -15,7 +15,7 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
 
   public*/ function TestEventListener$() {var _this=this;this.super$iwqQ();
     this.panel$iwqQ.title = "not yet clicked.";
-    AS3.addEventListener(panel, ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
+    AS3.addEventListener(panel, Ext.events.PanelEvent,"FLOPS", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(_this.getThis().getPanel(),"title" , "clicked!");
       AS3.setBindable(_this.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
       _this.panels$iwqQ.push(_this.panel$iwqQ);
@@ -44,8 +44,8 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
       getThis: getThis,
       getPanel: getPanel,
       uses: [
-        "ext.Panel",
-        "ext.events.PanelEvent"
+        "Ext.Panel",
+        "Ext.events.PanelEvent"
       ]
     };
 });

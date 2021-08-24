@@ -42,11 +42,11 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
 
 ============================================== Jangaroo part ==============================================*/
     return {
-      extend: "ext.mixin.Observable",
+      extend: "Ext.mixin.Observable",
       metadata: {items: ["DefaultProperty"]},
       constructor: ConfigClass$,
       super$klfp: function() {
-        ext.mixin.Observable.prototype.constructor.apply(this, arguments);
+        Ext.mixin.Observable.prototype.constructor.apply(this, arguments);
       },
       foo: "foo",
       number: 0,
@@ -54,6 +54,6 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
       getTitle: get$title,
       setTitle: set$title,
       config: {title: undefined},
-      requires: ["ext.mixin.Observable"]
+      requires: ["Ext.mixin.Observable"]
     };
 });
