@@ -71,7 +71,7 @@
   <parent>
     <groupId>net.jangaroo</groupId>
     <artifactId>jangaroo-parent</artifactId>
-    <version>4.1.4-SNAPSHOT</version>
+    <version>4.1.4</version>
     <relativePath>../../jangaroo-parent/pom.xml</relativePath>
   </parent>
   <properties>
