@@ -1,6 +1,6 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import int from "../AS3/int_";
-import Observable from "../ext/mixin/Observable";
+import Observable from "../Ext/mixin/Observable";
 interface ConfigClassConfig extends Partial<Pick<ConfigClass,
   "foo" |
   "number" |

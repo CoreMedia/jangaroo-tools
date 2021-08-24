@@ -1,5 +1,5 @@
 import { asConfig, mixin } from "@jangaroo/runtime/AS3";
-import Panel from "../ext/Panel";
+import Panel from "../Ext/Panel";
 import Interface from "./Interface";
 
 

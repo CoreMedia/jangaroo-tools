@@ -2,14 +2,14 @@ import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, cast } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
+import Action from "../Ext/Action";
+import Button from "../Ext/Button";
+import MenuItem from "../Ext/MenuItem";
+import MessageBox from "../Ext/MessageBox";
+import Panel from "../Ext/Panel";
+import SomeMixin from "../Ext/mixin/SomeMixin";
+import APlugin from "../Ext/plugins/APlugin";
 import allElements from "../exmlparser/config/allElements";
-import Action from "../ext/Action";
-import Button from "../ext/Button";
-import MenuItem from "../ext/MenuItem";
-import MessageBox from "../ext/MessageBox";
-import Panel from "../ext/Panel";
-import SomeMixin from "../ext/mixin/SomeMixin";
-import APlugin from "../ext/plugins/APlugin";
 import Exml from "../net/jangaroo/ext/Exml";
 interface AllElementsConfig extends Config<Panel>, Partial<Pick<AllElements,
   "gear"

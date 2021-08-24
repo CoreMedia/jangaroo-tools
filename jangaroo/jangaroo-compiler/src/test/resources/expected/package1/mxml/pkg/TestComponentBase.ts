@@ -1,7 +1,7 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, mixin } from "@jangaroo/runtime/AS3";
 import int from "../../../AS3/int_";
-import Component from "../../../ext/Component";
+import Component from "../../../Ext/Component";
 import TestComponent from "./TestComponent";
 import TestInterface from "./TestInterface";
 interface TestComponentBaseConfig extends Config<Component>, Partial<Pick<TestComponentBase,

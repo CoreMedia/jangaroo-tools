@@ -1,7 +1,7 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig, cast } from "@jangaroo/runtime/AS3";
-import Panel from "../ext/Panel";
-import PanelEvent from "../ext/events/PanelEvent";
+import Panel from "../Ext/Panel";
+import PanelEvent from "../Ext/events/PanelEvent";
 
 
 class TestEventListener {

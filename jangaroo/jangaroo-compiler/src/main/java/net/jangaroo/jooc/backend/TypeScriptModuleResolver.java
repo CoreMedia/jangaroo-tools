@@ -101,8 +101,7 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
   }
 
   private String computeRelativeModulePath(File currentDir, File importedFile) {
-    String relativeModulePath = CompilerUtils.getRelativePath(currentDir,
-            importedFile, false);
+    String relativeModulePath = currentDir.toPath().relativize(importedFile.toPath()).toString();
     relativeModulePath = relativeModulePath.replace(File.separatorChar, '/');
     if (!relativeModulePath.startsWith(".")) {
       relativeModulePath = "./" + relativeModulePath;
