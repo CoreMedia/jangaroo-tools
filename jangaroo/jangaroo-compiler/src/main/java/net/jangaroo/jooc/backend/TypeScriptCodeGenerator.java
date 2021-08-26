@@ -240,6 +240,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && isLazy((VariableDeclaration) primaryDeclaration)) {
       compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
     }
+    if (primaryDeclaration instanceof ClassDeclaration && (
+            ((ClassDeclaration) primaryDeclaration).getConstructorConfigParameterType() != null
+            || ((ClassDeclaration) primaryDeclaration).hasConfigClass()
+            && ((ClassDeclaration) primaryDeclaration).getSuperTypeDeclaration().hasConfigClass()
+    )) {
+      compilationUnit.addBuiltInIdentifierUsage("Config");
+    }
 
     Set<String> localNames = new HashSet<>();
     Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
