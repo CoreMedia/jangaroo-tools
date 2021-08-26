@@ -275,9 +275,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     localNames.add(primaryLocalName);
-    if (primaryDeclaration instanceof ClassDeclaration
-            && ((ClassDeclaration) primaryDeclaration).hasConfigClass()) {
-      localNames.add(primaryLocalName + "Config");
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) primaryDeclaration;
+      ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+      if (configClassDeclaration != null && !configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration())) {
+        localNames.add(primaryLocalName + "Config");
+      }
     }
 
     // generate imports
@@ -376,22 +379,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } while (superTypes != null);
     }
 
-    boolean hasConfigClass = classDeclaration.hasConfigClass();
-    if (hasConfigClass) {
-      List<String> configExtends = new ArrayList<>();
-      ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-      if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
-        configExtends.add(configType(superTypeDeclaration));
-      }
-      configExtends.addAll(configMixins);
+    ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    if (configClassDeclaration != null) {
       List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
               .collect(Collectors.toList());
-      if (!configs.isEmpty()) {
-        String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
-        configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
+      if (configClassDeclaration.equals(superTypeDeclaration)) {
+        if (!configs.isEmpty() || !configMixins.isEmpty()) {
+          classDeclaration.getIde().getScope().getCompiler().getLog().warning(
+                  classDeclaration.getConstructor().getParams().getHead().getSymbol(),
+                  "A class reusing the Config type of its superclass in its config constructor parameter " +
+                          "may not define own Configs or add Configs from mixins.");
+        }
+      } else {
+        List<String> configExtends = new ArrayList<>();
+        if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
+          configExtends.add(configType(superTypeDeclaration));
+        }
+        configExtends.addAll(configMixins);
+        if (!configs.isEmpty()) {
+          String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
+          configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
+        }
+        out.write(String.format("interface %s%s {\n}\n\n", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
       }
-      out.write(String.format("interface %s%s {\n}\n\n", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
     }
 
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
@@ -1993,7 +2005,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                                       "Still generating a TypeScript Config class, but please fix this.",
                               configParameterType.getType().getIde().getQualifiedNameStr()));
             }
-            out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(configClassDeclaration)));
+            if (!configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration())) {
+              out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(configClassDeclaration)));
+            }
           }
         }
       }
