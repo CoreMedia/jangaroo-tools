@@ -226,7 +226,8 @@ public class ClassDeclaration extends TypeDeclaration {
     // several mixins and plugins don't declare to extend ext.Base, but only implement ext.Plugin. Still, the use the config
     // system defined by ext.Base, so patch "extends ext.Base" in:
     if (optExtends == null && scope.getCompiler().getCompilationUnit("ext.Base") != null) {
-      if ((optImplements != null && (getSuperTypeDeclarations().stream().anyMatch(superType -> superType.isMixin() || "ext.Plugin".equals(superType.getQualifiedNameStr()))))
+      if (!isInterface() &&
+              (optImplements != null && (getSuperTypeDeclarations().stream().anyMatch(superType -> superType.isMixin() || "ext.Plugin".equals(superType.getQualifiedNameStr()))))
               || hasAssociatedScssFile()) {
         QualifiedIde extDotBase = new QualifiedIde(new Ide("ext"), new JooSymbol("."), new JooSymbol("Base"));
         new ImportDirective(null, extDotBase, null).scope(scope.getParentScope());
