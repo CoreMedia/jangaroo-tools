@@ -233,12 +233,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
 
+    boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
+
     if (!getMetadata(primaryDeclaration).isEmpty()) {
       compilationUnit.addBuiltInIdentifierUsage("metadata");
     }
     if (primaryDeclaration instanceof VariableDeclaration
             && isLazy((VariableDeclaration) primaryDeclaration)) {
       compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
+    }
+    if (isModule && primaryDeclaration instanceof ClassDeclaration && (
+            ((ClassDeclaration) primaryDeclaration).getConstructorConfigParameterType() != null
+                    || ((ClassDeclaration) primaryDeclaration).hasConfigClass()
+                    && ((ClassDeclaration) primaryDeclaration).getSuperTypeDeclaration().hasConfigClass()
+    )) {
+      compilationUnit.addBuiltInIdentifierUsage("Config");
     }
 
     Set<String> localNames = new HashSet<>();
@@ -255,7 +264,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
 
-    boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
     String targetNamespace = null;
     if (!isModule) {
       targetNamespace = CompilerUtils.packageName(targetQualifiedNameStr);
