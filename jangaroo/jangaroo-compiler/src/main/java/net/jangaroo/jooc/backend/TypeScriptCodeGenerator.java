@@ -1204,7 +1204,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   protected void visitBlockStatementDirectives(BlockStatement body) throws IOException {
-    if (!(body.usesInstanceThis()
+    if (!(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && body.usesInstanceThis()
             && body.getParentNode() instanceof FunctionExpr
             && body.getParentNode().getParentNode() instanceof FunctionDeclaration
             && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall()
@@ -1212,6 +1213,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       super.visitBlockStatementDirectives(body);
       return;
     }
+    boolean isExtClass = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromExtBaseExplicitly();
     Iterator<Directive> iterator = body.getDirectives().iterator();
     List<Directive> directivesToWrap = null;
     while (iterator.hasNext()) {
@@ -1224,6 +1226,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (directivesToWrap == null) {
           directive.visit(this);
         } else {
+          if (!isExtClass) {
+            compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+                    (directivesToWrap.isEmpty() ? directive : directivesToWrap.get(0)).getSymbol(),
+                    "Constructor code of non-Ext class may not access 'this' before calling 'super()'. "
+                            + "Either move code or make this class an Ext class by inheriting from ext.Base.");
+          }
           visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
         }
         break;
