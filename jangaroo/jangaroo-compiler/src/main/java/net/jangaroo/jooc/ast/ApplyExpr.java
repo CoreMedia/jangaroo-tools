@@ -127,12 +127,22 @@ public class ApplyExpr extends Expr {
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       ExpressionType classType = type.getTypeParameter();
-      if (isTypeCast && classType != null && ((ClassDeclaration) classType.getDeclaration()).hasConfigClass()) {
-        if (getArgs().getExpr().getHead() instanceof ObjectLiteral) {
-          classType.markAsConfigTypeIfPossible();
-          isConfigFactory = classType.isConfigType();
-        } else {
-          isConfigFactory = null; // may be or may be not...
+      if (isTypeCast && classType != null) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) classType.getDeclaration();
+        boolean argumentIsObjectLiteral = getArgs().getExpr().getHead() instanceof ObjectLiteral;
+        if (classDeclaration.hasConfigClass()) {
+          if (argumentIsObjectLiteral) {
+            classType.markAsConfigTypeIfPossible();
+            isConfigFactory = classType.isConfigType();
+          } else {
+            isConfigFactory = null; // may be or may be not...
+          }
+        } else if (argumentIsObjectLiteral && !classDeclaration.inheritsFromExtBaseExplicitly()) {
+          isTypeCast = false; // no 'cast' or 'Config' must be imported
+          if (classDeclaration.isInterface()) {
+            // if "conversion cast" target is an interface, an ad-hoc class will be constructed via mixin():
+            scope.getCompilationUnit().addBuiltInIdentifierUsage("mixin");
+          }
         }
       }
       setType(classType);

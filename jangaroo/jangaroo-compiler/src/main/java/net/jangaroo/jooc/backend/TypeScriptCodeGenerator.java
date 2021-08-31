@@ -1457,23 +1457,39 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         Expr firstParameter = args.getExpr().getHead();
         boolean isExtConfig = castToClass.inheritsFromExtBaseExplicitly();
         if (!castToClass.hasConfigClass() && !isExtConfig
-                && firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null) {
-          // Found a cast of an empty object literal into a non-config, non-Ext class or interface.
+                && firstParameter instanceof ObjectLiteral) {
+          // Found a cast of an object literal into a non-config, non-Ext class or interface.
           // This has been used in Jangaroo-ActionScript to construct simple, typed objects that do *not*
-          // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can simply construct them using
-          //    new Foo() // for class or
-          //    <Foo>{} // for interface
+          // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can construct them on the fly.
+          // For a (runtime) interface, we create an ad-hoc class that mixes in the interface,
+          // instantiate it, then (if not empty) assign all given properties: 
+          //    IFoo({ ... }) =AS-TS=> Object.assign(new (mixin(class {}, IFoo)), { ... })
+          // For a class, we simply instantiate the class with its no-arg constructor, then assign properties:
+          //    Foo({ ... }) =AS-TS=> Object.assign(new Foo(), { ... }) 
           out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
+          // Suppress Object.assign() for empty object literal
+          boolean isNonEmptyObject = ((ObjectLiteral) firstParameter).getFields() != null;
+          if (isNonEmptyObject) {
+            out.write("Object.assign(");
+          }
           if (castToClass.isInterface()) {
-            out.writeToken("<");
+            out.writeToken("new ");
+            out.writeSymbol(args.getLParen());
+            out.writeToken("mixin(");
+            out.writeToken("class {}, ");
             applyExpr.getFun().visit(this);
-            out.writeToken(">");
-            firstParameter.visit(this); // render empty object (with its whitespace)
+            out.writeToken(")");
+            out.writeSymbol(args.getRParen());
           } else {
             out.writeToken("new");
             applyExpr.getFun().visit(this);
             out.writeSymbol(args.getLParen());
             out.writeSymbol(args.getRParen());
+          }
+          if (isNonEmptyObject) {
+            out.writeToken(", ");
+            firstParameter.visit(this); // render empty object (with its whitespace)
+            out.writeToken(")");
           }
           return;
         }
