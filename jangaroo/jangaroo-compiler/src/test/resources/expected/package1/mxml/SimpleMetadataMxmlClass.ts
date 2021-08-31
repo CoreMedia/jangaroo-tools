@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { cast, metadata } from "@jangaroo/runtime/AS3";
+import { metadata } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 interface SimpleMetadataMxmlClassConfig extends Config<ConfigClass> {

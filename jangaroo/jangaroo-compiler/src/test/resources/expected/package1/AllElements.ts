@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig, cast } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import Action from "../Ext/Action";

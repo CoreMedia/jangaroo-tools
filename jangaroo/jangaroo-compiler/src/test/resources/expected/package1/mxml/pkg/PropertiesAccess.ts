@@ -1,5 +1,4 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { cast } from "@jangaroo/runtime/AS3";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import PropertiesAccessBase from "./PropertiesAccessBase";
 interface PropertiesAccessConfig extends Config<PropertiesAccessBase> {

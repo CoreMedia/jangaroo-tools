@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { cast, mixin } from "@jangaroo/runtime/AS3";
+import { mixin } from "@jangaroo/runtime/AS3";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 import SimpleClass from "./SimpleClass";

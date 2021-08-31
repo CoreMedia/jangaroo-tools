@@ -1,5 +1,4 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { cast } from "@jangaroo/runtime/AS3";
 import Panel from "../../../Ext/Panel";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import package1_mxml_SimpleMxmlClass from "../SimpleMxmlClass";

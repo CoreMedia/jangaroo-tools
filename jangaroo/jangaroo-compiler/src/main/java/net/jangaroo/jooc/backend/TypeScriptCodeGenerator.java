@@ -1448,7 +1448,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           }
           return;
         }
-        if (isOfConfigType(firstParameter) && castToClass.hasConfigClass()) {
+        ExpressionType castToType = applyExpr.getFun().getType().getTypeParameter();
+        if (castToType != null && castToType.isConfigType() ||
+                isOfConfigType(firstParameter) && castToClass.hasConfigClass()) {
           writeSymbolReplacement(applyExpr.getSymbol(), "Config");
           if (!isExtConfig) {
             out.write("<" + compilationUnitAccessCode(declaration) + ">");
@@ -1467,7 +1469,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             }
           }
           if (doRenderArg &&
-                  !renderSingleSpreadValue(firstParameter, applyExpr.getFun().getType().getTypeParameter())) {
+                  !renderSingleSpreadValue(firstParameter, castToType)) {
             firstParameter.visit(this);
           }
           out.writeSymbol(args.getRParen());
@@ -1555,7 +1557,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // that only contains _one_ spread inner object ({...{ untyped: "foo"}}), and that does _not_
     // prevent the type error as originally intended. It seems TypeScript cannot accurately type
     // spread expression, _only_ the special case { ...T } => T.
-    // Thus, Config objects with _only_ untyped properties must be represent differently. We chose
+    // Thus, Config objects with _only_ untyped properties must be represented differently. We chose
     // to use a type assertion on the object literal, which, in contrast to a typed function call
     // parameter, allows additional untyped properties. So
     //   <Foo u:untyped="foo"/>
@@ -1563,18 +1565,35 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     //   new Foo(<Config<Foo>>{ untyped: "foo" })
 
     // If the parameter has a type and the argument is an object literal...
-    if (parameterType != null && argument instanceof ObjectLiteral) {
-      ObjectLiteral objectLiteral = (ObjectLiteral) argument;
-      CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
-      // ...and the argument object literal only consists of one spread...
-      if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
-        writeOptSymbolWhitespace(objectLiteral.getSymbol());
-        // Add a type assertion to match the parameter type (as Config type):
-        parameterType.markAsConfigTypeIfPossible();
-        out.write("<" + getTypeScriptTypeForActionScriptType(parameterType) + ">");
-        // Skip the outer, obsolete object literal, in other words, visit only the inner object:
-        ((Spread) fields.getHead()).getArg().visit(this);
-        return true;
+    if (parameterType != null) {
+      if (argument instanceof ObjectLiteral) {
+        ObjectLiteral objectLiteral = (ObjectLiteral) argument;
+        CommaSeparatedList<ObjectFieldOrSpread> fields = objectLiteral.getFields();
+        // ...and the argument object literal only consists of one spread...
+        if (fields != null && fields.getTail() == null && fields.getHead() instanceof Spread) {
+          writeOptSymbolWhitespace(objectLiteral.getSymbol());
+          // Add a type assertion to match the parameter type (as Config type):
+          parameterType.markAsConfigTypeIfPossible();
+          out.write("<" + getTypeScriptTypeForActionScriptType(parameterType) + ">");
+          // Skip the outer, obsolete object literal, in other words, visit only the inner object:
+          ((Spread) fields.getHead()).getArg().visit(this);
+          return true;
+        }
+      } else if (argument instanceof ApplyExpr && ((ApplyExpr) argument).isTypeCast()) {
+        // check for Config or even obsolete type cast:
+        if (parameterType.isConfigType()) {
+          if (parameterType.getDeclaration() instanceof ClassDeclaration &&
+                  !((ClassDeclaration) parameterType.getDeclaration()).inheritsFromExtBaseExplicitly()) {
+            // found pattern new Foo(Foo({ ... })), where Foo is no Ext class: simply suppress the type cast!
+            ((ApplyExpr) argument).getArgs().getExpr().getHead().visit(this);
+            return true;
+          }
+          if (argument.getType() != null) {
+            // When parameter type is a Config type, so must be the argument type:
+            argument.getType().markAsConfigTypeIfPossible();
+            // This leads to better code being generated for the inner type cast.
+          }
+        }
       }
     }
     return false;

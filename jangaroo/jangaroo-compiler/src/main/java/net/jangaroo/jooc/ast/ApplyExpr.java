@@ -123,22 +123,25 @@ public class ApplyExpr extends Expr {
       getArgs().analyze(this);
     }
     boolean isTypeCast = isTypeCast();
-    boolean mayBeConfigFactory = false;
+    Boolean isConfigFactory = false;
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       ExpressionType classType = type.getTypeParameter();
-      if (classType != null && isTypeCast && classType.getDeclaration() instanceof ClassDeclaration
-              && ((ClassDeclaration) classType.getDeclaration()).hasConfigClass()) {
+      if (isTypeCast && classType != null && ((ClassDeclaration) classType.getDeclaration()).hasConfigClass()) {
         if (getArgs().getExpr().getHead() instanceof ObjectLiteral) {
           classType.markAsConfigTypeIfPossible();
+          isConfigFactory = classType.isConfigType();
+        } else {
+          isConfigFactory = null; // may be or may be not...
         }
-        mayBeConfigFactory = true;
       }
       setType(classType);
     }
     if (isTypeCast) {
-      scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
-      if (mayBeConfigFactory) {
+      if (isConfigFactory != Boolean.TRUE) {
+        scope.getCompilationUnit().addBuiltInIdentifierUsage("cast");
+      }
+      if (isConfigFactory != Boolean.FALSE) {
         scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
       }
     } else if (isAssert()) {

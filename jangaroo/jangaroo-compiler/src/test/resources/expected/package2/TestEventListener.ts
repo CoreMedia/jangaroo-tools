@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig, cast } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime/AS3";
 import Panel from "../Ext/Panel";
 import PanelEvent from "../Ext/events/PanelEvent";
 

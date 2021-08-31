@@ -1,5 +1,4 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { cast } from "@jangaroo/runtime/AS3";
 import int from "../../../AS3/int_";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import TestComponentBase from "./TestComponentBase";

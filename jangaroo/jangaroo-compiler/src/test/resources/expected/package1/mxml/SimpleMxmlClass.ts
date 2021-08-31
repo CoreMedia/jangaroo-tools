@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig, bind, cast } from "@jangaroo/runtime/AS3";
+import { asConfig, bind } from "@jangaroo/runtime/AS3";
 import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
