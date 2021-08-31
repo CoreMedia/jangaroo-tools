@@ -158,6 +158,9 @@ public abstract class IdeDeclaration extends Declaration {
     super.analyze(parentNode);
     if (ide != null) {
       ide.analyze(this);
+      if ("config".equals(ide.getName())) {
+        ide.getScope().getCompilationUnit().addBuiltInIdentifierUsage("Config");
+      }
     }
   }
 
