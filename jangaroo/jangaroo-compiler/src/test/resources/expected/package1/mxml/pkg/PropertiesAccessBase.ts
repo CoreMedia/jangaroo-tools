@@ -10,7 +10,7 @@ interface PropertiesAccessBaseConfig extends Partial<Pick<PropertiesAccessBase,
 
 
 class PropertiesAccessBase {
-  declare Config: PropertiesAccessConfig;
+  declare Config: PropertiesAccessBaseConfig;
 
   constructor(config:Config<PropertiesAccess> = null) {
     this.property_1 = config.property_1 += "_HI";

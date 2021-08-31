@@ -14,7 +14,7 @@ interface TestComponentBaseConfig extends Config<Component>, Partial<Pick<TestCo
 
 
 class TestComponentBase extends Component implements TestInterface {
-  declare Config: TestComponentConfig;
+  declare Config: TestComponentBaseConfig;
 
   static readonly DEFAULT:string = "_DEFAULT_";
 

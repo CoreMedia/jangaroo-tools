@@ -1994,7 +1994,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                                       "Still generating a TypeScript Config class, but please fix this.",
                               configParameterType.getType().getIde().getQualifiedNameStr()));
             }
-            out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(configClassDeclaration)));
+            out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
           }
         }
       }
