@@ -127,9 +127,12 @@ public class ApplyExpr extends Expr {
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       ExpressionType classType = type.getTypeParameter();
-      if (classType != null && isTypeCast && getArgs().getExpr().getHead() instanceof ObjectLiteral) {
-        classType.markAsConfigTypeIfPossible();
-        mayBeConfigFactory = classType.isConfigType();
+      if (classType != null && isTypeCast && classType.getDeclaration() instanceof ClassDeclaration
+              && ((ClassDeclaration) classType.getDeclaration()).hasConfigClass()) {
+        if (getArgs().getExpr().getHead() instanceof ObjectLiteral) {
+          classType.markAsConfigTypeIfPossible();
+        }
+        mayBeConfigFactory = true;
       }
       setType(classType);
     }
