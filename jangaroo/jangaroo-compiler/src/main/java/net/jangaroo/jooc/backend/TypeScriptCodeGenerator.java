@@ -235,37 +235,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
 
-    if (!getMetadata(primaryDeclaration).isEmpty()) {
-      compilationUnit.addBuiltInIdentifierUsage("metadata");
-    }
-    if (primaryDeclaration instanceof VariableDeclaration
-            && isLazy((VariableDeclaration) primaryDeclaration)) {
-      compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
-    }
-    if (isModule && primaryDeclaration instanceof ClassDeclaration && (
-            ((ClassDeclaration) primaryDeclaration).getConstructorConfigParameterType() != null
-                    || ((ClassDeclaration) primaryDeclaration).hasConfigClass()
-                    && ((ClassDeclaration) primaryDeclaration).getSuperTypeDeclaration().hasConfigClass()
-    )) {
-      compilationUnit.addBuiltInIdentifierUsage("Config");
-    }
-
-    Set<String> localNames = new HashSet<>();
-    Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
-    if (!usedBuiltInIdentifiers.isEmpty()) {
-      localNames.addAll(usedBuiltInIdentifiers);
-      // special case 'Config' is imported from its own ES module:
-      if (usedBuiltInIdentifiers.remove("Config")) {
-        out.write("import Config from \"@jangaroo/runtime/AS3/Config\";\n");
-      }
-      if (!usedBuiltInIdentifiers.isEmpty()) {
-        out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
-                String.join(", ", usedBuiltInIdentifiers)));
-      }
-    }
-
     String targetNamespace = null;
-    if (!isModule) {
+    Set<String> localNames = new HashSet<>();
+    if (isModule) {
+      if (!getMetadata(primaryDeclaration).isEmpty()) {
+        compilationUnit.addBuiltInIdentifierUsage("metadata");
+      }
+      if (primaryDeclaration instanceof VariableDeclaration
+              && isLazy((VariableDeclaration) primaryDeclaration)) {
+        compilationUnit.addBuiltInIdentifierUsage(getLazyFactoryFunctionName((VariableDeclaration) primaryDeclaration));
+      }
+      if (primaryDeclaration instanceof ClassDeclaration && (
+              ((ClassDeclaration) primaryDeclaration).getConstructorConfigParameterType() != null
+                      || ((ClassDeclaration) primaryDeclaration).hasConfigClass()
+                      && ((ClassDeclaration) primaryDeclaration).getSuperTypeDeclaration().hasConfigClass()
+      )) {
+        compilationUnit.addBuiltInIdentifierUsage("Config");
+      }
+
+      Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
+      if (!usedBuiltInIdentifiers.isEmpty()) {
+        localNames.addAll(usedBuiltInIdentifiers);
+        // special case 'Config' is imported from its own ES module:
+        if (usedBuiltInIdentifiers.remove("Config")) {
+          out.write("import Config from \"@jangaroo/runtime/AS3/Config\";\n");
+        }
+        if (!usedBuiltInIdentifiers.isEmpty()) {
+          out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
+                  String.join(", ", usedBuiltInIdentifiers)));
+        }
+      }
+
+    } else { // !isModule
       targetNamespace = CompilerUtils.packageName(targetQualifiedNameStr);
       // if global namespace, simply leave it out
       if (!targetNamespace.isEmpty()) {
