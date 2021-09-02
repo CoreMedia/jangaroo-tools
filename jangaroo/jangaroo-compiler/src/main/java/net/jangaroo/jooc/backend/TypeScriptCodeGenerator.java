@@ -1592,6 +1592,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return false;
   }
 
+  private static String getPackageNameFromReflectionCall(ApplyExpr applyExpr) {
+    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
+    if (args.getExpr() != null && args.getExpr().getHead() instanceof LiteralExpr
+            && args.getExpr().getTail() == null
+            && applyExpr.getFun() instanceof IdeExpr) {
+      IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration(false);
+      if (declaration != null && "joo.getOrCreatePackage".equals(declaration.getQualifiedNameStr())) {
+        return (String) ((LiteralExpr) args.getExpr().getHead()).getValue().getJooValue();
+      }
+    }
+    return null;
+  }
+
   private static boolean isOfConfigType(Expr expr) {
     if (expr instanceof ApplyExpr && ((ApplyExpr) expr).isTypeCheckObjectLiteralFunctionCall()) {
       expr = ((ApplyExpr) expr).getArgs().getExpr().getTail().getHead();
@@ -1720,6 +1733,35 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken(")");
     } else {
       internalVisitDotExpr(dotExpr);
+      if (dotExpr.getArg() instanceof ApplyExpr) {
+        String packageNameFromReflectionCall = getPackageNameFromReflectionCall((ApplyExpr) dotExpr.getArg());
+        if (packageNameFromReflectionCall != null) {
+          String localName = dotExpr.getIde().getName();
+          String qName = CompilerUtils.qName(packageNameFromReflectionCall, localName);
+          CompilationUnit targetCompilationUnit = ide.getScope().getCompiler().getCompilationUnit(qName);
+          if (targetCompilationUnit == null) {
+            // try again with UPPERCASE identifier (session -> SESSION):
+            String guessedRenamedQName = CompilerUtils.qName(packageNameFromReflectionCall, localName.toUpperCase());
+            CompilationUnit renamedTargetCompilationUnit = ide.getScope().getCompiler().getCompilationUnit(guessedRenamedQName);
+            if (renamedTargetCompilationUnit != null) {
+              // check that the found CU is really renamed to the desired name:
+              Annotation renameAnnotation = renamedTargetCompilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
+              if (renameAnnotation != null) {
+                Object renamedQName = renameAnnotation.getPropertiesByName().get(null);
+                if (qName.equals(renamedQName)) {
+                  targetCompilationUnit = renamedTargetCompilationUnit;
+                }
+              }
+            }
+          }
+          if (targetCompilationUnit != null && targetCompilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration) {
+            VariableDeclaration targetPrimaryDeclaration = (VariableDeclaration) targetCompilationUnit.getPrimaryDeclaration();
+            if (!targetPrimaryDeclaration.isConst() || targetPrimaryDeclaration.getAnnotation(Jooc.LAZY_ANNOTATION_NAME) != null) {
+              out.write("._");
+            }
+          }
+        }
+      }
     }
   }
 
