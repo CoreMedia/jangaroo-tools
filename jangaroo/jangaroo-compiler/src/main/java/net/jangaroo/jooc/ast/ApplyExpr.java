@@ -244,11 +244,14 @@ public class ApplyExpr extends Expr {
     if (fun instanceof DotExpr) {
       Ide ide = ((DotExpr) fun).getIde();
       if ("addEventListener".equals(ide.getName())) {
-        IdeDeclaration declaration = ((DotExpr) fun).getArg().getType().getDeclaration().resolvePropertyDeclaration(ide.getName());
-        if (declaration instanceof FunctionDeclaration
-                && ("ext.mixin.IObservable.addEventListener".equals(declaration.getQualifiedNameStr())
-                        || "ext.mixin.Observable.addEventListener".equals(declaration.getQualifiedNameStr()))) {
-          return true;
+        ExpressionType argType = ((DotExpr) fun).getArg().getType();
+        if (argType != null) {
+          IdeDeclaration declaration = argType.getDeclaration().resolvePropertyDeclaration(ide.getName());
+          if (declaration instanceof FunctionDeclaration
+                  && ("ext.mixin.IObservable.addEventListener".equals(declaration.getQualifiedNameStr())
+                  || "ext.mixin.Observable.addEventListener".equals(declaration.getQualifiedNameStr()))) {
+            return true;
+          }
         }
       }
     }
