@@ -10,7 +10,8 @@
            xmlns:mixin="ext.mixin.*"
            xmlns:plugins="ext.plugins.*"
            title="I am a panel"
-           layout="{config.myProperty}">
+           layout="{config.myProperty}"
+           onFlipFlop="myProperty = 1">
 
   <fx:Script><![CDATA[
     /* add an extra import statement to the class */

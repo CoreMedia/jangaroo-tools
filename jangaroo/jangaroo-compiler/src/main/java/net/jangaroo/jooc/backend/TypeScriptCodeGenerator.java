@@ -39,6 +39,7 @@ import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
+import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
@@ -288,8 +289,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // generate imports
     // first pass: detect import local name clashes:
     Set<String> localNameClashes = new HashSet<>();
-    for (String dependentCUId : compilationUnit.getCompileDependencies()) {
-      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+    Collection<CompilationUnit> dependentCompilationUnitModels = compilationUnit.getCompileDependencies().stream()
+            .map(compilationUnitModelResolver::resolveCompilationUnit)
+            .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
+            .collect(Collectors.toList());
+    for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
       if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
         String localName = typeScriptModuleResolver.getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
@@ -302,8 +306,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     // second pass: generate imports, using fully-qualified names for local name clashes:
     Map<String, String> moduleNameToLocalName = new TreeMap<>();
-    for (String dependentCUId : compilationUnit.getCompileDependencies()) {
-      CompilationUnit dependentCompilationUnitModel = compilationUnitModelResolver.resolveCompilationUnit(dependentCUId);
+    for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);
       String localName;
@@ -346,6 +349,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private static boolean isNoFlExtEventClass(CompilationUnit compilationUnit) {
+    return !(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromFlExtEvent());
   }
 
   @Override
@@ -735,12 +743,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   protected void visitObjectFieldValue(ObjectField objectField) throws IOException {
-    JooSymbol symbol = objectField.getValue().getSymbol();
+    Expr fieldValue = objectField.getValue();
+    JooSymbol symbol = fieldValue.getSymbol();
     if (Pattern.matches("[\\s]+", symbol.getWhitespace())) {
       out.suppressWhitespace(symbol);
       out.write(" ");
     }
-    super.visitObjectFieldValue(objectField);
+    if (fieldValue instanceof ApplyExpr
+            && isApiCall((ApplyExpr) fieldValue, NET_JANGAROO_EXT_EXML, "eventHandler", true)) {
+      // rewrite Exml.eventHandler(SomeFlExtEventClass.SOME_EVENT_NAME, flExtEventHandler) to just flExtEventHandler:
+      ((ApplyExpr) fieldValue).getArgs().getExpr().getTail().getTail().getHead().visit(this);
+    } else {
+      super.visitObjectFieldValue(objectField);
+    }
   }
 
 
@@ -1504,6 +1519,30 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         propertyKey.visit(this);
         out.writeToken("]");
       }
+    } else if (applyExpr.isFlexAddEventListener()) {
+      Expr eventNameExpr = args.getExpr().getHead();
+      if (eventNameExpr instanceof IdeExpr) {
+        eventNameExpr = ((IdeExpr) eventNameExpr).getNormalizedExpr();
+      }
+      if (eventNameExpr instanceof DotExpr) {
+        DotExpr eventNameDotExpr = (DotExpr) eventNameExpr;
+        ExpressionType eventClass = eventNameDotExpr.getArg().getType().getTypeParameter();
+        if (eventClass != null) {
+          VariableDeclaration eventNameDeclaration = (VariableDeclaration) eventClass.getDeclaration().getStaticMemberDeclaration(eventNameDotExpr.getIde().getName());
+          String eventOnName = (String) ((LiteralExpr) eventNameDeclaration.getOptInitializer().getValue()).getValue().getJooValue();
+          String eventName = eventOnName.substring(2).toLowerCase();
+          Expr fun = applyExpr.getFun();
+          DotExpr funDotExpr = (DotExpr) (fun instanceof IdeExpr ? ((IdeExpr) fun).getNormalizedExpr() : fun);
+          funDotExpr.getArg().visit(this);
+          out.writeSymbol(funDotExpr.getOp());
+          out.write("addListener");
+          out.writeSymbol(args.getLParen());
+          out.write(CompilerUtils.quote(eventName));
+          out.writeSymbol(args.getExpr().getSymComma());
+          args.getExpr().getTail().getHead().visit(this);
+          out.writeSymbol(args.getRParen());
+        }
+      }
     } else if (args != null &&
             args.getExpr() != null &&
             args.getExpr().getTail() == null &&
@@ -1794,6 +1833,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     }
+  }
+
+  @Override
+  public void visitParameters(Parameters parameters) throws IOException {
+    if (parameters.getHead().getOptTypeRelation() != null && parameters.getTail() == null) {
+      TypeDeclaration declaration = parameters.getHead().getOptTypeRelation().getType().getDeclaration(false);
+      if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).inheritsFromFlExtEvent()) {
+        return;
+      }
+    }
+    super.visitParameters(parameters);
   }
 
   private void internalVisitDotExpr(DotExpr dotExpr) throws IOException {

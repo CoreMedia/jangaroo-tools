@@ -1,5 +1,5 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig } from "@jangaroo/runtime/AS3";
+import { asConfig, bind } from "@jangaroo/runtime/AS3";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import Action from "../Ext/Action";
@@ -117,10 +117,16 @@ class AllElements extends Panel{
     plugins:[
       Config(APlugin),
       Config(APlugin)
-    ]
+    ],
+    listeners:{
+           flipflop: bind(this,this.#$on_flipflop_14_23)}
 
 }),config);})());
   }
+
+  #$on_flipflop_14_23 () :void {
+      this.#myProperty = 1;
+    }
 
   #gear:any = null;
 

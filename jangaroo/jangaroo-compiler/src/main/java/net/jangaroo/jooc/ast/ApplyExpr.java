@@ -236,4 +236,22 @@ public class ApplyExpr extends Expr {
     return args;
   }
 
+  public boolean isFlexAddEventListener() {
+    Expr fun = getFun();
+    if (fun instanceof IdeExpr) {
+      fun = ((IdeExpr) fun).getNormalizedExpr();
+    }
+    if (fun instanceof DotExpr) {
+      Ide ide = ((DotExpr) fun).getIde();
+      if ("addEventListener".equals(ide.getName())) {
+        IdeDeclaration declaration = ((DotExpr) fun).getArg().getType().getDeclaration().resolvePropertyDeclaration(ide.getName());
+        if (declaration instanceof FunctionDeclaration
+                && ("ext.mixin.IObservable.addEventListener".equals(declaration.getQualifiedNameStr())
+                        || "ext.mixin.Observable.addEventListener".equals(declaration.getQualifiedNameStr()))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

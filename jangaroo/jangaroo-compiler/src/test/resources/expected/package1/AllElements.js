@@ -3,6 +3,7 @@ import ext.*;
 import exmlparser.config.*;
 import ext.mixin.*;
 import ext.plugins.*;
+import ext.events.PanelEvent;
 import net.jangaroo.ext.Exml;*/
 /**
  * This is my <b>TestComponent</b>
@@ -53,7 +54,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
 
     /* define some attributes through a typed mixin: */
     mixins:[
-      AS3.cast(Ext.mixin.SomeMixin,{someList$at:net.jangaroo.ext.Exml.APPEND, 
+      AS3.cast(Ext.mixin.SomeMixin,{someList$at: net.jangaroo.ext.Exml.APPEND, 
         someList:([
           AS3.cast(Ext.Button,{ text: "click me!", id: "myId",
             baseAction:
@@ -110,10 +111,16 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     plugins:[
       AS3.cast(Ext.plugins.APlugin,{}),
       AS3.cast(Ext.plugins.APlugin,{})
-    ]
+    ],
+    listeners:{
+           flipflop:net.jangaroo.ext.Exml.eventHandler(Ext.events.PanelEvent.FLIPFLOP,Ext.events.PanelEvent,AS3.bind(this,"$on_flipflop_14_23$6tZL"))}
 
 }),config));
   }/*
+
+    private*/ function $on_flipflop_14_23 (event/*:ext.events.PanelEvent*/)/* :void*/ {
+      this.myProperty$6tZL = 1;
+    }/*
 
       /*
       anonymous object in array:
@@ -139,6 +146,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       super$6tZL: function() {
         Ext.Panel.prototype.constructor.apply(this, arguments);
       },
+      $on_flipflop_14_23$6tZL: $on_flipflop_14_23,
       config: {gear: null},
       statics: {
         SOME_CONSTANT: undefined,
@@ -156,6 +164,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
         "Ext.Button",
         "Ext.MenuItem",
         "Ext.MessageBox",
+        "Ext.events.PanelEvent",
         "Ext.mixin.SomeMixin",
         "Ext.plugins.APlugin",
         "exmlparser.config.allElements",

@@ -379,10 +379,18 @@ public class ClassDeclaration extends TypeDeclaration {
 
   // check whether this class explicitly inherits from ext.Base, which is a prerequisite to using the Config system
   public boolean inheritsFromExtBaseExplicitly() {
+    return inheritsFrom("ext.Base");
+  }
+
+  public boolean inheritsFromFlExtEvent() {
+    return inheritsFrom("net.jangaroo.ext.FlExtEvent");
+  }
+
+  private boolean inheritsFrom(String classQName) {
     for (ClassDeclaration superTypeDeclaration = getSuperTypeDeclaration();
          superTypeDeclaration != null;
          superTypeDeclaration = superTypeDeclaration.getSuperTypeDeclaration()) {
-      if ("ext.Base".equals(superTypeDeclaration.getQualifiedNameStr())) {
+      if (classQName.equals(superTypeDeclaration.getQualifiedNameStr())) {
         return true;
       }
     }

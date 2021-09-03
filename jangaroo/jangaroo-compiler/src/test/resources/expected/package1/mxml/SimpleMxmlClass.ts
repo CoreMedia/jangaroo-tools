@@ -73,7 +73,7 @@ class SimpleMxmlClass extends ConfigClass{
     new SomeOtherClass(<Config<SomeOtherClass>>{ onlyUntyped: 42}),
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: Exml.eventHandler( SomeEvent.CLICK_CLACK,SomeEvent,bind(this,this.#$on_clickClack_56_41))}}),
+    listeners:{ clickClack: bind(this,this.#$on_clickClack_56_41)}}),
     new SomeOtherClass({ bla: 42,
         ...Config<ConfigClass>({ number: 24})
     }),
@@ -92,7 +92,7 @@ class SimpleMxmlClass extends ConfigClass{
     Object.assign( new FieldInitializer(),{ myConfigOption: "BAZ"})
   ]}),
     listeners:{
-             click: Exml.eventHandler( SomeEvent.CLICK,SomeEvent,bind(this,this.#$on_click_14_20))}
+             click: bind(this,this.#$on_click_14_20)}
 }),config);})());
   }
 

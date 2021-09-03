@@ -613,7 +613,7 @@ final class MxmlToModelParser {
     Object eventNameModel = eventPropertiesByName.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
     String eventName = (String) (eventNameModel != null ? eventNameModel : eventPropertiesByName.get(null));
     if (eventName.startsWith("on")) {
-      eventName = eventName.substring(2);
+      eventName = eventName.substring(2).toLowerCase();
     }
     String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
     String eventHandlerName = "$on_" + eventName.replace('-', '_')

@@ -1,7 +1,6 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import { asConfig } from "@jangaroo/runtime/AS3";
 import Panel from "../Ext/Panel";
-import PanelEvent from "../Ext/events/PanelEvent";
 
 
 class TestEventListener {
@@ -15,7 +14,7 @@ class TestEventListener {
 
   constructor() {
     this.#panel.title = "not yet clicked.";
-    this.#panel.addEventListener( PanelEvent.FLOPS, (event:PanelEvent):void => {
+    this.#panel.addListener("flipflop", ():void => {
       asConfig(this.getThis().getPanel()).title = "clicked!";
       asConfig(this.#panel.layout.getOwner()).title = "clicked!";
       this.#panels.push(this.#panel);
