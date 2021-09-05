@@ -2,9 +2,7 @@ package net.jangaroo.jooc.mvnplugin.converter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -31,8 +29,6 @@ public class PackageJson {
   private Map<String, String> devDependencies;
   @JsonProperty("scripts")
   private Map<String, String> scripts;
-  @JsonProperty("workspaces")
-  private List<String> workspaces;
   @JsonProperty("typesVersions")
   private Map<String, Object> typesVersions;
   @JsonProperty("types")
@@ -42,7 +38,7 @@ public class PackageJson {
   @JsonProperty("publishOverrides")
   private Map<String, Object> publishOverrides;
 
-  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, List<String> workspaces, Map<String, Object> typesVersions) {
+  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, Map<String, Object> typesVersions) {
     this.name = name;
     this.author = author;
     this.description = description;
@@ -53,7 +49,6 @@ public class PackageJson {
     this.dependencies = dependencies;
     this.devDependencies = devDependencies;
     this.scripts = scripts;
-    this.workspaces = workspaces;
     this.typesVersions = typesVersions;
   }
 
@@ -186,25 +181,6 @@ public class PackageJson {
   public void setScripts(Map<String, String> scripts) {
     if (scripts != null && !scripts.isEmpty()) {
       this.scripts = scripts;
-    }
-  }
-
-  public List<String> getWorkspaces() {
-    return workspaces;
-  }
-
-  public void addWorkspace(String workspace) {
-    if (this.workspaces == null) {
-      this.workspaces = new ArrayList<>();
-    }
-    if (!this.workspaces.contains(workspace)) {
-      this.workspaces.add(workspace);
-    }
-  }
-
-  public void setWorkspaces(List<String> workspaces) {
-    if (workspaces != null && !workspaces.isEmpty()) {
-      this.workspaces = workspaces;
     }
   }
 

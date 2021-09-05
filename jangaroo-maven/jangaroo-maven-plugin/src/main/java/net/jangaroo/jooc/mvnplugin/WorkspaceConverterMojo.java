@@ -11,7 +11,7 @@ import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJsonPrettyPrinter;
-import net.jangaroo.jooc.mvnplugin.converter.RootPackageJson;
+import net.jangaroo.jooc.mvnplugin.converter.WorkspaceRoot;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
 import org.apache.commons.io.FileUtils;
@@ -59,7 +59,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.AbstractMap.*;
+import static java.util.AbstractMap.Entry;
+import static java.util.AbstractMap.SimpleEntry;
 
 @Mojo(name = "convert-workspace",
         defaultPhase = LifecyclePhase.INSTALL,
@@ -576,12 +577,13 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     // field is used. The session request is constant throughout the whole run an can therefore be used as lock for the
     // synchronized block.
     synchronized (session.getRequest()) {
-      RootPackageJson rootPackageJson = new RootPackageJson(objectMapper, convertedWorkspaceTarget);
+      WorkspaceRoot workspaceRoot = new WorkspaceRoot(objectMapper, convertedWorkspaceTarget);
       try {
-        rootPackageJson.writePackageJson(
-                Collections.singletonList(relativePackageFolderName),
-                projectExtensionFor != null || projectExtensionPoint != null ? Collections.singletonList(relativeNpmProjectExtensionWorkspacePath) : Collections.emptyList()
+        workspaceRoot.writePackageJson(projectExtensionFor != null || projectExtensionPoint != null
+                ? Collections.singletonList(relativeNpmProjectExtensionWorkspacePath)
+                : Collections.emptyList()
         );
+        workspaceRoot.writeWorkspacePackages(Collections.singletonList(relativePackageFolderName));
       } catch (IOException e) {
         throw new MojoFailureException(e.getMessage(), e.getCause());
       }
