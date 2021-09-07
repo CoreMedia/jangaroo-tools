@@ -127,6 +127,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
+  private boolean hasOwnConfigClass;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -391,18 +392,23 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
     ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    if (configClassDeclaration != null) {
+    hasOwnConfigClass = configClassDeclaration != null;
+    if (hasOwnConfigClass) {
       List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
               .collect(Collectors.toList());
       if (configClassDeclaration.equals(superTypeDeclaration)) {
-        if (!configs.isEmpty() || !configMixins.isEmpty()) {
+        if (configs.isEmpty() && configMixins.isEmpty()) {
+          hasOwnConfigClass = false;
+        } else {
           classDeclaration.getIde().getScope().getCompiler().getLog().warning(
                   classDeclaration.getConstructor().getParams().getHead().getSymbol(),
                   "A class reusing the Config type of its superclass in its config constructor parameter " +
-                          "may not define own Configs or add Configs from mixins.");
+                          "may not define own Configs or add Configs from mixins."
+                          + " Please change the constructor parameter type or (re)move the additional Configs.");
         }
-      } else {
+      }
+      if (hasOwnConfigClass) { // still true?
         List<String> configExtends = new ArrayList<>();
         if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
           configExtends.add(configType(superTypeDeclaration));
@@ -2118,7 +2124,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                                       "Still generating a TypeScript Config class, but please fix this.",
                               configParameterType.getType().getIde().getQualifiedNameStr()));
             }
-            if (!configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration())) {
+            if (hasOwnConfigClass) {
               out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
             }
           }
