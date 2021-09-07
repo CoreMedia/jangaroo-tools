@@ -106,7 +106,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter(property = "jangarooNpmVersion", defaultValue = "1.0.0")
   private String jangarooNpmVersion;
 
-  @Parameter(property = "extJsVersion", defaultValue = "7.2.0")
+  @Parameter(property = "extJsVersion", defaultValue = "1.0.0")
   private String extJsVersion;
 
   @Parameter(property = "useTypesVersions")
