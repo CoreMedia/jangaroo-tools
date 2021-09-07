@@ -14,5 +14,8 @@
     "eslint-plugin-jsdoc": "35.1.2",
     "eslint-plugin-padding": "0.0.4",
     "eslint-plugin-unused-imports": "1.1.4"
+  },
+  "scripts": {
+    "preinstall": "npx -y only-allow pnpm"
   }
 }
