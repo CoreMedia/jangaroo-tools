@@ -3,6 +3,8 @@ package net.jangaroo.jooc.mvnplugin;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
@@ -161,7 +163,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private List<SearchAndReplace> resolvedNpmPackageFolderNameReplacers;
   private List<SearchAndReplace> resolvedNpmPackageVersionReplacers;
   private List<SearchAndReplace> resolvedNpmDependencyOverrides;
-  private ObjectMapper objectMapper;
+  private ObjectMapper jsonObjectMapper;
+  private ObjectMapper yamlObjectMapper;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
@@ -208,10 +211,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     PackageJsonPrettyPrinter prettyPrinter = new PackageJsonPrettyPrinter();
 
-    objectMapper = new ObjectMapper()
+    jsonObjectMapper = new ObjectMapper()
             .setDefaultPrettyPrinter(prettyPrinter)
             .configure(SerializationFeature.INDENT_OUTPUT, true)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    yamlObjectMapper = new ObjectMapper(new YAMLFactory()
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+            .enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR)
+    );
 
 
     resolvedNpmPackageNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageNameReplacers);;
@@ -294,7 +301,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
         try {
-          jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
+          jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -398,7 +405,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
       if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
         try {
-          jangarooConfig.setSencha(objectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
+          jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -525,7 +532,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (matcher.find()) {
           String locale = matcher.group(1);
           try {
-            jangarooConfig.addAppManifest(locale, objectMapper.readValue(new File(appManifestPath), Map.class));
+            jangarooConfig.addAppManifest(locale, jsonObjectMapper.readValue(new File(appManifestPath), Map.class));
           } catch (IOException ioException) {
             logger.error("error while reading manifest file: " + appManifestPath);
           }
@@ -536,7 +543,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
 
     try {
-      String jangarooConfigDocument = "/** @type { import('" + packagesByOriginalName.get("@jangaroo/core").getName() + "').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
+      String jangarooConfigDocument = "/** @type { import('" + packagesByOriginalName.get("@jangaroo/core").getName() + "').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
       FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
@@ -567,7 +574,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     packageJson.setDevDependencies(sortedDevDependencies);
     try {
-      FileUtils.write(new File(targetPackageJson), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
+      FileUtils.write(new File(targetPackageJson), jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
@@ -577,7 +584,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     // field is used. The session request is constant throughout the whole run an can therefore be used as lock for the
     // synchronized block.
     synchronized (session.getRequest()) {
-      WorkspaceRoot workspaceRoot = new WorkspaceRoot(objectMapper, convertedWorkspaceTarget);
+      WorkspaceRoot workspaceRoot = new WorkspaceRoot(jsonObjectMapper, yamlObjectMapper, convertedWorkspaceTarget);
       try {
         workspaceRoot.writePackageJson(projectExtensionFor != null || projectExtensionPoint != null
                 ? Collections.singletonList(relativeNpmProjectExtensionWorkspacePath)
