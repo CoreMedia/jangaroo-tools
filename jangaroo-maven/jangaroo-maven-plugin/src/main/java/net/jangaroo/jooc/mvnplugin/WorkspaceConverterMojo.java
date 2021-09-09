@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.Lists;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
 import net.jangaroo.jooc.mvnplugin.converter.JangarooConfig;
@@ -60,9 +61,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 
 import static java.util.AbstractMap.Entry;
 import static java.util.AbstractMap.SimpleEntry;
+import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_APP_PACKAGING;
+import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_PACKAGING_TYPES;
+import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_SWC_PACKAGING;
 
 @Mojo(name = "convert-workspace",
         defaultPhase = LifecyclePhase.INSTALL,
@@ -191,7 +196,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     if (extNamespace == null) {
       if (extNamespaceRequired
-              && Arrays.asList(Type.JANGAROO_PKG_PACKAGING, Type.JANGAROO_SWC_PACKAGING, Type.JANGAROO_APP_PACKAGING).contains(project.getPackaging())) {
+              && Arrays.asList(Type.JANGAROO_PKG_PACKAGING, JANGAROO_SWC_PACKAGING, Type.JANGAROO_APP_PACKAGING).contains(project.getPackaging())) {
         throw new MojoExecutionException("Flag 'extNamespaceRequired' was enabled but no 'extNamespace' was provided.");
       }
       extNamespace = "";
@@ -284,20 +289,32 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
       jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
       jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
-      jangarooConfig.setGlobalResourcesMap(globalResourcesMap);
-      if (testSuite != null) {
-        jangarooConfig.setTestSuite(testSuite);
-        if (!extNamespace.isEmpty()) {
-          String extNamespaceWithTrailingDot = extNamespace.concat(".");
-          if (!jangarooConfig.getTestSuite().startsWith(extNamespaceWithTrailingDot)) {
-            logger.error(String.format("Invalid testSuite configuration \"jangarooConfig.testSuite\". When Using extNamespace \"%s\" the test suite cannot exist.", extNamespace));
-            return;
-          }
-          jangarooConfig.setTestSuite(jangarooConfig.getTestSuite().replace(extNamespaceWithTrailingDot, ""));
-        }
+      if (globalResourcesMap != null && globalResourcesMap.size() > 0) {
+        jangarooConfig.setAutoLoad(Lists.newArrayList("./src/packageConfig"));
       }
-      if (jooUnitTestExecutionTimeout != null && jooUnitTestExecutionTimeout != 30000) {
-        setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
+      if (testSuite != null) {
+        String testSuiteImport;
+        File testSourceDir = Paths.get(project.getBasedir().getPath(), "target", "test-classes", "src").toFile();
+        Map<String, String> testClassMapping = SenchaUtils.getClassMapping(testSourceDir, extNamespace, testSourceDir);
+        if (testClassMapping.containsKey(testSuite)) {
+          testSuiteImport =  "./joounit/" + testClassMapping.get(testSuite);
+        } else {
+          if (aPackage.getClassMapping().containsKey(testSuite)) {
+            testSuiteImport = "./src/" + aPackage.getClassMapping().get(testSuite);
+          } else {
+            testSuiteImport = findClassImportInDependencies(aPackage, testSuite, true);
+          }
+        }
+
+        if (testSuiteImport != null) {
+          setCommandMapEntry(jangarooConfig, "joounit", "testSuite", testSuiteImport.replaceFirst("[.]ts$", ""));
+        }
+
+        // 1) testExecutionTimeout does only matter if there is a testSuite to execute
+        // 2) do not duplicate default value
+        if (jooUnitTestExecutionTimeout != null && jooUnitTestExecutionTimeout != 30000) {
+          setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
+        }
       }
       if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
         try {
@@ -319,7 +336,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       addManagedDependency(devDependencies, "@jangaroo/build");
       addManagedDependency(devDependencies, "@jangaroo/publish");
       addManagedDependency(devDependencies, "rimraf");
-      if (jangarooConfig.getTestSuite() != null) {
+      if (getCommandMapEntry(jangarooConfig, "joounit", "testSuite") != null) {
         addManagedDependency(devDependencies, "@jangaroo/joounit");
         addManagedDependency(devDependencies, "@coremedia/sencha-ext");
         addManagedDependency(devDependencies, "@coremedia/sencha-ext-classic");
@@ -332,10 +349,15 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("publish", "jangaroo publish dist");
-      if (jangarooConfig.getTestSuite() != null) {
+      if (getCommandMapEntry(jangarooConfig, "joounit", "testSuite") != null) {
         scripts.put("test", "jangaroo joounit");
       }
       additionalJsonEntries.setScripts(scripts);
+
+      Map<String, Object> exports = new HashMap<>();
+      exports.put("./*", "./dist/src/*.js");
+      additionalJsonEntries.setExports(exports);
+
       if (useTypesVersions) {
         List<String> typesPaths = new ArrayList<>();
         typesPaths.add("./src/*");
@@ -397,7 +419,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setTheme(dependencyPackage.getName());
         }
       }
-      jangarooConfig.setApplicationClass(applicationClass);
+      if (applicationClass != null) {
+        String applicationClassImport;
+        if (aPackage.getClassMapping().containsKey(applicationClass)) {
+          applicationClassImport = "./src/" + aPackage.getClassMapping().get(applicationClass);
+        } else {
+          applicationClassImport = findClassImportInDependencies(aPackage, applicationClass, false);
+        }
+        if (applicationClassImport != null) {
+          jangarooConfig.setApplicationClass(applicationClassImport.replaceFirst("[.]ts$", ""));
+        }
+      }
       jangarooConfig.setAdditionalLocales(additionalLocales);
       jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
       jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
@@ -434,6 +466,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
       additionalJsonEntries.setScripts(scripts);
+
+      Map<String, Object> exports = new HashMap<>();
+      exports.put("./*", "./build/src/*.js");
+      additionalJsonEntries.setExports(exports);
+
       if (useTypesVersions) {
         List<String> typesPaths = new ArrayList<>();
         typesPaths.add("./src/*");
@@ -892,7 +929,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private ConversionUtils.NpmPackageMetadata getNpmPackageMetadata(Artifact artifact) {
-    if (artifact.getFile() == null) {
+    String artifactType = artifact.getType();
+    if (artifact.getFile() == null || (!JANGAROO_PACKAGING_TYPES.contains(artifactType) && !"jar".equals(artifactType))) {
       return null;
     }
     Manifest manifest;
@@ -953,7 +991,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private Package readPackageFromMavenModule(MavenModule mavenModule) {
-    ConversionUtils.NpmPackageMetadata npmPackageMetadata = getNpmPackageMetadata(mavenModule.getArtifact());
+    Artifact artifact = mavenModule.getArtifact();
+    ConversionUtils.NpmPackageMetadata npmPackageMetadata = getNpmPackageMetadata(artifact);
     String originalPackageName = npmPackageMetadata != null ? npmPackageMetadata.name : ConversionUtils.getNpmPackageName(mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId(), resolvedNpmPackageNameReplacers);
     if (packagesByOriginalName.containsKey(originalPackageName)) {
       return packagesByOriginalName.get(originalPackageName);
@@ -1017,7 +1056,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
               }
       );
     }
-    Package aPackage = new Package(packageName, packageVersion, dependencyVersion, packageDependencies, packageDevDependencies);
+    Map<String, String> classMapping = readClassMapping(artifact);
+
+    Package aPackage = new Package(packageName, packageVersion, dependencyVersion, packageDependencies, packageDevDependencies, classMapping);
     packagesByOriginalName.put(originalPackageName, aPackage);
     return aPackage;
   }
@@ -1056,6 +1097,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
   }
 
+  private static Object getCommandMapEntry(JangarooConfig jangarooConfig, String commandName, String entryName) {
+    Map<String, Map<String, Object>> commandsByName = jangarooConfig.getCommand();
+    if (commandsByName == null) {
+      return null;
+    }
+    if (!commandsByName.containsKey(commandName)) {
+      return null;
+    }
+    Map<String, Object> command = commandsByName.get(commandName);
+    return command.getOrDefault(entryName, null);
+  }
+
   private static void setCommandMapEntry(JangarooConfig jangarooConfig, String commandName, String entryName, Object
           entryValue) {
     Map<String, Map<String, Object>> commandsByName = jangarooConfig.getCommand();
@@ -1065,6 +1118,41 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     Map<String, Object> command = commandsByName.computeIfAbsent(commandName, k -> new LinkedHashMap<>());
     command.put(entryName, entryValue);
+  }
+
+  private Map<String, String> readClassMapping(Artifact artifact) {
+    String artifactType = artifact.getType();
+    if (artifact.getFile() != null
+            && (JANGAROO_SWC_PACKAGING.equals(artifactType) || JANGAROO_APP_PACKAGING.equals(artifactType))) {
+      try {
+        JarFile jarFile = new JarFile(artifact.getFile());
+        ZipEntry classMapping =  JANGAROO_SWC_PACKAGING.equals(artifactType)
+                ? jarFile.getEntry("META-INF/pkg/classMapping.json")
+                : jarFile.getEntry("META-INF/resources/classMapping.json");
+        if (classMapping != null) {
+          //noinspection unchecked
+          return (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(classMapping), Map.class);
+        }
+      } catch (IOException e) {
+        getLog().warn(String.format("Inventory could not be read from artifact %s!", artifact), e);
+      }
+    }
+    return new HashMap<>();
+  }
+
+  private String findClassImportInDependencies(Package pkg, String className, boolean includeDevDependencies) {
+    List<Package> allDependencies = new ArrayList<>(pkg.getDependencies());
+    if (includeDevDependencies) {
+      allDependencies.addAll(pkg.getDependencies());
+    }
+    // prefer direct dependencies
+    for (Package dependency : allDependencies) {
+      if (dependency.getClassMapping().containsKey(className)) {
+        return dependency.getName() + "/" + dependency.getClassMapping().get(className);
+      }
+    }
+    getLog().warn("Could not resolve ExtJS class: " + className);
+    return null;
   }
 
   private static class CopyFromMavenResult {

@@ -29,6 +29,8 @@ public class PackageJson {
   private Map<String, String> devDependencies;
   @JsonProperty("scripts")
   private Map<String, String> scripts;
+  @JsonProperty("exports")
+  private Map<String, Object> exports;
   @JsonProperty("typesVersions")
   private Map<String, Object> typesVersions;
   @JsonProperty("types")
@@ -38,7 +40,7 @@ public class PackageJson {
   @JsonProperty("publishOverrides")
   private Map<String, Object> publishOverrides;
 
-  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, Map<String, Object> typesVersions) {
+  public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, Map<String, Object> exports, Map<String, Object> typesVersions) {
     this.name = name;
     this.author = author;
     this.description = description;
@@ -49,6 +51,7 @@ public class PackageJson {
     this.dependencies = dependencies;
     this.devDependencies = devDependencies;
     this.scripts = scripts;
+    this.exports = exports;
     this.typesVersions = typesVersions;
   }
 
@@ -58,6 +61,7 @@ public class PackageJson {
     this.dependencies = additionalPackageJsonEntries.getDependencies();
     this.devDependencies = additionalPackageJsonEntries.getDevDependencies();
     this.scripts = additionalPackageJsonEntries.getScripts();
+    this.exports = additionalPackageJsonEntries.getExports();
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
     this.types = additionalPackageJsonEntries.getTypes();
     this.coremedia = additionalPackageJsonEntries.getCoremedia();
@@ -181,6 +185,16 @@ public class PackageJson {
   public void setScripts(Map<String, String> scripts) {
     if (scripts != null && !scripts.isEmpty()) {
       this.scripts = scripts;
+    }
+  }
+
+  public Map<String, Object> getExports() {
+    return exports;
+  }
+
+  public void setExports(Map<String, Object> exports) {
+    if (exports != null && !exports.isEmpty()) {
+      this.exports = exports;
     }
   }
 
