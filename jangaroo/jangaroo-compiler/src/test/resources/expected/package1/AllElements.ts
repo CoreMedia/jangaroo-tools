@@ -5,10 +5,10 @@ import uint from "../AS3/uint_";
 import Action from "../Ext/Action";
 import Button from "../Ext/Button";
 import MenuItem from "../Ext/MenuItem";
-import MessageBox from "../Ext/MessageBox";
 import Panel from "../Ext/Panel";
 import SomeMixin from "../Ext/mixin/SomeMixin";
 import APlugin from "../Ext/plugins/APlugin";
+import MessageBox from "../Ext/window/MessageBox";
 import allElements from "../exmlparser/config/allElements";
 import Exml from "../net/jangaroo/ext/Exml";
 interface AllElementsConfig extends Config<Panel>, Partial<Pick<AllElements,
@@ -82,7 +82,7 @@ class AllElements extends Panel{
     items:[
       Config(Button, { text: "Save",
         handler: ():void => 
-          MessageBox.alert("gotcha!")
+          MessageBox.getInstance().alert("gotcha!")
         
       }),
       {xtype: "editortreepanel"},

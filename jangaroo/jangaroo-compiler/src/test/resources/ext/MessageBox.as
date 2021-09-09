@@ -1,7 +1,7 @@
 package ext {
+import ext.window.MessageBoxWindow;
 
-[Native("Ext.MessageBox", require)]
-public class MessageBox {
-  public native static function alert(msg:String):void;
-}
+[Native("Ext.MessageBox", require="Ext.window.MessageBox")]
+public const MessageBox: MessageBoxWindow;
+
 }

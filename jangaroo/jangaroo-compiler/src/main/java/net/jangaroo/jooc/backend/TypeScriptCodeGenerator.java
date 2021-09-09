@@ -328,6 +328,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
             }
             moduleNameToLocalName.put(requireModuleName, localName);
+            // handle special pseudo-singletons that in Ext TS are accessed via getInstance():
+            Annotation nativeAnnotation = dependentPrimaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+            if (nativeAnnotation != null) {
+              String requireValue = typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
+              if (requireValue != null && !requireValue.isEmpty()) {
+                localName += ".getInstance()";
+              }
+            }
           }
         }
       }

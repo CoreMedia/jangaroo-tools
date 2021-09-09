@@ -111,10 +111,16 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
 
   private String getRequireModulePath(IdeDeclaration declaration) {
     Annotation nativeAnnotation = declaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-    if (nativeAnnotation != null && getNativeAnnotationRequireValue(nativeAnnotation) == null) {
-      return null;
+    String qualifiedName = "";
+    if (nativeAnnotation != null) {
+      qualifiedName = getNativeAnnotationRequireValue(nativeAnnotation);
+      if (qualifiedName == null) {
+        return null;
+      }
     }
-    String qualifiedName = declaration.getExtNamespaceRelativeTargetQualifiedNameStr();
+    if (qualifiedName.isEmpty()) {
+      qualifiedName = declaration.getExtNamespaceRelativeTargetQualifiedNameStr();
+    }
     // special case: In TypeScript, "AS3.Error" is directly mapped to native "Error":
     if ("AS3.Error".equals(qualifiedName)) {
       return null;
