@@ -4,6 +4,7 @@ import java_cup.runtime.Symbol;
 import net.jangaroo.jooc.api.CompileLog;
 import net.jangaroo.jooc.api.FilePosition;
 import net.jangaroo.jooc.api.Jooc;
+import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.ClassDeclaration;
 import net.jangaroo.jooc.ast.CompilationUnit;
@@ -288,6 +289,37 @@ public class JangarooParser implements CompilationUnitResolver, CompilationUnitR
       InputSource source = findSource(qname);
       if (source != null) {
         compilationUnit = importSource(source);
+      }
+    }
+    return compilationUnit;
+  }
+
+  public CompilationUnit getCompilationUnitFromJooGetOrCreatePackage(String packageName, String localName) {
+    if (packageName == null) {
+      return null;
+    }
+    String qName = CompilerUtils.qName(packageName, localName);
+    CompilationUnit compilationUnit = getCompilationUnit(qName);
+    if (compilationUnit == null) {
+      // try again with renamed UPPERCASE identifier (session -> SESSION):
+      String className = CompilerUtils.className(qName);
+      String classNameToUpper = className.toUpperCase();
+      if (className.equals(classNameToUpper)) {
+        return null;
+      }
+      String guessedRenamedQName = CompilerUtils.qName(CompilerUtils.packageName(qName), classNameToUpper);
+      CompilationUnit renamedCompilationUnit = getCompilationUnit(guessedRenamedQName);
+      if (renamedCompilationUnit == null) {
+        return null;
+      }
+      compilationUnit = renamedCompilationUnit;
+      // check that the found CU is really renamed to the desired name:
+      Annotation renameAnnotation = renamedCompilationUnit.getPrimaryDeclaration().getAnnotation(net.jangaroo.jooc.Jooc.RENAME_ANNOTATION_NAME);
+      if (renameAnnotation != null) {
+        Object renamedQname = renameAnnotation.getPropertiesByName().get(null);
+        if (!qName.equals(renamedQname)) {
+          return null;
+        }
       }
     }
     return compilationUnit;

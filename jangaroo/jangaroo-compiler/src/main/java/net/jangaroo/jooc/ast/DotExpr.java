@@ -68,12 +68,18 @@ public class DotExpr extends PostfixOpExpr {
   public void analyze(final AstNode parentNode) {
     super.analyze(parentNode);
     ide.analyze(this);
+    Scope scope = getIde().getScope();
+    // detect joo.getOrCreatePackage("<package>").<Class> => <package>.<Class> usage:
+    CompilationUnit compilationUnitFromJooGetOrCreatePackage = getCompilationUnitFromJooGetOrCreatePackage();
+    if (compilationUnitFromJooGetOrCreatePackage != null) {
+      scope.getCompilationUnit().addDependency(compilationUnitFromJooGetOrCreatePackage, false);
+    }
     ExpressionType qualifierExpressionType = getArg().getType();
     if (qualifierExpressionType != null) {
       IdeDeclaration memberDeclaration = qualifierExpressionType.resolvePropertyDeclaration(getIde().getName());
       if (memberDeclaration == null) {
         if (!qualifierExpressionType.getDeclaration().isDynamic()) {
-          getIde().getScope().getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
+          scope.getCompiler().getLog().error(getIde().getIde(), "cannot resolve member '" + getIde().getName() + "'.");
         }
       } else {
         if (memberDeclaration instanceof PropertyDeclaration) {
@@ -87,15 +93,22 @@ public class DotExpr extends PostfixOpExpr {
           type = type.getEvalType();
         }
         if (type == null) {
-          type = getIde().getScope().getExpressionType(memberDeclaration);
+          type = scope.getExpressionType(memberDeclaration);
         }
         setType(type);
         if (type != null && !type.isConfigType() && memberDeclaration instanceof TypedIdeDeclaration &&
                 ((TypedIdeDeclaration) memberDeclaration).isBindable()) {
-          getIde().getScope().getCompilationUnit().addBuiltInIdentifierUsage("asConfig");
+          scope.getCompilationUnit().addBuiltInIdentifierUsage("asConfig");
         }
       }
     }
+  }
+
+  public CompilationUnit getCompilationUnitFromJooGetOrCreatePackage() {
+    if (getArg() instanceof ApplyExpr) {
+      return ide.getScope().getCompiler().getCompilationUnitFromJooGetOrCreatePackage(((ApplyExpr) getArg()).getPackageNameFromJooGetOrCreatePackage(), getIde().getName());
+    }
+    return null;
   }
 
 }

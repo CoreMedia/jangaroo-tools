@@ -30,6 +30,7 @@ public class ArrayIndexExpr extends Expr {
 
   private Expr array;
   private ParenthesizedExpr<Expr> indexExpr;
+  private Scope scope;
 
   public ArrayIndexExpr(Expr array, JooSymbol lBrac, Expr index, JooSymbol rBrac) {
     this.array = array;
@@ -48,6 +49,7 @@ public class ArrayIndexExpr extends Expr {
 
   @Override
   public void scope(final Scope scope) {
+    this.scope = scope;
     array.scope(scope);
     indexExpr.scope(scope);
   }
@@ -73,5 +75,19 @@ public class ArrayIndexExpr extends Expr {
     if (arrayType != null && arrayType.isArrayLike()) {
       setType(arrayType.getTypeParameter());
     }
+    CompilationUnit compilationUnitFromJooGetOrCreatePackage = getCompilationUnitFromJooGetOrCreatePackage();
+    if (compilationUnitFromJooGetOrCreatePackage != null) {
+      scope.getCompilationUnit().addDependency(compilationUnitFromJooGetOrCreatePackage, false);
+    }
+  }
+
+  public CompilationUnit getCompilationUnitFromJooGetOrCreatePackage() {
+    if (array instanceof ApplyExpr && indexExpr.getExpr() instanceof LiteralExpr) {
+      Object value = ((LiteralExpr) indexExpr.getExpr()).getValue().getJooValue();
+      if (value instanceof String) {
+        return scope.getCompiler().getCompilationUnitFromJooGetOrCreatePackage(((ApplyExpr) array).getPackageNameFromJooGetOrCreatePackage(), (String) value);
+      }
+    }
+    return null;
   }
 }

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public class ApplyExpr extends Expr {
 
   public static final String TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME = "__typeCheckObjectLiteral__";
+  public static final String JOO_GET_OR_CREATE_PACKAGE_FUNCTION_NAME = "joo.getOrCreatePackage";
 
   private Expr fun;
   private ParenthesizedExpr<CommaSeparatedList<Expr>> args;
@@ -85,8 +86,36 @@ public class ApplyExpr extends Expr {
   }
 
   public boolean isTypeCheckObjectLiteralFunctionCall() {
-    return getFun() instanceof IdeExpr
-            && TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
+    return TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(getDeclarationQualifiedNameStr());
+  }
+
+  public boolean isJooGetOrCreatePackage() {
+    return JOO_GET_OR_CREATE_PACKAGE_FUNCTION_NAME.equals(getDeclarationQualifiedNameStr());
+  }
+
+  private String getDeclarationQualifiedNameStr() {
+    if (getFun() instanceof IdeExpr) {
+      IdeDeclaration declaration = ((IdeExpr) getFun()).getIde().getDeclaration(false);
+      if (declaration != null) {
+        return declaration.getQualifiedNameStr();
+      }
+    }
+    return null;
+  }
+
+  public String getPackageNameFromJooGetOrCreatePackage() {
+    if (isJooGetOrCreatePackage()) {
+      if (getArgs().getExpr() != null) {
+        Expr firstArg = getArgs().getExpr().getHead();
+        if (firstArg instanceof LiteralExpr) {
+          Object packageName = ((LiteralExpr) firstArg).getValue().getJooValue();
+          if (packageName instanceof String) {
+            return (String) packageName;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   public boolean isAssert() {

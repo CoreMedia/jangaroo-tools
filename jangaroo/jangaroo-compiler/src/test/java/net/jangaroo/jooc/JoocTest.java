@@ -263,7 +263,12 @@ public class JoocTest extends AbstractJoocTest {
   public void testPackageGlobalConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalConst");
   }
-  
+
+  @Test
+  public void testUntypedAccessToPackageGlobalConst() throws Exception {
+    assertCompilationResult("package1/UsingSomePackageGlobalUntyped");
+  }
+
   @Test
   public void testPackageGlobalLazyConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalLazyConst");

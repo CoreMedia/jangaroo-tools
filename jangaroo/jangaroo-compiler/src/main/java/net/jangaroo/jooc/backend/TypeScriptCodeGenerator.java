@@ -41,6 +41,7 @@ import net.jangaroo.jooc.ast.ObjectLiteral;
 import net.jangaroo.jooc.ast.Parameter;
 import net.jangaroo.jooc.ast.Parameters;
 import net.jangaroo.jooc.ast.ParenthesizedExpr;
+import net.jangaroo.jooc.ast.PrefixOpExpr;
 import net.jangaroo.jooc.ast.PropertyDeclaration;
 import net.jangaroo.jooc.ast.QualifiedIde;
 import net.jangaroo.jooc.ast.ReturnStatement;
@@ -1692,19 +1693,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return false;
   }
 
-  private static String getPackageNameFromReflectionCall(ApplyExpr applyExpr) {
-    ParenthesizedExpr<CommaSeparatedList<Expr>> args = applyExpr.getArgs();
-    if (args.getExpr() != null && args.getExpr().getHead() instanceof LiteralExpr
-            && args.getExpr().getTail() == null
-            && applyExpr.getFun() instanceof IdeExpr) {
-      IdeDeclaration declaration = ((IdeExpr) applyExpr.getFun()).getIde().getDeclaration(false);
-      if (declaration != null && "joo.getOrCreatePackage".equals(declaration.getQualifiedNameStr())) {
-        return (String) ((LiteralExpr) args.getExpr().getHead()).getValue().getJooValue();
-      }
-    }
-    return null;
-  }
-
   private static boolean isOfConfigType(Expr expr) {
     if (expr instanceof ApplyExpr && ((ApplyExpr) expr).isTypeCheckObjectLiteralFunctionCall()) {
       expr = ((ApplyExpr) expr).getArgs().getExpr().getTail().getHead();
@@ -1833,34 +1821,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeToken(")");
     } else {
       internalVisitDotExpr(dotExpr);
-      if (dotExpr.getArg() instanceof ApplyExpr) {
-        String packageNameFromReflectionCall = getPackageNameFromReflectionCall((ApplyExpr) dotExpr.getArg());
-        if (packageNameFromReflectionCall != null) {
-          String localName = dotExpr.getIde().getName();
-          String qName = CompilerUtils.qName(packageNameFromReflectionCall, localName);
-          CompilationUnit targetCompilationUnit = ide.getScope().getCompiler().getCompilationUnit(qName);
-          if (targetCompilationUnit == null) {
-            // try again with UPPERCASE identifier (session -> SESSION):
-            String guessedRenamedQName = CompilerUtils.qName(packageNameFromReflectionCall, localName.toUpperCase());
-            CompilationUnit renamedTargetCompilationUnit = ide.getScope().getCompiler().getCompilationUnit(guessedRenamedQName);
-            if (renamedTargetCompilationUnit != null) {
-              // check that the found CU is really renamed to the desired name:
-              Annotation renameAnnotation = renamedTargetCompilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.RENAME_ANNOTATION_NAME);
-              if (renameAnnotation != null) {
-                Object renamedQName = renameAnnotation.getPropertiesByName().get(null);
-                if (qName.equals(renamedQName)) {
-                  targetCompilationUnit = renamedTargetCompilationUnit;
-                }
-              }
-            }
-          }
-          if (targetCompilationUnit != null &&
-                  targetCompilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration &&
-                  targetCompilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
-            out.write("._");
-          }
-        }
-      }
     }
   }
 
@@ -1876,6 +1836,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void internalVisitDotExpr(DotExpr dotExpr) throws IOException {
+    // handle joo.getOrCreatePackage("<package>").<compilation-unit>:
+    CompilationUnit compilationUnitFromJooGetOrCreatePackage = dotExpr.getCompilationUnitFromJooGetOrCreatePackage();
+    if (compilationUnitFromJooGetOrCreatePackage != null) {
+      renderUntypedCompilationUnitAccess(dotExpr, compilationUnitFromJooGetOrCreatePackage);
+      return;
+    }
+
     Expr arg = dotExpr.getArg();
     ExpressionType type = arg.getType();
     if (type != null) {
@@ -1941,6 +1908,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     super.visitDotExpr(dotExpr);
   }
 
+  private void renderUntypedCompilationUnitAccess(Expr dotOrArrayIndexExpr, CompilationUnit compilationUnit) throws IOException {
+    out.writeSymbolWhitespace(dotOrArrayIndexExpr.getSymbol());
+
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    // is it a non-[Native] const?
+    if (primaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null
+            && primaryDeclaration instanceof VariableDeclaration
+            && ((VariableDeclaration) primaryDeclaration).isConst()) {
+      // do we need to force it to be writable?
+      boolean isDelete = isDelete(dotOrArrayIndexExpr.getParentNode());
+      if (isDelete || dotOrArrayIndexExpr.isAssignmentLeftHandSide()) {
+        String targetLocalName = imports.get(compilationUnit.getQualifiedNameStr());
+        String underscorePropertySpec = isDelete ? "?: any" : String.format(": typeof %s._", targetLocalName);
+        out.write(String.format("(%s as { _%s })._", targetLocalName, underscorePropertySpec));
+        return;
+      }
+    }
+
+    out.write(compilationUnitAccessCode(compilationUnit.getPrimaryDeclaration()));
+  }
+
+  private static boolean isDelete(AstNode expr) {
+    return expr instanceof PrefixOpExpr && "delete".equals(((PrefixOpExpr) expr).getOp().getText());
+  }
+
   private IdeDeclaration getBindableConfigDeclarationCandidate(ExpressionType type, Ide ide) {
     if (type != null && !type.isConfigType()) {
       IdeDeclaration memberDeclaration = type.getDeclaration().resolvePropertyDeclaration(ide.getName(), false);
@@ -1956,6 +1948,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
+    // handle joo.getOrCreatePackage("<package>")['<compilation-unit>']:
+    CompilationUnit compilationUnitFromJooGetOrCreatePackage = arrayIndexExpr.getCompilationUnitFromJooGetOrCreatePackage();
+    if (compilationUnitFromJooGetOrCreatePackage != null) {
+      renderUntypedCompilationUnitAccess(arrayIndexExpr, compilationUnitFromJooGetOrCreatePackage);
+      return;
+    }
+
     // check for obj["typedMember"], as TypeScript will treat this like obj.typedMember,
     // so we must rewrite this to (obj as object)["typedMember"]
     // (alternative: (obj as unknown).typedMember))
