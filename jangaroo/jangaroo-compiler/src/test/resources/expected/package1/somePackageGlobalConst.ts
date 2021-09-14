@@ -5,6 +5,6 @@ import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 /**
  * Some package-global documentation;
  */
-const somePackageGlobalConst
-  = new SomeOtherClass();
+const somePackageGlobalConst:{readonly _: SomeOtherClass}
+  ={_:  new SomeOtherClass()};
 export default somePackageGlobalConst;

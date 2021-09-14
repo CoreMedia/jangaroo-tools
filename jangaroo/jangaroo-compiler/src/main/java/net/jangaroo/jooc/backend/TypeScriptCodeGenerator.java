@@ -968,10 +968,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  // is it a primary modifiable (var, not const) _or_ [Lazy] variable declaration?
+  // is it a primary variable declaration that needs an '_' property for its value?
   private boolean isPrimaryVariableDeclaration(VariableDeclaration variableDeclaration) {
     return variableDeclaration.isPrimaryDeclaration()
-            && (!variableDeclaration.isConst() || isLazy(variableDeclaration))
+            && (variableDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null)
             && typeScriptModuleResolver.getRequireModuleName(compilationUnit, variableDeclaration) != null;
   }
 
@@ -1854,11 +1854,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               }
             }
           }
-          if (targetCompilationUnit != null && targetCompilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration) {
-            VariableDeclaration targetPrimaryDeclaration = (VariableDeclaration) targetCompilationUnit.getPrimaryDeclaration();
-            if (!targetPrimaryDeclaration.isConst() || targetPrimaryDeclaration.getAnnotation(Jooc.LAZY_ANNOTATION_NAME) != null) {
-              out.write("._");
-            }
+          if (targetCompilationUnit != null &&
+                  targetCompilationUnit.getPrimaryDeclaration() instanceof VariableDeclaration &&
+                  targetCompilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
+            out.write("._");
           }
         }
       }
