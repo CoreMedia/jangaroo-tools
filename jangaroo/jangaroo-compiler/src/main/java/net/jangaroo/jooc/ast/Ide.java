@@ -324,14 +324,7 @@ public class Ide extends NodeImplBase {
   public boolean isAssignmentLHS() {
     AstNode parentNode = getParentNode();
     if (parentNode instanceof IdeExpr || (parentNode instanceof DotExpr && ((DotExpr) parentNode).getIde() == this)) {
-      AstNode containingExpr = parentNode.getParentNode();
-      if (containingExpr instanceof AssignmentOpExpr) {
-        Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
-        if (arg1 instanceof IdeExpr) {
-          arg1 = ((IdeExpr) arg1).getNormalizedExpr();
-        }
-        return arg1 == parentNode;
-      }
+      return ((Expr) parentNode).isAssignmentLeftHandSide();
     }
     return false;
   }

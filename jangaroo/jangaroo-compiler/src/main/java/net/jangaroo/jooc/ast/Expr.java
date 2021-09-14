@@ -56,4 +56,15 @@ public abstract class Expr extends NodeImplBase {
     return isRuntimeConstant();
   }
 
+  public boolean isAssignmentLeftHandSide() {
+    AstNode containingExpr = getParentNode();
+    if (containingExpr instanceof AssignmentOpExpr) {
+      Expr arg1 = ((AssignmentOpExpr) containingExpr).getArg1();
+      if (arg1 instanceof IdeExpr) {
+        arg1 = ((IdeExpr) arg1).getNormalizedExpr();
+      }
+      return arg1 == this;
+    }
+    return false;
+  }
 }
