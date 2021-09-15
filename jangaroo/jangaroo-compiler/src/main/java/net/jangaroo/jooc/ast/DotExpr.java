@@ -68,11 +68,11 @@ public class DotExpr extends PostfixOpExpr {
   public void analyze(final AstNode parentNode) {
     super.analyze(parentNode);
     ide.analyze(this);
-    Scope scope = getIde().getScope();
+    Scope scope = ide.getScope();
     // detect joo.getOrCreatePackage("<package>").<Class> => <package>.<Class> usage:
     CompilationUnit compilationUnitFromJooGetOrCreatePackage = getCompilationUnitFromJooGetOrCreatePackage();
     if (compilationUnitFromJooGetOrCreatePackage != null) {
-      scope.getCompilationUnit().addDependency(compilationUnitFromJooGetOrCreatePackage, false);
+      scope.addDependencyFromJooGetOrCreatePackage(compilationUnitFromJooGetOrCreatePackage, ide.getSymbol());
     }
     ExpressionType qualifierExpressionType = getArg().getType();
     if (qualifierExpressionType != null) {

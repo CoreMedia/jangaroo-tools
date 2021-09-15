@@ -68,6 +68,12 @@ public abstract class AbstractScope implements Scope {
   }
 
   @Override
+  public void addDependencyFromJooGetOrCreatePackage(CompilationUnit compilationUnitFromJooGetOrCreatePackage, JooSymbol symbol) {
+    mustBeInsideValueScope();
+    parent.addDependencyFromJooGetOrCreatePackage(compilationUnitFromJooGetOrCreatePackage, symbol);
+  }
+
+  @Override
   public AstNode getDefiningNode() {
     if (parent == null) {
       return null;

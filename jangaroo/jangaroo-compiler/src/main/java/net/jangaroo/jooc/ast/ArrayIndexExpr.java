@@ -77,7 +77,7 @@ public class ArrayIndexExpr extends Expr {
     }
     CompilationUnit compilationUnitFromJooGetOrCreatePackage = getCompilationUnitFromJooGetOrCreatePackage();
     if (compilationUnitFromJooGetOrCreatePackage != null) {
-      scope.getCompilationUnit().addDependency(compilationUnitFromJooGetOrCreatePackage, false);
+      scope.addDependencyFromJooGetOrCreatePackage(compilationUnitFromJooGetOrCreatePackage, indexExpr.getExpr().getSymbol());
     }
   }
 

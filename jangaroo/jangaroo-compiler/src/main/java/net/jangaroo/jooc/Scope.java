@@ -42,6 +42,8 @@ public interface Scope {
 
   void addImport(ImportDirective importDirective);
 
+  void addDependencyFromJooGetOrCreatePackage(CompilationUnit compilationUnitFromJooGetOrCreatePackage, JooSymbol symbol);
+
   IdeDeclaration declareIde(IdeDeclaration decl);
 
   LabeledStatement lookupLabel(Ide ide);

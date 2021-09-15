@@ -125,6 +125,16 @@ public class DeclarationScope extends AbstractScope {
     return false;
   }
 
+  public void addDependencyFromJooGetOrCreatePackage(CompilationUnit compilationUnitFromJooGetOrCreatePackage, JooSymbol referenceSymbol) {
+    Ide localNameIde = compilationUnitFromJooGetOrCreatePackage.getPrimaryDeclaration().getIde();
+    IdeDeclaration ideDeclaration = lookupDeclaration(localNameIde);
+    if (ideDeclaration != null && equals(ideDeclaration.getIde().getScope())) {
+      getCompiler().getLog().error(referenceSymbol,
+              String.format("Name clash of implicit import through joo.getOrCreatePackage() and local variable %s.", localNameIde.getName()));
+    }
+    getCompilationUnit().addDependency(compilationUnitFromJooGetOrCreatePackage, false);
+  }
+
   @Override
   public IdeDeclaration declareIde(IdeDeclaration decl) {
     final Ide ide = decl.getIde();
