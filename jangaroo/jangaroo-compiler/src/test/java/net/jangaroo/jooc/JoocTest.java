@@ -389,6 +389,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInitFunction() throws Exception {
+    assertCompilationResult("init");
+  }
+
+  @Test
   public void testRequireResourceBundle() throws Exception {
     assertCompilationResult("package2/TestRequireResourceBundle");
   }
