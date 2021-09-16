@@ -85,8 +85,24 @@ public class ApplyExpr extends Expr {
   }
 
   public boolean isTypeCheckObjectLiteralFunctionCall() {
-    return getFun() instanceof IdeExpr
-            && TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
+    return TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(getDeclarationQualifiedNameStr(false));
+  }
+
+  public boolean isExtApply() {
+    return "ext.SExt.apply".equals(getDeclarationQualifiedNameStr(true));
+  }
+
+  private String getDeclarationQualifiedNameStr(boolean useResolve) {
+    if (getFun() instanceof IdeExpr) {
+      Ide ide = ((IdeExpr) getFun()).getIde();
+      IdeDeclaration declaration = useResolve
+              ? ide.resolveDeclaration()
+              : ide.getDeclaration(false);
+      if (declaration != null) {
+        return declaration.getQualifiedNameStr();
+      }
+    }
+    return null;
   }
 
   public boolean isAssert() {

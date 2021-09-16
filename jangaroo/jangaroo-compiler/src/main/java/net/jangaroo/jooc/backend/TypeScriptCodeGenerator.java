@@ -1581,6 +1581,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeSymbol(args.getRParen());
         }
       }
+    } else if (args != null && applyExpr.isExtApply()) {
+      // although semantics differ slightly, rewrite 'Ext.apply(x, y[, z]) to 'Object.assign(x[, z], y)':
+      writeSymbolReplacement(applyExpr.getSymbol(), "Object.assign");
+      out.writeSymbol(args.getLParen());
+      CommaSeparatedList<Expr> extApplyArgs = args.getExpr();
+      if (extApplyArgs != null) {
+        extApplyArgs.getHead().visit(this);
+        CommaSeparatedList<Expr> secondArgument = extApplyArgs.getTail();
+        if (secondArgument != null) {
+          out.writeSymbol(extApplyArgs.getSymComma());
+          if (secondArgument.getTail() != null) {
+            // three arguments: swap two and three, so render third first:
+            secondArgument.getTail().getHead().visit(this);
+            out.writeSymbol(secondArgument.getSymComma());
+          }
+          secondArgument.getHead().visit(this);
+        }
+      }
+      out.writeSymbol(args.getRParen());
     } else if (args != null &&
             args.getExpr() != null &&
             args.getExpr().getTail() == null &&

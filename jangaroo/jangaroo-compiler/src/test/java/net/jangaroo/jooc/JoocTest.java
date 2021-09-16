@@ -404,6 +404,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testExtApply() throws Exception {
+    assertCompilationResult("package2/TestExtApply");
+  }
+
+  @Test
   public void testArrowFunctions() throws Exception {
     assertCompilationResult("package2/TestArrowFunctions");
   }
