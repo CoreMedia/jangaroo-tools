@@ -1,16 +1,22 @@
 package net.jangaroo.jooc;
 
+import com.google.common.collect.ImmutableList;
 import net.jangaroo.jooc.api.Compressor;
 import net.jangaroo.jooc.api.Packager;
 import net.jangaroo.jooc.api.Packager2;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class PackagerImpl implements Packager, Packager2 {
 
@@ -66,6 +72,10 @@ public class PackagerImpl implements Packager, Packager2 {
     final String outputFilePath = outputFile.getAbsolutePath();
     if (somethingChanged && !sources.isEmpty()) {
       System.out.printf("Packing %d js files into %s%n", sources.size(), outputFilePath);
+      String initName = (StringUtils.isNotEmpty(extNamespace) ? extNamespace + "." : "") + "init";
+      if (sourceClasses.contains(initName)) {
+        sources.add(createAutoLoad(outputDirectory, ImmutableList.of(initName)));
+      }
       pack(sources, outputFile);
 
       File inventoryFile = new File(outputDirectory, CompilerUtils.removeExtension(outputFileName) + ".json");
@@ -127,4 +137,13 @@ public class PackagerImpl implements Packager, Packager2 {
     return overridesJsFilename(prefix, "");
   }
 
+  private static File createAutoLoad(File outputDirectory, List<String> autoLoad) throws IOException {
+    File autoLoadFile = new File(outputDirectory, "autoLoad.js");
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(autoLoadFile), StandardCharsets.UTF_8)) {
+      for (String item : autoLoad) {
+        writer.write(item + "();\n");
+      }
+    }
+    return autoLoadFile;
+  }
 }

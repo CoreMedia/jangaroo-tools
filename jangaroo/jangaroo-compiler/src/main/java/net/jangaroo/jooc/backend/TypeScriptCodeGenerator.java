@@ -350,7 +350,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     primaryDeclaration.visit(this);
 
     if (isModule) {
-      if (!isPropertiesSubclass(primaryDeclaration)) {
+      if (!isPropertiesSubclass(primaryDeclaration) && !isInitFunction(primaryDeclaration)) {
         out.write("\nexport default " + primaryLocalName + ";\n");
       }
     } else if (!targetNamespace.isEmpty()) {
@@ -1170,11 +1170,28 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } else {
       if (functionDeclaration.isPrimaryDeclaration()) {
-        visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+        if (isInitFunction(functionDeclaration)) {
+          // unwrap the init() function body to top-level ES module code that serves as npm package autoload:
+          visitAll(functionDeclaration.getBody().getDirectives());
+          out.writeSymbolWhitespace(functionDeclaration.getBody().getRBrace());
+          return;
+        } else {
+          visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+        }
       }
       functionExpr.visit(this);
       writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
     }
+  }
+
+  private boolean isInitFunction(IdeDeclaration ideDeclaration) {
+    if ("init".equals(ideDeclaration.getExtNamespaceRelativeTargetQualifiedNameStr())
+            && ideDeclaration instanceof FunctionDeclaration) {
+      FunctionDeclaration functionDeclaration = (FunctionDeclaration) ideDeclaration;
+      return functionDeclaration.getParams() == null &&
+              (functionDeclaration.getOptTypeRelation() == null || AS3Type.VOID.name.equals(functionDeclaration.getOptTypeRelation().getType().getIde().getName()));
+    }
+    return false;
   }
 
   JooSymbol findSymbolWithASDoc(IdeDeclaration declaration) {
