@@ -1568,7 +1568,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (eventClass != null) {
           VariableDeclaration eventNameDeclaration = (VariableDeclaration) eventClass.getDeclaration().getStaticMemberDeclaration(eventNameDotExpr.getIde().getName());
           String eventOnName = (String) ((LiteralExpr) eventNameDeclaration.getOptInitializer().getValue()).getValue().getJooValue();
-          String eventName = eventOnName.substring(2).toLowerCase();
+          String eventName = eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
           Expr fun = applyExpr.getFun();
           DotExpr funDotExpr = (DotExpr) (fun instanceof IdeExpr ? ((IdeExpr) fun).getNormalizedExpr() : fun);
           funDotExpr.getArg().visit(this);
