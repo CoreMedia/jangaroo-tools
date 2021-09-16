@@ -163,10 +163,10 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
         "Ext.Action",
         "Ext.Button",
         "Ext.MenuItem",
-        "Ext.MessageBox",
         "Ext.events.PanelEvent",
         "Ext.mixin.SomeMixin",
         "Ext.plugins.APlugin",
+        "Ext.window.MessageBox",
         "exmlparser.config.allElements",
         "net.jangaroo.ext.Exml"
       ]
