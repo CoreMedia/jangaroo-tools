@@ -289,8 +289,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
       jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
       jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
+
+      if (aPackage.getClassMapping().containsKey((!extNamespace.equals("") ? extNamespace + "." : "") + "init")) {
+        addAutoLoadEntry(jangarooConfig, "./src/init");
+      }
       if (globalResourcesMap != null && globalResourcesMap.size() > 0) {
-        jangarooConfig.setAutoLoad(Lists.newArrayList("./src/packageConfig"));
+        addAutoLoadEntry(jangarooConfig, "./src/packageConfig");
       }
       if (testSuite != null) {
         String testSuiteImport;
@@ -1094,6 +1098,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       dependencies.put(aPackage.getName(), aPackage.getDependencyVersion());
     } else {
       logger.warn("Could not find package with name " + name);
+    }
+  }
+
+  private static void addAutoLoadEntry(JangarooConfig jangarooConfig, String item) {
+    if (jangarooConfig.getAutoLoad() == null) {
+      jangarooConfig.setAutoLoad(Lists.newArrayList(item));
+    } else {
+      jangarooConfig.getAutoLoad().add(item);
     }
   }
 
