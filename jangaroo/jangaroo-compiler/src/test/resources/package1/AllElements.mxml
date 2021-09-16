@@ -19,6 +19,7 @@
     import exmlparser.config.allElements;
 
     import ext.MessageBox;
+    import ext.window.MessageBoxWindow;
 
     /**
      * This is my <b>constant</b>
@@ -43,6 +44,7 @@
       myVar2 = {
         prop: config.myProperty
       };
+      const unused: MessageBoxWindow = new MessageBoxWindow();
     }
 
     public native function AllElements(config:AllElements = null);

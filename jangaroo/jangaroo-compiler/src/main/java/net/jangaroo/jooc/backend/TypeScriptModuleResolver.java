@@ -117,6 +117,9 @@ public class TypeScriptModuleResolver extends ModuleResolverBase {
       if (qualifiedName == null) {
         return null;
       }
+      if (!qualifiedName.isEmpty()) {
+        qualifiedName = declaration.getCompilationUnit().cutOffExtNamespace(qualifiedName);
+      }
     }
     if (qualifiedName.isEmpty()) {
       qualifiedName = declaration.getExtNamespaceRelativeTargetQualifiedNameStr();

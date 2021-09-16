@@ -297,6 +297,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
       if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
+        CompilationUnit compilationUnitToRequire = getCompilationUnitToRequire(dependentCompilationUnitModel);
+        if (compilationUnitToRequire != null) {
+          // dependentCompilationUnitModel is an Ext pseudo singleton:
+          if (dependentCompilationUnitModels.contains(compilationUnitToRequire)) {
+            // other compilation unit is already used directly: skip to avoid false name clash!
+            continue;
+          }
+          dependentCompilationUnitModel = compilationUnitToRequire;
+        }
         String localName = typeScriptModuleResolver.getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
         localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
         if (!localNames.add(localName)) {
@@ -308,6 +317,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // second pass: generate imports, using fully-qualified names for local name clashes:
     Map<String, String> moduleNameToLocalName = new TreeMap<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
+      CompilationUnit pseudoSingletonCompilationUnit = null;
+      CompilationUnit compilationUnitToRequire = getCompilationUnitToRequire(dependentCompilationUnitModel);
+      if (compilationUnitToRequire != null) {
+        // dependentCompilationUnitModel is an Ext pseudo singleton:
+        pseudoSingletonCompilationUnit = dependentCompilationUnitModel;
+        dependentCompilationUnitModel = compilationUnitToRequire;
+      }
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);
       String localName;
@@ -328,14 +344,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               localName = TypeScriptModuleResolver.toLocalName(dependentPrimaryDeclaration.getQualifiedName());
             }
             moduleNameToLocalName.put(requireModuleName, localName);
-            // handle special pseudo-singletons that in Ext TS are accessed via getInstance():
-            Annotation nativeAnnotation = dependentPrimaryDeclaration.getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
-            if (nativeAnnotation != null) {
-              String requireValue = typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
-              if (requireValue != null && !requireValue.isEmpty()) {
-                localName += ".getInstance()";
-              }
-            }
+          }
+          // handle special pseudo-singletons that in Ext TS are accessed via getInstance():
+          if (pseudoSingletonCompilationUnit != null) {
+            imports.put(pseudoSingletonCompilationUnit.getQualifiedNameStr(), localName + ".getInstance()");
           }
         }
       }
@@ -358,6 +370,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private CompilationUnit getCompilationUnitToRequire(CompilationUnit compilationUnit) {
+    Annotation nativeAnnotation = compilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    if (nativeAnnotation != null) {
+      String requireValue = typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
+      if (requireValue != null && !requireValue.isEmpty()) {
+        // dependentCompilationUnitModel is an Ext pseudo singleton:
+        return compilationUnit.getPrimaryDeclaration().getType().getDeclaration().getCompilationUnit();
+      }
+    }
+    return null;
   }
 
   private static boolean isNoFlExtEventClass(CompilationUnit compilationUnit) {

@@ -15,6 +15,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
     import exmlparser.config.allElements;
 
     import ext.MessageBox;
+    import ext.window.MessageBoxWindow;
 
     /**
      * This is my <b>constant</b>
@@ -36,7 +37,8 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       this.myVar$6tZL = config.myProperty$6tZL + '_suffix';
       this.myVar2$6tZL = {
         prop: config.myProperty$6tZL
-      };
+      };/*
+      const*/var unused/*: MessageBoxWindow*/ = new Ext.window.MessageBox();
     }/*
 
     public*/function AllElements$(config/*:AllElements = null*/){if(arguments.length<=0)config=null;this.__initialize__$6tZL(config);

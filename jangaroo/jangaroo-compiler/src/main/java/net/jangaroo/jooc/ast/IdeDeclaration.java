@@ -111,22 +111,7 @@ public abstract class IdeDeclaration extends Declaration {
   }
 
   public String getExtNamespaceRelativeTargetQualifiedNameStr() {
-    String targetName = getTargetQualifiedNameStr();
-    InputSource inputSource = getCompilationUnit().getInputSource();
-    String extNamespace = inputSource.getExtNamespace();
-    if (extNamespace != null && !extNamespace.isEmpty()) {
-      if (targetName.equals(extNamespace)) {
-        // top-level namespace export like "Ext":
-        targetName = "";
-      } else {
-        if (!targetName.startsWith(extNamespace + ".")) {
-          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
-        }
-        // also cut off the ".":
-        targetName = targetName.substring(extNamespace.length() + 1);
-      }
-    }
-    return targetName;
+    return getCompilationUnit().cutOffExtNamespace(getTargetQualifiedNameStr());
   }
 
   public String getQualifiedNameStr() {
