@@ -1,4 +1,5 @@
 package package1 {
+import package1.mxml.pkg.TestInterface;
 
 public class TestTypeCast {
 
@@ -11,6 +12,8 @@ public class TestTypeCast {
     var i :int = int(r);
     var b :Boolean = p is TestTypeCast;
     var notB :Boolean = !(p is TestTypeCast);
+    var castObjectToInterface: TestInterface = TestInterface({ foo: "FOO" });
+    var castObjectToNonExt: SomeClass = SomeClass({ bar: "BAR" });
     return p as TestTypeCast;
   }
 

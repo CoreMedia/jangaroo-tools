@@ -1,4 +1,5 @@
-/*package package1 {*/
+/*package package1 {
+import package1.mxml.pkg.TestInterface;*/
 
 Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestTypeCast {
 
@@ -11,6 +12,8 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
     var i/* :int*/ = AS3.int_(r);
     var b/* :Boolean*/ =AS3.is( p,  TestTypeCast);
     var notB/* :Boolean*/ = !AS3.is(p,  TestTypeCast);
+    var castObjectToInterface/*: TestInterface*/ = AS3.cast(package1.mxml.pkg.TestInterface,{ foo: "FOO" });
+    var castObjectToNonExt/*: SomeClass*/ = AS3.cast(package1.SomeClass,{ bar: "BAR" });
     return AS3.as( p,  TestTypeCast);
   }/*
 
@@ -35,7 +38,9 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
       },
       uses: [
         "AS3.int_",
-        "AS3.uint_"
+        "AS3.uint_",
+        "package1.SomeClass",
+        "package1.mxml.pkg.TestInterface"
       ]
     };
 });
