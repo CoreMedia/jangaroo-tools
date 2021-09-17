@@ -10,6 +10,7 @@ public class AdditionalPackageJsonEntries {
   private Map<String, String> dependencies;
   private Map<String, String> devDependencies;
   private Map<String, String> scripts;
+  private Map<String, Object> exports;
   private Map<String, Object> typesVersions;
   private String types;
   private Map<String, Object> coremedia;
@@ -86,6 +87,16 @@ public class AdditionalPackageJsonEntries {
   public void setScripts(Map<String, String> scripts) {
     if (scripts != null && !scripts.isEmpty()) {
       this.scripts = scripts;
+    }
+  }
+
+  public Map<String, Object> getExports() {
+    return exports;
+  }
+
+  public void setExports(Map<String, Object> exports) {
+    if (exports != null && !exports.isEmpty()) {
+      this.exports = exports;
     }
   }
 

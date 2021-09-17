@@ -1,5 +1,4 @@
 import { lazyConst } from "@jangaroo/runtime/AS3";
-import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 
 
 // This comment to vanish in API
@@ -7,6 +6,5 @@ import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 /**
  * Some package-global documentation;
  */
-const somePackageGlobalLazyConst:{readonly _: SomeOtherClass}
-  =lazyConst(() => new SomeOtherClass());
+const somePackageGlobalLazyConst:{readonly _: any} =lazyConst(() => ({}));
 export default somePackageGlobalLazyConst;

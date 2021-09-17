@@ -297,6 +297,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
       if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
+        CompilationUnit compilationUnitToRequire = getCompilationUnitToRequire(dependentCompilationUnitModel);
+        if (compilationUnitToRequire != null) {
+          // dependentCompilationUnitModel is an Ext pseudo singleton:
+          if (dependentCompilationUnitModels.contains(compilationUnitToRequire)) {
+            // other compilation unit is already used directly: skip to avoid false name clash!
+            continue;
+          }
+          dependentCompilationUnitModel = compilationUnitToRequire;
+        }
         String localName = typeScriptModuleResolver.getDefaultImportName(dependentCompilationUnitModel.getPrimaryDeclaration());
         localName = localName.split("\\.")[0]; // may be a native fully qualified name which "occupies" its first namespace!
         if (!localNames.add(localName)) {
@@ -308,6 +317,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // second pass: generate imports, using fully-qualified names for local name clashes:
     Map<String, String> moduleNameToLocalName = new TreeMap<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
+      CompilationUnit pseudoSingletonCompilationUnit = null;
+      CompilationUnit compilationUnitToRequire = getCompilationUnitToRequire(dependentCompilationUnitModel);
+      if (compilationUnitToRequire != null) {
+        // dependentCompilationUnitModel is an Ext pseudo singleton:
+        pseudoSingletonCompilationUnit = dependentCompilationUnitModel;
+        dependentCompilationUnitModel = compilationUnitToRequire;
+      }
       IdeDeclaration dependentPrimaryDeclaration = dependentCompilationUnitModel.getPrimaryDeclaration();
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentPrimaryDeclaration);
       String localName;
@@ -329,6 +345,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             }
             moduleNameToLocalName.put(requireModuleName, localName);
           }
+          // handle special pseudo-singletons that in Ext TS are accessed via getInstance():
+          if (pseudoSingletonCompilationUnit != null) {
+            imports.put(pseudoSingletonCompilationUnit.getQualifiedNameStr(), localName + ".getInstance()");
+          }
         }
       }
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
@@ -342,7 +362,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     primaryDeclaration.visit(this);
 
     if (isModule) {
-      if (!isPropertiesSubclass(primaryDeclaration)) {
+      if (!isPropertiesSubclass(primaryDeclaration) && !isInitFunction(primaryDeclaration)) {
         out.write("\nexport default " + primaryLocalName + ";\n");
       }
     } else if (!targetNamespace.isEmpty()) {
@@ -350,6 +370,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private CompilationUnit getCompilationUnitToRequire(CompilationUnit compilationUnit) {
+    Annotation nativeAnnotation = compilationUnit.getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME);
+    if (nativeAnnotation != null) {
+      String requireValue = typeScriptModuleResolver.getNativeAnnotationRequireValue(nativeAnnotation);
+      if (requireValue != null && !requireValue.isEmpty()) {
+        // dependentCompilationUnitModel is an Ext pseudo singleton:
+        return compilationUnit.getPrimaryDeclaration().getType().getDeclaration().getCompilationUnit();
+      }
+    }
+    return null;
   }
 
   private static boolean isNoFlExtEventClass(CompilationUnit compilationUnit) {
@@ -696,7 +728,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(parameter.getOptSymRest());
     parameter.getIde().visit(this);
     Initializer initializer = parameter.getOptInitializer();
-    boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()));
+    boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()) || companionInterfaceMode);
     if (isOptional) {
       out.write("?");
     }
@@ -936,17 +968,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         if (isLazy(variableDeclaration)) {
           out.write(getLazyFactoryFunctionName(variableDeclaration) + "(() =>");
-        } else {
-          out.write("{_: ");
-        }
-        if (initializer != null) {
-          initializer.getValue().visit(this);
-        } else {
-          out.write(VariableDeclaration.getDefaultValue(typeRelation));
-        }
-        if (isLazy(variableDeclaration)) {
+          if (initializer != null) {
+            visitExprWithParenthesisIfObjectLiteral(initializer.getValue());
+          } else {
+            out.write(VariableDeclaration.getDefaultValue(typeRelation));
+          }
           out.write(")");
         } else {
+          out.write("{_: ");
+          if (initializer != null) {
+            initializer.getValue().visit(this);
+          } else {
+            out.write(VariableDeclaration.getDefaultValue(typeRelation));
+          }
           out.write("}");
         }
       }
@@ -1162,11 +1196,28 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     } else {
       if (functionDeclaration.isPrimaryDeclaration()) {
-        visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+        if (isInitFunction(functionDeclaration)) {
+          // unwrap the init() function body to top-level ES module code that serves as npm package autoload:
+          visitAll(functionDeclaration.getBody().getDirectives());
+          out.writeSymbolWhitespace(functionDeclaration.getBody().getRBrace());
+          return;
+        } else {
+          visitDeclarationAnnotationsAndModifiers(functionDeclaration);
+        }
       }
       functionExpr.visit(this);
       writeOptSymbolWhitespace(functionDeclaration.getOptSymSemicolon());
     }
+  }
+
+  private boolean isInitFunction(IdeDeclaration ideDeclaration) {
+    if ("init".equals(ideDeclaration.getExtNamespaceRelativeTargetQualifiedNameStr())
+            && ideDeclaration instanceof FunctionDeclaration) {
+      FunctionDeclaration functionDeclaration = (FunctionDeclaration) ideDeclaration;
+      return functionDeclaration.getParams() == null &&
+              (functionDeclaration.getOptTypeRelation() == null || AS3Type.VOID.name.equals(functionDeclaration.getOptTypeRelation().getType().getIde().getName()));
+    }
+    return false;
   }
 
   JooSymbol findSymbolWithASDoc(IdeDeclaration declaration) {
@@ -1204,7 +1255,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   protected void visitBlockStatementDirectives(BlockStatement body) throws IOException {
-    if (!(body.usesInstanceThis()
+    if (!(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && body.usesInstanceThis()
             && body.getParentNode() instanceof FunctionExpr
             && body.getParentNode().getParentNode() instanceof FunctionDeclaration
             && ((FunctionDeclaration) body.getParentNode().getParentNode()).containsSuperConstructorCall()
@@ -1212,6 +1264,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       super.visitBlockStatementDirectives(body);
       return;
     }
+    boolean isExtClass = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromExtBaseExplicitly();
     Iterator<Directive> iterator = body.getDirectives().iterator();
     List<Directive> directivesToWrap = null;
     while (iterator.hasNext()) {
@@ -1224,6 +1277,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (directivesToWrap == null) {
           directive.visit(this);
         } else {
+          if (!isExtClass) {
+            compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+                    (directivesToWrap.isEmpty() ? directive : directivesToWrap.get(0)).getSymbol(),
+                    "Constructor code of non-Ext class may not access 'this' before calling 'super()'. "
+                            + "Either move code or make this class an Ext class by inheriting from ext.Base.");
+          }
           visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
         }
         break;
@@ -1383,15 +1442,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (returnStatement != null) {
             out.writeSymbolWhitespace(returnStatement.getSymKeyword());
           }
-          boolean needsInnerParenthesis = returnExpr instanceof ObjectLiteral;
-          if (needsInnerParenthesis) {
-            out.writeSymbolWhitespace(returnExpr.getSymbol());
-            out.write("(");
-          }
-          returnExpr.visit(this);
-          if (needsInnerParenthesis) {
-            out.write(")");
-          }
+          visitExprWithParenthesisIfObjectLiteral(returnExpr);
           out.writeSymbolWhitespace(functionExpr.getBody().getRBrace());
           if (needsParenthesis) {
             out.write(")");
@@ -1406,6 +1457,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     visitIfNotNull(functionExpr.getBody());
     if (needsParenthesis) {
+      out.write(")");
+    }
+  }
+
+  private void visitExprWithParenthesisIfObjectLiteral(Expr returnExpr) throws IOException {
+    boolean needsInnerParenthesis = returnExpr instanceof ObjectLiteral;
+    if (needsInnerParenthesis) {
+      out.writeSymbolWhitespace(returnExpr.getSymbol());
+      out.write("(");
+    }
+    returnExpr.visit(this);
+    if (needsInnerParenthesis) {
       out.write(")");
     }
   }
@@ -1449,24 +1512,30 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         Expr firstParameter = args.getExpr().getHead();
         boolean isExtConfig = castToClass.inheritsFromExtBaseExplicitly();
         if (!castToClass.hasConfigClass() && !isExtConfig
-                && firstParameter instanceof ObjectLiteral && ((ObjectLiteral) firstParameter).getFields() == null) {
-          // Found a cast of an empty object literal into a non-config, non-Ext class or interface.
+                && firstParameter instanceof ObjectLiteral) {
+          // Found a cast of an object literal into a non-config, non-Ext class or interface.
           // This has been used in Jangaroo-ActionScript to construct simple, typed objects that do *not*
-          // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can simply construct them using
-          //    new Foo() // for class or
-          //    <Foo>{} // for interface
+          // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can construct them on the fly.
+          // For a (runtime) interface, we create an ad-hoc class that mixes in the interface,
+          // instantiate it, then (if not empty) assign all given properties: 
+          //    IFoo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, mixin(class {}, IFoo).prototype)
+          // For a class, we simply set the class' prototype:
+          //    Foo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, Foo.prototype) 
           out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
+          out.write("Object.setPrototypeOf");
+          out.writeSymbol(args.getLParen());
+          firstParameter.visit(this);
+          out.writeToken(", ");
           if (castToClass.isInterface()) {
-            out.writeToken("<");
+            out.writeToken("mixin(");
+            out.writeToken("class {}, ");
             applyExpr.getFun().visit(this);
-            out.writeToken(">");
-            firstParameter.visit(this); // render empty object (with its whitespace)
+            out.writeToken(")");
           } else {
-            out.writeToken("new");
             applyExpr.getFun().visit(this);
-            out.writeSymbol(args.getLParen());
-            out.writeSymbol(args.getRParen());
           }
+          out.write(".prototype");
+          out.writeSymbol(args.getRParen());
           return;
         }
         ExpressionType castToType = applyExpr.getFun().getType().getTypeParameter();
@@ -1536,7 +1605,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (eventClass != null) {
           VariableDeclaration eventNameDeclaration = (VariableDeclaration) eventClass.getDeclaration().getStaticMemberDeclaration(eventNameDotExpr.getIde().getName());
           String eventOnName = (String) ((LiteralExpr) eventNameDeclaration.getOptInitializer().getValue()).getValue().getJooValue();
-          String eventName = eventOnName.substring(2).toLowerCase();
+          String eventName = eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
           Expr fun = applyExpr.getFun();
           DotExpr funDotExpr = (DotExpr) (fun instanceof IdeExpr ? ((IdeExpr) fun).getNormalizedExpr() : fun);
           funDotExpr.getArg().visit(this);
@@ -1549,6 +1618,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeSymbol(args.getRParen());
         }
       }
+    } else if (args != null && applyExpr.isExtApply()) {
+      // although semantics differ slightly, rewrite 'Ext.apply(x, y[, z]) to 'Object.assign(x[, z], y)':
+      writeSymbolReplacement(applyExpr.getSymbol(), "Object.assign");
+      out.writeSymbol(args.getLParen());
+      CommaSeparatedList<Expr> extApplyArgs = args.getExpr();
+      if (extApplyArgs != null) {
+        extApplyArgs.getHead().visit(this);
+        CommaSeparatedList<Expr> secondArgument = extApplyArgs.getTail();
+        if (secondArgument != null) {
+          out.writeSymbol(extApplyArgs.getSymComma());
+          if (secondArgument.getTail() != null) {
+            // three arguments: swap two and three, so render third first:
+            secondArgument.getTail().getHead().visit(this);
+            out.writeSymbol(secondArgument.getSymComma());
+          }
+          secondArgument.getHead().visit(this);
+        }
+      }
+      out.writeSymbol(args.getRParen());
     } else if (args != null &&
             args.getExpr() != null &&
             args.getExpr().getTail() == null &&

@@ -15,6 +15,7 @@
 
 package net.jangaroo.jooc.ast;
 
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
@@ -279,4 +280,22 @@ public class CompilationUnit extends NodeImplBase {
   public Set<String> getUsedBuiltInIdentifiers() {
     return usedBuiltInIdentifiers;
   }
+
+  public String cutOffExtNamespace(String targetName) {
+    String extNamespace = getInputSource().getExtNamespace();
+    if (extNamespace != null && !extNamespace.isEmpty()) {
+      if (targetName.equals(extNamespace)) {
+        // top-level namespace export like "Ext":
+        targetName = "";
+      } else {
+        if (!targetName.startsWith(extNamespace + ".")) {
+          throw JangarooParser.error("Source file fully-qualified name " + targetName + " does not start with configured extNamespace " + extNamespace);
+        }
+        // also cut off the ".":
+        targetName = targetName.substring(extNamespace.length() + 1);
+      }
+    }
+    return targetName;
+  }
+
 }

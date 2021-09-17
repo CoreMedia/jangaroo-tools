@@ -389,6 +389,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testInitFunction() throws Exception {
+    assertCompilationResult("init");
+  }
+
+  @Test
   public void testRequireResourceBundle() throws Exception {
     assertCompilationResult("package2/TestRequireResourceBundle");
   }
@@ -401,6 +406,11 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testExtendError() throws Exception {
     assertCompilationResult("package1/ExtendError");
+  }
+
+  @Test
+  public void testExtApply() throws Exception {
+    assertCompilationResult("package2/TestExtApply");
   }
 
   @Test

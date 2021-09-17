@@ -36,6 +36,8 @@ Ext.define("package1.UsingSomeNativeClass", function(UsingSomeNativeClass) {/*pu
 
   public*/ function  set$monkey(value/*:Boolean*/)/*:void*/ {
   }/*
+
+  public native function abstractMethod(param1: String, param2: Number = 0):void;
 }
 }
 

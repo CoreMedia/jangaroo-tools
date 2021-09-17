@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -109,6 +110,13 @@ public class SenchaPackageMojo extends AbstractSenchaPackageOrAppMojo<SenchaPack
     writePackageJson(configBuilder);
     compileJavaScriptSources(getSenchaPackageDirectory());
     writeSenchaCfgFile();
+    File sourceDirectory = new File(getSenchaPackageDirectory(), "src");
+    Map<String, String> classMapping = sourceDirectory.exists() ? SenchaUtils.getClassMapping(sourceDirectory, getExtNamespace(), sourceDirectory) : new HashMap<>();
+    try {
+      SenchaUtils.getObjectMapper().writeValue(new File(getSenchaPackageDirectory(), "classMapping.json"), classMapping);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Could not write class mapping!");
+    }
   }
 
   private void writeSenchaCfgFile() throws MojoExecutionException {

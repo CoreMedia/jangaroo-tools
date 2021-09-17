@@ -85,8 +85,24 @@ public class ApplyExpr extends Expr {
   }
 
   public boolean isTypeCheckObjectLiteralFunctionCall() {
-    return getFun() instanceof IdeExpr
-            && TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(((IdeExpr) getFun()).getIde().getQualifiedNameStr());
+    return TYPE_CHECK_OBJECT_LITERAL_FUNCTION_NAME.equals(getDeclarationQualifiedNameStr(false));
+  }
+
+  public boolean isExtApply() {
+    return "ext.SExt.apply".equals(getDeclarationQualifiedNameStr(true));
+  }
+
+  private String getDeclarationQualifiedNameStr(boolean useResolve) {
+    if (getFun() instanceof IdeExpr) {
+      Ide ide = ((IdeExpr) getFun()).getIde();
+      IdeDeclaration declaration = useResolve
+              ? ide.resolveDeclaration()
+              : ide.getDeclaration(false);
+      if (declaration != null) {
+        return declaration.getQualifiedNameStr();
+      }
+    }
+    return null;
   }
 
   public boolean isAssert() {
@@ -127,12 +143,22 @@ public class ApplyExpr extends Expr {
     ExpressionType type = getFun().getType();
     if (type != null && (type.getAS3Type() == AS3Type.FUNCTION || type.getAS3Type() == AS3Type.CLASS)) {
       ExpressionType classType = type.getTypeParameter();
-      if (isTypeCast && classType != null && ((ClassDeclaration) classType.getDeclaration()).hasConfigClass()) {
-        if (getArgs().getExpr().getHead() instanceof ObjectLiteral) {
-          classType.markAsConfigTypeIfPossible();
-          isConfigFactory = classType.isConfigType();
-        } else {
-          isConfigFactory = null; // may be or may be not...
+      if (isTypeCast && classType != null) {
+        ClassDeclaration classDeclaration = (ClassDeclaration) classType.getDeclaration();
+        boolean argumentIsObjectLiteral = getArgs().getExpr().getHead() instanceof ObjectLiteral;
+        if (classDeclaration.hasConfigClass()) {
+          if (argumentIsObjectLiteral) {
+            classType.markAsConfigTypeIfPossible();
+            isConfigFactory = classType.isConfigType();
+          } else {
+            isConfigFactory = null; // may be or may be not...
+          }
+        } else if (argumentIsObjectLiteral && !classDeclaration.inheritsFromExtBaseExplicitly()) {
+          isTypeCast = false; // no 'cast' or 'Config' must be imported
+          if (classDeclaration.isInterface()) {
+            // if "conversion cast" target is an interface, an ad-hoc class will be constructed via mixin():
+            scope.getCompilationUnit().addBuiltInIdentifierUsage("mixin");
+          }
         }
       }
       setType(classType);
