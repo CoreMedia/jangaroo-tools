@@ -1518,34 +1518,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can construct them on the fly.
           // For a (runtime) interface, we create an ad-hoc class that mixes in the interface,
           // instantiate it, then (if not empty) assign all given properties: 
-          //    IFoo({ ... }) =AS-TS=> Object.assign(new (mixin(class {}, IFoo)), { ... })
-          // For a class, we simply instantiate the class with its no-arg constructor, then assign properties:
-          //    Foo({ ... }) =AS-TS=> Object.assign(new Foo(), { ... }) 
+          //    IFoo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, mixin(class {}, IFoo).prototype)
+          // For a class, we simply set the class' prototype:
+          //    Foo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, Foo.prototype) 
           out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
-          // Suppress Object.assign() for empty object literal
-          boolean isNonEmptyObject = ((ObjectLiteral) firstParameter).getFields() != null;
-          if (isNonEmptyObject) {
-            out.write("Object.assign(");
-          }
+          out.write("Object.setPrototypeOf");
+          out.writeSymbol(args.getLParen());
+          firstParameter.visit(this);
+          out.writeToken(", ");
           if (castToClass.isInterface()) {
-            out.writeToken("new ");
-            out.writeSymbol(args.getLParen());
             out.writeToken("mixin(");
             out.writeToken("class {}, ");
             applyExpr.getFun().visit(this);
             out.writeToken(")");
-            out.writeSymbol(args.getRParen());
           } else {
-            out.writeToken("new");
             applyExpr.getFun().visit(this);
-            out.writeSymbol(args.getLParen());
-            out.writeSymbol(args.getRParen());
           }
-          if (isNonEmptyObject) {
-            out.writeToken(", ");
-            firstParameter.visit(this); // render empty object (with its whitespace)
-            out.writeToken(")");
-          }
+          out.write(".prototype");
+          out.writeSymbol(args.getRParen());
           return;
         }
         ExpressionType castToType = applyExpr.getFun().getType().getTypeParameter();

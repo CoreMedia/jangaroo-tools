@@ -16,8 +16,8 @@ class TestTypeCast {
     var i = int(r);
     var b =is( p,  TestTypeCast);
     var notB :boolean = !is(p,  TestTypeCast);
-    var castObjectToInterface = Object.assign(new (mixin(class {}, TestInterface)), { foo: "FOO" });
-    var castObjectToNonExt = Object.assign(new SomeClass(), { bar: "BAR" });
+    var castObjectToInterface = Object.setPrototypeOf({ foo: "FOO" }, mixin(class {}, TestInterface).prototype);
+    var castObjectToNonExt = Object.setPrototypeOf({ bar: "BAR" }, SomeClass.prototype);
     return as( p,  TestTypeCast);
   }
 
