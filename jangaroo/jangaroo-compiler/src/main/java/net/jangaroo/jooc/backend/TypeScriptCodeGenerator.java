@@ -968,17 +968,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
         if (isLazy(variableDeclaration)) {
           out.write(getLazyFactoryFunctionName(variableDeclaration) + "(() =>");
-        } else {
-          out.write("{_: ");
-        }
-        if (initializer != null) {
-          initializer.getValue().visit(this);
-        } else {
-          out.write(VariableDeclaration.getDefaultValue(typeRelation));
-        }
-        if (isLazy(variableDeclaration)) {
+          if (initializer != null) {
+            visitExprWithParenthesisIfObjectLiteral(initializer.getValue());
+          } else {
+            out.write(VariableDeclaration.getDefaultValue(typeRelation));
+          }
           out.write(")");
         } else {
+          out.write("{_: ");
+          if (initializer != null) {
+            initializer.getValue().visit(this);
+          } else {
+            out.write(VariableDeclaration.getDefaultValue(typeRelation));
+          }
           out.write("}");
         }
       }
@@ -1440,15 +1442,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           if (returnStatement != null) {
             out.writeSymbolWhitespace(returnStatement.getSymKeyword());
           }
-          boolean needsInnerParenthesis = returnExpr instanceof ObjectLiteral;
-          if (needsInnerParenthesis) {
-            out.writeSymbolWhitespace(returnExpr.getSymbol());
-            out.write("(");
-          }
-          returnExpr.visit(this);
-          if (needsInnerParenthesis) {
-            out.write(")");
-          }
+          visitExprWithParenthesisIfObjectLiteral(returnExpr);
           out.writeSymbolWhitespace(functionExpr.getBody().getRBrace());
           if (needsParenthesis) {
             out.write(")");
@@ -1463,6 +1457,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     visitIfNotNull(functionExpr.getBody());
     if (needsParenthesis) {
+      out.write(")");
+    }
+  }
+
+  private void visitExprWithParenthesisIfObjectLiteral(Expr returnExpr) throws IOException {
+    boolean needsInnerParenthesis = returnExpr instanceof ObjectLiteral;
+    if (needsInnerParenthesis) {
+      out.writeSymbolWhitespace(returnExpr.getSymbol());
+      out.write("(");
+    }
+    returnExpr.visit(this);
+    if (needsInnerParenthesis) {
       out.write(")");
     }
   }
