@@ -728,7 +728,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     writeOptSymbol(parameter.getOptSymRest());
     parameter.getIde().visit(this);
     Initializer initializer = parameter.getOptInitializer();
-    boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()));
+    boolean isOptional = initializer != null && (isAmbientOrInterface(compilationUnit) || isUndefined(initializer.getValue()) || companionInterfaceMode);
     if (isOptional) {
       out.write("?");
     }

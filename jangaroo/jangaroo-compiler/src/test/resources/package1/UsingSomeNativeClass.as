@@ -36,5 +36,7 @@ public class UsingSomeNativeClass {
 
   public function set monkey(value:Boolean):void {
   }
+
+  public native function abstractMethod(param1: String, param2: Number = 0):void;
 }
 }

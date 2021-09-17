@@ -39,4 +39,8 @@ class UsingSomeNativeClass {
    set monkey(value:boolean) {
   }
 }
+interface UsingSomeNativeClass{
+
+  abstractMethod(param1: string, param2?: number):void;}
+
 export default UsingSomeNativeClass;
