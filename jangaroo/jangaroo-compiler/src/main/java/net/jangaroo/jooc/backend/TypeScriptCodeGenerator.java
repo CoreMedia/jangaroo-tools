@@ -128,6 +128,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
   private boolean hasOwnConfigClass;
+  private List<BlockStatement> staticCodeBlocks;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -2219,7 +2220,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     }
+    staticCodeBlocks = new ArrayList<>();
     super.visitClassBodyDirectives(classBodyDirectives);
+    if (!companionInterfaceMode) {
+      for (BlockStatement staticCodeBlock : staticCodeBlocks) {
+        out.writeSymbolWhitespace(staticCodeBlock.getSymbol());
+        out.writeToken("static ");
+        staticCodeBlock.visit(this);
+      }
+    }
   }
 
   private void generateRestResourceUriTemplateConstant(Annotation restResourceAnnotation) throws IOException {
@@ -2245,35 +2254,26 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private int staticCodeCounter = 0;
-
   @Override
   void generateStaticInitializer(List<Directive> directives) throws IOException {
-    if (directives.isEmpty() || companionInterfaceMode) {
+    if (directives.isEmpty()) {
       return;
     }
     Directive firstDirective = directives.get(0);
-    out.writeSymbolWhitespace(firstDirective.getSymbol());
-    String uniqueName = "";
-    if (staticCodeCounter > 0) {
-      uniqueName = String.valueOf(staticCodeCounter);
-    }
-    ++staticCodeCounter;
-    out.writeToken(String.format("static #static%s = (() =>", uniqueName));
-
     // is static code already wrapped in a block?
     if (directives.size() == 1 && firstDirective instanceof BlockStatement) {
       // static block already has curly braces: reuse these!
-      firstDirective.visit(this);
+      staticCodeBlocks.add((BlockStatement) firstDirective);
     } else {
       // surround statements by curly braces:
-      out.writeToken(" {\n    ");
-      for (Directive directive : directives) {
-        directive.visit(this);
-      }
-      out.writeToken("\n  }");
+      JooSymbol firstSymbol = firstDirective.getSymbol();
+      JooSymbol lastSymbol = directives.get(directives.size() - 1).getSymbol();
+      staticCodeBlocks.add(new BlockStatement(
+              new JooSymbol(sym.LBRACE, firstSymbol.getFileName(), firstSymbol.getLine(), firstSymbol.getColumn(), firstSymbol.getWhitespace(), "{"),
+              directives,
+              new JooSymbol(sym.RBRACE, lastSymbol.getFileName(), lastSymbol.getLine(), lastSymbol.getColumn(), lastSymbol.getWhitespace(), "}")
+      ));
     }
-    out.writeToken(")();");
   }
 
   @Override

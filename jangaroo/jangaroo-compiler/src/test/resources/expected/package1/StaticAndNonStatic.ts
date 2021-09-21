@@ -5,14 +5,18 @@
  */
 class StaticAndNonStatic {
 
-  static #static = (() => {
-    new StaticAndNonStatic();
-  })();
-
   StaticAndNonStatic:string = null;
+
+  static {
+
+  new StaticAndNonStatic();
+
+  }
   
-  static #static1 = (() => {
-    new StaticAndNonStatic();
-  })();
+  static {
+  
+  new StaticAndNonStatic();
+  
+  }
 }
 export default StaticAndNonStatic;

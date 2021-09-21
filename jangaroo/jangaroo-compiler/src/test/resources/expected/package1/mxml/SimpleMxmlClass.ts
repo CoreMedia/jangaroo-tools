@@ -98,12 +98,6 @@ class SimpleMxmlClass extends ConfigClass{
 
   #blub:any;
 
-  static #static = (() =>{
-      if(1 < 0 && 0 > 1) {
-        throw "plain wrong!";
-      }
-    })();
-
   #list:any = null;
 
   get list():any { return this.#list; }
@@ -193,5 +187,11 @@ class SimpleMxmlClass extends ConfigClass{
   #no_config:SomeOtherClass = null;
 
   get no_config():SomeOtherClass { return this.#no_config; }
-  set no_config(value:SomeOtherClass) { this.#no_config = value; }}
+  set no_config(value:SomeOtherClass) { this.#no_config = value; }
+
+  static {
+      if(1 < 0 && 0 > 1) {
+        throw "plain wrong!";
+      }
+    }}
 export default SimpleMxmlClass;
