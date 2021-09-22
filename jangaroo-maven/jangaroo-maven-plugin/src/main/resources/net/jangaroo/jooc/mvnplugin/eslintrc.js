@@ -12,7 +12,6 @@ module.exports = {
     "@typescript-eslint",
     "import",
     "jsdoc",
-    "padding",
     "unused-imports",
   ],
   "rules": {
@@ -65,13 +64,19 @@ module.exports = {
       "multiline": true
     }],
     "object-property-newline": ["error", {"allowAllPropertiesOnSameLine": true}],
-    "padding/spacing": [
+    "padding-line-between-statements": "off",
+    "@typescript-eslint/padding-line-between-statements": [
       "error",
       {
         "blankLine": "always",
-        "prev": ["abstract class", "class", "interface", "declare namespace", "const"],
-        "next": ["abstract class", "class", "interface", "declare namespace", "export default"],
+        "prev": ["class", "interface", "const"],
+        "next": ["class", "interface"],
       },
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": "export",
+      }
     ],
     "semi": [
       "error",
