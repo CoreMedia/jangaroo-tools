@@ -1,5 +1,10 @@
 package package2 {
 
+/**
+ * Test mixin event.
+ */
+[Event("firedByMixin")]
+
 [Mixin("package2.TestMixin")]
 /**
  * This is a test mixin.

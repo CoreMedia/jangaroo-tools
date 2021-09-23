@@ -10,6 +10,9 @@ public class SomeEvent {
     this['source'] = arguments[0];
   }
 
+  /**
+   * The config event source.
+   */
   public native function get source():ConfigClass;
 }
 }
