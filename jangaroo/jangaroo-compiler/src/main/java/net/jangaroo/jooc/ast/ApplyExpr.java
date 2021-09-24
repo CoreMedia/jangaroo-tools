@@ -148,8 +148,10 @@ public class ApplyExpr extends Expr {
         boolean argumentIsObjectLiteral = getArgs().getExpr().getHead() instanceof ObjectLiteral;
         if (classDeclaration.hasConfigClass()) {
           if (argumentIsObjectLiteral) {
-            classType.markAsConfigTypeIfPossible();
-            isConfigFactory = classType.isConfigType();
+            if (classType.markAsConfigTypeIfPossible()) {
+              scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
+              isConfigFactory = true;
+            }
           } else {
             isConfigFactory = null; // may be or may be not...
           }

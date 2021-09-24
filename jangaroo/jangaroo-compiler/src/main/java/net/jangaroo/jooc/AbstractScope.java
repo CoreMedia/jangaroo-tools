@@ -256,7 +256,9 @@ public abstract class AbstractScope implements Scope {
       if (ideType != null &&
               (declaration instanceof VariableDeclaration && hasInitializerWithConfigType((VariableDeclaration) declaration)
                       || "config".equals(declaration.getIde().getName()))) {
-        ideType.markAsConfigTypeIfPossible();
+        if (ideType.markAsConfigTypeIfPossible()) {
+          getCompilationUnit().addBuiltInIdentifierUsage("Config");
+        }
       }
     }
     return expressionType;

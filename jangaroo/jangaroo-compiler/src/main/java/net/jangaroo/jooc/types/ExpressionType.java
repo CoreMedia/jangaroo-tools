@@ -38,10 +38,11 @@ public class ExpressionType {
     return isConfigType;
   }
 
-  public void markAsConfigTypeIfPossible() {
+  public boolean markAsConfigTypeIfPossible() {
     if (getDeclaration() instanceof ClassDeclaration && ((ClassDeclaration) getDeclaration()).hasConfigClass()) {
       isConfigType = true;
     }
+    return isConfigType;
   }
 
   @Nullable

@@ -130,10 +130,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
   private List<Ide> mixins;
-  private List<String> configMixins;
-  private List<String> eventsMixins;
+  private List<ClassDeclaration> configSupers;
+  private List<ClassDeclaration> eventsSupers;
+  private List<Annotation> ownEvents;
   private List<Ide> realInterfaces;
   private boolean hasOwnConfigClass;
+  private List<TypedIdeDeclaration> ownConfigs;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -247,7 +249,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     needsCompanionInterface = false;
     mixinClasses = new ArrayList<>();
     if (primaryDeclaration instanceof ClassDeclaration) {
-      determineMixins((ClassDeclaration) primaryDeclaration);
+      determineConfigAndEventsInterfaces((ClassDeclaration) primaryDeclaration);
     }
 
     boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
@@ -413,12 +415,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             classDeclaration.isAssignableTo((ClassDeclaration) observableInterface.getPrimaryDeclaration());
   }
 
-  private void determineMixins(ClassDeclaration classDeclaration) {
+  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) {
     mixins = new ArrayList<>();
 
-    configMixins = new ArrayList<>();
-    eventsMixins = new ArrayList<>();
+    configSupers = new ArrayList<>();
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    eventsSupers = new ArrayList<>();
     realInterfaces = new ArrayList<>();
+    ownEvents = Collections.emptyList();
     if (classDeclaration.getOptImplements() != null) {
       CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
       do {
@@ -429,16 +433,60 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           mixinClasses.add(maybeMixinDeclaration);
           mixins.add(superTypes.getHead());
           if (maybeMixinDeclaration.hasConfigClass()) {
-            configMixins.add(configType(maybeMixinDeclaration));
+            compilationUnit.addBuiltInIdentifierUsage("Config");
+            configSupers.add(maybeMixinDeclaration);
           }
           if (!maybeMixinDeclaration.getAnnotations(Jooc.EVENT_ANNOTATION_NAME).isEmpty()) {
-            eventsMixins.add(eventsType(maybeMixinDeclaration));
+            compilationUnit.addBuiltInIdentifierUsage("Events");
+            eventsSupers.add(maybeMixinDeclaration);
           }
         } else {
           realInterfaces.add(superTypes.getHead());
         }
         superTypes = superTypes.getTail();
       } while (superTypes != null);
+    }
+
+    ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
+    if (myMixinInterface != null || isObservable(classDeclaration) || !eventsSupers.isEmpty()) {
+      // class is itself a mixin or an Ext Observable or a mixin client: consider its declared events!
+      ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
+      if (!(eventsSupers.isEmpty() && ownEvents.isEmpty())) {
+        if (isObservable(superTypeDeclaration)) {
+          eventsSupers.add(0, superTypeDeclaration);
+        }
+        if (!eventsSupers.isEmpty()) {
+          compilationUnit.addBuiltInIdentifierUsage("Events");
+        }
+      }
+    } else {
+      // do not (yet) use [Event] annotations of other classes. To do so, set eventMixins to empty list:
+      eventsSupers = Collections.emptyList();
+    }
+
+    ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+    hasOwnConfigClass = configClassDeclaration != null;
+    if (hasOwnConfigClass) {
+      ownConfigs = classDeclaration.getMembers().stream()
+              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
+              .collect(Collectors.toList());
+      if (configClassDeclaration.equals(superTypeDeclaration)) {
+        if (ownConfigs.isEmpty() && configSupers.isEmpty() && eventsSupers.isEmpty()) {
+          hasOwnConfigClass = false;
+        } else {
+          classDeclaration.getIde().getScope().getCompiler().getLog().warning(
+                  classDeclaration.getConstructor().getParams().getHead().getSymbol(),
+                  "A class reusing the Config type of its superclass in its config constructor parameter " +
+                          "may not define own Configs or add Configs from mixins."
+                          + " Please change the constructor parameter type or (re)move the additional Configs.");
+        }
+      }
+      if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
+        configSupers.add(0, superTypeDeclaration);
+      }
+    }
+    if (!configSupers.isEmpty()) {
+      compilationUnit.addBuiltInIdentifierUsage("Config");
     }
   }
 
@@ -450,41 +498,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
-    ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    hasOwnConfigClass = configClassDeclaration != null;
     if (hasOwnConfigClass) {
-      List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
-              .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
+      String eventsInterfaceName = renderEventsInterface(classDeclaration);
+      List<String> configExtends = configSupers.stream()
+              .map(this::configType)
               .collect(Collectors.toList());
-      if (configClassDeclaration.equals(superTypeDeclaration)) {
-        if (configs.isEmpty() && configMixins.isEmpty() && eventsMixins.isEmpty()) {
-          hasOwnConfigClass = false;
-        } else {
-          classDeclaration.getIde().getScope().getCompiler().getLog().warning(
-                  classDeclaration.getConstructor().getParams().getHead().getSymbol(),
-                  "A class reusing the Config type of its superclass in its config constructor parameter " +
-                          "may not define own Configs or add Configs from mixins."
-                          + " Please change the constructor parameter type or (re)move the additional Configs.");
-        }
+      if (!ownConfigs.isEmpty()) {
+        String configNamesType = ownConfigs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
+        configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
       }
-      if (hasOwnConfigClass) { // still true?
-        String eventsInterfaceName = renderEventsInterface(classDeclaration, eventsMixins);
-        List<String> configExtends = new ArrayList<>();
-        if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
-          configExtends.add(configType(superTypeDeclaration));
-        }
-        configExtends.addAll(configMixins);
-        if (!configs.isEmpty()) {
-          String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
-          configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
-        }
-        out.write(String.format("interface %s%s {", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
-        if (eventsInterfaceName != null) {
-          out.write(String.format("\n  listeners?: %s;", eventsInterfaceName));
-        }
-        out.write("\n}\n\n");
+      out.write(String.format("interface %s%s {", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
+      if (eventsInterfaceName != null) {
+        out.write(String.format("\n  listeners?: %s;", eventsInterfaceName));
       }
+      out.write("\n}\n\n");
     }
 
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
@@ -548,23 +575,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private String renderEventsInterface(ClassDeclaration classDeclaration, List<String> eventsMixins) throws IOException {
-    ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
-    if (myMixinInterface == null && !isObservable(classDeclaration) && eventsMixins.isEmpty()) {
-      // neither itself a mixin nor an Ext Observable nor a mixin client: no events (yet)!
+  private String renderEventsInterface(ClassDeclaration classDeclaration) throws IOException {
+    if (ownEvents.isEmpty() && eventsSupers.isEmpty()) {
+      // no additional events: automatically inherits the events from its super class, nothing to do here 
       return null;
     }
-    List<Annotation> ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
-    if (ownEvents.isEmpty() && eventsMixins.isEmpty()) {
-      // no events: automatically inherits the events from its super class, nothing to do here 
-      return null;
-    }
-    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    List<String> eventsExtends = new ArrayList<>();
-    if (isObservable(superTypeDeclaration)) {
-      eventsExtends.add(eventsType(superTypeDeclaration));
-    }
-    eventsExtends.addAll(eventsMixins);
+    List<String> eventsExtends = eventsSupers.stream()
+            .map(this::eventsType)
+            .collect(Collectors.toList());
     if (ownEvents.isEmpty()) {
       // special case: no own events, only combine the events of (optional) super class and mixins:
       return String.join(" & ", eventsExtends);
@@ -2272,7 +2290,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String eventsType(String targetClass) {
-    compilationUnit.addBuiltInIdentifierUsage("Events");
     return String.format("Events<%s>", targetClass);
   }
 
@@ -2281,7 +2298,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String configType(String targetClass) {
-    compilationUnit.addBuiltInIdentifierUsage("Config");
     return String.format("Config<%s>", targetClass);
   }
 

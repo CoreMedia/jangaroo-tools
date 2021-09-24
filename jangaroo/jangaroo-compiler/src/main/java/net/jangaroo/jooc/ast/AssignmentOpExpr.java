@@ -16,6 +16,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
@@ -25,8 +26,16 @@ import java.io.IOException;
  * @author Andreas Gawecki
  */
 public class AssignmentOpExpr extends BinaryOpExpr {
+  private Scope scope;
+
   public AssignmentOpExpr(Expr arg1, JooSymbol op, Expr arg2) {
     super(arg1, op, arg2);
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    super.scope(scope);
+    this.scope = scope;
   }
 
   @Override
@@ -37,7 +46,9 @@ public class AssignmentOpExpr extends BinaryOpExpr {
     if (lhsType == null) {
       lhsType = rhsType;
     } else if (rhsType != null && rhsType.isConfigType()) {
-      lhsType.markAsConfigTypeIfPossible();
+      if (lhsType.markAsConfigTypeIfPossible()) {
+        scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
+      }
     }
     setType(lhsType);
   }
