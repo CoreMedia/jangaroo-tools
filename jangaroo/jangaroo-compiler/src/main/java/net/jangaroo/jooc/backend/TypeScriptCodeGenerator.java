@@ -3,6 +3,7 @@ package net.jangaroo.jooc.backend;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.CompilerError;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -127,6 +128,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
+  private List<Ide> mixins;
+  private List<String> configMixins;
+  private List<String> eventsMixins;
+  private List<Ide> realInterfaces;
   private boolean hasOwnConfigClass;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
@@ -237,6 +242,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     imports.put(primaryDeclaration.getQualifiedNameStr(), primaryLocalName);
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
+
+    needsCompanionInterface = false;
+    mixinClasses = new ArrayList<>();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      determineMixins((ClassDeclaration) primaryDeclaration);
+    }
 
     boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
 
@@ -395,28 +406,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromFlExtEvent());
   }
 
-  @Override
-  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    if (isPropertiesClass(classDeclaration)) {
-      visitPropertiesClassDeclaration(classDeclaration);
-      return;
-    }
+  private boolean isObservable(ClassDeclaration classDeclaration) {
+    CompilationUnit observableInterface = ((JangarooParser) compilationUnitModelResolver).getCompilationUnit("ext.mixin.IObservable");
+    return observableInterface != null &&
+            classDeclaration.isAssignableTo((ClassDeclaration) observableInterface.getPrimaryDeclaration());
+  }
 
-    needsCompanionInterface = false;
-    List<Ide> mixins = new ArrayList<>();
-    mixinClasses = new ArrayList<>();
-    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+  private void determineMixins(ClassDeclaration classDeclaration) {
+    mixins = new ArrayList<>();
 
-    List<String> configMixins = new ArrayList<>();
-    List<String> eventsMixins = new ArrayList<>();
-    List<Ide> realInterfaces = new ArrayList<>();
+    configMixins = new ArrayList<>();
+    eventsMixins = new ArrayList<>();
+    realInterfaces = new ArrayList<>();
     if (classDeclaration.getOptImplements() != null) {
       CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
       do {
         ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
         CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
         if (mixinCompilationUnit != null
-                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+                && mixinCompilationUnit != classDeclaration.getCompilationUnit()) { // prevent circular inheritance between mixin and its own interface!
           mixinClasses.add(maybeMixinDeclaration);
           mixins.add(superTypes.getHead());
           if (maybeMixinDeclaration.hasConfigClass()) {
@@ -431,7 +439,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         superTypes = superTypes.getTail();
       } while (superTypes != null);
     }
+  }
 
+  @Override
+  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    if (isPropertiesClass(classDeclaration)) {
+      visitPropertiesClassDeclaration(classDeclaration);
+      return;
+    }
+
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
     ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
     hasOwnConfigClass = configClassDeclaration != null;
@@ -531,62 +548,77 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String renderEventsInterface(ClassDeclaration classDeclaration, List<String> eventsMixins) throws IOException {
-    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
-    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    String eventsInterfaceName = null;
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
-    List<Annotation> ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
-    if (!eventsMixins.isEmpty() || !ownEvents.isEmpty()) {
-      List<String> eventsExtends = new ArrayList<>();
-      eventsExtends.add(eventsType(superTypeDeclaration));
-      eventsExtends.addAll(eventsMixins);
-      eventsInterfaceName = classDeclarationLocalName + "Events";
-      out.write(String.format("interface %s extends %s {", eventsInterfaceName, String.join(", ", eventsExtends)));
-      for (Annotation ownEvent : ownEvents) {
-        String eventName = ownEvent.getEventName();
-        if (eventName == null) {
-          continue;
-        }
-        eventName = normalizeExtEventName(eventName);
-        Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
-        String eventASDoc = ownEvent.getSymbol().getWhitespace();
-        String eventParametersCode = "";
-        if (eventTypeName instanceof String) {
-          CompilationUnit eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
-          String eventParametersASDoc;
-          if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
-            eventParametersASDoc = "\n * @param event";
-            eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
-          } else {
-            List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
-                    .stream()
-                    .filter(eventParameter ->
-                            !eventParameter.isStatic()
-                                    && eventParameter instanceof FunctionDeclaration
-                                    && ((FunctionDeclaration) eventParameter).isGetter())
-                    .collect(Collectors.toList());
-            eventParametersASDoc = eventParameters.stream()
-                    .map(this::memberToParamASDoc)
-                    .collect(Collectors.joining());
-            eventParametersCode = eventParameters.stream()
-                    .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
-                    .collect(Collectors.joining(", "));
-          }
-          Matcher matcher = Pattern.compile("(\\s*[*]/)").matcher(eventASDoc);
-          if (matcher.find()) {
-            eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
-          } else {
-            eventASDoc = "\n/**" + eventParametersASDoc + "\n */";
-          }
-        }
-        out.write(eventASDoc);
-        if (!eventASDoc.endsWith("\n")) {
-          out.write("\n");
-        }
-        out.write(String.format("  %s(%s):any;", eventName, eventParametersCode));
-      }
-      out.write("\n}\n\n");
+    if (myMixinInterface == null && !isObservable(classDeclaration) && eventsMixins.isEmpty()) {
+      // neither itself a mixin nor an Ext Observable nor a mixin client: no events (yet)!
+      return null;
     }
+    List<Annotation> ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
+    if (ownEvents.isEmpty() && eventsMixins.isEmpty()) {
+      // no events: automatically inherits the events from its super class, nothing to do here 
+      return null;
+    }
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    List<String> eventsExtends = new ArrayList<>();
+    if (isObservable(superTypeDeclaration)) {
+      eventsExtends.add(eventsType(superTypeDeclaration));
+    }
+    eventsExtends.addAll(eventsMixins);
+    if (ownEvents.isEmpty()) {
+      // special case: no own events, only combine the events of (optional) super class and mixins:
+      return String.join(" & ", eventsExtends);
+    }
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+    String eventsInterfaceName = classDeclarationLocalName + "Events";
+    out.write("interface " + eventsInterfaceName);
+    if (!eventsExtends.isEmpty()) {
+      out.write(" extends " + String.join(", ", eventsExtends));
+    }
+    out.write(" {");
+    for (Annotation ownEvent : ownEvents) {
+      String eventName = ownEvent.getEventName();
+      if (eventName == null) {
+        throw new CompilerError(ownEvent.getSymbol(), "Event must have a name.");
+      }
+      eventName = normalizeExtEventName(eventName);
+      Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
+      String eventASDoc = ownEvent.getSymbol().getWhitespace();
+      String eventParametersCode = "";
+      if (eventTypeName instanceof String) {
+        CompilationUnit eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
+        String eventParametersASDoc;
+        if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+          eventParametersASDoc = "\n * @param event";
+          eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
+        } else {
+          List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
+                  .stream()
+                  .filter(eventParameter ->
+                          !eventParameter.isStatic()
+                                  && eventParameter instanceof FunctionDeclaration
+                                  && ((FunctionDeclaration) eventParameter).isGetter())
+                  .collect(Collectors.toList());
+          eventParametersASDoc = eventParameters.stream()
+                  .map(this::memberToParamASDoc)
+                  .collect(Collectors.joining());
+          eventParametersCode = eventParameters.stream()
+                  .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
+                  .collect(Collectors.joining(", "));
+        }
+        Matcher matcher = Pattern.compile("(\\s*[*]/)").matcher(eventASDoc);
+        if (matcher.find()) {
+          eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
+        } else {
+          eventASDoc = "\n/**" + eventParametersASDoc + "\n */";
+        }
+      }
+      out.write(eventASDoc);
+      if (!eventASDoc.endsWith("\n")) {
+        out.write("\n");
+      }
+      out.write(String.format("  %s(%s):any;", eventName, eventParametersCode));
+    }
+    out.write("\n}\n\n");
     return eventsInterfaceName;
   }
 

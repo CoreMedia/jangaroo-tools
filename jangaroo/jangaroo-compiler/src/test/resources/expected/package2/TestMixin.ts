@@ -1,7 +1,6 @@
 import Config from "@jangaroo/runtime/AS3/Config";
-import Events from "@jangaroo/ext-ts/Events";
 import Base from "../Ext/Base";
-interface TestMixinEvents extends Events<Base> {
+interface TestMixinEvents {
 
 /**
  * Test mixin event.

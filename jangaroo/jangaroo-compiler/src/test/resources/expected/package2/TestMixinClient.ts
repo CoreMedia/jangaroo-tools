@@ -3,13 +3,10 @@ import Events from "@jangaroo/ext-ts/Events";
 import { mixin } from "@jangaroo/runtime/AS3";
 import Base from "../Ext/Base";
 import TestMixin from "./TestMixin";
-interface TestMixinClientEvents extends Events<Base>, Events<TestMixin> {
-}
-
 interface TestMixinClientConfig extends Config<Base>, Config<TestMixin>, Partial<Pick<TestMixinClient,
   "thing"
 >> {
-  listeners?: TestMixinClientEvents;
+  listeners?: Events<TestMixin>;
 }
 
 
