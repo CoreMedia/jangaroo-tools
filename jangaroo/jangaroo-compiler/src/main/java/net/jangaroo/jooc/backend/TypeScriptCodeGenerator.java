@@ -534,7 +534,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
     ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
     String eventsInterfaceName = null;
-    List<Annotation> ownEvents = classDeclaration.getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
+    ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
+    List<Annotation> ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
     if (!eventsMixins.isEmpty() || !ownEvents.isEmpty()) {
       List<String> eventsExtends = new ArrayList<>();
       eventsExtends.add(eventsType(superTypeDeclaration));
