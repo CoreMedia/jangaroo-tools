@@ -542,9 +542,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       eventsInterfaceName = classDeclarationLocalName + "Events";
       out.write(String.format("interface %s extends %s {", eventsInterfaceName, String.join(", ", eventsExtends)));
       for (Annotation ownEvent : ownEvents) {
-        Map<String, Object> eventAnnotationProperties = ownEvent.getPropertiesByName();
-        String eventName = normalizeExtEventName((String) eventAnnotationProperties.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME));
-        Object eventTypeName = eventAnnotationProperties.get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
+        String eventName = ownEvent.getEventName();
+        if (eventName == null) {
+          continue;
+        }
+        eventName = normalizeExtEventName(eventName);
+        Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
         String eventASDoc = ownEvent.getSymbol().getWhitespace();
         String eventParametersCode = "";
         if (eventTypeName instanceof String) {
@@ -568,7 +571,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                     .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
                     .collect(Collectors.joining(", "));
           }
-          Matcher matcher = Pattern.compile("(\\s*[*]/)[\\s\\S]*$").matcher(eventASDoc);
+          Matcher matcher = Pattern.compile("(\\s*[*]/)").matcher(eventASDoc);
           if (matcher.find()) {
             eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
           } else {
@@ -576,7 +579,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           }
         }
         out.write(eventASDoc);
-        out.write(String.format("\n  %s(%s):any;", eventName, eventParametersCode));
+        if (!eventASDoc.endsWith("\n")) {
+          out.write("\n");
+        }
+        out.write(String.format("  %s(%s):any;", eventName, eventParametersCode));
       }
       out.write("\n}\n\n");
     }
