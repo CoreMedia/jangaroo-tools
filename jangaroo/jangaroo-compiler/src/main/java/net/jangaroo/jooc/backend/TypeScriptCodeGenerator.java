@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -269,7 +270,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         compilationUnit.addBuiltInIdentifierUsage("Config");
       }
 
-      Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
+      Set<String> usedBuiltInIdentifiers = new TreeSet<>(compilationUnit.getUsedBuiltInIdentifiers());
       if (!usedBuiltInIdentifiers.isEmpty()) {
         localNames.addAll(usedBuiltInIdentifiers);
         // special case 'Config' is imported from its own ES module:
