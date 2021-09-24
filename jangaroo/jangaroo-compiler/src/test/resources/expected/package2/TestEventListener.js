@@ -15,7 +15,7 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
 
   public*/ function TestEventListener$() {var _this=this;this.super$iwqQ();
     this.panel$iwqQ.title = "not yet clicked.";
-    AS3.addEventListener(panel, Ext.events.PanelEvent,"FLIPFLOP", function(event/*:PanelEvent*/)/*:void*/ {
+    AS3.addEventListener(panel, Ext.events.PanelEvent,"FLIP_FLOP", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(_this.getThis().getPanel(),"title" , "clicked!");
       AS3.setBindable(_this.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
       _this.panels$iwqQ.push(_this.panel$iwqQ);

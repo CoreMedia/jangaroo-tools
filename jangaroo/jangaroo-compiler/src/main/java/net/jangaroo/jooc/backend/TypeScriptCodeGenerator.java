@@ -543,31 +543,37 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.write(String.format("interface %s extends %s {", eventsInterfaceName, String.join(", ", eventsExtends)));
       for (Annotation ownEvent : ownEvents) {
         Map<String, Object> eventAnnotationProperties = ownEvent.getPropertiesByName();
-        String eventName = (String) eventAnnotationProperties.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
+        String eventName = normalizeExtEventName((String) eventAnnotationProperties.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME));
         Object eventTypeName = eventAnnotationProperties.get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
         String eventASDoc = ownEvent.getSymbol().getWhitespace();
         String eventParametersCode = "";
         if (eventTypeName instanceof String) {
           CompilationUnit eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
-          List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
-                  .stream()
-                  .filter(eventParameter ->
-                          !eventParameter.isStatic()
-                                  && eventParameter instanceof FunctionDeclaration
-                                  && ((FunctionDeclaration) eventParameter).isGetter())
-                  .collect(Collectors.toList());
-          String eventParametersASDoc = eventParameters.stream()
-                  .map(this::memberToParamASDoc)
-                  .collect(Collectors.joining());
-          Matcher matcher = Pattern.compile("(\\s*[*]/)[\\s]*$").matcher(eventASDoc);
+          String eventParametersASDoc;
+          if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+            eventParametersASDoc = "\n * @param event";
+            eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
+          } else {
+            List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
+                    .stream()
+                    .filter(eventParameter ->
+                            !eventParameter.isStatic()
+                                    && eventParameter instanceof FunctionDeclaration
+                                    && ((FunctionDeclaration) eventParameter).isGetter())
+                    .collect(Collectors.toList());
+            eventParametersASDoc = eventParameters.stream()
+                    .map(this::memberToParamASDoc)
+                    .collect(Collectors.joining());
+            eventParametersCode = eventParameters.stream()
+                    .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
+                    .collect(Collectors.joining(", "));
+          }
+          Matcher matcher = Pattern.compile("(\\s*[*]/)[\\s\\S]*$").matcher(eventASDoc);
           if (matcher.find()) {
             eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
           } else {
             eventASDoc = "\n/**" + eventParametersASDoc + "\n */";
           }
-          eventParametersCode = eventParameters.stream()
-                  .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
-                  .collect(Collectors.joining(", "));
         }
         out.write(eventASDoc);
         out.write(String.format("\n  %s(%s):any;", eventName, eventParametersCode));
@@ -1681,7 +1687,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (eventClass != null) {
           VariableDeclaration eventNameDeclaration = (VariableDeclaration) eventClass.getDeclaration().getStaticMemberDeclaration(eventNameDotExpr.getIde().getName());
           String eventOnName = (String) ((LiteralExpr) eventNameDeclaration.getOptInitializer().getValue()).getValue().getJooValue();
-          String eventName = eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
+          String eventName = normalizeExtEventName(eventOnName);
           Expr fun = applyExpr.getFun();
           DotExpr funDotExpr = (DotExpr) (fun instanceof IdeExpr ? ((IdeExpr) fun).getNormalizedExpr() : fun);
           funDotExpr.getArg().visit(this);
@@ -1757,6 +1763,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       super.visitApplyExpr(applyExpr);
     }
+  }
+
+  private static String normalizeExtEventName(String eventOnName) {
+    return eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
   }
 
   @Override

@@ -15,7 +15,7 @@ public class TestEventListener {
 
   public function TestEventListener() {
     panel.title = "not yet clicked.";
-    panel.addEventListener( PanelEvent.FLIPFLOP, function(event:PanelEvent):void {
+    panel.addEventListener( PanelEvent.FLIP_FLOP, function(event:PanelEvent):void {
       getThis().getPanel().title = "clicked!";
       panel.layout.getOwner().title = "clicked!";
       panels.push(panel);

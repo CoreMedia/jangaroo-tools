@@ -4,7 +4,7 @@ import ext.mixin.Observable;
 /**
  * click event documentation.
  */
-[Event(name="click", type="package1.someOtherPackage.SomeEvent")]
+[Event(name="onClick", type="package1.someOtherPackage.SomeEvent")]
 
 public class ConfigClass extends Observable {
 

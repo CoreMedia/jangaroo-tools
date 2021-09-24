@@ -1,7 +1,10 @@
 package package1.someOtherPackage {
 import ext.mixin.Observable;
 
-[Event(name="clickClack", type="package1.someOtherPackage.SomeEvent")]
+/**
+ * @eventType package1.someOtherPackage.SomeEvent.CLICK_CLACK
+ */
+[Event(name="onClickClack", type="package1.someOtherPackage.SomeEvent")]
 [ExtConfig]
 public class SomeOtherClass extends Observable {
   public static const xtype:String = "someotherclass";

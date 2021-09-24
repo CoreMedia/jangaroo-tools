@@ -612,10 +612,15 @@ final class MxmlToModelParser {
     Ide eventTypeIde = compilationUnit.addImport(eventType instanceof String ? (String) eventType : "Object");
     Object eventNameModel = eventPropertiesByName.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
     String eventName = (String) (eventNameModel != null ? eventNameModel : eventPropertiesByName.get(null));
-    if (eventName.startsWith("on")) {
-      eventName = eventName.substring(2).toLowerCase();
+    // reverse-engineer event constant name from event name:
+    boolean isExtEvent = eventName.startsWith("on");
+    if (isExtEvent) {
+      eventName = eventName.substring(2);
     }
-    String eventNameConstant = (eventName.substring(0, 1) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
+    String eventNameConstant = (eventName.charAt(0) + eventName.substring(1).replaceAll("([A-Z])", "_$1")).toUpperCase();
+    if (isExtEvent) {
+      eventName = eventName.toLowerCase();
+    }
     String eventHandlerName = "$on_" + eventName.replace('-', '_')
             + "_" + value.getLine() + "_" + value.getColumn();
     String classBodyCode = "\n    private function " + eventHandlerName +
