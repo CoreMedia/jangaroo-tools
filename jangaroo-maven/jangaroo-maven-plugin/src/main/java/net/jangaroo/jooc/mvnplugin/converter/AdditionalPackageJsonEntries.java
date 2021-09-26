@@ -14,7 +14,7 @@ public class AdditionalPackageJsonEntries {
   private Map<String, Object> typesVersions;
   private String types;
   private Map<String, Object> coremedia;
-  private Map<String, Object> publishOverrides;
+  private Map<String, Object> publishConfig;
 
   public AdditionalPackageJsonEntries() {
   }
@@ -135,20 +135,20 @@ public class AdditionalPackageJsonEntries {
     this.coremedia = coremedia;
   }
 
-  public Map<String, Object> getPublishOverrides() {
-    return publishOverrides;
+  public Map<String, Object> getPublishConfig() {
+    return publishConfig;
   }
 
-  public void addPublishOverride(String key, Object value) {
-    if (this.publishOverrides == null) {
-      this.publishOverrides = new LinkedHashMap<>();
+  public void addPublishConfig(String key, Object value) {
+    if (this.publishConfig == null) {
+      this.publishConfig = new LinkedHashMap<>();
     }
-    this.publishOverrides.put(key, value);
+    this.publishConfig.put(key, value);
   }
 
-  public void setPublishOverrides(Map<String, Object> publishOverrides) {
-    if (publishOverrides != null && !publishOverrides.isEmpty()) {
-      this.publishOverrides = publishOverrides;
+  public void setPublishConfig(Map<String, Object> publishConfig) {
+    if (publishConfig != null && !publishConfig.isEmpty()) {
+      this.publishConfig = publishConfig;
     }
   }
 }
