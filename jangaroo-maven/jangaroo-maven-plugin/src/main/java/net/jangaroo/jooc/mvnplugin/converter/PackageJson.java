@@ -37,8 +37,8 @@ public class PackageJson {
   private String types;
   @JsonProperty("coremedia")
   private Map<String, Object> coremedia;
-  @JsonProperty("publishOverrides")
-  private Map<String, Object> publishOverrides;
+  @JsonProperty("publishConfig")
+  private Map<String, Object> publishConfig;
 
   public PackageJson(String name, String author, String description, String version, String license, boolean privat, Map<String, String> engines, Map<String, String> dependencies, Map<String, String> devDependencies, Map<String, String> scripts, Map<String, Object> exports, Map<String, Object> typesVersions) {
     this.name = name;
@@ -65,7 +65,7 @@ public class PackageJson {
     this.typesVersions = additionalPackageJsonEntries.getTypesVersions();
     this.types = additionalPackageJsonEntries.getTypes();
     this.coremedia = additionalPackageJsonEntries.getCoremedia();
-    this.publishOverrides = additionalPackageJsonEntries.getPublishOverrides();
+    this.publishConfig = additionalPackageJsonEntries.getPublishConfig();
   }
 
   public PackageJson() {
@@ -233,20 +233,20 @@ public class PackageJson {
     this.coremedia = coremedia;
   }
 
-  public Map<String, Object> getPublishOverrides() {
-    return publishOverrides;
+  public Map<String, Object> getPublishConfig() {
+    return publishConfig;
   }
 
-  public void addPublishOverride(String key, Object value) {
-    if (this.publishOverrides == null) {
-      this.publishOverrides = new LinkedHashMap<>();
+  public void addPublishConfig(String key, Object value) {
+    if (this.publishConfig == null) {
+      this.publishConfig = new LinkedHashMap<>();
     }
-    this.publishOverrides.put(key, value);
+    this.publishConfig.put(key, value);
   }
 
-  public void setPublishOverrides(Map<String, Object> publishOverrides) {
-    if (publishOverrides != null && !publishOverrides.isEmpty()) {
-      this.publishOverrides = publishOverrides;
+  public void setPublishConfig(Map<String, Object> publishConfig) {
+    if (publishConfig != null && !publishConfig.isEmpty()) {
+      this.publishConfig = publishConfig;
     }
   }
 }

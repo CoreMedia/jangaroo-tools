@@ -352,7 +352,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("clean", "rimraf ./dist && rimraf ./build");
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
-      scripts.put("publish", "jangaroo publish dist");
+      scripts.put("publish", "jangaroo publish");
+      additionalJsonEntries.addPublishConfig("directory", "dist");
       if (getCommandMapEntry(jangarooConfig, "joounit", "testSuite") != null) {
         scripts.put("test", "jangaroo joounit");
       }
@@ -399,10 +400,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (useTypesVersions) {
           // although this is the default value, explicitly add this entry
           additionalJsonEntries.setTypes("index.d.ts");
-          additionalJsonEntries.addPublishOverride("types", "index.d.ts");
+          additionalJsonEntries.addPublishConfig("types", "index.d.ts");
         } else {
           additionalJsonEntries.setTypes("src/index.d.ts");
-          additionalJsonEntries.addPublishOverride("types", "src/index.d.ts");
+          additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
         }
       }
       if (projectExtensionFor != null) {
@@ -551,7 +552,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("clean", "rimraf ./dist && rimraf ./build");
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
-      scripts.put("publish", "jangaroo publish dist");
+      scripts.put("publish", "jangaroo publish");
+      additionalJsonEntries.addPublishConfig("directory", "dist");
       additionalJsonEntries.setScripts(scripts);
       if (projectExtensionPoint != null) {
         Map<String, Object> coremedia = new LinkedHashMap<>();
