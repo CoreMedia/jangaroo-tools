@@ -415,7 +415,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             classDeclaration.isAssignableTo((ClassDeclaration) observableInterface.getPrimaryDeclaration());
   }
 
-  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) {
+  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) throws IOException {
     mixins = new ArrayList<>();
 
     configSupers = new ArrayList<>();
@@ -448,9 +448,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
+    // class is itself a mixin or an Ext Observable or a mixin client: consider its declared events!
+    ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
     if (myMixinInterface != null || isObservable(classDeclaration) || !eventsSupers.isEmpty()) {
-      // class is itself a mixin or an Ext Observable or a mixin client: consider its declared events!
-      ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
       if (!(eventsSupers.isEmpty() && ownEvents.isEmpty())) {
         if (isObservable(superTypeDeclaration)) {
           eventsSupers.add(0, superTypeDeclaration);
@@ -460,8 +460,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     } else {
-      // do not (yet) use [Event] annotations of other classes. To do so, set eventMixins to empty list:
+      // Do not (yet) use [Event] annotations of other classes, only render their documentation.
+      // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
+      for (Annotation ownEvent : ownEvents) {
+        out.writeNonTrivialWhitespace(Collections.singletonList(ownEvent.getSymbol()));
+      }
       eventsSupers = Collections.emptyList();
+      ownEvents = Collections.emptyList();
     }
 
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
