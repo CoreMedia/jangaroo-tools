@@ -118,8 +118,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
+    // and classes inheriting from FlExtEvent (they are converted to an ...Events interface)
     // and [Mixin] interfaces:
     return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())
+            && !(primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).inheritsFromFlExtEvent())
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
