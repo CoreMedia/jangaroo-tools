@@ -474,13 +474,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-    hasOwnConfigClass = configClassDeclaration != null;
+    hasOwnConfigClass = configClassDeclaration != null || !ownEvents.isEmpty() || !eventsSupers.isEmpty();
     if (hasOwnConfigClass) {
+      if (configClassDeclaration == null) {
+        configClassDeclaration = classDeclaration;
+      }
       ownConfigs = classDeclaration.getMembers().stream()
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
               .collect(Collectors.toList());
       if (configClassDeclaration.equals(superTypeDeclaration)) {
-        if (ownConfigs.isEmpty() && configSupers.isEmpty() && eventsSupers.isEmpty()) {
+        if (ownConfigs.isEmpty() && configSupers.isEmpty() && ownEvents.isEmpty() && eventsSupers.isEmpty()) {
           hasOwnConfigClass = false;
         } else {
           classDeclaration.getIde().getScope().getCompiler().getLog().warning(
@@ -2359,29 +2362,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
 
-      // complement override of 'initialConfig' with current Config type:
-      if (!companionInterfaceMode) {
-        TypedIdeDeclaration initialConfigDeclaration = classDeclaration.getMemberDeclaration("initialConfig");
-        if (initialConfigDeclaration == null || initialConfigDeclaration.isPrivate()) {
-          TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-          if (configClassDeclaration != null) {
-            if (!(classDeclaration.equals(configClassDeclaration)
-                    // allow to deviate from the same class for some special cases:
-                    // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
-                    || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
-                    // some (base) classes simply reuse their super class as their config type :(
-                    || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
-              TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
-              classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
-                      String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
-                                      "Still generating a TypeScript Config class, but please fix this.",
-                              configParameterType.getType().getIde().getQualifiedNameStr()));
-            }
-            if (hasOwnConfigClass) {
-              out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
-            }
+      // add reference to current Config type as 'declare Config: ...Config;':
+      if (!companionInterfaceMode && hasOwnConfigClass) {
+        TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+        if (configClassDeclaration != null) {
+          if (!(classDeclaration.equals(configClassDeclaration)
+                  // allow to deviate from the same class for some special cases:
+                  // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+                  || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
+                  // some (base) classes simply reuse their super class as their config type :(
+                  || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
+            TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
+            classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
+                    String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
+                                    "Still generating a TypeScript Config class, but please fix this.",
+                            configParameterType.getType().getIde().getQualifiedNameStr()));
           }
         }
+        out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
       }
     }
     super.visitClassBodyDirectives(classBodyDirectives);
