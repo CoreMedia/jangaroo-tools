@@ -463,7 +463,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       // Do not (yet) use [Event] annotations of other classes, only render their documentation.
       // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
       for (Annotation ownEvent : ownEvents) {
-        out.writeNonTrivialWhitespace(Collections.singletonList(ownEvent.getSymbol()));
+        if (containsASDoc(ownEvent.getSymbol())) {
+          out.writeSymbolWhitespace(ownEvent.getSymbol());
+        }
       }
       eventsSupers = Collections.emptyList();
       ownEvents = Collections.emptyList();
