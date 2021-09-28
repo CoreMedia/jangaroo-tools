@@ -1,15 +1,29 @@
 package package1.someOtherPackage {
+import net.jangaroo.ext.FlExtEvent;
+
 import package1.ConfigClass;
 
-public class SomeEvent {
+public class SomeEvent extends FlExtEvent {
 
-  public static const CLICK:String = "click";
-  public static const CLICK_CLACK:String = "clack";
+  /**
+   * @eventType onClick
+   */
+  public static const CLICK:String = "onClick";
 
-  public function SomeEvent(arguments:Array) {
-    this['source'] = arguments[0];
+  /**
+   * @eventType onClickClack
+   */
+  public static const CLICK_CLACK:String = "onClickClack";
+
+  public static const __PARAMETER_SEQUENCE__:Array = ["source", "eOpts"];
+
+  public function SomeEvent(type: String, arguments:Array) {
+    super(type, arguments);
   }
 
+  /**
+   * The config event source.
+   */
   public native function get source():ConfigClass;
 }
 }

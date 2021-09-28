@@ -1,8 +1,17 @@
 import Config from "@jangaroo/runtime/AS3/Config";
 import Base from "../Ext/Base";
+interface TestMixinEvents {
+
+  /**
+   * Test mixin event.
+   */
+  firedByMixin():any;
+}
+
 interface TestMixinConfig extends Config<Base>, Partial<Pick<TestMixin,
   "foo"
 >> {
+  listeners?: TestMixinEvents;
 }
 
 

@@ -3,6 +3,7 @@ package net.jangaroo.jooc.backend;
 import net.jangaroo.jooc.CodeGenerator;
 import net.jangaroo.jooc.CompilationUnitResolver;
 import net.jangaroo.jooc.CompilerError;
+import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
@@ -74,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,8 +118,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
+    // and classes inheriting from FlExtEvent (they are converted to an ...Events interface)
     // and [Mixin] interfaces:
     return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())
+            && !(primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).inheritsFromFlExtEvent())
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
@@ -127,7 +131,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean companionInterfaceMode;
   private boolean needsCompanionInterface;
   private List<ClassDeclaration> mixinClasses;
+  private List<Ide> mixins;
+  private List<ClassDeclaration> configSupers;
+  private List<ClassDeclaration> eventsSupers;
+  private List<Annotation> ownEvents;
+  private List<Ide> realInterfaces;
   private boolean hasOwnConfigClass;
+  private boolean hasOwnEventsClass;
+  private List<TypedIdeDeclaration> ownConfigs;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -145,9 +156,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     List<JooSymbol> whitespaceSymbols = new ArrayList<>();
     List<Annotation> tsdocTags = new ArrayList<>();
     for (Annotation annotation : annotations) {
-      whitespaceSymbols.add(annotation.getSymbol());
-      if (ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER.containsKey(annotation.getMetaName())) {
-        tsdocTags.add(annotation);
+      // Suppress ASDoc of [Event]s, they are rendered separately:
+      if (!Jooc.EVENT_ANNOTATION_NAME.equals(annotation.getMetaName())) {
+        whitespaceSymbols.add(annotation.getSymbol());
+        if (ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER.containsKey(annotation.getMetaName())) {
+          tsdocTags.add(annotation);
+        }
       }
     }
     Collections.addAll(whitespaceSymbols, declaration.getSymModifiers());
@@ -235,6 +249,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
     out.writeSymbolWhitespace(compilationUnit.getPackageDeclaration().getSymbol());
 
+    needsCompanionInterface = false;
+    mixinClasses = new ArrayList<>();
+    if (primaryDeclaration instanceof ClassDeclaration) {
+      determineConfigAndEventsInterfaces((ClassDeclaration) primaryDeclaration);
+    }
+
     boolean isModule = typeScriptModuleResolver.getRequireModuleName(compilationUnit, primaryDeclaration) != null;
 
     String targetNamespace = null;
@@ -255,12 +275,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         compilationUnit.addBuiltInIdentifierUsage("Config");
       }
 
-      Set<String> usedBuiltInIdentifiers = compilationUnit.getUsedBuiltInIdentifiers();
+      Set<String> usedBuiltInIdentifiers = new TreeSet<>(compilationUnit.getUsedBuiltInIdentifiers());
       if (!usedBuiltInIdentifiers.isEmpty()) {
         localNames.addAll(usedBuiltInIdentifiers);
         // special case 'Config' is imported from its own ES module:
         if (usedBuiltInIdentifiers.remove("Config")) {
           out.write("import Config from \"@jangaroo/runtime/AS3/Config\";\n");
+        }
+        if (usedBuiltInIdentifiers.remove("Events")) {
+          out.write("import Events from \"@jangaroo/ext-ts/Events\";\n");
         }
         if (!usedBuiltInIdentifiers.isEmpty()) {
           out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
@@ -389,31 +412,36 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromFlExtEvent());
   }
 
-  @Override
-  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    if (isPropertiesClass(classDeclaration)) {
-      visitPropertiesClassDeclaration(classDeclaration);
-      return;
-    }
+  private boolean isObservable(ClassDeclaration classDeclaration) {
+    CompilationUnit observableInterface = ((JangarooParser) compilationUnitModelResolver).getCompilationUnit("ext.mixin.IObservable");
+    return observableInterface != null &&
+            classDeclaration.isAssignableTo((ClassDeclaration) observableInterface.getPrimaryDeclaration());
+  }
 
-    needsCompanionInterface = false;
-    List<Ide> mixins = new ArrayList<>();
-    mixinClasses = new ArrayList<>();
-    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) {
+    mixins = new ArrayList<>();
 
-    List<String> configMixins = new ArrayList<>();
-    List<Ide> realInterfaces = new ArrayList<>();
+    configSupers = new ArrayList<>();
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    eventsSupers = new ArrayList<>();
+    realInterfaces = new ArrayList<>();
+    ownEvents = Collections.emptyList();
     if (classDeclaration.getOptImplements() != null) {
       CommaSeparatedList<Ide> superTypes = classDeclaration.getOptImplements().getSuperTypes();
       do {
         ClassDeclaration maybeMixinDeclaration = (ClassDeclaration) superTypes.getHead().getDeclaration(false);
         CompilationUnit mixinCompilationUnit = CompilationUnit.getMixinCompilationUnit(maybeMixinDeclaration);
         if (mixinCompilationUnit != null
-                && mixinCompilationUnit != compilationUnit) { // prevent circular inheritance between mixin and its own interface!
+                && mixinCompilationUnit != classDeclaration.getCompilationUnit()) { // prevent circular inheritance between mixin and its own interface!
           mixinClasses.add(maybeMixinDeclaration);
           mixins.add(superTypes.getHead());
           if (maybeMixinDeclaration.hasConfigClass()) {
-            configMixins.add(configType(maybeMixinDeclaration));
+            compilationUnit.addBuiltInIdentifierUsage("Config");
+            configSupers.add(maybeMixinDeclaration);
+          }
+          if (!maybeMixinDeclaration.getAnnotations(Jooc.EVENT_ANNOTATION_NAME).isEmpty()) {
+            compilationUnit.addBuiltInIdentifierUsage("Events");
+            eventsSupers.add(maybeMixinDeclaration);
           }
         } else {
           realInterfaces.add(superTypes.getHead());
@@ -422,15 +450,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } while (superTypes != null);
     }
 
+    ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
+    // class is itself a mixin or an Ext Observable or a mixin client: consider its declared events!
+    ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
+    hasOwnEventsClass = (myMixinInterface != null || isObservable(classDeclaration) || !eventsSupers.isEmpty())
+            && !(eventsSupers.isEmpty() && ownEvents.isEmpty());
+    if (hasOwnEventsClass) {
+      if (isObservable(superTypeDeclaration)) {
+        eventsSupers.add(0, superTypeDeclaration);
+      }
+      if (!eventsSupers.isEmpty()) {
+        compilationUnit.addBuiltInIdentifierUsage("Events");
+      }
+    }
+
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
-    hasOwnConfigClass = configClassDeclaration != null;
+    hasOwnConfigClass = configClassDeclaration != null || hasOwnEventsClass;
     if (hasOwnConfigClass) {
-      List<TypedIdeDeclaration> configs = classDeclaration.getMembers().stream()
+      if (configClassDeclaration == null) {
+        configClassDeclaration = classDeclaration;
+      }
+      ownConfigs = classDeclaration.getMembers().stream()
               .filter(typedIdeDeclaration -> !typedIdeDeclaration.isMixinMemberRedeclaration() && typedIdeDeclaration.isExtConfigOrBindable())
               .collect(Collectors.toList());
       if (configClassDeclaration.equals(superTypeDeclaration)) {
-        if (configs.isEmpty() && configMixins.isEmpty()) {
+        if (ownConfigs.isEmpty() && configSupers.isEmpty() && ownEvents.isEmpty() && eventsSupers.isEmpty()) {
           hasOwnConfigClass = false;
         } else {
           classDeclaration.getIde().getScope().getCompiler().getLog().warning(
@@ -440,18 +484,37 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                           + " Please change the constructor parameter type or (re)move the additional Configs.");
         }
       }
-      if (hasOwnConfigClass) { // still true?
-        List<String> configExtends = new ArrayList<>();
-        if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
-          configExtends.add(configType(superTypeDeclaration));
-        }
-        configExtends.addAll(configMixins);
-        if (!configs.isEmpty()) {
-          String configNamesType = configs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
-          configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
-        }
-        out.write(String.format("interface %s%s {\n}\n\n", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
+      if (superTypeDeclaration != null && superTypeDeclaration.hasConfigClass()) {
+        configSupers.add(0, superTypeDeclaration);
       }
+    }
+    if (!configSupers.isEmpty()) {
+      compilationUnit.addBuiltInIdentifierUsage("Config");
+    }
+  }
+
+  @Override
+  public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    if (isPropertiesClass(classDeclaration)) {
+      visitPropertiesClassDeclaration(classDeclaration);
+      return;
+    }
+
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+    String eventsInterfaceName = renderEventsInterface(classDeclaration);
+    if (hasOwnConfigClass) {
+      List<String> configExtends = configSupers.stream()
+              .map(this::configType)
+              .collect(Collectors.toList());
+      if (!ownConfigs.isEmpty()) {
+        String configNamesType = ownConfigs.stream().map(config -> CompilerUtils.quote(config.getName())).collect(Collectors.joining(" |\n  "));
+        configExtends.add(String.format("Partial<Pick<%s,\n  %s\n>>", classDeclarationLocalName, configNamesType));
+      }
+      out.write(String.format("interface %s%s {", classDeclarationLocalName + "Config", configExtends.isEmpty() ? "" : " extends " + String.join(", ", configExtends)));
+      if (eventsInterfaceName != null) {
+        out.write(String.format("\n  listeners?: %s;", eventsInterfaceName));
+      }
+      out.write("\n}\n\n");
     }
 
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
@@ -513,6 +576,112 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (classDeclaration.isPrimaryDeclaration()) {
       visitAll(classDeclaration.getSecondaryDeclarations());
     }
+  }
+
+  private String renderEventsInterface(ClassDeclaration classDeclaration) throws IOException {
+    if (!hasOwnEventsClass) {
+      // no (additional) events: automatically inherits the events from its super class, nothing to do here 
+      // Do not (yet) use [Event] annotations of other classes, only render their documentation.
+      // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
+      for (Annotation ownEvent : ownEvents) {
+        if (containsASDoc(ownEvent.getSymbol())) {
+          out.writeSymbolWhitespace(ownEvent.getSymbol());
+        }
+      }
+      return null;
+    }
+    List<String> eventsExtends = eventsSupers.stream()
+            .map(this::eventsType)
+            .collect(Collectors.toList());
+    if (ownEvents.isEmpty()) {
+      // special case: no own events, only combine the events of (optional) super class and mixins:
+      return String.join(" & ", eventsExtends);
+    }
+    String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+    String eventsInterfaceName = classDeclarationLocalName + "Events";
+    out.write("interface " + eventsInterfaceName);
+    if (!eventsExtends.isEmpty()) {
+      out.write(" extends " + String.join(", ", eventsExtends));
+    }
+    out.write(" {");
+    for (Annotation ownEvent : ownEvents) {
+      String eventName = ownEvent.getEventName();
+      if (eventName == null) {
+        throw new CompilerError(ownEvent.getSymbol(), "Event must have a name.");
+      }
+      eventName = normalizeExtEventName(eventName);
+      Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
+      String eventASDoc = ownEvent.getSymbol().getWhitespace();
+      String eventParametersCode = "";
+      if (eventTypeName instanceof String) {
+        CompilationUnit eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
+        String eventParametersASDoc;
+        if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+          eventParametersASDoc = "\n * @param event";
+          eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
+        } else {
+          List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
+                  .stream()
+                  .filter(eventParameter ->
+                          !eventParameter.isStatic()
+                                  && eventParameter instanceof FunctionDeclaration
+                                  && ((FunctionDeclaration) eventParameter).isGetter())
+                  .collect(Collectors.toList());
+          eventParametersASDoc = eventParameters.stream()
+                  .map(this::memberToParamASDoc)
+                  .collect(Collectors.joining());
+          eventParametersCode = eventParameters.stream()
+                  .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
+                  .collect(Collectors.joining(", "));
+        }
+
+        // insert parameter ASDoc:
+        Matcher matcher = Pattern.compile("(\\s*[*]/)").matcher(eventASDoc);
+        if (matcher.find()) {
+          eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
+        } else {
+          eventASDoc = "\n/**" + eventParametersASDoc + "\n */";
+        }
+
+        // remove all @eventType lines:
+        eventASDoc = eventASDoc.replaceAll("\n[*\\s]*@eventType .*\n", "\n");
+      }
+      out.write(reIndentASDocToMemberLevel(eventASDoc));
+      if (!eventASDoc.endsWith("\n")) {
+        out.write("\n");
+      }
+      out.write(String.format("  %s(%s):any;", eventName, eventParametersCode));
+    }
+    out.write("\n}\n\n");
+    return eventsInterfaceName;
+  }
+
+  private static final Pattern ASDOC_PATTERN = Pattern.compile("\\s*/[*][*]\\s*[*]?([\\s\\S]*)[*]/\\s*");
+
+  private String memberToParamASDoc(TypedIdeDeclaration eventParameter) {
+    String asDoc = "\n * @param " + eventParameter.getName();
+    JooSymbol symbolWithASDoc = findSymbolWithASDoc(eventParameter);
+    if (symbolWithASDoc != null) {
+      Matcher matcher = ASDOC_PATTERN.matcher(symbolWithASDoc.getWhitespace());
+      if (matcher.matches()) {
+        asDoc += " " + matcher.group(1).trim();
+      }
+    }
+    return asDoc;
+  }
+
+  private static final Pattern ASDOC_WITHOUT_INDENTATION_PATTERN = Pattern.compile("\\s*(( [*]|/[*][*]).*)");
+
+  private static String reIndentASDocToMemberLevel(String asdoc) {
+    String[] lines = asdoc.split("\n", -1);
+    for (int i = 1; i < lines.length; i++) {
+      String line = lines[i];
+      Matcher matcher = ASDOC_WITHOUT_INDENTATION_PATTERN.matcher(line);
+      if (matcher.matches()) {
+        lines[i] = "  " + matcher.group(1);
+      }
+    }
+    return String.join("\n", lines);
   }
 
   private static List<Annotation> getMetadata(IdeDeclaration declaration) {
@@ -1605,7 +1774,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (eventClass != null) {
           VariableDeclaration eventNameDeclaration = (VariableDeclaration) eventClass.getDeclaration().getStaticMemberDeclaration(eventNameDotExpr.getIde().getName());
           String eventOnName = (String) ((LiteralExpr) eventNameDeclaration.getOptInitializer().getValue()).getValue().getJooValue();
-          String eventName = eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
+          String eventName = normalizeExtEventName(eventOnName);
           Expr fun = applyExpr.getFun();
           DotExpr funDotExpr = (DotExpr) (fun instanceof IdeExpr ? ((IdeExpr) fun).getNormalizedExpr() : fun);
           funDotExpr.getArg().visit(this);
@@ -1681,6 +1850,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       super.visitApplyExpr(applyExpr);
     }
+  }
+
+  private static String normalizeExtEventName(String eventOnName) {
+    return eventOnName.startsWith("on") ? eventOnName.substring(2).toLowerCase() : eventOnName;
   }
 
   @Override
@@ -2141,12 +2314,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return localName;
   }
 
+  private String eventsType(ClassDeclaration targetClass) {
+    return eventsType(compilationUnitAccessCode(targetClass));
+  }
+
+  private String eventsType(String targetClass) {
+    return String.format("Events<%s>", targetClass);
+  }
+
   private String configType(ClassDeclaration targetClass) {
     return configType(compilationUnitAccessCode(targetClass));
   }
 
   private String configType(String targetClass) {
-    compilationUnit.addBuiltInIdentifierUsage("Config");
     return String.format("Config<%s>", targetClass);
   }
 
@@ -2194,29 +2374,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
 
-      // complement override of 'initialConfig' with current Config type:
-      if (!companionInterfaceMode) {
-        TypedIdeDeclaration initialConfigDeclaration = classDeclaration.getMemberDeclaration("initialConfig");
-        if (initialConfigDeclaration == null || initialConfigDeclaration.isPrivate()) {
-          TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-          if (configClassDeclaration != null) {
-            if (!(classDeclaration.equals(configClassDeclaration)
-                    // allow to deviate from the same class for some special cases:
-                    // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
-                    || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
-                    // some (base) classes simply reuse their super class as their config type :(
-                    || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
-              TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
-              classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
-                      String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
-                                      "Still generating a TypeScript Config class, but please fix this.",
-                              configParameterType.getType().getIde().getQualifiedNameStr()));
-            }
-            if (hasOwnConfigClass) {
-              out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
-            }
+      // add reference to current Config type as 'declare Config: ...Config;':
+      if (!companionInterfaceMode && hasOwnConfigClass) {
+        TypeDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
+        if (configClassDeclaration != null) {
+          if (!(classDeclaration.equals(configClassDeclaration)
+                  // allow to deviate from the same class for some special cases:
+                  // some MXML base classes do not use their own config type, but the one of their MXML subclass :(
+                  || classDeclaration.equals(configClassDeclaration.getSuperTypeDeclaration())
+                  // some (base) classes simply reuse their super class as their config type :(
+                  || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
+            TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
+            classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
+                    String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
+                                    "Still generating a TypeScript Config class, but please fix this.",
+                            configParameterType.getType().getIde().getQualifiedNameStr()));
           }
         }
+        out.write(String.format("\n  declare Config: %sConfig;", compilationUnitAccessCode(classDeclaration)));
       }
     }
     super.visitClassBodyDirectives(classBodyDirectives);

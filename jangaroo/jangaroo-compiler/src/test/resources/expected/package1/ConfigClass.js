@@ -1,7 +1,11 @@
 /*package package1{
 import ext.mixin.Observable;
 
-[Event(name="click", type="package1.someOtherPackage.SomeEvent")]*/
+/**
+ * click event documentation.
+ * @eventType package1.someOtherPackage.SomeEvent.CLICK
+ * /
+[Event(name="onClick", type="package1.someOtherPackage.SomeEvent")]*/
 
 Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigClass extends Observable {
 

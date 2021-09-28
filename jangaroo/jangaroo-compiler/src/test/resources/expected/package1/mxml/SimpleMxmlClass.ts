@@ -4,7 +4,6 @@ import int from "../../AS3/int_";
 import Exml from "../../net/jangaroo/ext/Exml";
 import ConfigClass from "../ConfigClass";
 import FieldInitializer from "../FieldInitializer";
-import SomeEvent from "../someOtherPackage/SomeEvent";
 import SomeOtherClass from "../someOtherPackage/SomeOtherClass";
 interface SimpleMxmlClassConfig extends Config<ConfigClass>, Partial<Pick<SimpleMxmlClass,
   "list" |
@@ -73,7 +72,7 @@ class SimpleMxmlClass extends ConfigClass{
     new SomeOtherClass(<Config<SomeOtherClass>>{ onlyUntyped: 42}),
     new SomeOtherClass({ bla: 23}),
     new SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: bind(this,this.#$on_clickClack_56_41)}}),
+    listeners:{ clickclack: bind(this,this.#$on_clickclack_56_43)}}),
     new SomeOtherClass({ bla: 42,
         ...Config<ConfigClass>({ number: 24})
     }),
@@ -92,7 +91,7 @@ class SimpleMxmlClass extends ConfigClass{
     Object.assign( new FieldInitializer(),{ myConfigOption: "BAZ"})
   ]}),
     listeners:{
-             click: bind(this,this.#$on_click_14_20)}
+             click: bind(this,this.#$on_click_14_22)}
 }),config);})());
   }
 
@@ -182,11 +181,11 @@ class SimpleMxmlClass extends ConfigClass{
   get other():SomeOtherClass { return this.#other; }
   set other(value:SomeOtherClass) { this.#other = value; }
 
-  #$on_click_14_20 (event:SomeEvent) :void {
+  #$on_click_14_22 () :void {
       var result = "gotcha!";
     }
 
-  #$on_clickClack_56_41 (event:SomeEvent) :void {
+  #$on_clickclack_56_43 () :void {
       var test=0;
     }
 

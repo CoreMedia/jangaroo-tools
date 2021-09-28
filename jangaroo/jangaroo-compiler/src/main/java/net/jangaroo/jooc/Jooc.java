@@ -90,6 +90,7 @@ public class Jooc extends JangarooParser implements net.jangaroo.jooc.api.Jooc {
   public static final String ARRAY_ELEMENT_TYPE_ANNOTATION_NAME = "ArrayElementType";
   public static final String EVENT_ANNOTATION_NAME = "Event";
   public static final String EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME = "name";
+  public static final String EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME = "type";
   public static final String LAZY_ANNOTATION_NAME = "Lazy";
   public static final String PARAMETER_ANNOTATION_NAME = "Parameter";
   public static final String PARAMETER_ANNOTATION_REQUIRED_PROPERTY = "required";

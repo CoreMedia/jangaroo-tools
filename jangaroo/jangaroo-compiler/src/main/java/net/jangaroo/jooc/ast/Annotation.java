@@ -15,6 +15,7 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 
 import java.io.IOException;
@@ -140,4 +141,17 @@ public class Annotation extends Directive {
     return result;
   }
 
+  public String getEventName() {
+    if (Jooc.EVENT_ANNOTATION_NAME.equals(getMetaName())) {
+      Map<String, Object> propertiesByName = getPropertiesByName();
+      Object eventName = propertiesByName.get(Jooc.EVENT_ANNOTATION_NAME_ATTRIBUTE_NAME);
+      if (!(eventName instanceof String)) {
+        eventName = propertiesByName.get(null);
+      }
+      if (eventName instanceof String) {
+        return (String) eventName;
+      }
+    }
+    return null;
+  }
 }

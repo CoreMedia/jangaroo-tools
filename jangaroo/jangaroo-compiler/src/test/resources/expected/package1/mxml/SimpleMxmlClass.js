@@ -47,7 +47,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     new package1.someOtherPackage.SomeOtherClass({ onlyUntyped: 42}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 23}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 1,
-    listeners:{ clickClack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickClack_56_41$5_bR"))}}),
+    listeners:{ clickclack: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK_CLACK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_clickclack_56_43$5_bR"))}}),
     new package1.someOtherPackage.SomeOtherClass({ bla: 42, number: 24
     }),
     new package1.ConfigClass({
@@ -65,7 +65,7 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     Object.assign( new package1.FieldInitializer(),{ myConfigOption: "BAZ"})
   ]),
     listeners:{
-             click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_20$5_bR"))}
+             click: net.jangaroo.ext.Exml.eventHandler( package1.someOtherPackage.SomeEvent.CLICK,package1.someOtherPackage.SomeEvent,AS3.bind(this,"$on_click_14_22$5_bR"))}
 }),config));
   }/*
 
@@ -125,11 +125,11 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     [Bindable]
     public var other:package1.someOtherPackage.SomeOtherClass;
 
-    private*/ function $on_click_14_20 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+    private*/ function $on_click_14_22 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
       var result/*:String*/ = 'gotcha!';
     }/*
 
-    private*/ function $on_clickClack_56_41 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
+    private*/ function $on_clickclack_56_43 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
       var test=0;
     }/*
 
@@ -145,8 +145,8 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
         package1.ConfigClass.prototype.constructor.apply(this, arguments);
       },
       blub$5_bR: undefined,
-      $on_click_14_20$5_bR: $on_click_14_20,
-      $on_clickClack_56_41$5_bR: $on_clickClack_56_41,
+      $on_click_14_22$5_bR: $on_click_14_22,
+      $on_clickclack_56_43$5_bR: $on_clickclack_56_43,
       config: {
         list: null,
         bar: null,

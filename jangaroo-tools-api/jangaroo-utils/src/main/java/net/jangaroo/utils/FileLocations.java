@@ -105,7 +105,9 @@ public class FileLocations {
   }
 
   public void addSourceFile(File source) {
-    sourceFiles.add(source);
+    if (!sourceFiles.contains(source)) {
+      sourceFiles.add(source);
+    }
   }
 
   public void addSourceFile(String sourcepath) {

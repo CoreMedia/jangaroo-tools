@@ -115,7 +115,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
       AS3.cast(Ext.plugins.APlugin,{})
     ],
     listeners:{
-           flipflop:net.jangaroo.ext.Exml.eventHandler(Ext.events.PanelEvent.FLIPFLOP,Ext.events.PanelEvent,AS3.bind(this,"$on_flipflop_14_23$6tZL"))}
+           flipflop:net.jangaroo.ext.Exml.eventHandler(Ext.events.PanelEvent.FLIP_FLOP,Ext.events.PanelEvent,AS3.bind(this,"$on_flipflop_14_23$6tZL"))}
 
 }),config));
   }/*
