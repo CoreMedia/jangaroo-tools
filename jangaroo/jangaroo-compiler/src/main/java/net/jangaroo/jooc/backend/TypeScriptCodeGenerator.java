@@ -137,6 +137,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private List<Annotation> ownEvents;
   private List<Ide> realInterfaces;
   private boolean hasOwnConfigClass;
+  private boolean hasOwnEventsClass;
   private List<TypedIdeDeclaration> ownConfigs;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
@@ -417,7 +418,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             classDeclaration.isAssignableTo((ClassDeclaration) observableInterface.getPrimaryDeclaration());
   }
 
-  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) throws IOException {
+  private void determineConfigAndEventsInterfaces(ClassDeclaration classDeclaration) {
     mixins = new ArrayList<>();
 
     configSupers = new ArrayList<>();
@@ -452,29 +453,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     ClassDeclaration myMixinInterface = classDeclaration.getMyMixinInterface();
     // class is itself a mixin or an Ext Observable or a mixin client: consider its declared events!
     ownEvents = (myMixinInterface != null ? myMixinInterface : classDeclaration).getAnnotations(Jooc.EVENT_ANNOTATION_NAME);
-    if (myMixinInterface != null || isObservable(classDeclaration) || !eventsSupers.isEmpty()) {
-      if (!(eventsSupers.isEmpty() && ownEvents.isEmpty())) {
-        if (isObservable(superTypeDeclaration)) {
-          eventsSupers.add(0, superTypeDeclaration);
-        }
-        if (!eventsSupers.isEmpty()) {
-          compilationUnit.addBuiltInIdentifierUsage("Events");
-        }
+    hasOwnEventsClass = (myMixinInterface != null || isObservable(classDeclaration) || !eventsSupers.isEmpty())
+            && !(eventsSupers.isEmpty() && ownEvents.isEmpty());
+    if (hasOwnEventsClass) {
+      if (isObservable(superTypeDeclaration)) {
+        eventsSupers.add(0, superTypeDeclaration);
       }
-    } else {
-      // Do not (yet) use [Event] annotations of other classes, only render their documentation.
-      // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
-      for (Annotation ownEvent : ownEvents) {
-        if (containsASDoc(ownEvent.getSymbol())) {
-          out.writeSymbolWhitespace(ownEvent.getSymbol());
-        }
+      if (!eventsSupers.isEmpty()) {
+        compilationUnit.addBuiltInIdentifierUsage("Events");
       }
-      eventsSupers = Collections.emptyList();
-      ownEvents = Collections.emptyList();
     }
 
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
-    hasOwnConfigClass = configClassDeclaration != null || !ownEvents.isEmpty() || !eventsSupers.isEmpty();
+    hasOwnConfigClass = configClassDeclaration != null || hasOwnEventsClass;
     if (hasOwnConfigClass) {
       if (configClassDeclaration == null) {
         configClassDeclaration = classDeclaration;
@@ -510,8 +501,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
 
     String classDeclarationLocalName = compilationUnitAccessCode(classDeclaration);
+    String eventsInterfaceName = renderEventsInterface(classDeclaration);
     if (hasOwnConfigClass) {
-      String eventsInterfaceName = renderEventsInterface(classDeclaration);
       List<String> configExtends = configSupers.stream()
               .map(this::configType)
               .collect(Collectors.toList());
@@ -588,8 +579,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private String renderEventsInterface(ClassDeclaration classDeclaration) throws IOException {
-    if (ownEvents.isEmpty() && eventsSupers.isEmpty()) {
-      // no additional events: automatically inherits the events from its super class, nothing to do here 
+    if (!hasOwnEventsClass) {
+      // no (additional) events: automatically inherits the events from its super class, nothing to do here 
+      // Do not (yet) use [Event] annotations of other classes, only render their documentation.
+      // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
+      for (Annotation ownEvent : ownEvents) {
+        if (containsASDoc(ownEvent.getSymbol())) {
+          out.writeSymbolWhitespace(ownEvent.getSymbol());
+        }
+      }
       return null;
     }
     List<String> eventsExtends = eventsSupers.stream()
