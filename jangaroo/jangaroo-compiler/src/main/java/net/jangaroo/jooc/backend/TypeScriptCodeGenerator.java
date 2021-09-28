@@ -646,7 +646,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // remove all @eventType lines:
         eventASDoc = eventASDoc.replaceAll("\n[*\\s]*@eventType .*\n", "\n");
       }
-      out.write(eventASDoc);
+      out.write(reIndentASDocToMemberLevel(eventASDoc));
       if (!eventASDoc.endsWith("\n")) {
         out.write("\n");
       }
@@ -668,6 +668,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
     }
     return asDoc;
+  }
+
+  private static final Pattern ASDOC_WITHOUT_INDENTATION_PATTERN = Pattern.compile("\\s*(( [*]|/[*][*]).*)");
+
+  private static String reIndentASDocToMemberLevel(String asdoc) {
+    String[] lines = asdoc.split("\n", -1);
+    for (int i = 1; i < lines.length; i++) {
+      String line = lines[i];
+      Matcher matcher = ASDOC_WITHOUT_INDENTATION_PATTERN.matcher(line);
+      if (matcher.matches()) {
+        lines[i] = "  " + matcher.group(1);
+      }
+    }
+    return String.join("\n", lines);
   }
 
   private static List<Annotation> getMetadata(IdeDeclaration declaration) {

@@ -2,9 +2,9 @@ import Config from "@jangaroo/runtime/AS3/Config";
 import Base from "../Ext/Base";
 interface TestMixinEvents {
 
-/**
- * Test mixin event.
- */
+  /**
+   * Test mixin event.
+   */
   firedByMixin():any;
 }
 

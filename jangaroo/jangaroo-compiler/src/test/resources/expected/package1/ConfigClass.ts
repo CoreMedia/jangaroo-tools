@@ -4,10 +4,10 @@ import int from "../AS3/int_";
 import Observable from "../Ext/mixin/Observable";
 interface ConfigClassEvents extends Events<Observable> {
 
-/**
- * click event documentation.
- * @param source The config event source.
- */
+  /**
+   * click event documentation.
+   * @param source The config event source.
+   */
   click(source: ConfigClass):any;
 }
 
