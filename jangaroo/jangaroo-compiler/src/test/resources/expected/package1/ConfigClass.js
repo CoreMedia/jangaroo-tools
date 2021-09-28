@@ -3,6 +3,7 @@ import ext.mixin.Observable;
 
 /**
  * click event documentation.
+ * @eventType package1.someOtherPackage.SomeEvent.CLICK
  * /
 [Event(name="onClick", type="package1.someOtherPackage.SomeEvent")]*/
 

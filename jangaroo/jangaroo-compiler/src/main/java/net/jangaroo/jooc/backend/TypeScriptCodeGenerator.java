@@ -633,12 +633,17 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
                   .collect(Collectors.joining(", "));
         }
+
+        // insert parameter ASDoc:
         Matcher matcher = Pattern.compile("(\\s*[*]/)").matcher(eventASDoc);
         if (matcher.find()) {
           eventASDoc = matcher.replaceFirst(eventParametersASDoc + "$1");
         } else {
           eventASDoc = "\n/**" + eventParametersASDoc + "\n */";
         }
+
+        // remove all @eventType lines:
+        eventASDoc = eventASDoc.replaceAll("\n[*\\s]*@eventType .*\n", "\n");
       }
       out.write(eventASDoc);
       if (!eventASDoc.endsWith("\n")) {
