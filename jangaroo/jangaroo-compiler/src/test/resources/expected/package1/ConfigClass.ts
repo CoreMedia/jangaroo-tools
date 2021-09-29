@@ -2,13 +2,15 @@ import Config from "@jangaroo/runtime/AS3/Config";
 import Events from "@jangaroo/ext-ts/Events";
 import int from "../AS3/int_";
 import Observable from "../Ext/mixin/Observable";
+import IncludedClass from "./IncludedClass";
 interface ConfigClassEvents extends Events<Observable> {
 
   /**
    * click event documentation.
    * @param source The config event source.
+   * @param stranger
    */
-  click(source: ConfigClass):any;
+  click(source: ConfigClass, stranger: IncludedClass):any;
 }
 
 interface ConfigClassConfig extends Partial<Pick<ConfigClass,

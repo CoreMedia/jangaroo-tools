@@ -462,6 +462,25 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!eventsSupers.isEmpty()) {
         compilationUnit.addBuiltInIdentifierUsage("Events");
       }
+      for (Annotation ownEvent : ownEvents) {
+        CompilationUnit eventTypeCompilationUnit = getEventTypeCompilationUnit(ownEvent);
+        if (eventTypeCompilationUnit != null) {
+          if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+            compilationUnit.addDependency(eventTypeCompilationUnit, false);
+          } else {
+            List<TypedIdeDeclaration> eventParameters = getEventParameters(eventTypeCompilationUnit);
+            for (TypedIdeDeclaration eventParameter : eventParameters) {
+              TypeRelation optTypeRelation = eventParameter.getOptTypeRelation();
+              if (optTypeRelation != null) {
+                TypeDeclaration declaration = optTypeRelation.getType().getDeclaration();
+                if (declaration != null) {
+                  compilationUnit.addDependency(declaration.getCompilationUnit(), false);
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     ClassDeclaration configClassDeclaration = classDeclaration.getConfigClassDeclaration();
@@ -610,28 +629,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         throw new CompilerError(ownEvent.getSymbol(), "Event must have a name.");
       }
       eventName = normalizeExtEventName(eventName);
-      Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
       String eventASDoc = ownEvent.getSymbol().getWhitespace();
       String eventParametersCode = "";
-      if (eventTypeName instanceof String) {
-        CompilationUnit eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
+      CompilationUnit eventTypeCompilationUnit = getEventTypeCompilationUnit(ownEvent);
+      if (eventTypeCompilationUnit != null) {
         String eventParametersASDoc;
         if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
           eventParametersASDoc = "\n * @param event";
           eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
         } else {
-          List<TypedIdeDeclaration> eventParameters = ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
-                  .stream()
-                  .filter(eventParameter ->
-                          !eventParameter.isStatic()
-                                  && eventParameter instanceof FunctionDeclaration
-                                  && ((FunctionDeclaration) eventParameter).isGetter())
-                  .collect(Collectors.toList());
+          List<TypedIdeDeclaration> eventParameters = getEventParameters(eventTypeCompilationUnit);
           eventParametersASDoc = eventParameters.stream()
                   .map(this::memberToParamASDoc)
                   .collect(Collectors.joining());
           eventParametersCode = eventParameters.stream()
-                  .map(eventParameter -> eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(eventParameter.getType().getTypeParameter()))
+                  .map(this::getEventParameterCode)
                   .collect(Collectors.joining(", "));
         }
 
@@ -654,6 +666,30 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     out.write("\n}\n\n");
     return eventsInterfaceName;
+  }
+
+  private String getEventParameterCode(TypedIdeDeclaration eventParameter) {
+    ExpressionType type = eventParameter.getType();
+    return eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(type == null ? null : type.getTypeParameter());
+  }
+
+  private List<TypedIdeDeclaration> getEventParameters(CompilationUnit eventTypeCompilationUnit) {
+    return ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
+            .stream()
+            .filter(eventParameter ->
+                    !eventParameter.isStatic()
+                            && eventParameter instanceof FunctionDeclaration
+                            && ((FunctionDeclaration) eventParameter).isGetter())
+            .collect(Collectors.toList());
+  }
+
+  private CompilationUnit getEventTypeCompilationUnit(Annotation ownEvent) {
+    CompilationUnit eventTypeCompilationUnit = null;
+    Object eventTypeName = ownEvent.getPropertiesByName().get(Jooc.EVENT_ANNOTATION_TYPE_ATTRIBUTE_NAME);
+    if (eventTypeName instanceof String) {
+      eventTypeCompilationUnit = compilationUnitModelResolver.resolveCompilationUnit((String) eventTypeName);
+    }
+    return eventTypeCompilationUnit;
   }
 
   private static final Pattern ASDOC_PATTERN = Pattern.compile("\\s*/[*][*]\\s*[*]?([\\s\\S]*)[*]/\\s*");

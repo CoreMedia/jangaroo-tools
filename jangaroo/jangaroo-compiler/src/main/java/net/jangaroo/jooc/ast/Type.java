@@ -79,7 +79,6 @@ public class Type extends NodeImplBase {
     return getIde().getSymbol();
   }
 
-  @Nonnull
   public TypeDeclaration getDeclaration() {
     return getDeclaration(true);
   }
