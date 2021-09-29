@@ -4,7 +4,7 @@
  * This is some class documentation.
  */
 class TestRestResourceAnnotation {
-  static readonly REST_RESOURCE_URI_TEMPLATE = "test/{id:[0-9]+}";
+  static readonly REST_RESOURCE_URI_TEMPLATE: string = "test/{id:[0-9]+}";
   /**
    * This is some member documentation.
    */

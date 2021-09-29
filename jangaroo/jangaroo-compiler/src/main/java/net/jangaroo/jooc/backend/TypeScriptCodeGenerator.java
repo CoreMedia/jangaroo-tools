@@ -2404,7 +2404,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         AnnotationParameter annotationParameter = annotationParameters.getHead();
         if (annotationParameter.getOptName() != null) {
           if (REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME.equals(annotationParameter.getOptName().getName())) {
-            out.write(String.format("\n  static readonly REST_RESOURCE_URI_TEMPLATE = %s;",
+            out.write(String.format("\n  static readonly REST_RESOURCE_URI_TEMPLATE: string = %s;",
                     annotationParameter.getValue().getSymbol().getText()));
           }
         }
