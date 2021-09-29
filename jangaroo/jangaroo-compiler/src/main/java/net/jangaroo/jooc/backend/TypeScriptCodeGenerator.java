@@ -662,7 +662,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!eventASDoc.endsWith("\n")) {
         out.write("\n");
       }
-      out.write(String.format("  %s(%s):any;", eventName, eventParametersCode));
+      out.write(String.format("  %s?(%s):any;", eventName, eventParametersCode));
     }
     out.write("\n}\n\n");
     return eventsInterfaceName;

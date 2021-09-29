@@ -5,7 +5,7 @@ interface TestMixinEvents {
   /**
    * Test mixin event.
    */
-  firedByMixin():any;
+  firedByMixin?():any;
 }
 
 interface TestMixinConfig extends Config<Base>, Partial<Pick<TestMixin,

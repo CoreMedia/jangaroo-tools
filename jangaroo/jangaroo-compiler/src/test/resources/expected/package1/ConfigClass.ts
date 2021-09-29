@@ -10,7 +10,7 @@ interface ConfigClassEvents extends Events<Observable> {
    * @param source The config event source.
    * @param stranger
    */
-  click(source: ConfigClass, stranger: IncludedClass):any;
+  click?(source: ConfigClass, stranger: IncludedClass):any;
 }
 
 interface ConfigClassConfig extends Partial<Pick<ConfigClass,
