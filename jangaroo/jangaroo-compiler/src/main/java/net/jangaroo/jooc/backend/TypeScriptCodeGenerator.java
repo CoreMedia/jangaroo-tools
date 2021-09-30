@@ -2440,12 +2440,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         AnnotationParameter annotationParameter = annotationParameters.getHead();
         if (annotationParameter.getOptName() != null) {
           if (REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME.equals(annotationParameter.getOptName().getName())) {
-            out.write(String.format("\n  static readonly REST_RESOURCE_URI_TEMPLATE: string = %s;",
+            out.write(String.format("\n  static%s readonly REST_RESOURCE_URI_TEMPLATE: string = %s;",
+                    isRestResourceOverride((ClassDeclaration) compilationUnit.getPrimaryDeclaration()) ? " override" : "",
                     annotationParameter.getValue().getSymbol().getText()));
           }
         }
       }
     }
+  }
+
+  private static boolean isRestResourceOverride(ClassDeclaration classDeclaration) {
+    ClassDeclaration superTypeDeclaration = classDeclaration.getSuperTypeDeclaration();
+    while (superTypeDeclaration != null) {
+      if (superTypeDeclaration.getAnnotation(REST_RESOURCE_ANNOTATION_NAME) != null) {
+        return true;
+      }
+      superTypeDeclaration = superTypeDeclaration.getSuperTypeDeclaration();
+    }
+    return false;
   }
 
   private void setIndentationToTwo(JooSymbol symbol) {
