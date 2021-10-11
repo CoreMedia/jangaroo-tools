@@ -667,10 +667,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String renameLegacyProjectExtensionPoint(String projectExtensionPointName) {
-    if ("studio".equals(projectExtensionPointName)) {
-      return "studio-client";
-    } else if ("studio-dynamic".equals(projectExtensionPointName)) {
-      return "studio-client-dynamic";
+    if ("studio".equals(projectExtensionPointName) || "studio-client".equals(projectExtensionPointName)) {
+      return "studio-client.main-static";
+    } else if ("studio-dynamic".equals(projectExtensionPointName) || "studio-client-dynamic".equals(projectExtensionPointName)) {
+      return "studio-client.main";
     }
     return projectExtensionPointName;
   }
