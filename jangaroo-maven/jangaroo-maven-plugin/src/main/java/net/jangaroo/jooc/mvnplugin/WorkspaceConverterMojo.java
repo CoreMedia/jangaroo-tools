@@ -413,6 +413,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
     } else if (moduleType == ModuleType.JANGAROO_APP) {
       jangarooConfig.setType("app");
+      setCommandMapEntry(jangarooConfig, "run", "proxyTargetUri", "http://localhost:41080");
       setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
       jangarooConfig.setExtNamespace(extNamespace);
       jangarooConfig.setExtSassNamespace(extSassNamespace);
@@ -502,6 +503,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
     } else if (moduleType == ModuleType.JANGAROO_APP_OVERLAY) {
       jangarooConfig.setType("app-overlay");
+      setCommandMapEntry(jangarooConfig, "run", "proxyTargetUri", "http://localhost:41080");
       setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
 
       Map<String, String> devDependencies = new TreeMap<>();
@@ -518,6 +520,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       additionalJsonEntries.setScripts(scripts);
     } else if (moduleType == ModuleType.JANGAROO_APPS) {
       jangarooConfig.setType("apps");
+      setCommandMapEntry(jangarooConfig, "run", "proxyTargetUri", "http://localhost:41080");
       setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
       if (rootApp != null) {
         Package dependencyPackage = getDependencyPackageByRef(rootApp);
