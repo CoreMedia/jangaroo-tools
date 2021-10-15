@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
@@ -113,9 +114,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Parameter(property = "extJsVersion", defaultValue = "1.0.0")
   private String extJsVersion;
-
-  @Parameter(property = "useTypesVersions")
-  private boolean useTypesVersions = false;
 
   // --- ACTUAL JANGAROO MAVEN CONFIGURATION --- //
 
@@ -353,25 +351,26 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("publish", "jangaroo publish");
-      additionalJsonEntries.addPublishConfig("directory", "dist");
       if (getCommandMapEntry(jangarooConfig, "joounit", "testSuite") != null) {
         scripts.put("test", "jangaroo joounit");
       }
       additionalJsonEntries.setScripts(scripts);
 
-      Map<String, Object> exports = new HashMap<>();
-      exports.put("./*", "./dist/src/*.js");
+      additionalJsonEntries.addPublishConfig("directory", "dist");
+
+      Map<String, Object> exports = new TreeMap<>();
+      exports.put("./*", ImmutableMap.of(
+              "types", "./src/*.ts",
+              "default", "./dist/src/*.js"
+      ));
       additionalJsonEntries.setExports(exports);
 
-      if (useTypesVersions) {
-        List<String> typesPaths = new ArrayList<>();
-        typesPaths.add("./src/*");
-        Map<String, List> allMapping = new HashMap<>();
-        allMapping.put("*", typesPaths);
-        Map<String, Object> typesVersions = new HashMap<>();
-        typesVersions.put("*", allMapping);
-        additionalJsonEntries.setTypesVersions(typesVersions);
-      }
+      Map<String, Object> publishConfigExports = new HashMap<>();
+      publishConfigExports.put("./*", ImmutableMap.of(
+              "types", "./src/*.d.ts",
+              "default", "./src/*.js"
+      ));
+      additionalJsonEntries.addPublishConfig("exports", publishConfigExports);
 
       List<String> ignoreFromSencha = new ArrayList<>();
       ignoreFromSencha.add("package.json");
@@ -397,14 +396,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
       }
       if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
-        if (useTypesVersions) {
-          // although this is the default value, explicitly add this entry
-          additionalJsonEntries.setTypes("index.d.ts");
-          additionalJsonEntries.addPublishConfig("types", "index.d.ts");
-        } else {
-          additionalJsonEntries.setTypes("src/index.d.ts");
-          additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
-        }
+        additionalJsonEntries.setTypes("src/index.d.ts");
+        additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
+        additionalJsonEntries.getExports().put(".", ImmutableMap.of(
+                "types", "./src/index.d.ts"
+        ));
+        //noinspection unchecked
+        ((Map<String, Object>) additionalJsonEntries.getPublishConfig().get("exports")).put(
+                ".", ImmutableMap.of(
+                        "types", "./src/index.d.ts"
+                )
+        );
       }
       if (projectExtensionFor != null) {
         Map<String, Object> coremedia = new LinkedHashMap<>();
@@ -462,6 +464,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Map<String, String> devDependencies = new TreeMap<>();
       addManagedDependency(devDependencies, "@jangaroo/core");
       addManagedDependency(devDependencies, "@jangaroo/build");
+      addManagedDependency(devDependencies, "@jangaroo/publish");
       addManagedDependency(devDependencies, "@jangaroo/run");
       addManagedDependency(devDependencies, "rimraf");
       additionalJsonEntries.setDevDependencies(devDependencies);
@@ -471,21 +474,25 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
+      scripts.put("publish", "jangaroo publish");
       additionalJsonEntries.setScripts(scripts);
 
-      Map<String, Object> exports = new HashMap<>();
-      exports.put("./*", "./build/src/*.js");
+      additionalJsonEntries.addPublishConfig("directory", "build");
+
+      Map<String, Object> exports = new TreeMap<>();
+      exports.put("./*", ImmutableMap.of(
+              "types", "./src/*.ts",
+              "default", "./build/src/*.js"
+      ));
       additionalJsonEntries.setExports(exports);
 
-      if (useTypesVersions) {
-        List<String> typesPaths = new ArrayList<>();
-        typesPaths.add("./src/*");
-        Map<String, List> allMapping = new LinkedHashMap<>();
-        allMapping.put("*", typesPaths);
-        Map<String, Object> typesVersions = new LinkedHashMap<>();
-        typesVersions.put("*", allMapping);
-        additionalJsonEntries.setTypesVersions(typesVersions);
-      }
+      Map<String, Object> publishConfigExports = new HashMap<>();
+      publishConfigExports.put("./*", ImmutableMap.of(
+              "types", "./src/*.d.ts",
+              "default", "./src/*.js"
+      ));
+      additionalJsonEntries.addPublishConfig("exports", publishConfigExports);
+
       List<String> ignoreFromSencha = new ArrayList<>();
       ignoreFromSencha.add("app.json");
       CopyFromMavenResult copyFromMavenResult = null;
@@ -509,6 +516,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Map<String, String> devDependencies = new TreeMap<>();
       addManagedDependency(devDependencies, "@jangaroo/core");
       addManagedDependency(devDependencies, "@jangaroo/build");
+      addManagedDependency(devDependencies, "@jangaroo/publish");
       addManagedDependency(devDependencies, "@jangaroo/run");
       addManagedDependency(devDependencies, "rimraf");
       additionalJsonEntries.setDevDependencies(devDependencies);
@@ -517,7 +525,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
+      scripts.put("publish", "jangaroo publish");
       additionalJsonEntries.setScripts(scripts);
+
+      additionalJsonEntries.addPublishConfig("directory", "dist");
     } else if (moduleType == ModuleType.JANGAROO_APPS) {
       jangarooConfig.setType("apps");
       setCommandMapEntry(jangarooConfig, "run", "proxyTargetUri", "http://localhost:41080");
@@ -534,6 +545,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       Map<String, String> devDependencies = new TreeMap<>();
       addManagedDependency(devDependencies, "@jangaroo/core");
       addManagedDependency(devDependencies, "@jangaroo/build");
+      addManagedDependency(devDependencies, "@jangaroo/publish");
       addManagedDependency(devDependencies, "@jangaroo/run");
       addManagedDependency(devDependencies, "rimraf");
       additionalJsonEntries.setDevDependencies(devDependencies);
@@ -542,7 +554,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
+      scripts.put("publish", "jangaroo publish");
       additionalJsonEntries.setScripts(scripts);
+
+      additionalJsonEntries.addPublishConfig("directory", "dist");
     } else if (moduleType == ModuleType.AGGREGATOR) {
       jangarooConfig.setType("code");
       Map<String, String> devDependencies = new TreeMap<>();
@@ -556,8 +571,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("publish", "jangaroo publish");
-      additionalJsonEntries.addPublishConfig("directory", "dist");
       additionalJsonEntries.setScripts(scripts);
+
+      additionalJsonEntries.addPublishConfig("directory", "dist");
+
       if (projectExtensionPoint != null) {
         Map<String, Object> coremedia = new LinkedHashMap<>();
         coremedia.put("projectExtensionPoint", renameLegacyProjectExtensionPoint(projectExtensionPoint));
