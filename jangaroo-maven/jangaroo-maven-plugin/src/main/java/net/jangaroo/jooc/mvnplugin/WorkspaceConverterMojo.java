@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.jangaroo.jooc.config.SearchAndReplace;
 import net.jangaroo.jooc.mvnplugin.converter.AdditionalPackageJsonEntries;
@@ -113,9 +114,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Parameter(property = "extJsVersion", defaultValue = "1.0.0")
   private String extJsVersion;
-
-  @Parameter(property = "useTypesVersions")
-  private boolean useTypesVersions = false;
 
   // --- ACTUAL JANGAROO MAVEN CONFIGURATION --- //
 
@@ -360,18 +358,18 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       additionalJsonEntries.setScripts(scripts);
 
       Map<String, Object> exports = new HashMap<>();
-      exports.put("./*", "./dist/src/*.js");
+      exports.put("./*", ImmutableMap.of(
+              "types", "./src/*.ts",
+              "default", "./dist/src/*.js"
+      ));
       additionalJsonEntries.setExports(exports);
 
-      if (useTypesVersions) {
-        List<String> typesPaths = new ArrayList<>();
-        typesPaths.add("./src/*");
-        Map<String, List> allMapping = new HashMap<>();
-        allMapping.put("*", typesPaths);
-        Map<String, Object> typesVersions = new HashMap<>();
-        typesVersions.put("*", allMapping);
-        additionalJsonEntries.setTypesVersions(typesVersions);
-      }
+      Map<String, Object> publishConfigExports = new HashMap<>();
+      publishConfigExports.put("./*", ImmutableMap.of(
+              "types", "./src/*.d.ts",
+              "default", "./src/*.js"
+      ));
+      additionalJsonEntries.addPublishConfig("exports", publishConfigExports);
 
       List<String> ignoreFromSencha = new ArrayList<>();
       ignoreFromSencha.add("package.json");
@@ -397,14 +395,17 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
       }
       if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
-        if (useTypesVersions) {
-          // although this is the default value, explicitly add this entry
-          additionalJsonEntries.setTypes("index.d.ts");
-          additionalJsonEntries.addPublishConfig("types", "index.d.ts");
-        } else {
-          additionalJsonEntries.setTypes("src/index.d.ts");
-          additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
-        }
+        additionalJsonEntries.setTypes("src/index.d.ts");
+        additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
+        additionalJsonEntries.getExports().put(".", ImmutableMap.of(
+                "types", "./src/index.d.ts"
+        ));
+        //noinspection unchecked
+        ((Map<String, Object>) additionalJsonEntries.getPublishConfig().get("exports")).put(
+                ".", ImmutableMap.of(
+                        "types", "./src/index.d.ts"
+                )
+        );
       }
       if (projectExtensionFor != null) {
         Map<String, Object> coremedia = new LinkedHashMap<>();
@@ -474,18 +475,19 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       additionalJsonEntries.setScripts(scripts);
 
       Map<String, Object> exports = new HashMap<>();
-      exports.put("./*", "./build/src/*.js");
+      exports.put("./*", ImmutableMap.of(
+              "types", "./src/*.ts",
+              "default", "./build/src/*.js"
+      ));
       additionalJsonEntries.setExports(exports);
 
-      if (useTypesVersions) {
-        List<String> typesPaths = new ArrayList<>();
-        typesPaths.add("./src/*");
-        Map<String, List> allMapping = new LinkedHashMap<>();
-        allMapping.put("*", typesPaths);
-        Map<String, Object> typesVersions = new LinkedHashMap<>();
-        typesVersions.put("*", allMapping);
-        additionalJsonEntries.setTypesVersions(typesVersions);
-      }
+      Map<String, Object> publishConfigExports = new HashMap<>();
+      publishConfigExports.put("./*", ImmutableMap.of(
+              "types", "./src/*.d.ts",
+              "default", "./src/*.js"
+      ));
+      additionalJsonEntries.addPublishConfig("exports", publishConfigExports);
+
       List<String> ignoreFromSencha = new ArrayList<>();
       ignoreFromSencha.add("app.json");
       CopyFromMavenResult copyFromMavenResult = null;
