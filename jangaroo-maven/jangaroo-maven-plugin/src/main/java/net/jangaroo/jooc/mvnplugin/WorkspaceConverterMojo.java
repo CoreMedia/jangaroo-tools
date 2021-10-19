@@ -396,8 +396,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
       }
       if (Paths.get(targetPackageDir, "src", "index.d.ts").toFile().exists()) {
-        additionalJsonEntries.setTypes("src/index.d.ts");
-        additionalJsonEntries.addPublishConfig("types", "src/index.d.ts");
+        additionalJsonEntries.setTypes("./src/index.d.ts");
+        additionalJsonEntries.addPublishConfig("types", "./src/index.d.ts");
         additionalJsonEntries.getExports().put(".", ImmutableMap.of(
                 "types", "./src/index.d.ts"
         ));
