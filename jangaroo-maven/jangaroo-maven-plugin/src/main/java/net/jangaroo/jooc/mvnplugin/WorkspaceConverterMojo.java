@@ -388,10 +388,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         addManagedDependency(devDependencies, "eslint");
         List<String> eslintPatterns = new ArrayList<>();
         if (copyFromMavenResult.hasSourceTsFiles) {
-          eslintPatterns.add("'src/**/*.ts'");
+          eslintPatterns.add("\"src/**/*.ts\"");
         }
         if (copyFromMavenResult.hasJooUnitTsFiles) {
-          eslintPatterns.add("'joounit/**/*.ts'");
+          eslintPatterns.add("\"joounit/**/*.ts\"");
         }
         scripts.put("lint", "eslint --fix " + String.join(" ", eslintPatterns));
       }
@@ -506,7 +506,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       if (copyFromMavenResult.hasSourceTsFiles) {
         setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
         addManagedDependency(devDependencies, "eslint");
-        scripts.put("lint", "eslint --fix 'src/**/*.ts'");
+        scripts.put("lint", "eslint --fix \"src/**/*.ts\"");
       }
     } else if (moduleType == ModuleType.JANGAROO_APP_OVERLAY) {
       jangarooConfig.setType("app-overlay");
