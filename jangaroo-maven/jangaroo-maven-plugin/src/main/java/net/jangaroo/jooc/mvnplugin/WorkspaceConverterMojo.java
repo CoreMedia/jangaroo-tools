@@ -538,7 +538,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (dependencyPackage == null) {
           getLog().warn(String.format("Could not find rootApp dependency for %s which is configured in the jangaroo-maven-plugin configuration.", theme));
         } else {
-          jangarooConfig.setRootApp(dependencyPackage.getName());
+          jangarooConfig.addAppPath(dependencyPackage.getName(), "");
         }
       }
 

@@ -9,7 +9,7 @@ public class JangarooConfig {
   private String extName;
   private String outputDirectory;
   private String applicationClass;
-  private String rootApp;
+  private Map<String, String> appPaths;
   private String extNamespace;
   private String extSassNamespace;
   private String theme;
@@ -26,12 +26,12 @@ public class JangarooConfig {
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, String rootApp, String extNamespace, String theme, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
+  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, Map<String, String> rootApp, String extNamespace, String theme, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
     this.type = type;
     this.extName = extName;
     this.outputDirectory = outputDirectory;
     this.applicationClass = applicationClass;
-    this.rootApp = rootApp;
+    this.appPaths = rootApp;
     this.extNamespace = extNamespace;
     this.theme = theme;
     this.sencha = sencha;
@@ -76,12 +76,19 @@ public class JangarooConfig {
     this.applicationClass = applicationClass;
   }
 
-  public String getRootApp() {
-    return rootApp;
+  public Map<String, String> getAppPaths() {
+    return appPaths;
   }
 
-  public void setRootApp(String rootApp) {
-    this.rootApp = rootApp;
+  public void setAppPaths(Map<String, String> appPaths) {
+    this.appPaths = appPaths;
+  }
+
+  public void addAppPath(String appDependencyName, String path) {
+    if (this.appPaths == null) {
+      this.appPaths = new HashMap<>();
+    }
+    this.appPaths.put(appDependencyName, path);
   }
 
   public String getExtNamespace() {
