@@ -554,6 +554,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       scripts.put("build", "jangaroo build");
       scripts.put("watch", "jangaroo watch");
       scripts.put("start", "jangaroo run");
+      scripts.put("package", "jangaroo package");
       scripts.put("publish", "jangaroo publish");
       additionalJsonEntries.setScripts(scripts);
 
