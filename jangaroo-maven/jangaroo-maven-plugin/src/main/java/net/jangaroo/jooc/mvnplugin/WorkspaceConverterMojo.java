@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -1157,19 +1158,36 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   private Map<String, String> readClassMapping(Artifact artifact) {
     String artifactType = artifact.getType();
-    if (artifact.getFile() != null
-            && (JANGAROO_SWC_PACKAGING.equals(artifactType) || JANGAROO_APP_PACKAGING.equals(artifactType))) {
+    boolean isCode = JANGAROO_SWC_PACKAGING.equals(artifactType);
+    boolean isApp = JANGAROO_APP_PACKAGING.equals(artifactType);
+    if (artifact.getFile() != null && (isCode || isApp)) {
       try {
         JarFile jarFile = new JarFile(artifact.getFile());
-        ZipEntry classMapping =  JANGAROO_SWC_PACKAGING.equals(artifactType)
+        ZipEntry classMappingEntry =  isCode
                 ? jarFile.getEntry("META-INF/pkg/classMapping.json")
                 : jarFile.getEntry("META-INF/resources/classMapping.json");
-        if (classMapping != null) {
+        if (classMappingEntry != null) {
           //noinspection unchecked
-          return (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(classMapping), Map.class);
+          return (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(classMappingEntry), Map.class);
+        } else {
+          // fall back to inventory (Rename annotations are not considered here)
+          String inventoryFileName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()) + ".json";
+          ZipEntry inventoryEntry =  isCode
+                  ? jarFile.getEntry("META-INF/pkg/" + inventoryFileName)
+                  : jarFile.getEntry("META-INF/resources/" + inventoryFileName);
+          if (inventoryEntry != null) {
+            ZipEntry jsonEntry = jarFile.getEntry(isCode ? "META-INF/pkg/package.json" : "META-INF/resources/app.json");
+            if (jsonEntry != null) {
+              @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
+              String namespace = json.getOrDefault("namespace", "");
+              final String namespaceWithTrailingDot = "".equals(namespace) ? namespace : namespace + ".";
+              @SuppressWarnings("unchecked") List<String> inventoryList = jsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
+              return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> String.join("/", fqn.substring(namespaceWithTrailingDot.length()).split("[.]")) + ".ts"));
+            }
+          }
         }
       } catch (IOException e) {
-        getLog().warn(String.format("Inventory could not be read from artifact %s!", artifact), e);
+        getLog().warn(String.format("Class Mapping could not be read from artifact %s!", artifact), e);
       }
     }
     return new HashMap<>();
