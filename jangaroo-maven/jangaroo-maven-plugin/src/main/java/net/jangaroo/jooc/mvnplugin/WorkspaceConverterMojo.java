@@ -18,6 +18,7 @@ import net.jangaroo.jooc.mvnplugin.converter.PackageJsonPrettyPrinter;
 import net.jangaroo.jooc.mvnplugin.converter.WorkspaceRoot;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
+import net.jangaroo.utils.CompilerUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -1180,9 +1181,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             if (jsonEntry != null) {
               @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
               String namespace = json.getOrDefault("namespace", "");
-              final String namespaceWithTrailingDot = "".equals(namespace) ? namespace : namespace + ".";
+              final int namespaceLengthToRemove = namespace.isEmpty() ? 0 : namespace.length() + 1;
               @SuppressWarnings("unchecked") List<String> inventoryList = jsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
-              return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> String.join("/", fqn.substring(namespaceWithTrailingDot.length()).split("[.]")) + ".ts"));
+              //noinspection ConstantConditions will not happen
+              return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> CompilerUtils.fileNameFromQName(fqn.substring(namespaceLengthToRemove), '/', ".ts")));
             }
           }
         }
