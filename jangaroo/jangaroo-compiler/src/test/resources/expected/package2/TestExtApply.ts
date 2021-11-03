@@ -8,8 +8,8 @@ interface TestExtApplyConfig {
 class TestExtApply {
   declare Config: TestExtApplyConfig;
   constructor(config: Config<TestExtApply>) {
-    Object.assign(config, this);
-    Object.assign({ a: "target" }, { a: "defaults"}, { a: "apply" });
+    Ext.apply(config, this);
+    Ext.apply({ a: "target" }, { a: "apply" }, { a: "defaults"});
   }
 }
 export default TestExtApply;
