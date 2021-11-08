@@ -101,29 +101,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     put(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME, annotation -> "\n * @public");
     put(Jooc.DEPRECATED_ANNOTATION_NAME, annotation -> "\n * @deprecated" + renderDeprecatedParameters(annotation));
   }};
-  private static final List<String> JANGAROO_RUNTIME_REMOVED_NAMES = Arrays.asList(
-          "AS3.Error",
-          "joo.baseUrl",
-          "joo.boundMethod",
-          "joo.classLoader",
-          "joo.compilerVersion",
-          "joo.DynamicClassLoader",
-          "joo.getOrCreatePackage",
-          "joo.getRelativeClassUrl",
-          "joo.JavaScriptObject",
-          "joo.ClassDeclaration",
-          "joo.loadDebugScript",
-          "joo.loadModule",
-          "joo.loadScript",
-          "joo.loadScriptAsync",
-          "joo.MemberDeclaration",
-          "joo.NativeClassDeclaration",
-          "joo.require",
-          "joo.resolveUrl",
-          "joo.runtimeApiVersion",
-          "joo.StandardClassLoader",
-          "joo.SystemClassLoader"
-  );
 
   private static String renderDeprecatedParameters(Annotation annotation) {
     List<String> parts = new ArrayList<>();
@@ -313,12 +290,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   String.join(", ", usedBuiltInIdentifiers)));
         }
       }
-      List<String> usedRemovedNames = JANGAROO_RUNTIME_REMOVED_NAMES.stream().filter(
-              removedName -> compilationUnit.getCompileDependencies().contains(removedName)
-      ).collect(Collectors.toList());
-      if (!usedRemovedNames.isEmpty()) {
-        throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
-      }
       if (compilationUnit.getCompileDependencies().contains("js.KeyEvent")) {
         out.write("import KeyEvent from \"@jangaroo/runtime/KeyEvent\";\n");
       }
@@ -353,9 +324,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
             .collect(Collectors.toList());
     boolean jooImported = false;
+    List<String> usedRemovedNames = new ArrayList<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
       String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration());
-      if (!jooImported && requireModuleName == null && "joo".equals(dependentCompilationUnitModel.getPackageDeclaration().getQualifiedNameStr())) {
+      boolean isInJooPackage = "joo".equals(dependentCompilationUnitModel.getPackageDeclaration().getQualifiedNameStr());
+      if (isInJooPackage) {
+        Annotation deprecatedAnnotation = dependentCompilationUnitModel.getPrimaryDeclaration().getAnnotation(Jooc.DEPRECATED_ANNOTATION_NAME);
+        if (deprecatedAnnotation != null) {
+          Map<String, Object> annotationProperties = deprecatedAnnotation.getPropertiesByName();
+          if ("none".equals(annotationProperties.get("replacement"))) {
+            usedRemovedNames.add(dependentCompilationUnitModel.getQualifiedNameStr());
+          }
+        }
+      }
+      if (!jooImported && requireModuleName == null && isInJooPackage) {
         // found formerly native name that is now imported from "@jangaroo/runtime/joo":
         out.write("import joo from \"@jangaroo/runtime/joo\";\n");
         jooImported = true; // only import "joo" once!
@@ -376,6 +358,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           localNameClashes.add(localName);
         }
       }
+    }
+    if (!usedRemovedNames.isEmpty()) {
+      throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
     }
 
     // second pass: generate imports, using fully-qualified names for local name clashes:
