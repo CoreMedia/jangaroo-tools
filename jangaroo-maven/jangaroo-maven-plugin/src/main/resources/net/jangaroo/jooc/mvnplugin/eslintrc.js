@@ -38,9 +38,15 @@ module.exports = {
     "array-bracket-newline": ["error", "consistent"],
     "arrow-parens": ["error", "as-needed"],
     "prefer-const": "error",
+    "import/no-duplicates": "error",
     "import/newline-after-import": [
       "error", {"count": 1}
     ],
+    "import/order": ["error", {
+      "alphabetize": {
+        "order": "asc"
+      },
+    }],
     "indent": ["error", 2],
     "jsdoc/check-alignment": [
       "error"
