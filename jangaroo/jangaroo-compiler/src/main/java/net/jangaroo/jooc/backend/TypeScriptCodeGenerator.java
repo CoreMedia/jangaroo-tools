@@ -81,8 +81,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
+import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
 public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
@@ -101,14 +101,40 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     put(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME, annotation -> "\n * @public");
     put(Jooc.DEPRECATED_ANNOTATION_NAME, annotation -> "\n * @deprecated" + renderDeprecatedParameters(annotation));
   }};
-  private static final List<String> JANGAROO_RUNTIME_JOO_L10N_NAMES = Arrays.asList(
-          "localization",
-          "localeSupport",
-          "ILocaleSupport",
-          "IResourceBundle",
-          "IResourceManager",
-          "resourceManager",
-          "ResourceBundle"
+  // formerly native names that are no imported from "@jangaroo/runtime/joo"
+  private static final List<String> JANGAROO_RUNTIME_NATIVE_NAMES_LEADING_TO_JOO_IMPORT = Arrays.asList(
+          "joo.debug",
+          "joo.getAppManifestLocation",
+          "joo.getAppRootPath",
+          "joo.getApps",
+          "joo.getQualifiedObject",
+          "joo.localeSupport",
+          "joo.localization",
+          "joo.startTime",
+          "KeyEvent"
+  );
+  private static final List<String> JANGAROO_RUNTIME_REMOVED_NAMES = Arrays.asList(
+          "AS3.Error",
+          "joo.baseUrl",
+          "joo.boundMethod",
+          "joo.classLoader",
+          "joo.compilerVersion",
+          "joo.DynamicClassLoader",
+          "joo.getOrCreatePackage",
+          "joo.getRelativeClassUrl",
+          "joo.JavaScriptObject",
+          "joo.ClassDeclaration",
+          "joo.loadDebugScript",
+          "joo.loadModule",
+          "joo.loadScript",
+          "joo.loadScriptAsync",
+          "joo.MemberDeclaration",
+          "joo.NativeClassDeclaration",
+          "joo.require",
+          "joo.resolveUrl",
+          "joo.runtimeApiVersion",
+          "joo.StandardClassLoader",
+          "joo.SystemClassLoader"
   );
 
   private static String renderDeprecatedParameters(Annotation annotation) {
@@ -299,6 +325,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   String.join(", ", usedBuiltInIdentifiers)));
         }
       }
+      List<String> usedRemovedNames = JANGAROO_RUNTIME_REMOVED_NAMES.stream().filter(
+              removedName -> compilationUnit.getCompileDependencies().contains(removedName)
+      ).collect(Collectors.toList());
+      if (!usedRemovedNames.isEmpty()) {
+        throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
+      }
+      if (JANGAROO_RUNTIME_NATIVE_NAMES_LEADING_TO_JOO_IMPORT.stream().anyMatch(
+              noLongerNativeName -> compilationUnit.getCompileDependencies().contains(noLongerNativeName)
+      )) {
+        out.write("import joo from \"@jangaroo/runtime/joo\";\n");
+      }
+      if (compilationUnit.getCompileDependencies().contains("js.KeyEvent")) {
+        out.write("import KeyEvent from \"@jangaroo/runtime/KeyEvent\";\n");
+      }
       if (compilationUnit.getCompileDependencies().contains("Function")) {
         out.write("import { AnyFunction } from \"@jangaroo/runtime/types\";\n");
       }
@@ -365,21 +405,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (requireModuleName == null) {
         localName = TypeScriptModuleResolver.getNonRequireNativeName(dependentPrimaryDeclaration);
       } else {
-        // re-map some special @jangaroo/runtime compilation units:
-        List<String> requireModuleParts = Arrays.asList(requireModuleName.split("/"));
-        if (requireModuleParts.size() >= 3 &&
-                "@jangaroo".equals(requireModuleParts.get(0)) && "runtime".equals(requireModuleParts.get(1))) {
-          if ("AS3".equals(requireModuleParts.get(2))) {
-            requireModuleParts.remove(2);
-          } else if ("joo".equals(requireModuleParts.get(2))) {
-            if (requireModuleParts.size() >= 4 && JANGAROO_RUNTIME_JOO_L10N_NAMES.contains(requireModuleParts.get(3))) {
-              requireModuleParts.set(2, "l10n");
-            } else {
-              requireModuleParts.remove(2);
-            }
-          }
-          requireModuleName = String.join("/", requireModuleParts);
-        }
+        // re-map all @jangaroo/runtime/AS3** compilation units to @jangaroo/runtime**:
+        requireModuleName = requireModuleName.replace("@jangaroo/runtime/AS3", "@jangaroo/runtime");
 
         if (!isModule) {
           // import from non-module to module must be inlined:
@@ -627,7 +654,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private String renderEventsInterface(ClassDeclaration classDeclaration) throws IOException {
     if (!hasOwnEventsClass) {
-      // no (additional) events: automatically inherits the events from its super class, nothing to do here 
+      // no (additional) events: automatically inherits the events from its super class, nothing to do here
       // Do not (yet) use [Event] annotations of other classes, only render their documentation.
       // To suppress the Event interface output, set eventMixins and ownEvents to empty list:
       for (Annotation ownEvent : ownEvents) {
@@ -1753,10 +1780,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // This has been used in Jangaroo-ActionScript to construct simple, typed objects that do *not*
           // inherit from Ext.Base. In TypeScript, they won't, anyway, so we can construct them on the fly.
           // For a (runtime) interface, we create an ad-hoc class that mixes in the interface,
-          // instantiate it, then (if not empty) assign all given properties: 
+          // instantiate it, then (if not empty) assign all given properties:
           //    IFoo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, mixin(class {}, IFoo).prototype)
           // For a class, we simply set the class' prototype:
-          //    Foo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, Foo.prototype) 
+          //    Foo({ ... }) =AS-TS=> Object.setPrototypeOf({ ... }, Foo.prototype)
           out.writeSymbolWhitespace(applyExpr.getFun().getSymbol());
           out.write("Object.setPrototypeOf");
           out.writeSymbol(args.getLParen());
