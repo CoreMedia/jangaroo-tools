@@ -101,6 +101,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     put(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME, annotation -> "\n * @public");
     put(Jooc.DEPRECATED_ANNOTATION_NAME, annotation -> "\n * @deprecated" + renderDeprecatedParameters(annotation));
   }};
+  private static final List<String> JANGAROO_RUNTIME_JOO_L10N_NAMES = Arrays.asList(
+          "localization",
+          "localeSupport",
+          "ILocaleSupport",
+          "IResourceBundle",
+          "IResourceManager",
+          "resourceManager",
+          "ResourceBundle"
+  );
 
   private static String renderDeprecatedParameters(Annotation annotation) {
     List<String> parts = new ArrayList<>();
@@ -280,15 +289,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         localNames.addAll(usedBuiltInIdentifiers);
         // special case 'Config' is imported from its own ES module:
         if (usedBuiltInIdentifiers.remove("Config")) {
-          out.write("import Config from \"@jangaroo/runtime/AS3/Config\";\n");
+          out.write("import Config from \"@jangaroo/runtime/Config\";\n");
         }
         if (usedBuiltInIdentifiers.remove("Events")) {
           out.write("import Events from \"@jangaroo/ext-ts/Events\";\n");
         }
         if (!usedBuiltInIdentifiers.isEmpty()) {
-          out.write(String.format("import { %s } from \"@jangaroo/runtime/AS3\";\n",
+          out.write(String.format("import { %s } from \"@jangaroo/runtime\";\n",
                   String.join(", ", usedBuiltInIdentifiers)));
         }
+      }
+      if (compilationUnit.getCompileDependencies().contains("Function")) {
+        out.write("import { AnyFunction } from \"@jangaroo/runtime/types\";\n");
       }
 
     } else { // !isModule
@@ -353,6 +365,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (requireModuleName == null) {
         localName = TypeScriptModuleResolver.getNonRequireNativeName(dependentPrimaryDeclaration);
       } else {
+        // re-map some special @jangaroo/runtime compilation units:
+        List<String> requireModuleParts = Arrays.asList(requireModuleName.split("/"));
+        if (requireModuleParts.size() >= 3 &&
+                "@jangaroo".equals(requireModuleParts.get(0)) && "runtime".equals(requireModuleParts.get(1))) {
+          if ("AS3".equals(requireModuleParts.get(2))) {
+            requireModuleParts.remove(2);
+          } else if ("joo".equals(requireModuleParts.get(2))) {
+            if (requireModuleParts.size() >= 4 && JANGAROO_RUNTIME_JOO_L10N_NAMES.contains(requireModuleParts.get(3))) {
+              requireModuleParts.set(2, "l10n");
+            } else {
+              requireModuleParts.remove(2);
+            }
+          }
+          requireModuleName = String.join("/", requireModuleParts);
+        }
+
         if (!isModule) {
           // import from non-module to module must be inlined:
           localName = String.format("import(\"%s\").default", requireModuleName);
@@ -789,6 +817,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void visitPropertiesClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
+    if (isPropertiesSubclass(classDeclaration)) {
+      out.write("import ResourceBundleUtil from \"@jangaroo/runtime/l10n/ResourceBundleUtil\";\n");
+    }
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbolWhitespace(classDeclaration.getSymClass());
     FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
