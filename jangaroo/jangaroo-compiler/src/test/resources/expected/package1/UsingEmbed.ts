@@ -1,4 +1,4 @@
-import { metadata } from "@jangaroo/runtime/AS3";
+import { metadata } from "@jangaroo/runtime";
 import Bitmap from "../flash/display/Bitmap";
 
 /**

@@ -13,7 +13,8 @@
  * governing permissions and limitations under the License.
  */
 
-import { bind } from "@jangaroo/runtime/AS3";
+import { bind } from "@jangaroo/runtime";
+import { AnyFunction } from "@jangaroo/runtime/types";
 
 
 class TestBind {

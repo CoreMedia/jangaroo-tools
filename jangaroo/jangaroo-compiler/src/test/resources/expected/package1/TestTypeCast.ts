@@ -1,4 +1,4 @@
-import { as, cast, is, mixin } from "@jangaroo/runtime/AS3";
+import { as, cast, is, mixin } from "@jangaroo/runtime";
 import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import SomeClass from "./SomeClass";

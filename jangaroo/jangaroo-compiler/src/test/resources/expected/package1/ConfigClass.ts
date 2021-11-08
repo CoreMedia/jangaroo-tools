@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import Events from "@jangaroo/ext-ts/Events";
 import int from "../AS3/int_";
 import Observable from "../Ext/mixin/Observable";

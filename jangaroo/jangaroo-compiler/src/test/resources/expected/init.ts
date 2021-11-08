@@ -1,4 +1,4 @@
-import { asConfig } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime";
 import SomeOtherClass from "./package1/someOtherPackage/SomeOtherClass";
 
    new SomeOtherClass().addListener("clickclack", ():void => {

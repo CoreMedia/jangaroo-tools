@@ -1,4 +1,4 @@
-import { asConfig } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime";
 
 class FieldInitializer {
   readonly #const1:string = "foo";

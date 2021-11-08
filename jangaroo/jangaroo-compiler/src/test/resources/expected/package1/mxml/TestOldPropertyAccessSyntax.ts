@@ -1,5 +1,5 @@
-import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig } from "@jangaroo/runtime/AS3";
+import Config from "@jangaroo/runtime/Config";
+import { asConfig } from "@jangaroo/runtime";
 import Exml from "../../net/jangaroo/ext/Exml";
 import PropertiesTest_properties from "../../testPackage/PropertiesTest_properties";
 interface TestOldPropertyAccessSyntaxConfig extends Partial<Pick<TestOldPropertyAccessSyntax,

@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import CyclicDependencies_1 from "./CyclicDependencies_1";
 interface CyclicDependenciesConfig extends Partial<Pick<CyclicDependencies,

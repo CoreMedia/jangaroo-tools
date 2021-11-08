@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import Panel from "../../Ext/Panel";
 import Exml from "../../net/jangaroo/ext/Exml";
 import BDeclaresA from "./BDeclaresA";

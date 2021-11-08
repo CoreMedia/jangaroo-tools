@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import Base from "../Ext/Base";
 interface TestMixinEvents {
 

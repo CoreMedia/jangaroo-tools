@@ -1,4 +1,4 @@
-import { lazyVar } from "@jangaroo/runtime/AS3";
+import { lazyVar } from "@jangaroo/runtime";
 import SomeOtherClass from "./someOtherPackage/SomeOtherClass";
 
 

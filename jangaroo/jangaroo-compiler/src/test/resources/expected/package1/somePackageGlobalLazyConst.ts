@@ -1,4 +1,4 @@
-import { lazyConst } from "@jangaroo/runtime/AS3";
+import { lazyConst } from "@jangaroo/runtime";
 
 
 // This comment to vanish in API

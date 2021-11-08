@@ -1,5 +1,6 @@
 import PropertiesTest_properties from "./PropertiesTest_properties";
 import MoreIcons_properties from "./icons/MoreIcons_properties";
+import ResourceBundleUtil from "@jangaroo/runtime/l10n/ResourceBundleUtil";
 
 /**
  * Overrides of ResourceBundle "PropertiesTest" for Locale "es_ES".

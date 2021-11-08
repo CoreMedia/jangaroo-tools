@@ -1,3 +1,4 @@
+import { AnyFunction } from "@jangaroo/runtime/types";
 import int from "../AS3/int_";
 
 

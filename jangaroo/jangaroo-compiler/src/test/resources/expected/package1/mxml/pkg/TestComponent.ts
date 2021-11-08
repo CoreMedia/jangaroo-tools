@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import int from "../../../AS3/int_";
 import Exml from "../../../net/jangaroo/ext/Exml";
 import TestComponentBase from "./TestComponentBase";

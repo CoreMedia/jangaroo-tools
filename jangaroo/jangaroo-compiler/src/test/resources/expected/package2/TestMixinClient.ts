@@ -1,6 +1,6 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import Events from "@jangaroo/ext-ts/Events";
-import { mixin } from "@jangaroo/runtime/AS3";
+import { mixin } from "@jangaroo/runtime";
 import Base from "../Ext/Base";
 import TestMixin from "./TestMixin";
 interface TestMixinClientConfig extends Config<Base>, Config<TestMixin>, Partial<Pick<TestMixinClient,

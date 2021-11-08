@@ -1,4 +1,4 @@
-import Config from "@jangaroo/runtime/AS3/Config";
+import Config from "@jangaroo/runtime/Config";
 import PropertiesAccess from "./PropertiesAccess";
 interface PropertiesAccessBaseConfig extends Partial<Pick<PropertiesAccessBase,
   "property_1" |

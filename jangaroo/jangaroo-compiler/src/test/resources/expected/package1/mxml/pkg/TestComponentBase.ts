@@ -1,5 +1,5 @@
-import Config from "@jangaroo/runtime/AS3/Config";
-import { asConfig, mixin } from "@jangaroo/runtime/AS3";
+import Config from "@jangaroo/runtime/Config";
+import { asConfig, mixin } from "@jangaroo/runtime";
 import int from "../../../AS3/int_";
 import Component from "../../../Ext/Component";
 import TestComponent from "./TestComponent";

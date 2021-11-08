@@ -1,4 +1,4 @@
-import { asConfig } from "@jangaroo/runtime/AS3";
+import { asConfig } from "@jangaroo/runtime";
 import SomeOtherNativeClass from "../SomeOtherNativeClass";
 import package1_someOtherPackage_SomeNativeClass from "./someOtherPackage/SomeNativeClass";
 
