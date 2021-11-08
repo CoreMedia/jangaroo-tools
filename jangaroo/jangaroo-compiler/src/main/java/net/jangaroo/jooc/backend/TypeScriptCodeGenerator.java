@@ -95,6 +95,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   private static final String I_RESOURCE_MANAGER_QUALIFIED_NAME = "mx.resources.IResourceManager";
   private static final String GET_STRING_METHOD_NAME = "getString";
+  private static final String RESOURCE_MANAGER_QUALIFIED_NAME = "resourceManager";
+  private static final String RESOURCE_MANAGER_IMPL_QUALIFIED_NAME = "mx.resources.ResourceManager";
+  private static final String GET_INSTANCE_METHOD_NAME = "getInstance";
   private static final String REST_RESOURCE_ANNOTATION_NAME = "RestResource";
   private static final String REST_RESOURCE_URI_TEMPLATE_PARAMETER_NAME = "uriTemplate";
   private static final Map<String, Function<Annotation, String>> ANNOTATION_NAME_TO_TSDOC_TAG_RENDERER = new HashMap<String, Function<Annotation, String>>() {{
@@ -320,6 +323,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // first pass: detect import local name clashes:
     Set<String> localNameClashes = new HashSet<>();
     Collection<CompilationUnit> dependentCompilationUnitModels = compilationUnit.getCompileDependencies().stream()
+            .map(dependencyName -> RESOURCE_MANAGER_IMPL_QUALIFIED_NAME.equals(dependencyName) ? RESOURCE_MANAGER_QUALIFIED_NAME : dependencyName)
             .map(compilationUnitModelResolver::resolveCompilationUnit)
             .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
             .collect(Collectors.toList());
@@ -1831,6 +1835,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         propertyKey.visit(this);
         out.writeToken("]");
       }
+    } else if (isResourceManager_getInstance(applyExpr)) {
+      CompilationUnit resourceManager = compilationUnitModelResolver.resolveCompilationUnit(RESOURCE_MANAGER_QUALIFIED_NAME);
+      writeSymbolReplacement(applyExpr.getSymbol(), getLocalName(resourceManager.getPrimaryDeclaration(), false));
     } else if (applyExpr.isFlexAddEventListener()) {
       Expr eventNameExpr = args.getExpr().getHead();
       if (eventNameExpr instanceof IdeExpr) {
@@ -1974,6 +1981,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CommaSeparatedList<Expr> argsExpressions = applyExpr.getArgs().getExpr();
       return argsExpressions != null && argsExpressions.getTail() != null && argsExpressions.getTail().getTail() == null // call uses exactly 2 arguments
               && applyExpr.getPropertiesClass(argsExpressions.getHead()) != null; // bundle name resolves to properties class
+    }
+    return false;
+  }
+
+  private static boolean isResourceManager_getInstance(ApplyExpr applyExpr) {
+    if (isApiCall(applyExpr, RESOURCE_MANAGER_IMPL_QUALIFIED_NAME, GET_INSTANCE_METHOD_NAME, true)) {
+      CommaSeparatedList<Expr> argsExpressions = applyExpr.getArgs().getExpr();
+      return argsExpressions == null || argsExpressions.getHead() == null; // call uses no arguments
     }
     return false;
   }
