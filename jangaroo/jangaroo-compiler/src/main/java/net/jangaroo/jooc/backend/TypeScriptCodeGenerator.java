@@ -101,18 +101,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     put(Jooc.PUBLIC_API_INCLUSION_ANNOTATION_NAME, annotation -> "\n * @public");
     put(Jooc.DEPRECATED_ANNOTATION_NAME, annotation -> "\n * @deprecated" + renderDeprecatedParameters(annotation));
   }};
-  // formerly native names that are no imported from "@jangaroo/runtime/joo"
-  private static final List<String> JANGAROO_RUNTIME_NATIVE_NAMES_LEADING_TO_JOO_IMPORT = Arrays.asList(
-          "joo.debug",
-          "joo.getAppManifestLocation",
-          "joo.getAppRootPath",
-          "joo.getApps",
-          "joo.getQualifiedObject",
-          "joo.localeSupport",
-          "joo.localization",
-          "joo.startTime",
-          "KeyEvent"
-  );
   private static final List<String> JANGAROO_RUNTIME_REMOVED_NAMES = Arrays.asList(
           "AS3.Error",
           "joo.baseUrl",
@@ -331,11 +319,6 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (!usedRemovedNames.isEmpty()) {
         throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
       }
-      if (JANGAROO_RUNTIME_NATIVE_NAMES_LEADING_TO_JOO_IMPORT.stream().anyMatch(
-              noLongerNativeName -> compilationUnit.getCompileDependencies().contains(noLongerNativeName)
-      )) {
-        out.write("import joo from \"@jangaroo/runtime/joo\";\n");
-      }
       if (compilationUnit.getCompileDependencies().contains("js.KeyEvent")) {
         out.write("import KeyEvent from \"@jangaroo/runtime/KeyEvent\";\n");
       }
@@ -369,8 +352,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             .map(compilationUnitModelResolver::resolveCompilationUnit)
             .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
             .collect(Collectors.toList());
+    boolean jooImported = false;
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
-      if (typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration()) != null ||
+      String requireModuleName = typeScriptModuleResolver.getRequireModuleName(compilationUnit, dependentCompilationUnitModel.getPrimaryDeclaration());
+      if (!jooImported && requireModuleName == null && "joo".equals(dependentCompilationUnitModel.getPackageDeclaration().getQualifiedNameStr())) {
+        // found formerly native name that is now imported from "@jangaroo/runtime/joo":
+        out.write("import joo from \"@jangaroo/runtime/joo\";\n");
+        jooImported = true; // only import "joo" once!
+      } else if (requireModuleName != null ||
               !dependentCompilationUnitModel.getPrimaryDeclaration().getTargetQualifiedNameStr().contains(".")) {
         CompilationUnit compilationUnitToRequire = getCompilationUnitToRequire(dependentCompilationUnitModel);
         if (compilationUnitToRequire != null) {
