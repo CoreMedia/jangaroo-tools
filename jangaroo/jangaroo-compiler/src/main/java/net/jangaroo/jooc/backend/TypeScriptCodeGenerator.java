@@ -943,6 +943,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if ("js.Map".equals(qualifiedNameStr)) {
           return "Map<any, any>";
         }
+        // special case: legacy type js.KeyEvent used as a type becomes TS lib.dom KeyboardEvent:
+        if ("js.KeyEvent".equals(qualifiedNameStr)) {
+          return "KeyboardEvent";
+        }
         // use class name:
         String tsType = getLocalName(declaration, true);
         return expressionType.isConfigType() ? configType(tsType) : tsType;
