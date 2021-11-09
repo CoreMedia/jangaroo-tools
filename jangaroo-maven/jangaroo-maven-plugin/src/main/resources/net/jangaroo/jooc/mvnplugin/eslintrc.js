@@ -35,6 +35,8 @@ module.exports = {
       "asyncArrow": "always",
     }],
     "@typescript-eslint/space-infix-ops": "error",
+    "@typescript-eslint/type-annotation-spacing": "error",
+    "space-before-blocks": "error",
     "array-bracket-newline": ["error", "consistent"],
     "arrow-parens": ["error", "as-needed"],
     "prefer-const": "error",
@@ -69,7 +71,7 @@ module.exports = {
     "object-curly-newline": ["error", {
       "multiline": true
     }],
-    "object-property-newline": ["error", {"allowAllPropertiesOnSameLine": true}],
+    "object-property-newline": "error",
     "padding-line-between-statements": "off",
     "@typescript-eslint/padding-line-between-statements": [
       "error",
