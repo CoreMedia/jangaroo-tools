@@ -71,6 +71,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -326,7 +327,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             .map(dependencyName -> RESOURCE_MANAGER_IMPL_QUALIFIED_NAME.equals(dependencyName) ? RESOURCE_MANAGER_QUALIFIED_NAME : dependencyName)
             .map(compilationUnitModelResolver::resolveCompilationUnit)
             .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     boolean jooImported = false;
     List<String> usedRemovedNames = new ArrayList<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
