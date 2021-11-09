@@ -947,7 +947,14 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         String dependencyStrReplacement = matcher.replaceAll(searchAndReplace.replace);
         String[] parts = dependencyStrReplacement.split(":");
         if (parts.length == 2) {
-          return new SimpleEntry<>(parts[0], parts[1]);
+          String version = parts[1];
+          // allow maven version here / try to convert to npm version
+          Pattern DEPENDENCY_VERSION_PATTERN = Pattern.compile("^([^~]?)(.*)$");
+          Matcher dependencyVersionMatcher = DEPENDENCY_VERSION_PATTERN.matcher(version);
+          if (dependencyVersionMatcher.matches()) {
+            version = dependencyVersionMatcher.group(1) + ConversionUtils.normalizeNpmPackageVersion(dependencyVersionMatcher.group(2));
+          }
+          return new SimpleEntry<>(parts[0], version);
         }
         // always break if replacement was invalid
         logger.warn(String.format("Ignoring invalid replacement for dependency: %s => %s", dependencyStr, dependencyStrReplacement));

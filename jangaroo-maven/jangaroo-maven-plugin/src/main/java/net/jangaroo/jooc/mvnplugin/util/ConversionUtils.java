@@ -41,7 +41,18 @@ public class ConversionUtils {
   }
 
   public static String getNpmPackageVersion(String version, List<SearchAndReplace> npmPackageVersionReplacers) {
-    String[] versionParts = version.split("-", 2);
+    String npmPackageVersion = normalizeNpmPackageVersion(version);
+    for (SearchAndReplace searchAndReplace : npmPackageVersionReplacers) {
+      Matcher matcher = searchAndReplace.search.matcher(npmPackageVersion);
+      if (matcher.matches()) {
+        return matcher.replaceAll(normalizeNpmPackageVersion(searchAndReplace.replace));
+      }
+    }
+    return npmPackageVersion;
+  }
+
+  public static String normalizeNpmPackageVersion(String mavenVersion) {
+    String[] versionParts = mavenVersion.split("-", 2);
     List<String> majorMinorPatch = new ArrayList<>(Arrays.asList(versionParts[0].split("[.]")));
     if (majorMinorPatch.size() > 3) {
       majorMinorPatch = majorMinorPatch.subList(0, 2);
@@ -51,14 +62,7 @@ public class ConversionUtils {
       }
     }
     versionParts[0] = StringUtils.join(majorMinorPatch.toArray(), ".");
-    String npmPackageVersion = StringUtils.join(versionParts, "-");
-    for (SearchAndReplace searchAndReplace : npmPackageVersionReplacers) {
-      Matcher matcher = searchAndReplace.search.matcher(npmPackageVersion);
-      if (matcher.matches()) {
-        return matcher.replaceAll(searchAndReplace.replace);
-      }
-    }
-    return npmPackageVersion;
+    return StringUtils.join(versionParts, "-");
   }
 
   public static Map<String, String> getManifestEntries(String npmPackageName, String npmPackageVersion) {
