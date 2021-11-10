@@ -1176,23 +1176,25 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 : jarFile.getEntry("META-INF/resources/classMapping.json");
         if (classMappingEntry != null) {
           //noinspection unchecked
-          return (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(classMappingEntry), Map.class);
-        } else {
-          // fall back to inventory (Rename annotations are not considered here)
-          String inventoryFileName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()) + ".json";
-          ZipEntry inventoryEntry =  isCode
-                  ? jarFile.getEntry("META-INF/pkg/" + inventoryFileName)
-                  : jarFile.getEntry("META-INF/resources/" + inventoryFileName);
-          if (inventoryEntry != null) {
-            ZipEntry jsonEntry = jarFile.getEntry(isCode ? "META-INF/pkg/package.json" : "META-INF/resources/app.json");
-            if (jsonEntry != null) {
-              @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
-              String namespace = json.getOrDefault("namespace", "");
-              final int namespaceLengthToRemove = namespace.isEmpty() ? 0 : namespace.length() + 1;
-              @SuppressWarnings("unchecked") List<String> inventoryList = jsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
-              //noinspection ConstantConditions will not happen
-              return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> CompilerUtils.fileNameFromQName(fqn.substring(namespaceLengthToRemove), '/', ".ts")));
-            }
+          Map<String, String> classMapping = jsonObjectMapper.readValue(jarFile.getInputStream(classMappingEntry), Map.class);
+          if (!classMapping.isEmpty()) {
+            return classMapping;
+          }
+        }
+        // fall back to inventory (Rename annotations are not considered here)
+        String inventoryFileName = SenchaUtils.getSenchaPackageName(artifact.getGroupId(), artifact.getArtifactId()) + ".json";
+        ZipEntry inventoryEntry =  isCode
+                ? jarFile.getEntry("META-INF/pkg/" + inventoryFileName)
+                : jarFile.getEntry("META-INF/resources/" + inventoryFileName);
+        if (inventoryEntry != null) {
+          ZipEntry jsonEntry = jarFile.getEntry(isCode ? "META-INF/pkg/package.json" : "META-INF/resources/app.json");
+          if (jsonEntry != null) {
+            @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
+            String namespace = json.getOrDefault("namespace", "");
+            final int namespaceLengthToRemove = namespace.isEmpty() ? 0 : namespace.length() + 1;
+            @SuppressWarnings("unchecked") List<String> inventoryList = jsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
+            //noinspection ConstantConditions will not happen
+            return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> CompilerUtils.fileNameFromQName(fqn.substring(namespaceLengthToRemove), '/', ".ts")));
           }
         }
       } catch (IOException e) {
