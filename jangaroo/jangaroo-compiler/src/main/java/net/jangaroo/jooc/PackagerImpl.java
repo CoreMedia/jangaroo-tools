@@ -37,11 +37,11 @@ public class PackagerImpl implements Packager, Packager2 {
                          File outputDirectory, String outputFilePrefix) throws IOException {
 
     // package locale-independent sources, plus the sources for the default locale 'en'
-    pack(extNamespace, outputDirectory, packageJsFileName(outputFilePrefix),
+    pack(extNamespace, true, outputDirectory, packageJsFileName(outputFilePrefix),
             sourceDirectory, new File(localizedOverridesDirectory, DEFAULT_LOCALE));
 
     // package locale-independent overrides
-    pack(extNamespace, outputDirectory, overridesJsFilename(outputFilePrefix), overridesDirectory);
+    pack(extNamespace, false, outputDirectory, overridesJsFilename(outputFilePrefix), overridesDirectory);
 
     // package locale-specific sources, one file for each non-default locale
     // at this time, the Jangaroo compiler has already written any locale-specific JavaScript into ${package.dir}/locale
@@ -52,13 +52,13 @@ public class PackagerImpl implements Packager, Packager2 {
         // the default locale source directory locale/en does not contain any overrides,
         // it contains just classes that have been included in the package js file above
         if (child.isDirectory() && !DEFAULT_LOCALE.equals(locale)) {
-          pack(extNamespace, outputDirectory, overridesJsFilename(outputFilePrefix, locale), child);
+          pack(extNamespace, false, outputDirectory, overridesJsFilename(outputFilePrefix, locale), child);
         }
       }
     }
   }
 
-  private void pack(String extNamespace,
+  private void pack(String extNamespace, boolean isSourceBundle,
                     File outputDirectory, String outputFileName, File... sourceDirectories) throws IOException {
     File outputFile = new File(outputDirectory, outputFileName);
     ArrayList<File> sources = new ArrayList<>();
@@ -72,9 +72,13 @@ public class PackagerImpl implements Packager, Packager2 {
     final String outputFilePath = outputFile.getAbsolutePath();
     if (somethingChanged && !sources.isEmpty()) {
       System.out.printf("Packing %d js files into %s%n", sources.size(), outputFilePath);
-      String initName = (StringUtils.isNotEmpty(extNamespace) ? extNamespace + "." : "") + "init";
-      if (sourceClasses.contains(initName)) {
-        sources.add(createAutoLoad(outputDirectory, ImmutableList.of(initName)));
+      // if bundle is the source bundle consider a class "init" directly below the given extNamespace as "autoLoad"
+      // This means that the code is executed directly after the bundle is loaded.
+      if (isSourceBundle) {
+        String initName = (StringUtils.isNotEmpty(extNamespace) ? extNamespace + "." : "") + "init";
+        if (sourceClasses.contains(initName)) {
+          sources.add(createAutoLoad(outputDirectory, ImmutableList.of(initName)));
+        }
       }
       pack(sources, outputFile);
 
