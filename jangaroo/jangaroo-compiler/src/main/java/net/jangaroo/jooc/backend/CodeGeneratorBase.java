@@ -89,7 +89,6 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.ExpressionType;
-import net.jangaroo.utils.CompilerUtils;
 
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -415,17 +414,6 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   public void visitExtends(Extends anExtends) throws IOException {
     out.writeSymbol(anExtends.getSymExtends());
     anExtends.getSuperClass().visit(this);
-  }
-
-  protected static boolean isPropertiesClass(IdeDeclaration primaryDeclaration) {
-    return primaryDeclaration instanceof ClassDeclaration
-            && primaryDeclaration.getName().endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX);
-  }
-
-  protected static boolean isPropertiesSubclass(IdeDeclaration primaryDeclaration) {
-    String classname = primaryDeclaration.getName();
-    return CodeGeneratorBase.isPropertiesClass(primaryDeclaration) &&
-            classname.substring(0, classname.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length()).contains("_") ;
   }
 
   @Override

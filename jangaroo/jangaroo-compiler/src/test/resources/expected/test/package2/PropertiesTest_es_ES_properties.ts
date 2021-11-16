@@ -1,5 +1,5 @@
+import MoreIcons_properties from "../../testPackage/icons/MoreIcons_properties";
 import PropertiesTest_properties from "./PropertiesTest_properties";
-import MoreIcons_properties from "./icons/MoreIcons_properties";
 import ResourceBundleUtil from "@jangaroo/runtime/l10n/ResourceBundleUtil";
 
 /**

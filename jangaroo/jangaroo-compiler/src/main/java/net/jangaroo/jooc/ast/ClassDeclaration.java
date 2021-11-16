@@ -25,6 +25,7 @@ import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.config.JoocConfiguration;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.properties.PropcHelper;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
@@ -587,6 +588,25 @@ public class ClassDeclaration extends TypeDeclaration {
       }
     }
     return superTypeDeclarations;
+  }
+
+  public boolean isPropertiesClass() {
+    return getName().endsWith(CompilerUtils.PROPERTIES_CLASS_SUFFIX);
+  }
+
+  public boolean isPropertiesSubclass() {
+    String classname = getName();
+    return isPropertiesClass() &&
+            classname.substring(0, classname.length() - CompilerUtils.PROPERTIES_CLASS_SUFFIX.length()).contains("_") ;
+  }
+
+  @Override
+  public String getTargetQualifiedNameStr() {
+    if (isPropertiesSubclass()) {
+      return PropcHelper.insertNonDefaultLocale(getSuperTypeDeclaration().getTargetQualifiedNameStr(),
+              PropcHelper.computeLocale(getQualifiedNameStr()));
+    }
+    return super.getTargetQualifiedNameStr();
   }
 
   public void addFieldWithInitializer(VariableDeclaration fieldDeclaration) {

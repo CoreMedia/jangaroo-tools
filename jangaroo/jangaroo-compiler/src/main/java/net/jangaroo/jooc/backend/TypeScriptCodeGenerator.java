@@ -419,7 +419,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     primaryDeclaration.visit(this);
 
     if (isModule) {
-      if (!isPropertiesSubclass(primaryDeclaration) && !isInitFunction(primaryDeclaration)) {
+      if (!(primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).isPropertiesSubclass())
+              && !isInitFunction(primaryDeclaration)) {
         out.write("\nexport default " + primaryLocalName + ";\n");
       }
     } else if (!targetNamespace.isEmpty()) {
@@ -548,7 +549,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   public void visitClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    if (isPropertiesClass(classDeclaration)) {
+    if (classDeclaration.isPropertiesClass()) {
       visitPropertiesClassDeclaration(classDeclaration);
       return;
     }
@@ -823,14 +824,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private void visitPropertiesClassDeclaration(ClassDeclaration classDeclaration) throws IOException {
-    if (isPropertiesSubclass(classDeclaration)) {
+    if (classDeclaration.isPropertiesSubclass()) {
       out.write("import ResourceBundleUtil from \"@jangaroo/runtime/l10n/ResourceBundleUtil\";\n");
     }
     visitDeclarationAnnotationsAndModifiers(classDeclaration);
     out.writeSymbolWhitespace(classDeclaration.getSymClass());
     FunctionDeclaration constructorDeclaration = classDeclaration.getConstructor();
     List<AssignmentOpExpr> propertyAssignments = getPropertiesClassAssignments(constructorDeclaration, true, true);
-    if (isPropertiesSubclass(classDeclaration)) {
+    if (classDeclaration.isPropertiesSubclass()) {
       out.write("ResourceBundleUtil.override(" + compilationUnitAccessCode(classDeclaration.getSuperTypeDeclaration()) + ", {");
       renderPropertiesClassValues(propertyAssignments, true, false, false);
       out.write("\n});\n");
@@ -2200,7 +2201,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         if (PROPERTY_CLASS_INSTANCE.equals(ide.getName()) && type.getAS3Type() == AS3Type.CLASS &&
                 type.getTypeParameter() != null &&
-                isPropertiesClass(type.getTypeParameter().getDeclaration())) {
+                type.getTypeParameter().getDeclaration() instanceof ClassDeclaration &&
+                ((ClassDeclaration) type.getTypeParameter().getDeclaration()).isPropertiesClass()) {
           arg.visit(this);
           // *_properties classes become objects in TypeScript, thus suppress .INSTANCE:
           out.writeSymbolWhitespace(dotExpr.getOp());

@@ -1,7 +1,7 @@
 import Config from "@jangaroo/runtime/Config";
 import { asConfig } from "@jangaroo/runtime";
 import Exml from "../../net/jangaroo/ext/Exml";
-import PropertiesTest_properties from "../../testPackage/PropertiesTest_properties";
+import PropertiesTest_properties from "../../test/package2/PropertiesTest_properties";
 interface TestOldPropertyAccessSyntaxConfig extends Partial<Pick<TestOldPropertyAccessSyntax,
   "foo"
 >> {

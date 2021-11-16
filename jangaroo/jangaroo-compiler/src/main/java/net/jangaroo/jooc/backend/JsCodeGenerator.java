@@ -256,7 +256,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     PackageDeclaration packageDeclaration = compilationUnit.getPackageDeclaration();
     this.compilationUnit = compilationUnit;
 
-    if (isClassDeclaration && isPropertiesClass(primaryDeclaration)) {
+    if (isClassDeclaration && ((ClassDeclaration) primaryDeclaration).isPropertiesClass()) {
       renderPropertiesClass((ClassDeclaration) primaryDeclaration, uses);
       return;
     }
@@ -292,7 +292,7 @@ public class JsCodeGenerator extends CodeGeneratorBase {
     String propertiesClassName = classDeclaration.getTargetQualifiedNameStr();
     out.write(CompilerUtils.quote(propertiesClassName));
     out.write(", {");
-    boolean isPropertiesSubclass = isPropertiesSubclass(classDeclaration);
+    boolean isPropertiesSubclass = classDeclaration.isPropertiesSubclass();
     boolean startWithComma = false;
     if (isPropertiesSubclass) {
       out.write("\n  override: " + CompilerUtils.quote(PropcHelper.computeBaseClassName(propertiesClassName)));

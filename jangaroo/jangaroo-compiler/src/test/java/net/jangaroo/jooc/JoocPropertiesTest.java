@@ -28,10 +28,10 @@ public class JoocPropertiesTest extends AbstractJoocTest {
             "testPackage/PropertiesTest_es_ES",
             "testPackage/PropertiesTest_it_VA_WIN");
 
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("en"));
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("de"));
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("es", "ES"));
-    verifyPropertiesOutput("testPackage/PropertiesTest_properties", new Locale("it", "VA", "WIN"));
+    verifyPropertiesOutput("test/package2/PropertiesTest_properties", new Locale("en"));
+    verifyPropertiesOutput("test/package2/PropertiesTest_properties", new Locale("de"));
+    verifyPropertiesOutput("test/package2/PropertiesTest_properties", new Locale("es", "ES"));
+    verifyPropertiesOutput("test/package2/PropertiesTest_properties", new Locale("it", "VA", "WIN"));
 
     verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
   }

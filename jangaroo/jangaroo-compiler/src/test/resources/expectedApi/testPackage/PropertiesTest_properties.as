@@ -1,7 +1,7 @@
 package testPackage {
 
 [PublicApi]
-[Rename("testPackage.PropertiesTest_properties")]
+[Rename("test.package2.PropertiesTest_properties")]
 /**
  * Some class comment in a properties file.
  * @see PropertiesTest_properties#INSTANCE

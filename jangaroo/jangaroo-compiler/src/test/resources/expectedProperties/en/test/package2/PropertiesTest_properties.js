@@ -1,11 +1,12 @@
 /*
 [PublicApi]
-[Rename("testPackage.PropertiesTest_properties")]*/
+[Rename("test.package2.PropertiesTest_properties")]*/
 /**
  * Some class comment in a properties file.
  * @see PropertiesTest_properties#INSTANCE
  */
-Ext.define("testPackage.PropertiesTest_properties", {
+Ext.define("test.package2.PropertiesTest_properties", {
+  alternateClassName: "testPackage.PropertiesTest_properties",
   requires: [
     "testPackage.Icons_properties",
     "testPackage.icons.MoreIcons_properties"
