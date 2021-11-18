@@ -41,4 +41,6 @@ public interface AstNode {
   void notifyInstanceThisUsed();
 
   boolean usesInstanceThis();
+
+  boolean isAssignmentLHS();
 }

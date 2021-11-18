@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.DeclarationScope;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,4 +105,22 @@ public abstract class NodeImplBase implements AstNode {
   public void withNewLabelScope(final Statement statement, final Scope scope, final Scoped scoped) {
     scoped.run(new LabelScope(statement, scope));
   }
+
+  public boolean isAssignmentLHS() {
+    AstNode containingExpr = getParentNode();
+    if (containingExpr instanceof AssignmentOpExpr) {
+      return isMe(((AssignmentOpExpr) containingExpr).getArg1());
+    } else if (containingExpr instanceof UnaryOpExpr) {
+      // modifying unary operators also act as an assignment!
+      int op = ((UnaryOpExpr) containingExpr).getOp().sym;
+      return op == sym.PLUSPLUS || op == sym.PREFIX_PLUSPLUS ||
+              op == sym.MINUSMINUS || op == sym.PREFIX_MINUSMINUS;
+    }
+    return false;
+  }
+
+  boolean isMe(Expr expr) {
+    return expr == this;
+  }
+
 }

@@ -424,6 +424,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testReadonlyFieldAssignmentInConstructor() throws Exception {
+    assertCompilationResult("package2/ReadonlyFieldAssignmentInConstructor");
+  }
+
+  @Test
   public void testManifestToCatalogConversion() throws Exception {
     File manifestFile = getFile("/customNamespace/manifest.xml");
     File catalogFile = new File(outputFolder, "/catalog.xml");

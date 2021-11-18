@@ -98,4 +98,11 @@ public class DotExpr extends PostfixOpExpr {
     }
   }
 
+  @Override
+  boolean isMe(Expr expr) {
+    if (expr instanceof IdeExpr) {
+      expr = ((IdeExpr) expr).getNormalizedExpr();
+    }
+    return super.isMe(expr);
+  }
 }

@@ -2266,8 +2266,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
     // check for obj["typedMember"], as TypeScript will treat this like obj.typedMember,
-    // so we must rewrite this to (obj as object)["typedMember"]
-    // (alternative: (obj as unknown).typedMember))
+    // so we must rewrite this to (obj as unknown)["typedMember"]
     Expr indexedExpr = arrayIndexExpr.getArray();
     ExpressionType type = indexedExpr.getType();
     ParenthesizedExpr<Expr> indexExpr = arrayIndexExpr.getIndexExpr();
@@ -2290,7 +2289,28 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               writeSymbolReplacement(indexExpr.getLParen(), ".");
               writeSymbolReplacement(innerIndexExpr.getSymbol(), type.isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration));
             } else {
-              // found a typed member, need to downcast to 'object':
+              boolean convertToDotExpr = false;
+              if (!memberDeclaration.isWritable() && arrayIndexExpr.isAssignmentLHS()) {
+                // The untyped access is used to allow writing a read-only property
+                FunctionDeclaration functionDeclaration = findFunctionDeclaration(arrayIndexExpr);
+                if (functionDeclaration != null && functionDeclaration.isConstructor()) {
+                  // writing a read-only property is allowed (only) in the constructor, no need for untyped access:
+                  convertToDotExpr = true;
+                }
+              } else {
+                compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+                        indexExpr.getSymbol(),
+                        String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
+                                stringValue, memberDeclaration.getType()));
+                convertToDotExpr = true;
+              }
+              if (convertToDotExpr) {
+                indexedExpr.visit(this);
+                writeSymbolReplacement(indexExpr.getLParen(), ".");
+                out.write((String) stringValue);
+                return;
+              }
+              // need to cast to 'unknown':
               out.writeSymbolWhitespace(indexedExpr.getSymbol());
               out.write("(");
               indexedExpr.visit(this);
