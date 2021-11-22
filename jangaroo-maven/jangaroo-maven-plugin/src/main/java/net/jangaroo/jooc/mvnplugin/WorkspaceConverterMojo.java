@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.jangaroo.jooc.config.SearchAndReplace;
@@ -120,7 +121,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   // --- ACTUAL JANGAROO MAVEN CONFIGURATION --- //
 
   @Parameter
-  private String packageType = "code";
+  private String packageType;
 
   @Parameter
   private String theme;
@@ -271,11 +272,8 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     String targetPackageJson = targetPackageDir + "/package.json";
 
     if (moduleType == ModuleType.SWC) {
-      jangarooConfig.setType(packageType);
-      jangarooConfig.setExtName(String.format("%s__%s", mavenModule.getData().getGroupId(), mavenModule.getData().getArtifactId()));
-
-      jangarooConfig.setExtNamespace(extNamespace);
-      jangarooConfig.setExtSassNamespace(extSassNamespace);
+      jangarooConfig.setType("code");
+      addSenchaEntries(jangarooConfig);
 
       if (theme != null) {
         Package dependencyPackage = getDependencyPackageByRef(theme);
@@ -285,10 +283,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           jangarooConfig.setTheme(dependencyPackage.getName());
         }
       }
-      jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
-      jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
-      jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
-      jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
 
       if (aPackage.getClassMapping().containsKey((!extNamespace.equals("") ? extNamespace + "." : "") + "init")) {
         addAutoLoadEntry(jangarooConfig, "./src/init");
@@ -320,10 +314,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
           setCommandMapEntry(jangarooConfig, "joounit", "testExecutionTimeout", jooUnitTestExecutionTimeout);
         }
       }
-      if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
+      File packageJsonPath = new File(mavenModule.getDirectory().getPath() + "/package.json");
+      if (packageJsonPath.exists()) {
         try {
           //noinspection unchecked
-          jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
+          jangarooConfig.addToSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(packageJsonPath), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -420,8 +415,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setType("app");
       setCommandMapEntry(jangarooConfig, "run", "proxyTargetUri", "http://localhost:41080");
       setCommandMapEntry(jangarooConfig, "run", "proxyPathSpec", "/rest/");
-      jangarooConfig.setExtNamespace(extNamespace);
-      jangarooConfig.setExtSassNamespace(extSassNamespace);
+      addSenchaEntries(jangarooConfig);
       if (theme != null) {
         Package dependencyPackage = getDependencyPackageByRef(theme);
         if (dependencyPackage == null) {
@@ -442,14 +436,11 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         }
       }
       jangarooConfig.setAdditionalLocales(additionalLocales);
-      jangarooConfig.setAdditionalCssIncludeInBundle(additionalCssIncludeInBundle);
-      jangarooConfig.setAdditionalCssNonBundle(additionalCssNonBundle);
-      jangarooConfig.setAdditionalJsIncludeInBundle(additionalJsIncludeInBundle);
-      jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
-      if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
+      File appJsonPath = new File(mavenModule.getDirectory().getPath() + "/app.json");
+      if (appJsonPath.exists()) {
         try {
           //noinspection unchecked
-          jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
+          jangarooConfig.addToSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(appJsonPath), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -611,7 +602,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
 
     try {
-      String jangarooConfigDocument = "/** @type { import('" + packagesByOriginalName.get("@jangaroo/core").getName() + "').IJangarooConfig } */\nmodule.exports = ".concat(convertJangarooConfig(jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(";\n")));
+      String jangarooConfigDocument = "const { jangarooConfig } = require(\"@jangaroo/core\");\n\nmodule.exports = jangarooConfig(".concat(convertJangarooConfig(jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(");\n")));
       FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
@@ -1112,7 +1103,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             .replace("]", "],")
             .replace("\"\n", "\",\n")
             .replace(",,", ",")
-            .replace(",;", ";");
+            .replace(",);", ");");
   }
 
   private boolean isValidVersion(String version) {
@@ -1164,6 +1155,54 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     Map<String, Object> command = commandsByName.computeIfAbsent(commandName, k -> new LinkedHashMap<>());
     command.put(entryName, entryValue);
+  }
+
+  private static void addSenchaEntry(JangarooConfig jangarooConfig, String entryName, Object entryValue) {
+    jangarooConfig.addToSencha(ImmutableMap.of(
+            entryName, entryValue
+    ));
+  }
+
+  private Map<String, Object> getSenchaResource(String path, boolean includeInBundle) {
+    Map<String, Object> result = new TreeMap<>();
+    result.put("path", path);
+    if (includeInBundle) {
+      result.put("includeInBundle", includeInBundle);
+    }
+    return result;
+  }
+
+  private void addSenchaEntries(JangarooConfig jangarooConfig) {
+    addSenchaEntry(jangarooConfig, "name", SenchaUtils.getSenchaPackageName(project));
+    if (extNamespace != null) {
+      addSenchaEntry(jangarooConfig, "namespace", extNamespace);
+    }
+    if (packageType != null) {
+      addSenchaEntry(jangarooConfig, "type", packageType);
+    }
+    if (extSassNamespace != null) {
+      addSenchaEntry(jangarooConfig, "sass", ImmutableMap.of("namespace", extSassNamespace));
+    }
+    if (additionalCssIncludeInBundle != null) {
+      for (String css : additionalCssIncludeInBundle) {
+        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(getSenchaResource(css, true)));
+      }
+    }
+    if (additionalCssNonBundle != null) {
+      for (String css : additionalCssNonBundle) {
+        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(getSenchaResource(css, false)));
+      }
+    }
+    if (additionalJsIncludeInBundle != null) {
+      for (String js : additionalJsIncludeInBundle) {
+        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(getSenchaResource(js, true)));
+      }
+    }
+    if (additionalJsNonBundle != null) {
+      for (String js : additionalJsNonBundle) {
+        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(getSenchaResource(js, false)));
+      }
+    }
   }
 
   private Map<String, String> readClassMapping(Artifact artifact) {

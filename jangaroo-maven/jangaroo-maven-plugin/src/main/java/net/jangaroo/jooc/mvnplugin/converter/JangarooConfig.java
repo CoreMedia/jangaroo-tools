@@ -1,48 +1,41 @@
 package net.jangaroo.jooc.mvnplugin.converter;
 
+import com.google.common.collect.ImmutableList;
+import net.jangaroo.jooc.mvnplugin.util.MergeHelper;
+
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class JangarooConfig {
+  private static final MergeHelper.MergeOptions SENCHA_MERGE_OPTIONS = new MergeHelper.MergeOptions(MergeHelper.ListStrategy.APPEND, MergeHelper.MapStrategy.MERGE);
+
   private String type;
-  private String extName;
-  private String outputDirectory;
   private String applicationClass;
   private Map<String, String> appPaths;
-  private String extNamespace;
-  private String extSassNamespace;
   private String theme;
   private Map<String, Object> sencha;
   private Map<String, Object> appManifests;
   private List<String> additionalLocales;
-  private List<String> additionalCssIncludeInBundle;
-  private List<String> additionalCssNonBundle;
-  private List<String> additionalJsIncludeInBundle;
-  private List<String> additionalJsNonBundle;
   private List<String> autoLoad;
   private Map<String, Map<String, Object>> command;
 
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, Map<String, String> rootApp, String extNamespace, String theme, Map<String, Object> sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
+  /*public JangarooConfig(String type, String applicationClass, Map<String, String> rootApp, String theme, Map<String, Object> sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> autoLoad, Map<String, Map<String, Object>> command) {
     this.type = type;
-    this.extName = extName;
-    this.outputDirectory = outputDirectory;
     this.applicationClass = applicationClass;
     this.appPaths = rootApp;
-    this.extNamespace = extNamespace;
     this.theme = theme;
     this.sencha = sencha;
     this.appManifests = appManifests;
     this.additionalLocales = additionalLocales;
-    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
-    this.additionalCssNonBundle = additionalCssNonBundle;
-    this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
-    this.additionalJsNonBundle = additionalJsNonBundle;
+    this.autoLoad = autoLoad;
     this.command = command;
-  }
+  }*/
 
   public String getType() {
     return type;
@@ -50,22 +43,6 @@ public class JangarooConfig {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  public String getExtName() {
-    return extName;
-  }
-
-  public void setExtName(String extName) {
-    this.extName = extName;
-  }
-
-  public String getOutputDirectory() {
-    return outputDirectory;
-  }
-
-  public void setOutputDirectory(String outputDirectory) {
-    this.outputDirectory = outputDirectory;
   }
 
   public String getApplicationClass() {
@@ -91,24 +68,6 @@ public class JangarooConfig {
     this.appPaths.put(appDependencyName, path);
   }
 
-  public String getExtNamespace() {
-    return extNamespace;
-  }
-
-  public void setExtNamespace(String extNamespace) {
-    if (extNamespace != null) {
-      this.extNamespace = extNamespace;
-    }
-  }
-
-  public String getExtSassNamespace() {
-    return extSassNamespace;
-  }
-
-  public void setExtSassNamespace(String extSassNamespace) {
-    this.extSassNamespace = extSassNamespace;
-  }
-
   public String getTheme() {
     return theme;
   }
@@ -122,7 +81,32 @@ public class JangarooConfig {
   }
 
   public void setSencha(Map<String, Object> sencha) {
-    this.sencha = sencha;
+    if (sencha == null) {
+      this.sencha = null;
+      return;
+    }
+    if (this.sencha == null) {
+      this.sencha = new TreeMap<>(new Comparator<String>() {
+        private final List<String> ORDER = ImmutableList.of("name", "version", "type", "namespace", "css", "js", "sass");
+
+        @Override
+        public int compare(String a, String b) {
+          int indexOfA = ORDER.indexOf(a);
+          int indexOfB = ORDER.indexOf(b);
+          return (indexOfA > -1 ? indexOfA : Integer.MAX_VALUE) - (indexOfB > -1 ? indexOfB : Integer.MAX_VALUE);
+        }
+      });
+    }
+    this.sencha.clear();
+    this.addToSencha(sencha);
+  }
+
+  public void addToSencha(Map<String, Object> additionalEntries) {
+    if (this.sencha == null) {
+      setSencha(additionalEntries);
+      return;
+    }
+    MergeHelper.mergeMapIntoBaseMap(this.sencha, additionalEntries, SENCHA_MERGE_OPTIONS);
   }
 
   public Map<String, Object> getAppManifests() {
@@ -146,38 +130,6 @@ public class JangarooConfig {
 
   public void setAdditionalLocales(List<String> additionalLocales) {
     this.additionalLocales = additionalLocales;
-  }
-
-  public List<String> getAdditionalCssIncludeInBundle() {
-    return additionalCssIncludeInBundle;
-  }
-
-  public void setAdditionalCssIncludeInBundle(List<String> additionalCssIncludeInBundle) {
-    this.additionalCssIncludeInBundle = additionalCssIncludeInBundle;
-  }
-
-  public List<String> getAdditionalCssNonBundle() {
-    return additionalCssNonBundle;
-  }
-
-  public void setAdditionalCssNonBundle(List<String> additionalCssNonBundle) {
-    this.additionalCssNonBundle = additionalCssNonBundle;
-  }
-
-  public List<String> getAdditionalJsIncludeInBundle() {
-    return additionalJsIncludeInBundle;
-  }
-
-  public void setAdditionalJsIncludeInBundle(List<String> additionalJsIncludeInBundle) {
-    this.additionalJsIncludeInBundle = additionalJsIncludeInBundle;
-  }
-
-  public List<String> getAdditionalJsNonBundle() {
-    return additionalJsNonBundle;
-  }
-
-  public void setAdditionalJsNonBundle(List<String> additionalJsNonBundle) {
-    this.additionalJsNonBundle = additionalJsNonBundle;
   }
 
   public List<String> getAutoLoad() {
