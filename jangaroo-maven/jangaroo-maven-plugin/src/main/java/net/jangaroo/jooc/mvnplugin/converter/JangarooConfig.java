@@ -13,7 +13,7 @@ public class JangarooConfig {
   private String extNamespace;
   private String extSassNamespace;
   private String theme;
-  private Object sencha;
+  private Map<String, Object> sencha;
   private Map<String, Object> appManifests;
   private List<String> additionalLocales;
   private List<String> additionalCssIncludeInBundle;
@@ -26,7 +26,7 @@ public class JangarooConfig {
   public JangarooConfig() {
   }
 
-  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, Map<String, String> rootApp, String extNamespace, String theme, Object sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
+  public JangarooConfig(String type, String extName, String outputDirectory, String applicationClass, Map<String, String> rootApp, String extNamespace, String theme, Map<String, Object> sencha, Map<String, Object> appManifests, List<String> additionalLocales, List<String> additionalCssIncludeInBundle, List<String> additionalCssNonBundle, List<String> additionalJsIncludeInBundle, List<String> additionalJsNonBundle, Map<String, Map<String, Object>> command) {
     this.type = type;
     this.extName = extName;
     this.outputDirectory = outputDirectory;
@@ -117,11 +117,11 @@ public class JangarooConfig {
     this.theme = theme;
   }
 
-  public Object getSencha() {
+  public Map<String, Object> getSencha() {
     return sencha;
   }
 
-  public void setSencha(Object sencha) {
+  public void setSencha(Map<String, Object> sencha) {
     this.sencha = sencha;
   }
 

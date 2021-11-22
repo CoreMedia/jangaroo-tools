@@ -322,6 +322,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       if (new File(mavenModule.getDirectory().getPath() + "/package.json").exists()) {
         try {
+          //noinspection unchecked
           jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/package.json")), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
@@ -447,6 +448,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       jangarooConfig.setAdditionalJsNonBundle(additionalJsNonBundle);
       if (new File(mavenModule.getDirectory().getPath() + "/app.json").exists()) {
         try {
+          //noinspection unchecked
           jangarooConfig.setSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(new File(mavenModule.getDirectory().getPath() + "/app.json")), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
