@@ -2279,12 +2279,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration((String) stringValue);
           if (memberDeclaration != null) {
             // found a typed member
-            if (compilationUnit.getPrimaryDeclaration().equals(memberDeclaration.getClassDeclaration()) &&
+            IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+            ClassDeclaration memberClassDeclaration = memberDeclaration.getClassDeclaration();
+            if (primaryDeclaration.equals(memberClassDeclaration) &&
                     memberDeclaration instanceof TypedIdeDeclaration &&
                     ((TypedIdeDeclaration) memberDeclaration).isBindable() &&
                     (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
               // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
-              // instead access the internal field directly, so map it so TypeScript private field access:
+              // instead access the internal field directly, so map it to TypeScript private field access:
               indexedExpr.visit(this);
               writeSymbolReplacement(indexExpr.getLParen(), ".");
               writeSymbolReplacement(innerIndexExpr.getSymbol(), type.isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration));
@@ -2297,8 +2299,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   // writing a read-only property is allowed (only) in the constructor, no need for untyped access:
                   convertToDotExpr = true;
                 }
-              } else {
-                compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+              } else if (!memberDeclaration.isPrivate() &&
+                      (!memberDeclaration.isProtected() ||
+                              isProtectedAccessAllowed(primaryDeclaration, memberClassDeclaration))) {
+                primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
                         indexExpr.getSymbol(),
                         String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
                                 stringValue, memberDeclaration.getType()));
@@ -2333,6 +2337,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else {
       super.visitArrayIndexExpr(arrayIndexExpr);
     }
+  }
+
+  private boolean isProtectedAccessAllowed(IdeDeclaration fromPrimaryDeclaration,
+                                           ClassDeclaration protectedMemberClassDeclaration) {
+    return fromPrimaryDeclaration instanceof ClassDeclaration &&
+            (fromPrimaryDeclaration.equals(protectedMemberClassDeclaration) ||
+            ((ClassDeclaration) fromPrimaryDeclaration).isSubclassOf(protectedMemberClassDeclaration));
   }
 
   @Override
