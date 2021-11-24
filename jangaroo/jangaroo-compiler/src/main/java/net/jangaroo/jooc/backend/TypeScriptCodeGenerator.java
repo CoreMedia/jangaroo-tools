@@ -2304,13 +2304,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     ClassDeclaration memberClassDeclaration = memberDeclaration.getClassDeclaration();
     String dotProperty = null;
-    if (primaryDeclaration.equals(memberClassDeclaration) &&
-            memberDeclaration instanceof TypedIdeDeclaration &&
-            ((TypedIdeDeclaration) memberDeclaration).isBindable() &&
-            (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
-      // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
-      // instead access the internal field directly, so map it to TypeScript private field access:
-      dotProperty = indexedExpr.getType().isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration);
+    if (memberDeclaration instanceof TypedIdeDeclaration &&
+            ((TypedIdeDeclaration) memberDeclaration).isBindable()) {
+      if (primaryDeclaration.equals(memberClassDeclaration) &&
+              (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
+        // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
+        // instead access the internal field directly, so map it to TypeScript private field access:
+        dotProperty = indexedExpr.getType().isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration);
+      }
+      // In any other case, when a [Bindable] is accessed via square brackets, the motivation is usually to prevent
+      // Jangaroo from converting it to get/setBindable(). In TypeScript, this might be possible to express via dot
+      // property access, but usually, a [Bindable] Config is not available as a public property of the target class.
+      // Thus, we better keep untyped access, including a type assertion for TypeScript, by keeping dotProperty null.
     } else {
       if (!memberDeclaration.isWritable() && arrayIndexExpr.isAssignmentLHS()) {
         // The untyped access is used to allow writing a read-only property
