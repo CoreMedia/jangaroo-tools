@@ -2275,62 +2275,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       if (innerIndexExpr instanceof LiteralExpr) {
         LiteralExpr innerIndexLiteralExpr = (LiteralExpr) innerIndexExpr;
         Object stringValue = innerIndexLiteralExpr.getValue().getJooValue();
-        if (stringValue instanceof String) {
-          IdeDeclaration memberDeclaration = type.resolvePropertyDeclaration((String) stringValue);
-          if (memberDeclaration != null) {
-            // found a typed member
-            IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
-            ClassDeclaration memberClassDeclaration = memberDeclaration.getClassDeclaration();
-            if (primaryDeclaration.equals(memberClassDeclaration) &&
-                    memberDeclaration instanceof TypedIdeDeclaration &&
-                    ((TypedIdeDeclaration) memberDeclaration).isBindable() &&
-                    (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
-              // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
-              // instead access the internal field directly, so map it to TypeScript private field access:
-              indexedExpr.visit(this);
-              writeSymbolReplacement(indexExpr.getLParen(), ".");
-              writeSymbolReplacement(innerIndexExpr.getSymbol(), type.isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration));
-              return;
-            } else {
-              boolean convertToDotExpr = false;
-              boolean addTypeAssertion = true;
-              if (!memberDeclaration.isWritable() && arrayIndexExpr.isAssignmentLHS()) {
-                // The untyped access is used to allow writing a read-only property
-                FunctionDeclaration functionDeclaration = findFunctionDeclaration(arrayIndexExpr);
-                if (functionDeclaration != null && functionDeclaration.isConstructor()) {
-                  // writing a read-only property is allowed (only) in the constructor, no need for untyped access:
-                  convertToDotExpr = true;
-                }
-              } else if (!memberDeclaration.isPrivate()) {
-                // if square brackets were used to bypass protected access...
-                if (memberDeclaration.isProtected() && !isProtectedAccessAllowed(indexedExpr, primaryDeclaration, memberClassDeclaration)) {
-                  // ...this still works in TypeScript w/o type assertion, so just keep the code as-is:
-                  addTypeAssertion = false;
-                } else {
-                  primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
-                          indexExpr.getSymbol(),
-                          String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
-                                  stringValue, memberDeclaration.getType()));
-                  convertToDotExpr = true;
-                }
-              }
-              if (convertToDotExpr) {
-                indexedExpr.visit(this);
-                writeSymbolReplacement(indexExpr.getLParen(), ".");
-                out.write((String) stringValue);
-                return;
-              }
-              if (addTypeAssertion) {
-                // need to cast to 'unknown':
-                out.writeSymbolWhitespace(indexedExpr.getSymbol());
-                out.write("(");
-                indexedExpr.visit(this);
-                out.write(" as unknown)");
-                indexExpr.visit(this);
-                return;
-              }
-            }
-          }
+        if (stringValue instanceof String &&
+                renderSquareBracketMemberAccess(arrayIndexExpr, type.resolvePropertyDeclaration((String) stringValue))) {
+          return;
         }
       }
     }
@@ -2345,6 +2292,61 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else {
       super.visitArrayIndexExpr(arrayIndexExpr);
     }
+  }
+
+  private boolean renderSquareBracketMemberAccess(ArrayIndexExpr arrayIndexExpr, IdeDeclaration memberDeclaration) throws IOException {
+    if (memberDeclaration == null) {
+      return false;
+    }
+    Expr indexedExpr = arrayIndexExpr.getArray();
+    ParenthesizedExpr<Expr> indexExpr = arrayIndexExpr.getIndexExpr();
+    // found a typed member
+    IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
+    ClassDeclaration memberClassDeclaration = memberDeclaration.getClassDeclaration();
+    String dotProperty = null;
+    if (primaryDeclaration.equals(memberClassDeclaration) &&
+            memberDeclaration instanceof TypedIdeDeclaration &&
+            ((TypedIdeDeclaration) memberDeclaration).isBindable() &&
+            (!(memberDeclaration instanceof PropertyDeclaration) || memberDeclaration.isNative())) {
+      // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
+      // instead access the internal field directly, so map it to TypeScript private field access:
+      dotProperty = indexedExpr.getType().isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration);
+    } else {
+      if (!memberDeclaration.isWritable() && arrayIndexExpr.isAssignmentLHS()) {
+        // The untyped access is used to allow writing a read-only property
+        FunctionDeclaration functionDeclaration = findFunctionDeclaration(arrayIndexExpr);
+        if (functionDeclaration != null && functionDeclaration.isConstructor()) {
+          // writing a read-only property is allowed (only) in the constructor, no need for untyped access:
+          dotProperty = memberDeclaration.getName();
+        }
+      } else if (!memberDeclaration.isPrivate()) {
+        // if square brackets were used to bypass protected access...
+        if (memberDeclaration.isProtected() && !isProtectedAccessAllowed(indexedExpr, primaryDeclaration, memberClassDeclaration)) {
+          // ...this still works in TypeScript w/o type assertion, so just keep the code as-is:
+          return false;
+        } else {
+          primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
+                  indexExpr.getSymbol(),
+                  String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
+                          memberDeclaration.getName(), memberDeclaration.getType()));
+          dotProperty = memberDeclaration.getName();
+        }
+      }
+    }
+
+    if (dotProperty != null) {
+      indexedExpr.visit(this);
+      writeSymbolReplacement(indexExpr.getLParen(), ".");
+      writeSymbolReplacement(indexExpr.getExpr().getSymbol(), dotProperty);
+    } else {
+      // need to cast to 'unknown':
+      out.writeSymbolWhitespace(indexedExpr.getSymbol());
+      out.write("(");
+      indexedExpr.visit(this);
+      out.write(" as unknown)");
+      indexExpr.visit(this);
+    }
+    return true;
   }
 
   private boolean isProtectedAccessAllowed(Expr objExpr,
