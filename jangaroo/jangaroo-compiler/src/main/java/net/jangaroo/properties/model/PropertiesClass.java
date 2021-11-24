@@ -44,7 +44,12 @@ public class PropertiesClass {
   }
 
   public String getComment() {
-    return adjustComment(properties.getLayout().getCanonicalHeaderComment(true));
+    String comment = properties.getLayout().getCanonicalHeaderComment(true);
+    if (comment == null && !properties.getKeys().hasNext()) {
+      // property files with no properties return their comments as "footer cooment" (sic!)
+      comment = properties.getLayout().getCanonicalFooterCooment(true);
+    }
+    return adjustComment(comment);
   }
 
   /**

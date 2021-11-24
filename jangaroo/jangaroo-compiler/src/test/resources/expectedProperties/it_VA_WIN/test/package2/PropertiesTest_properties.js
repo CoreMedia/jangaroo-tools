@@ -1,6 +1,6 @@
 
 /**
- * Overrides of ResourceBundle "PropertiesTest" for Locale "it_VA_WIN".
+ * intentionally empty: no overrides at all
  * @see PropertiesTest_properties#INSTANCE
  */
 Ext.define("test.package2.PropertiesTest_it_VA_WIN_properties", {

@@ -36,6 +36,25 @@ public class JoocPropertiesTest extends AbstractJoocTest {
     verifyApiOutput("testPackage/PropertiesTest_properties", "/expectedApi");
   }
 
+  @Test
+  public void testEmptyPropertiesCompilation() throws Exception {
+    verifyEmptyPropertiesCompilation();
+    jooc.getConfig().setMigrateToTypeScript(true);
+    try {
+      verifyEmptyPropertiesCompilation();
+    } finally {
+      jooc.getConfig().setMigrateToTypeScript(false);
+    }
+  }
+
+  private void verifyEmptyPropertiesCompilation() throws Exception {
+    compile(".properties",
+            "testPackage/EmptyPropertiesTest");
+
+    verifyPropertiesOutput("testPackage/EmptyPropertiesTest_properties", new Locale("en"));
+    verifyApiOutput("testPackage/EmptyPropertiesTest_properties", "/expectedApi");
+  }
+
   void verifyPropertiesOutput(String relativeClassFileName, Locale locale) throws URISyntaxException, IOException {
     if (jooc.getConfig().isMigrateToTypeScript()) {
       verifyClassOutput(PropcHelper.insertNonDefaultLocale(relativeClassFileName, locale), "/expected");
