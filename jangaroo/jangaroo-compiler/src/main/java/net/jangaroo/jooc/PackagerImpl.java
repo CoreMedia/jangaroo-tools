@@ -6,7 +6,7 @@ import net.jangaroo.jooc.api.Packager;
 import net.jangaroo.jooc.api.Packager2;
 import net.jangaroo.jooc.json.JsonArray;
 import net.jangaroo.utils.CompilerUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
