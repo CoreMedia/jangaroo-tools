@@ -2311,6 +2311,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // untyped access to bindables in AS is used to prevent rewriting to AS3.get/setBindable(), but
         // instead access the internal field directly, so map it to TypeScript private field access:
         dotProperty = indexedExpr.getType().isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration);
+      } else if (!isBindableWithoutAccessor((TypedIdeDeclaration) memberDeclaration)) {
+        // member is known to support runtime accessors, so even untyped access ends up in the set method,
+        // thus we can safely replace by typed access:
+        dotProperty = memberDeclaration.getName();
       }
       // In any other case, when a [Bindable] is accessed via square brackets, the motivation is usually to prevent
       // Jangaroo from converting it to get/setBindable(). In TypeScript, this might be possible to express via dot
