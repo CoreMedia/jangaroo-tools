@@ -1163,15 +1163,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     ));
   }
 
-  private Map<String, Object> getSenchaResource(String path, boolean includeInBundle) {
-    Map<String, Object> result = new TreeMap<>();
-    result.put("path", path);
-    if (includeInBundle) {
-      result.put("includeInBundle", includeInBundle);
-    }
-    return result;
-  }
-
   private void addSenchaEntries(JangarooConfig jangarooConfig) {
     addSenchaEntry(jangarooConfig, "name", SenchaUtils.getSenchaPackageName(project));
     if (extNamespace != null) {
@@ -1185,22 +1176,22 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     if (additionalCssIncludeInBundle != null) {
       for (String css : additionalCssIncludeInBundle) {
-        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(getSenchaResource(css, true)));
+        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(ImmutableMap.of("path", css)));
       }
     }
     if (additionalCssNonBundle != null) {
       for (String css : additionalCssNonBundle) {
-        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(getSenchaResource(css, false)));
+        addSenchaEntry(jangarooConfig, "css", ImmutableList.of(ImmutableMap.of("path", css)));
       }
     }
     if (additionalJsIncludeInBundle != null) {
       for (String js : additionalJsIncludeInBundle) {
-        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(getSenchaResource(js, true)));
+        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(ImmutableMap.of("path", js)));
       }
     }
     if (additionalJsNonBundle != null) {
       for (String js : additionalJsNonBundle) {
-        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(getSenchaResource(js, false)));
+        addSenchaEntry(jangarooConfig, "js", ImmutableList.of(ImmutableMap.of("path", js)));
       }
     }
   }
