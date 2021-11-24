@@ -2290,8 +2290,10 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               indexedExpr.visit(this);
               writeSymbolReplacement(indexExpr.getLParen(), ".");
               writeSymbolReplacement(innerIndexExpr.getSymbol(), type.isConfigType() ? memberDeclaration.getName() : getHashPrivateName(memberDeclaration));
+              return;
             } else {
               boolean convertToDotExpr = false;
+              boolean addTypeAssertion = true;
               if (!memberDeclaration.isWritable() && arrayIndexExpr.isAssignmentLHS()) {
                 // The untyped access is used to allow writing a read-only property
                 FunctionDeclaration functionDeclaration = findFunctionDeclaration(arrayIndexExpr);
@@ -2299,14 +2301,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   // writing a read-only property is allowed (only) in the constructor, no need for untyped access:
                   convertToDotExpr = true;
                 }
-              } else if (!memberDeclaration.isPrivate() &&
-                      (!memberDeclaration.isProtected() ||
-                              isProtectedAccessAllowed(primaryDeclaration, memberClassDeclaration))) {
-                primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
-                        indexExpr.getSymbol(),
-                        String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
-                                stringValue, memberDeclaration.getType()));
-                convertToDotExpr = true;
+              } else if (!memberDeclaration.isPrivate()) {
+                // if square brackets were used to bypass protected access...
+                if (memberDeclaration.isProtected() && !isProtectedAccessAllowed(indexedExpr, primaryDeclaration, memberClassDeclaration)) {
+                  // ...this still works in TypeScript w/o type assertion, so just keep the code as-is:
+                  addTypeAssertion = false;
+                } else {
+                  primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
+                          indexExpr.getSymbol(),
+                          String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
+                                  stringValue, memberDeclaration.getType()));
+                  convertToDotExpr = true;
+                }
               }
               if (convertToDotExpr) {
                 indexedExpr.visit(this);
@@ -2314,14 +2320,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                 out.write((String) stringValue);
                 return;
               }
-              // need to cast to 'unknown':
-              out.writeSymbolWhitespace(indexedExpr.getSymbol());
-              out.write("(");
-              indexedExpr.visit(this);
-              out.write(" as unknown)");
-              indexExpr.visit(this);
+              if (addTypeAssertion) {
+                // need to cast to 'unknown':
+                out.writeSymbolWhitespace(indexedExpr.getSymbol());
+                out.write("(");
+                indexedExpr.visit(this);
+                out.write(" as unknown)");
+                indexExpr.visit(this);
+                return;
+              }
             }
-            return;
           }
         }
       }
@@ -2339,9 +2347,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  private boolean isProtectedAccessAllowed(IdeDeclaration fromPrimaryDeclaration,
+  private boolean isProtectedAccessAllowed(Expr objExpr,
+                                           IdeDeclaration fromPrimaryDeclaration,
                                            ClassDeclaration protectedMemberClassDeclaration) {
     return fromPrimaryDeclaration instanceof ClassDeclaration &&
+            objExpr.getType() != null &&
+            fromPrimaryDeclaration.equals(objExpr.getType().getDeclaration()) &&
             (fromPrimaryDeclaration.equals(protectedMemberClassDeclaration) ||
             ((ClassDeclaration) fromPrimaryDeclaration).isSubclassOf(protectedMemberClassDeclaration));
   }
