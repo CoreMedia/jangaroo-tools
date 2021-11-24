@@ -2330,10 +2330,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           // ...this still works in TypeScript w/o type assertion, so just keep the code as-is:
           return false;
         } else {
+          IdeDeclaration memberTypeHolder = memberDeclaration instanceof PropertyDeclaration
+                  ? ((PropertyDeclaration) memberDeclaration).getAccessor(arrayIndexExpr.isAssignmentLHS())
+                  : memberDeclaration;
+          ExpressionType memberType = memberTypeHolder == null || memberTypeHolder.getType() == null ? null
+                  : memberTypeHolder.getType().getEvalType();
           primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
                   indexExpr.getSymbol(),
                   String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
-                          memberDeclaration.getName(), memberDeclaration.getType()));
+                          memberDeclaration.getName(), memberType));
           dotProperty = memberDeclaration.getName();
         }
       }
