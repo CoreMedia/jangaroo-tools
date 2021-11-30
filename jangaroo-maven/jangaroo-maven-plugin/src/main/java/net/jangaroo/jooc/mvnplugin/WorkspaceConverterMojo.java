@@ -79,6 +79,11 @@ import static net.jangaroo.jooc.mvnplugin.Type.JANGAROO_SWC_PACKAGING;
         requiresDependencyResolution = ResolutionScope.TEST)
 public class WorkspaceConverterMojo extends AbstractMojo {
 
+  private static final String JANGAROO_NPM_VERSION = "^1.0.0";
+  private static final String COREMEDIA_SENCHA_EXT_VERSION = "^1.0.0";
+  private static final String RIM_RAF_VERSION = "^3.0.2";
+  private static final String ESLINT_VERSION = "^7.27.0";
+
   private static final Pattern EXTENSION_POINT_PATTERN = Pattern.compile("^(.+)-extension-dependencies$");
 
   private static final Logger logger = LoggerFactory.getLogger(WorkspaceConverterMojo.class);
@@ -111,12 +116,6 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
   @Parameter(property = "relativeNpmProjectExtensionWorkspacePath", defaultValue="")
   private String relativeNpmProjectExtensionWorkspacePath;
-
-  @Parameter(property = "jangarooNpmVersion", defaultValue = "1.0.0")
-  private String jangarooNpmVersion;
-
-  @Parameter(property = "extJsVersion", defaultValue = "1.0.0")
-  private String extJsVersion;
 
   // --- ACTUAL JANGAROO MAVEN CONFIGURATION --- //
 
@@ -233,20 +232,20 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     resolvedNpmDependencyOverrides = ConversionUtils.getSearchAndReplace(npmDependencyOverrides);
 
     packagesByOriginalName = Stream.of(
-            new SimpleEntry<>("@coremedia/sencha-ext-charts", extJsVersion),
-            new SimpleEntry<>("@coremedia/sencha-ext", extJsVersion),
-            new SimpleEntry<>("@coremedia/sencha-ext-classic", extJsVersion),
-            new SimpleEntry<>("@coremedia/sencha-ext-classic-locale", extJsVersion),
-            new SimpleEntry<>("@coremedia/sencha-ext-classic-theme-triton", extJsVersion),
-            new SimpleEntry<>("@jangaroo/core", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/build", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/eslint-config", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/joounit", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/run", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/publish", jangarooNpmVersion),
-            new SimpleEntry<>("@jangaroo/runtime", jangarooNpmVersion),
-            new SimpleEntry<>("rimraf", "^3.0.2"),
-            new SimpleEntry<>("eslint", "7.27.0")
+            new SimpleEntry<>("@coremedia/sencha-ext-charts", COREMEDIA_SENCHA_EXT_VERSION),
+            new SimpleEntry<>("@coremedia/sencha-ext", COREMEDIA_SENCHA_EXT_VERSION),
+            new SimpleEntry<>("@coremedia/sencha-ext-classic", COREMEDIA_SENCHA_EXT_VERSION),
+            new SimpleEntry<>("@coremedia/sencha-ext-classic-locale", COREMEDIA_SENCHA_EXT_VERSION),
+            new SimpleEntry<>("@coremedia/sencha-ext-classic-theme-triton", COREMEDIA_SENCHA_EXT_VERSION),
+            new SimpleEntry<>("@jangaroo/core", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/build", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/eslint-config", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/joounit", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/run", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/publish", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("@jangaroo/runtime", JANGAROO_NPM_VERSION),
+            new SimpleEntry<>("rimraf", RIM_RAF_VERSION),
+            new SimpleEntry<>("eslint", ESLINT_VERSION)
     ).collect(Collectors.toMap(
             SimpleEntry::getKey,
             item -> {
