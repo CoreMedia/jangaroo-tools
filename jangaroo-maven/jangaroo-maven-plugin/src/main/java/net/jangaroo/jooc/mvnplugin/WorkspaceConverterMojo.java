@@ -240,6 +240,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
             new SimpleEntry<>("@coremedia/sencha-ext-classic-theme-triton", extJsVersion),
             new SimpleEntry<>("@jangaroo/core", jangarooNpmVersion),
             new SimpleEntry<>("@jangaroo/build", jangarooNpmVersion),
+            new SimpleEntry<>("@jangaroo/eslint-config", jangarooNpmVersion),
             new SimpleEntry<>("@jangaroo/joounit", jangarooNpmVersion),
             new SimpleEntry<>("@jangaroo/run", jangarooNpmVersion),
             new SimpleEntry<>("@jangaroo/publish", jangarooNpmVersion),
@@ -383,6 +384,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       if (copyFromMavenResult.hasSourceTsFiles || copyFromMavenResult.hasJooUnitTsFiles) {
         setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
+        addManagedDependency(devDependencies, "@jangaroo/eslint-config");
         addManagedDependency(devDependencies, "eslint");
         List<String> eslintPatterns = new ArrayList<>();
         if (copyFromMavenResult.hasSourceTsFiles) {
@@ -500,6 +502,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       }
       if (copyFromMavenResult.hasSourceTsFiles) {
         setCommandMapEntry(jangarooConfig, "build", "ignoreTypeErrors", true);
+        addManagedDependency(devDependencies, "@jangaroo/eslint-config");
         addManagedDependency(devDependencies, "eslint");
         scripts.put("lint", "eslint --fix \"src/**/*.ts\"");
       }
@@ -604,6 +607,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     try {
       String jangarooConfigDocument = "const { jangarooConfig } = require(\"@jangaroo/core\");\n\nmodule.exports = jangarooConfig(".concat(convertJangarooConfig(jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(");\n")));
       FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
+      loadAndCopyResource("eslintrc.js", Paths.get(targetPackageDir, ".eslintrc.js"));
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
@@ -656,8 +660,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
 
     try {
-      loadAndCopyResource("eslintrc.js", ".eslintrc.js");
-      loadAndCopyResource("gitignore", ".gitignore");
+      loadAndCopyResource("gitignore", Paths.get(convertedWorkspaceTarget, ".gitignore"));
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
@@ -709,8 +712,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return null;
   }
 
-  private void loadAndCopyResource(String resourceName, String fileName) throws IOException {
-    Path filePath = Paths.get(convertedWorkspaceTarget, fileName);
+  private void loadAndCopyResource(String resourceName, Path filePath) throws IOException {
     try (InputStream fileResource = getClass().getResourceAsStream("/net/jangaroo/jooc/mvnplugin/" + resourceName)) {
       if (fileResource != null) {
         try {
