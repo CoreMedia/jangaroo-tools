@@ -97,7 +97,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   @Parameter(property = "npmPackageVersionReplacers")
   private List<SearchAndReplaceConfiguration> npmPackageVersionReplacers = new ArrayList<>();
 
-  @Parameter(property = "npmDependencyVersionOverride")
+  @Parameter(property = "npmDependencyOverrides")
   private List<SearchAndReplaceConfiguration> npmDependencyOverrides = new ArrayList<>();
 
   @Parameter(property = "projectExtensionWorkspacePath")
