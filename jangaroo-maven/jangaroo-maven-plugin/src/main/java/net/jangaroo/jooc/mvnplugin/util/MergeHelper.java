@@ -57,20 +57,25 @@ public class MergeHelper {
         return (T) mergeMaps(mergeOptions, (Map<U, V>) value2);
       }
     } else if (value2 instanceof List) {
-      if (mergeOptions.listStrategy == ListStrategy.MERGE && value1 instanceof List) {
-        //noinspection unchecked
-        return (T) mergeLists(mergeOptions, (List<U>) value1, (List<U>) value2);
-      } else {
+      if (!(value1 instanceof List)) {
         // calling mergeLists with a single parameter is like a deep copy
         //noinspection unchecked
-        List<U> list = mergeLists(mergeOptions, (List<U>) value2);
-        if (mergeOptions.listStrategy == ListStrategy.APPEND && value1 instanceof List) {
-          //noinspection unchecked
-          list.addAll((List<U>) value1);
-        }
-        //noinspection unchecked
-        return (T) list;
+        return (T) mergeLists(mergeOptions, (List<U>) value2);
       }
+      if (mergeOptions.listStrategy == ListStrategy.MERGE) {
+        //noinspection unchecked
+        return (T) mergeLists(mergeOptions, (List<U>) value1, (List<U>) value2);
+      }
+      List<U> list = new ArrayList<>();
+      if (mergeOptions.listStrategy == ListStrategy.APPEND) {
+        //noinspection unchecked
+        list.addAll((List<U>) value1);
+      }
+      //noinspection unchecked
+      list.addAll((List<U>) value2);
+      // make sure that a deep copy of every item is provided to avoid modification of inner objects
+      //noinspection unchecked
+      return (T) mergeLists(mergeOptions, list);
     } else {
       return value2;
     }
