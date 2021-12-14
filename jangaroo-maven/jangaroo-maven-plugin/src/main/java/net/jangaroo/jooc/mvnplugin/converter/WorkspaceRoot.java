@@ -91,7 +91,7 @@ public class WorkspaceRoot {
     try (RandomAccessFile randomAccessFile = new RandomAccessFile(pnpmWorkspaceYamlFile, "rw")) {
       List<String> packages = readWorkspacePackages(randomAccessFile);
       packages.addAll(newPackages);
-      yamlObjectMapper.writeValue(pnpmWorkspaceYamlFile, new PnpmWorkspace(packages));
+      yamlObjectMapper.writeValue(pnpmWorkspaceYamlFile, new PnpmWorkspace(packages.stream().distinct().sorted().collect(Collectors.toList())));
     }
   }
 }
