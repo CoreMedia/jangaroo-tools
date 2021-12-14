@@ -1097,14 +1097,12 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return "net.jangaroo__jangaroo-browser".contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
   }
 
-  private String convertJangarooConfig(String jangarooConfig) {
+  public static String convertJangarooConfig(String jangarooConfig) {
     return jangarooConfig
-            .replaceAll("\"([a-zA-Z_$][0-9a-zA-Z_$]*)\":", "$1:")
-            .replace("}", "},")
-            .replace("]", "],")
-            .replace("\"\n", "\",\n")
-            .replace(",,", ",")
-            .replace(",);", ");");
+            .replaceAll("(\n\\s*)\"([a-zA-Z_$][0-9a-zA-Z_$]*)\":", "$1$2:")
+            .replace("}\n", "},\n")
+            .replace("]\n", "],\n")
+            .replace("\"\n", "\",\n");
   }
 
   private boolean isValidVersion(String version) {
