@@ -19,7 +19,7 @@ public class TrailingCommasPrettyPrinter extends PackageJsonPrettyPrinter {
   @Override
   public void writeEndObject(JsonGenerator g, int nrOfEntries) throws IOException {
     if (nrOfEntries > 0) {
-      writeObjectEntrySeparator(g);
+      g.writeRaw(_separators.getObjectEntrySeparator());
     }
     super.writeEndObject(g, nrOfEntries);
   }
@@ -27,7 +27,7 @@ public class TrailingCommasPrettyPrinter extends PackageJsonPrettyPrinter {
   @Override
   public void writeEndArray(JsonGenerator g, int nrOfValues) throws IOException {
     if (nrOfValues > 0) {
-      writeArrayValueSeparator(g);
+      g.writeRaw(_separators.getArrayValueSeparator());
     }
     super.writeEndArray(g, nrOfValues);
   }

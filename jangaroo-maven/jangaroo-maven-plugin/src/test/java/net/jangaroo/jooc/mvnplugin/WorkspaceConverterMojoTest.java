@@ -29,14 +29,11 @@ public class WorkspaceConverterMojoTest extends TestCase {
             "  sencha: {\n" +
             "    namespace: \"com.acme.sencha\",\n" +
             "    \"custom-key\": \"${project.dir} some/other/path\",\n" +
-            "    \n" +
             "  },\n" +
             "  autoLoad: [\n" +
             "    \"init.js\",\n" +
             "    \"config-init.js\",\n" +
-            "    \n" +
             "  ],\n" +
-            "  \n" +
             "}",
             workspaceConverterMojo.getPrettyPrintedJangarooConfig(jangarooConfig)
                     .replace(System.getProperty("line.separator"), "\n")
