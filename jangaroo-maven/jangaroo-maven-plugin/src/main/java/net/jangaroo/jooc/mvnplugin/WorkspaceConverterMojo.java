@@ -1,6 +1,8 @@
 package net.jangaroo.jooc.mvnplugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -16,6 +18,7 @@ import net.jangaroo.jooc.mvnplugin.converter.ModuleType;
 import net.jangaroo.jooc.mvnplugin.converter.Package;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJson;
 import net.jangaroo.jooc.mvnplugin.converter.PackageJsonPrettyPrinter;
+import net.jangaroo.jooc.mvnplugin.converter.TrailingCommasPrettyPrinter;
 import net.jangaroo.jooc.mvnplugin.converter.WorkspaceRoot;
 import net.jangaroo.jooc.mvnplugin.sencha.SenchaUtils;
 import net.jangaroo.jooc.mvnplugin.util.ConversionUtils;
@@ -168,8 +171,9 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private List<SearchAndReplace> resolvedNpmPackageFolderNameReplacers;
   private List<SearchAndReplace> resolvedNpmPackageVersionReplacers;
   private List<SearchAndReplace> resolvedNpmDependencyOverrides;
-  private ObjectMapper jsonObjectMapper;
-  private ObjectMapper yamlObjectMapper;
+  private final ObjectMapper packageJsonObjectMapper;
+  private final ObjectMapper jangarooConfigJsObjectMapper;
+  private final ObjectMapper yamlObjectMapper;
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject project;
@@ -178,6 +182,23 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   private MavenSession session;
 
   private Map<String, Package> packagesByOriginalName;
+
+  public WorkspaceConverterMojo() {
+    packageJsonObjectMapper = new ObjectMapper()
+            .setDefaultPrettyPrinter(new PackageJsonPrettyPrinter())
+            .configure(SerializationFeature.INDENT_OUTPUT, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    jangarooConfigJsObjectMapper = new ObjectMapper()
+            .setDefaultPrettyPrinter(new TrailingCommasPrettyPrinter())
+            .configure(SerializationFeature.INDENT_OUTPUT, true)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+    yamlObjectMapper = new ObjectMapper(new YAMLFactory()
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+            .enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR)
+    );
+  }
 
   @Override
   public void execute() throws MojoFailureException, MojoExecutionException {
@@ -214,19 +235,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       relativeNpmProjectExtensionWorkspacePath = "";
     }
 
-    PackageJsonPrettyPrinter prettyPrinter = new PackageJsonPrettyPrinter();
-
-    jsonObjectMapper = new ObjectMapper()
-            .setDefaultPrettyPrinter(prettyPrinter)
-            .configure(SerializationFeature.INDENT_OUTPUT, true)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    yamlObjectMapper = new ObjectMapper(new YAMLFactory()
-            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-            .enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR)
-    );
-
-
-    resolvedNpmPackageNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageNameReplacers);;
+    resolvedNpmPackageNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageNameReplacers);
     resolvedNpmPackageFolderNameReplacers = ConversionUtils.getSearchAndReplace(npmPackageFolderNameReplacers);
     resolvedNpmPackageVersionReplacers = ConversionUtils.getSearchAndReplace(npmPackageVersionReplacers);
     resolvedNpmDependencyOverrides = ConversionUtils.getSearchAndReplace(npmDependencyOverrides);
@@ -318,7 +327,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       if (packageJsonPath.exists()) {
         try {
           //noinspection unchecked
-          jangarooConfig.addToSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(packageJsonPath), Map.class));
+          jangarooConfig.addToSencha(packageJsonObjectMapper.readValue(FileUtils.readFileToString(packageJsonPath), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -441,7 +450,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
       if (appJsonPath.exists()) {
         try {
           //noinspection unchecked
-          jangarooConfig.addToSencha(jsonObjectMapper.readValue(FileUtils.readFileToString(appJsonPath), Map.class));
+          jangarooConfig.addToSencha(packageJsonObjectMapper.readValue(FileUtils.readFileToString(appJsonPath), Map.class));
         } catch (IOException e) {
           throw new MojoFailureException(e.getMessage(), e.getCause());
         }
@@ -593,7 +602,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (matcher.find()) {
           String locale = matcher.group(1);
           try {
-            jangarooConfig.addAppManifest(locale, jsonObjectMapper.readValue(new File(appManifestPath), Map.class));
+            jangarooConfig.addAppManifest(locale, packageJsonObjectMapper.readValue(new File(appManifestPath), Map.class));
           } catch (IOException ioException) {
             logger.error("error while reading manifest file: " + appManifestPath);
           }
@@ -604,7 +613,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
 
     try {
-      String jangarooConfigDocument = "const { jangarooConfig } = require(\"@jangaroo/core\");\n\nmodule.exports = jangarooConfig(".concat(convertJangarooConfig(jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jangarooConfig).concat(");\n")));
+      String jangarooConfigDocument = String.format(
+              "const { jangarooConfig } = require(\"@jangaroo/core\");\n\nmodule.exports = jangarooConfig(%s);\n",
+              getPrettyPrintedJangarooConfig(jangarooConfig)
+      );
       FileUtils.writeStringToFile(Paths.get(targetPackageDir, "jangaroo.config.js").toFile(), jangarooConfigDocument);
       loadAndCopyResource("eslintrc.js", Paths.get(targetPackageDir, ".eslintrc.js"));
     } catch (IOException e) {
@@ -636,7 +648,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     }
     packageJson.setDevDependencies(sortedDevDependencies);
     try {
-      FileUtils.write(new File(targetPackageJson), jsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
+      FileUtils.write(new File(targetPackageJson), packageJsonObjectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(packageJson).concat("\n"));
     } catch (IOException e) {
       throw new MojoFailureException(e.getMessage(), e.getCause());
     }
@@ -646,7 +658,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     // field is used. The session request is constant throughout the whole run an can therefore be used as lock for the
     // synchronized block.
     synchronized (session.getRequest()) {
-      WorkspaceRoot workspaceRoot = new WorkspaceRoot(jsonObjectMapper, yamlObjectMapper, convertedWorkspaceTarget);
+      WorkspaceRoot workspaceRoot = new WorkspaceRoot(packageJsonObjectMapper, yamlObjectMapper, convertedWorkspaceTarget);
       try {
         workspaceRoot.writePackageJson(projectExtensionFor != null || projectExtensionPoint != null
                 ? Collections.singletonList(relativeNpmProjectExtensionWorkspacePath)
@@ -1097,12 +1109,22 @@ public class WorkspaceConverterMojo extends AbstractMojo {
     return "net.jangaroo__jangaroo-browser".contains(String.format("%s__%s", dependency.getGroupId(), dependency.getArtifactId()));
   }
 
-  public static String convertJangarooConfig(String jangarooConfig) {
+
+  String getPrettyPrintedJangarooConfig(JangarooConfig jangarooConfig) throws JsonProcessingException {
+    return unquoteIdentifierKeys(jangarooConfigJsObjectMapper
+            .writerWithDefaultPrettyPrinter()
+            .writeValueAsString(jangarooConfig)
+    );
+  }
+
+  /**
+   * Unfortunately, Jackson pretty printers cannot be customized to _only_ quote non-identifier keys
+   * without implementing a complete custom serializer, so we un-quote identifier keys after rendering,
+   * with can be done because we know the format (new-line, indentation, key, colon).
+   */
+  static String unquoteIdentifierKeys(String jangarooConfig) {
     return jangarooConfig
-            .replaceAll("(\n\\s*)\"([a-zA-Z_$][0-9a-zA-Z_$]*)\":", "$1$2:")
-            .replace("}\n", "},\n")
-            .replace("]\n", "],\n")
-            .replace("\"\n", "\",\n");
+            .replaceAll("(\n\\s*)\"([a-zA-Z_$][0-9a-zA-Z_$]*)\":", "$1$2:");
   }
 
   private boolean isValidVersion(String version) {
@@ -1207,7 +1229,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
                 : jarFile.getEntry("META-INF/resources/classMapping.json");
         if (classMappingEntry != null) {
           //noinspection unchecked
-          Map<String, String> classMapping = jsonObjectMapper.readValue(jarFile.getInputStream(classMappingEntry), Map.class);
+          Map<String, String> classMapping = packageJsonObjectMapper.readValue(jarFile.getInputStream(classMappingEntry), Map.class);
           if (!classMapping.isEmpty()) {
             return classMapping;
           }
@@ -1220,10 +1242,10 @@ public class WorkspaceConverterMojo extends AbstractMojo {
         if (inventoryEntry != null) {
           ZipEntry jsonEntry = jarFile.getEntry(isCode ? "META-INF/pkg/package.json" : "META-INF/resources/app.json");
           if (jsonEntry != null) {
-            @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) jsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
+            @SuppressWarnings("unchecked") Map<String, String> json = (Map<String, String>) packageJsonObjectMapper.readValue(jarFile.getInputStream(jsonEntry), Map.class);
             String namespace = json.getOrDefault("namespace", "");
             final int namespaceLengthToRemove = namespace.isEmpty() ? 0 : namespace.length() + 1;
-            @SuppressWarnings("unchecked") List<String> inventoryList = jsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
+            @SuppressWarnings("unchecked") List<String> inventoryList = packageJsonObjectMapper.readValue(jarFile.getInputStream(inventoryEntry), List.class);
             //noinspection ConstantConditions will not happen
             return inventoryList.stream().collect(Collectors.toMap(Function.identity(), fqn -> CompilerUtils.fileNameFromQName(fqn.substring(namespaceLengthToRemove), '/', ".ts")));
           }
