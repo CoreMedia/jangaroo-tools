@@ -925,12 +925,15 @@ public class JsCodeGenerator extends CodeGeneratorBase {
 
   private boolean isAddEventListenerMethod(Ide funIde) {
     if (MxmlUtils.ADD_EVENT_LISTENER_METHOD_NAME.equals(funIde.getName())) {
-      IdeDeclaration qualifierDeclaration = funIde.getQualifier().resolveDeclaration();
-      if (qualifierDeclaration instanceof ClassDeclaration) {
-        CompilationUnit type = compilationUnitModelResolver.resolveCompilationUnit(qualifierDeclaration.getQualifiedNameStr());
-        if (type != null && type.getPrimaryDeclaration() != null) {
-          // check whether the type implements IObservable:
-          return compilationUnitModelResolver.implementsInterface(type, MxmlUtils.EVENT_DISPATCHER_INTERFACE);
+      Ide qualifier = funIde.getQualifier();
+      if (qualifier != null) {
+        IdeDeclaration qualifierDeclaration = qualifier.resolveDeclaration();
+        if (qualifierDeclaration instanceof ClassDeclaration) {
+          CompilationUnit type = compilationUnitModelResolver.resolveCompilationUnit(qualifierDeclaration.getQualifiedNameStr());
+          if (type.getPrimaryDeclaration() != null) {
+            // check whether the type implements IObservable:
+            return compilationUnitModelResolver.implementsInterface(type, MxmlUtils.EVENT_DISPATCHER_INTERFACE);
+          }
         }
       }
     }
