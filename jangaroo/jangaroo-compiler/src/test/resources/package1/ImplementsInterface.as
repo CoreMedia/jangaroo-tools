@@ -21,7 +21,7 @@ public final class ImplementsInterface implements Interface {
 
   public function doSomething():String {
     bar = new Vector.<Vector.<Panel>>();
-    var panels:Vector.<Panel> = new Vector.<Panel>();
+    var panels:Vector.<Panel> = new Vector.<Panel>;
     panels.push(new Panel({}));
     bar.push(panels);
     bar[0][0].title = "Gotcha!";

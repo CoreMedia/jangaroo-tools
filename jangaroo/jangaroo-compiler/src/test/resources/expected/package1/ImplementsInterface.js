@@ -21,7 +21,7 @@ Ext.define("package1.ImplementsInterface", function(ImplementsInterface) {/*publ
 
   public*/ function doSomething()/*:String*/ {
     this.bar = new Vector$object/*.<Vector.<Panel> >*/();
-    var panels/*:Vector.<Panel>*/ = new Vector$object/*.<Panel>*/();
+    var panels/*:Vector.<Panel>*/ = new Vector$object/*.<Panel>*/;
     panels.push(new Ext.Panel({}));
     this.bar.push(panels);
     AS3.setBindable(this.bar[0][0],"title" , "Gotcha!");

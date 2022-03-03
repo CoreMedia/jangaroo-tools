@@ -22,7 +22,7 @@ class ImplementsInterface implements Interface {
 
   doSomething():string {
     this.bar = new Array();
-    var panels = new Array();
+    var panels = new Array;
     panels.push(new Panel({}));
     this.bar.push(panels);
     asConfig(this.bar[0][0]).title = "Gotcha!";

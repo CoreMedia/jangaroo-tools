@@ -17,6 +17,8 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,9 +56,15 @@ public class NewExpr extends Expr {
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
-    getApplyConstructor().analyze(this);
+    Expr applyConstructor = getApplyConstructor();
+    applyConstructor.analyze(this);
     // since the constructor-apply-expression looks like a type cast, we can simply hand through its type:
-    setType(getApplyConstructor().getType());
+    ExpressionType type = applyConstructor.getType();
+    if (!(parentNode instanceof ApplyExpr)) {
+      // it is a 'new' without parenthesis:
+      type = type.getAS3Type() == AS3Type.CLASS ? type.getTypeParameter() : null;
+    }
+    setType(type);
   }
 
   public JooSymbol getSymbol() {
