@@ -51,5 +51,9 @@ class ConfigClass extends Observable {
    set title(value:string) {
     this.#_title = value;
   }
+
+  // Using [Bindable] on a normal method does not make sense,
+  // but should be ignored:
+  bogus(value:string):void {}
 }
 export default ConfigClass;

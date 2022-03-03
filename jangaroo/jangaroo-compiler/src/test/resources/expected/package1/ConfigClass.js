@@ -41,6 +41,11 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
   public*/ function set$title(value/*:String*/)/*:void*/ {
     this._title$klfp = value;
   }/*
+
+  // Using [Bindable] on a normal method does not make sense,
+  // but should be ignored:
+  [Bindable]
+  public*/ function bogus(value/*:String*/)/*:void*/ {}/*
 }
 }
 
@@ -57,6 +62,7 @@ Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigC
       _title$klfp: "- empty -",
       getTitle: get$title,
       setTitle: set$title,
+      bogus: bogus,
       config: {title: undefined},
       requires: ["Ext.mixin.Observable"]
     };

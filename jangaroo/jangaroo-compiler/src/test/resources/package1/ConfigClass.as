@@ -41,5 +41,10 @@ public class ConfigClass extends Observable {
   public function set title(value:String):void {
     _title = value;
   }
+
+  // Using [Bindable] on a normal method does not make sense,
+  // but should be ignored:
+  [Bindable]
+  public function bogus(value:String):void {}
 }
 }

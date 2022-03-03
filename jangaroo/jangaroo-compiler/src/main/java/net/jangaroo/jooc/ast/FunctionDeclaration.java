@@ -312,6 +312,11 @@ public class FunctionDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public boolean isBindable() {
+    return isGetterOrSetter() && super.isBindable();
+  }
+
+  @Override
   public IdeDeclaration getSuperDeclaration() {
     IdeDeclaration superDeclaration = super.getSuperDeclaration();
     if (superDeclaration instanceof PropertyDeclaration) {
