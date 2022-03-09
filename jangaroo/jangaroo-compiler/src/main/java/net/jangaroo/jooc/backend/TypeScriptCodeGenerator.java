@@ -1441,6 +1441,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         visitIfNotNull(functionExpr.getBody());
         writeOptSymbol(functionDeclaration.getOptSymSemicolon());
       }
+
+      // In ActionScript, if you override an accessor, but not its complementary accessor (i.e. override
+      // set, but not get), the complementary accessor is inherited. In ECMAScript, it is not, so we must
+      // generate TypeScript code to also override it and simply delegate to the super property.
+      if (functionDeclaration.isGetterOrSetter() && functionDeclaration.isOverride() && !functionDeclaration.isNative()) {
+        // try to find complementary accessor:
+        ClassDeclaration classDeclaration = functionDeclaration.getClassDeclaration();
+        MethodType complementaryAccessorType = functionDeclaration.isGetter() ? MethodType.SET : MethodType.GET;
+        String propertyName = functionDeclaration.getName();
+        TypedIdeDeclaration complementaryAccessor =
+                lookupPropertyDeclaration(classDeclaration, propertyName, complementaryAccessorType);
+        if (complementaryAccessor instanceof FunctionDeclaration
+                && !complementaryAccessor.getClassDeclaration().equals(classDeclaration)) {
+          // found complementary accessor, and it was not in the same class, so it must be in the super class:
+          if (complementaryAccessorType.equals(MethodType.GET)) {
+            out.write(String.format("\n  override get %s()", propertyName));
+            visitIfNotNull(complementaryAccessor.getOptTypeRelation());
+            out.write(String.format(" {\n    return super.%s;\n  }\n", propertyName));
+          } else {
+            out.write(String.format("\n  override set %s(value", propertyName));
+            visitIfNotNull(((FunctionDeclaration) complementaryAccessor).getFun().getParams().getHead().getOptTypeRelation());
+            out.write(String.format(") {\n    super.%s = value;\n  }\n", propertyName));
+          }
+        }
+      }
     } else {
       if (functionDeclaration.isPrimaryDeclaration()) {
         if (isInitFunction(functionDeclaration)) {

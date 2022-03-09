@@ -229,7 +229,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
                     "ext".equals(member.getClassDeclaration().getQualifiedName()[0]));
   }
 
-  private TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
+  protected TypedIdeDeclaration lookupPropertyDeclaration(TypeDeclaration classDeclaration, String memberName,
                                                         MethodType methodType) {
     if (classDeclaration == null) {
       return null;

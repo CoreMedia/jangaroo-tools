@@ -178,6 +178,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testOverrideOneAccessorOnly() throws IOException, URISyntaxException {
+    assertCompilationResult("package1/ConfigSubclass");
+  }
+
+  @Test
   public void testExtPrivate() throws Exception {
     assertCompilationResult("package2/TestExtPrivate");
   }
