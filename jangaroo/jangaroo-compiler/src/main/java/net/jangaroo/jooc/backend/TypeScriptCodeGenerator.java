@@ -36,6 +36,7 @@ import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
+import net.jangaroo.jooc.ast.NamespaceDeclaration;
 import net.jangaroo.jooc.ast.ObjectField;
 import net.jangaroo.jooc.ast.ObjectFieldOrSpread;
 import net.jangaroo.jooc.ast.ObjectLiteral;
@@ -63,6 +64,7 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import javax.xml.stream.events.Namespace;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,9 +125,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   public static boolean generatesCode(IdeDeclaration primaryDeclaration) {
     // generate TypeScript for almost everything *except* some built-in classes which would fail to compile
     // and classes inheriting from FlExtEvent (they are converted to an ...Events interface)
+    // and namespace declarations
     // and [Mixin] interfaces:
     return !TYPESCRIPT_BUILT_IN_TYPES.contains(primaryDeclaration.getQualifiedNameStr())
             && !(primaryDeclaration instanceof ClassDeclaration && ((ClassDeclaration) primaryDeclaration).inheritsFromFlExtEvent())
+            && !(primaryDeclaration instanceof NamespaceDeclaration)
             && primaryDeclaration.getAnnotation(Jooc.MIXIN_ANNOTATION_NAME) == null;
   }
 
