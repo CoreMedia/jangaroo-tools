@@ -21,7 +21,7 @@ class ImplementsInterface implements Interface {
   }
 
   doSomething():string {
-    this.bar = new Array();
+    this.bar = new Array(0);
     var panels = new Array;
     panels.push(new Panel({}));
     this.bar.push(panels);

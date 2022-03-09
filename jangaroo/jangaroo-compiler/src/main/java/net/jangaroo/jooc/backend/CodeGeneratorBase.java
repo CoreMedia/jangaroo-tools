@@ -9,6 +9,7 @@ import net.jangaroo.jooc.JangarooParser;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.JsWriter;
+import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
@@ -89,6 +90,7 @@ import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
 import net.jangaroo.jooc.types.ExpressionType;
+import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -644,6 +646,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     CommaSeparatedList<Expr> arguments = args.getExpr();
     Parameters params = methodDeclaration.getParams();
     boolean first = true;
+    boolean isVectorConstructor = methodDeclaration.isConstructor()
+            && AS3Type.VECTOR.equals(AS3Type.typeByName(methodDeclaration.getClassDeclaration().getQualifiedNameStr()));
     Map<String, String> propertiesClassByParamName = new HashMap<>();
     while (params != null || arguments != null) {
       Parameter parameter = params == null ? null : params.getHead();
@@ -694,6 +698,14 @@ public abstract class CodeGeneratorBase implements AstVisitor {
         if (!coerced && !renderSingleSpreadValue(argument, parameter == null ? null
                         : parameter.getIde().getScope().getExpressionType(parameter))) {
           argument.visit(this);
+        }
+        if (isVectorConstructor && arguments.getTail() != null) {
+          // The second parameter of a Vector constructor is its 'fixed' property (boolean), which is not supported
+          // for Arrays in JavaScript, so we just report a warning and leave it out:
+          Scope scope = ((IdeExpr) ((NewExpr) applyExpr.getFun()).getApplyConstructor()).getIde().getScope();
+          scope.getCompiler().getLog().warning(arguments.getTail().getHead().getSymbol(),
+                  "Vector constructor parameter 'fixed' is not supported, leaving out second argument.");
+          break;
         }
         writeOptSymbol(arguments.getSymComma());
         arguments = arguments.getTail();

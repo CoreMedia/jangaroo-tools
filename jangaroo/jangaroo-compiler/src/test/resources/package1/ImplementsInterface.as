@@ -20,7 +20,7 @@ public final class ImplementsInterface implements Interface {
   }
 
   public function doSomething():String {
-    bar = new Vector.<Vector.<Panel>>();
+    bar = new Vector.<Vector.<Panel>>(0, true);
     var panels:Vector.<Panel> = new Vector.<Panel>;
     panels.push(new Panel({}));
     bar.push(panels);
