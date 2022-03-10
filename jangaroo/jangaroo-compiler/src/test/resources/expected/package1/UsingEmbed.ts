@@ -37,6 +37,6 @@ class UsingEmbed {
 
 }
 metadata(UsingEmbed, ["SomeRuntimeAnnotation"],
-    "SomeRuntimeAnnotation", {foo: "bar"}]);
+    ["SomeRuntimeAnnotation", {foo: "bar"}]);
 
 export default UsingEmbed;

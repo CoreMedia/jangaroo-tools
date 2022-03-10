@@ -793,7 +793,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
       List<Annotation> metadata = getMetadata(classDeclaration);
       if (!metadata.isEmpty()) {
-        out.write("\nmetadata(" + classDeclarationLocalName + ", [");
+        out.write("\nmetadata(" + classDeclarationLocalName + ", ");
         boolean firstAnnotation = true;
         for (Annotation runtimeAnnotation : metadata) {
           if (firstAnnotation) {
@@ -801,7 +801,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           } else {
             out.write(",\n    ");
           }
-          out.write(CompilerUtils.quote(runtimeAnnotation.getMetaName()));
+          out.write("[" + CompilerUtils.quote(runtimeAnnotation.getMetaName()));
           CommaSeparatedList<AnnotationParameter> annotationParameters = runtimeAnnotation.getOptAnnotationParameters();
           if (annotationParameters != null) {
             out.write(", {");
