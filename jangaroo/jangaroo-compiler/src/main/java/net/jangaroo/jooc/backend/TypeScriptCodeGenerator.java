@@ -13,6 +13,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
@@ -34,6 +35,7 @@ import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespaceDeclaration;
@@ -64,7 +66,6 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
-import javax.xml.stream.events.Namespace;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2242,6 +2243,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
     }
+  }
+
+  private static boolean mayNotBeNull(Expr firstArg) {
+    AstNode parentNode = firstArg.getParentNode();
+    return parentNode instanceof DotExpr && ((DotExpr) parentNode).getArg() == firstArg
+            || parentNode instanceof ArrayIndexExpr && ((ArrayIndexExpr) parentNode).getArray() == firstArg
+            || parentNode instanceof ApplyExpr && ((ApplyExpr) parentNode).getFun() == firstArg;
+  }
+
+  @Override
+  boolean convertToFunctionCall(InfixOpExpr expr) {
+    return !(expr instanceof AsExpr
+            && expr.getArg2() instanceof IdeExpr
+            && expr.getParentNode() instanceof ParenthesizedExpr
+            && mayNotBeNull((Expr) expr.getParentNode()));
   }
 
   @Override

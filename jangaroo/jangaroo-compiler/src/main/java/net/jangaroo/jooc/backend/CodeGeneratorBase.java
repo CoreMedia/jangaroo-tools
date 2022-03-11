@@ -544,7 +544,8 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public <T extends Expr> void visitParenthesizedExpr(ParenthesizedExpr<T> parenthesizedExpr) throws IOException {
     if (parenthesizedExpr.getParentNode() instanceof OpExpr
-            && parenthesizedExpr.getExpr() instanceof InfixOpExpr) {
+            && parenthesizedExpr.getExpr() instanceof InfixOpExpr
+            && convertToFunctionCall((InfixOpExpr) parenthesizedExpr.getExpr())) {
       // suppress redundant parenthesis like !(AS3.is(foo, Foo)), because Babel does so, too:
       generateInfixOpExpr((InfixOpExpr) parenthesizedExpr.getExpr(),
               parenthesizedExpr.getLParen(), parenthesizedExpr.getRParen());
@@ -553,6 +554,10 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       visitIfNotNull(parenthesizedExpr.getExpr());
       out.writeSymbol(parenthesizedExpr.getRParen());
     }
+  }
+
+  boolean convertToFunctionCall(InfixOpExpr expr) {
+    return true;
   }
 
   @Override
@@ -567,7 +572,11 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitInfixOpExpr(InfixOpExpr infixOpExpr) throws IOException {
-    generateInfixOpExpr(infixOpExpr, new JooSymbol("("), new JooSymbol(")"));
+    if (convertToFunctionCall(infixOpExpr)) {
+      generateInfixOpExpr(infixOpExpr, new JooSymbol("("), new JooSymbol(")"));
+    } else {
+      visitBinaryOpExpr(infixOpExpr);
+    }
   }
 
   private void generateInfixOpExpr(InfixOpExpr infixOpExpr, JooSymbol lParenSym, JooSymbol rParenSym) throws IOException {

@@ -14,6 +14,7 @@ Ext.define("package1.TestTypeCast", function(TestTypeCast) {/*public class TestT
     var notB/* :Boolean*/ = !AS3.is(p,  TestTypeCast);
     var castObjectToInterface/*: TestInterface*/ = AS3.cast(package1.mxml.pkg.TestInterface,{ foo: "FOO" });
     var castObjectToNonExt/*: SomeClass*/ = AS3.cast(package1.SomeClass,{ bar: "BAR" });
+    var useAsWithDotExpr/*: String*/ = AS3.as(p,  TestTypeCast).toString();
     return AS3.as( p,  TestTypeCast);
   }/*
 
