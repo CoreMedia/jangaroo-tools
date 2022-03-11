@@ -77,6 +77,12 @@ public class Annotation extends Directive {
     super.analyze(parentNode);
     if (getOptAnnotationParameters() != null) {
       getOptAnnotationParameters().analyze(this);
+      if (Jooc.EMBED_ANNOTATION_NAME.equals(getMetaName())) {
+        Scope scope = getIde().getScope();
+        scope.getCompilationUnit().addDependency(scope.getCompiler().getCompilationUnit("joo.flash.Embed"), false);
+        Object source = getPropertiesByName().get(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
+        scope.getCompilationUnit().getResourceDependencies().add(source.toString());
+      }
     }
   }
 

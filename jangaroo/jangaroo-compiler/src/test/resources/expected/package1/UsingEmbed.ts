@@ -1,16 +1,19 @@
 import { metadata } from "@jangaroo/runtime";
-import Bitmap from "../flash/display/Bitmap";
+import Embed from "../joo/flash/Embed";
+import first_text_txt from "./first-text.txt";
+import jooley_png from "./jooley.png";
+import second_text_csv from "./second_text.csv";
 
 /**
  * This is an example of a class using an [Embed] annotation.
  */
 class UsingEmbed {
 
-  someText:Class = null;
+  static someText = Embed(first_text_txt, "application/octet-stream");
 
-  static #anotherText:Class = null;
+  static #anotherText = Embed(second_text_csv, "application/octet-stream");
 
-  static #jooley:Class = null;
+  static #jooley = Embed(jooley_png);
 
   annotated1;
 

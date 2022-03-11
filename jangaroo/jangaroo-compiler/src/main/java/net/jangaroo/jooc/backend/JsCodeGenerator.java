@@ -1147,11 +1147,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       Initializer optInitializer = variableDeclaration.getOptInitializer();
       if (optInitializer == null) {
         if (variableDeclaration.isPrimaryDeclaration() || variableDeclaration.isPrivateStatic()) {
-          String value = getValueFromEmbedMetadata(currentMetadata);
-          if (value == null) {
-            TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
-            value = VariableDeclaration.getDefaultValue(typeRelation);
-          }
+          TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+          String value = VariableDeclaration.getDefaultValue(typeRelation);
           if (value != null) {
             out.write("=" + value);
           }
@@ -1172,21 +1169,6 @@ public class JsCodeGenerator extends CodeGeneratorBase {
       visitIfNotNull(variableDeclaration.getOptNextVariableDeclaration());
       writeOptSymbol(variableDeclaration.getOptSymSemicolon());
     }
-  }
-
-  private String getValueFromEmbedMetadata(List<Metadata> currentMetadata) {
-    Metadata embedMetadata = Metadata.find(currentMetadata, Jooc.EMBED_ANNOTATION_NAME);
-    if (embedMetadata != null) {
-      String source = (String) embedMetadata.getArgumentValue(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
-      String assetType = EmbeddedAssetResolver.guessAssetType(source);
-      int index = compilationUnit.getResourceDependencies().indexOf(assetType + "!" + source);
-      String assetFactory = "new String";
-      if ("image".equals(assetType)) {
-        assetFactory = imports.get("flash.display.Bitmap") + ".fromImg";
-      }
-      return String.format("function(){return %s($resource_%d)}", assetFactory, index);
-    }
-    return null;
   }
 
   private void registerField(VariableDeclaration variableDeclaration, List<Metadata> currentMetadata) {
@@ -1217,11 +1199,8 @@ public class JsCodeGenerator extends CodeGeneratorBase {
         }
         value = initialValueWriter.toString().trim();
       } else {
-        value = getValueFromEmbedMetadata(currentMetadata);
-        if (value == null) {
-          TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
-          value = VariableDeclaration.getDefaultValue(typeRelation);
-        }
+        TypeRelation typeRelation = variableDeclaration.getOptTypeRelation();
+        value = VariableDeclaration.getDefaultValue(typeRelation);
       }
       if (variableDeclaration.isPrivate() && !variableDeclaration.isStatic()) {
         variableName += "$" + ((ClassDeclaration)compilationUnit.getPrimaryDeclaration()).getQualifiedNameHash();

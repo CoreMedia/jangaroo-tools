@@ -7,10 +7,10 @@ package package1 {
 [SomeRuntimeAnnotation(foo="bar")]
 public class UsingEmbed {
 
-  [Embed(source="UsingEmbed.as")]
+  [Embed(source="first-text.txt", mimeType="application/octet-stream")]
   public var someText:Class;
 
-  [Embed(source="Interface.as")]
+  [Embed(source="second_text.csv", mimeType="application/octet-stream")]
   private static var anotherText:Class;
 
   [Embed(source="jooley.png")]

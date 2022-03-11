@@ -372,6 +372,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
     }
 
+    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
+      String localName = getLocalNameOfResourceDependency(resourceDependency);
+      if (!localNames.add(localName)) {
+        localNameClashes.add(localName);
+      }
+    }
+
     // second pass: generate imports, using fully-qualified names for local name clashes:
     Map<String, String> moduleNameToLocalName = new TreeMap<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
@@ -415,6 +422,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
     }
 
+    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
+      String localName = getLocalNameOfResourceDependency(resourceDependency);
+      if (localNameClashes.contains(localName)) {
+        localName = toIdentifier(resourceDependency.replaceAll("[.][.]?/", ""));
+      }
+      imports.put("!" + resourceDependency, localName);
+      if (!resourceDependency.startsWith(".")) {
+        resourceDependency = "./" + resourceDependency;
+      }
+      moduleNameToLocalName.put(resourceDependency, localName);
+    }
+
     // now generate the import directives:
     for (Map.Entry<String, String> importEntry : moduleNameToLocalName.entrySet()) {
       out.write(String.format("import %s from \"%s\";\n", importEntry.getValue(), importEntry.getKey()));
@@ -432,6 +451,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private static String getLocalNameOfResourceDependency(String resourceDependency) {
+    int lastDotPos = resourceDependency.lastIndexOf('/');
+    String localResourceName = lastDotPos == -1 ? resourceDependency : resourceDependency.substring(lastDotPos + 1);
+    return toIdentifier(localResourceName);
+  }
+
+  private static String toIdentifier(String string) {
+    return string.replaceAll("[^a-zA-Z0-9$_]", "_");
   }
 
   private CompilationUnit getCompilationUnitToRequire(CompilationUnit compilationUnit) {
@@ -1191,7 +1220,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         ide.visit(this);
       }
-      visitIfNotNull(typeRelation);
+      if (typeRelation != null && variableDeclaration.getAnnotation(Jooc.EMBED_ANNOTATION_NAME) == null) {
+        typeRelation.visit(this);
+      }
       if (!isAmbientOrInterface(compilationUnit)) {
         generateInitializer(variableDeclaration);
       }
@@ -1281,12 +1312,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         initializer.visit(this);
       }
     } else {
-      // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
-      // so we have to add an explicit initializer to keep semantics:
-      String implicitDefaultValue = VariableDeclaration.getDefaultValue(variableDeclaration.getOptTypeRelation());
-      // no need to explicitly set a field to "undefined":
-      if (!"undefined".equals(implicitDefaultValue)) {
-        out.write(" = " + implicitDefaultValue);
+      Annotation embedAnnotation = variableDeclaration.getAnnotation(Jooc.EMBED_ANNOTATION_NAME);
+      if (embedAnnotation != null) {
+        Map<String, Object> embedProperties = embedAnnotation.getPropertiesByName();
+        String source = (String) embedProperties.get(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
+        String mimeType = (String) embedProperties.get(Jooc.EMBED_ANNOTATION_MIME_TYPE_PROPERTY);
+        out.write(" = Embed(" + imports.get("!" + source));
+        if (mimeType != null) {
+          out.write(", " + CompilerUtils.quote(mimeType));
+        }
+        out.write(")");
+      } else {
+        // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
+        // so we have to add an explicit initializer to keep semantics:
+        String implicitDefaultValue = VariableDeclaration.getDefaultValue(variableDeclaration.getOptTypeRelation());
+        // no need to explicitly set a field to "undefined":
+        if (!"undefined".equals(implicitDefaultValue)) {
+          out.write(" = " + implicitDefaultValue);
+        }
       }
     }
   }

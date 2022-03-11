@@ -8,7 +8,6 @@ import net.jangaroo.jooc.JsWriter;
 import net.jangaroo.jooc.ast.CompilationUnit;
 import net.jangaroo.jooc.ast.IdeDeclaration;
 import net.jangaroo.jooc.ast.PackageDeclaration;
-import net.jangaroo.jooc.ast.TransitiveAstVisitor;
 import net.jangaroo.jooc.config.JoocOptions;
 
 import java.io.File;
@@ -46,7 +45,6 @@ public class MergedOutputCompilationUnitSinkFactory extends AbstractCompilationU
             try {
               out.setOptions(getOptions());
 
-              compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
               compilationUnit.visit(outputFile.getName().endsWith(Jooc.TS_SUFFIX)
                       ? new TypeScriptCodeGenerator(new TypeScriptModuleResolver(compilationUnitModelResolver), out, compilationUnitModelResolver)
                       : new JsCodeGenerator(out, compilationUnitModelResolver, new JsModuleResolver(compilationUnitModelResolver)));
