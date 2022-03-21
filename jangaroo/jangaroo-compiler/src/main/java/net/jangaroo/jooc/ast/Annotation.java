@@ -81,7 +81,9 @@ public class Annotation extends Directive {
         Scope scope = getIde().getScope();
         scope.getCompilationUnit().addDependency(scope.getCompiler().getCompilationUnit("joo.flash.Embed"), false);
         Object source = getPropertiesByName().get(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
-        scope.getCompilationUnit().getResourceDependencies().add(source.toString());
+        if (source != null) {
+          scope.getCompilationUnit().getResourceDependencies().add(source.toString());
+        }
       }
     }
   }

@@ -1120,9 +1120,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
     visitIfNotNull(annotationParameter.getOptName(), "\"_\"");
-    if (annotationParameter.getOptSymEq() != null) {
-      writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
-    }
+    writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
     visitIfNotNull(annotationParameter.getValue(), "true");
   }
 
@@ -1315,14 +1313,21 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     } else {
       Annotation embedAnnotation = variableDeclaration.getAnnotation(Jooc.EMBED_ANNOTATION_NAME);
       if (embedAnnotation != null) {
-        Map<String, Object> embedProperties = embedAnnotation.getPropertiesByName();
-        String source = (String) embedProperties.get(Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY);
-        String mimeType = (String) embedProperties.get(Jooc.EMBED_ANNOTATION_MIME_TYPE_PROPERTY);
-        out.write(" = Embed(" + imports.get("!" + source));
-        if (mimeType != null) {
-          out.write(", " + CompilerUtils.quote(mimeType));
+        out.write(" = Embed({");
+        CommaSeparatedList<AnnotationParameter> annotationParameters = embedAnnotation.getOptAnnotationParameters();
+        while (annotationParameters != null) {
+          AnnotationParameter annotationParameter = annotationParameters.getHead();
+          Ide optName = annotationParameter.getOptName();
+          if (optName != null && Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(optName.getName())) {
+            AstNode value = annotationParameter.getValue();
+            out.write(optName.getName() + ":" + imports.get("!" + ((LiteralExpr) value).getValue().getJooValue()));
+          } else {
+            annotationParameter.visit(this);
+          }
+          writeOptSymbol(annotationParameters.getSymComma());
+          annotationParameters = annotationParameters.getTail();
         }
-        out.write(")");
+        out.write("})");
       } else {
         // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
         // so we have to add an explicit initializer to keep semantics:
