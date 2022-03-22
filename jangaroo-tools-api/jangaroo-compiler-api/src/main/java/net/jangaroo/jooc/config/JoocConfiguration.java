@@ -28,6 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private boolean typeScriptThisBeforeSuperViaIgnore;
   private String extNamespace = "";
   private String extSassNamespace = "";
   private String npmPackageName;
@@ -45,7 +46,6 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private File reportOutputDirectory;
 
   private boolean findUnusedDependencies;
-  private boolean sourcesAreTests;
   private String dependencyReportOutputFile;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
@@ -116,6 +116,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public boolean isTypeScriptThisBeforeSuperViaIgnore() {
+    return typeScriptThisBeforeSuperViaIgnore;
+  }
+
+  @Override
   public String getExtNamespace() {
     return extNamespace;
   }
@@ -135,22 +140,27 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return useEcmaParameterInitializerSemantics;
   }
 
-  @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
+  @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript")
   public void setMigrateToTypeScript(boolean migrateToTypeScript) {
     this.migrateToTypeScript = migrateToTypeScript;
   }
 
-  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  @Option(name="--typescript-this-before-super-via-ignore", usage ="When migrating ActionScript/MXML code to TypeScript ")
+  public void setTypeScriptThisBeforeSuperViaIgnore(boolean typeScriptThisBeforeSuperViaIgnore) {
+    this.typeScriptThisBeforeSuperViaIgnore = typeScriptThisBeforeSuperViaIgnore;
+  }
+
+  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root")
   public void setExtNamespace(String extNamespace) {
     this.extNamespace = extNamespace;
   }
 
-  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root")
   public void setExtSassNamespace(String extSassNamespace) {
     this.extSassNamespace = extSassNamespace;
   }
 
-  @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")
+  @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics")
   public void setUseEcmaParameterInitializerSemantics(boolean useEcmaParameterInitializerSemantics) {
     this.useEcmaParameterInitializerSemantics = useEcmaParameterInitializerSemantics;
   }

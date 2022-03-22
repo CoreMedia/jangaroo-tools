@@ -148,6 +148,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean hasOwnConfigClass;
   private boolean hasOwnEventsClass;
   private List<TypedIdeDeclaration> ownConfigs;
+  private FunctionExpr constructorFun;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -1590,6 +1591,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     boolean isExtClass = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromExtBaseExplicitly();
+    Jooc compiler = (Jooc) compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler();
+    boolean useThisBeforeSuperViaIgnore = compiler.getConfig().isTypeScriptThisBeforeSuperViaIgnore();
     Iterator<Directive> iterator = body.getDirectives().iterator();
     List<Directive> directivesToWrap = null;
     while (iterator.hasNext()) {
@@ -1603,12 +1606,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           directive.visit(this);
         } else {
           if (!isExtClass) {
-            compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+            compiler.getLog().warning(
                     (directivesToWrap.isEmpty() ? directive : directivesToWrap.get(0)).getSymbol(),
                     "Constructor code of non-Ext class may not access 'this' before calling 'super()'. "
                             + "Either move code or make this class an Ext class by inheriting from ext.Base.");
           }
-          visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
+          if (useThisBeforeSuperViaIgnore) {
+            out.write("\n    // @ts-expect-error Ext JS semantics"
+                    + "\n    const this$ = this;");
+            constructorFun = ((FunctionDeclaration) body.getParentNode().getParentNode()).getFun();
+            for (Directive directiveToWrap : directivesToWrap) {
+              directiveToWrap.visit(this);
+            }
+            directive.visit(this);
+            constructorFun = null;
+            break;
+          } else {
+            visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
+          }
         }
         break;
       }
@@ -1695,6 +1710,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.write(")()");
     out.writeSymbol(args.getRParen());
     writeOptSymbol(superCall.getSymSemicolon());
+    if (superCall.getClassDeclaration().getConstructor().isThisAliased(true)) {
+      ALIAS_THIS_CODE_GENERATOR.generate(out, false);
+    }
   }
 
   private static Directive getParentDirective(IdeExpr usage, AstNode container) {
@@ -1725,7 +1743,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // so leave out the ActionScript call:
     if (functionDeclaration == null || functionDeclaration.getClassDeclaration().notExtendsObject()) {
       super.visitSuperConstructorCallStatement(superConstructorCallStatement);
-      if (functionDeclaration != null && functionDeclaration.isThisAliased(true)) {
+      if (functionDeclaration != null && functionDeclaration.isThisAliased(true)
+              && functionDeclaration.getFun() != constructorFun) {
         ALIAS_THIS_CODE_GENERATOR.generate(out, false);
       }
     }
@@ -2552,8 +2571,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return String.format("Config<%s>", targetClass);
   }
 
-  private static boolean rewriteThis(Ide ide) {
-    if (ide.isThis() && ide.isRewriteThis()) {
+  private boolean rewriteThis(Ide ide) {
+    // rewrite to this$ if either local flag on ide is set OR we are in constructor-this-rewrite-mode
+    if (ide.isThis() && (constructorFun != null || ide.isRewriteThis())) {
       // starting from current scope, look for enclosing non-arrow/non-class-member function:
       Scope scope = ide.getScope();
       FunctionExpr functionExpr = scope.getFunctionExpr();
@@ -2561,10 +2581,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               (functionExpr.getFunctionDeclaration() == null ||
                       !functionExpr.getFunctionDeclaration().isClassMember())) {
         if (!functionExpr.rewriteToArrowFunction()) {
-          return true;
+          return ide.isRewriteThis();
         }
         scope = scope.getParentScope();
         functionExpr = scope.getFunctionExpr();
+      }
+      // if in constructor-this-rewrite-mode...
+      if (constructorFun != null) {
+        // ...did we reach the constructor function? If so, rewrite to this$!
+        return functionExpr == constructorFun;
       }
     }
     return false;

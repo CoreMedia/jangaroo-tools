@@ -1,9 +1,15 @@
 /*package package1 {*/
 
 Ext.define("package1.SuperCallParameters", function(SuperCallParameters) {/*public class SuperCallParameters extends ManyConstructorParameters {
-  public*/ function SuperCallParameters$() {/*
+  public*/ function SuperCallParameters$() {var _this=this;/*
     const*/var foo/*: Boolean*/ = this.isEmpty("");
     var bar/*: String*/ = "BAR";
+    function innerUsingThis()/*: Boolean*/ {
+      return _this.isEmpty("");
+    }
+    function innerDynamic()/*: Boolean*/ {
+      return this.isEmpty("");
+    }
     this.super$rE5W("bar", -1, -4.2, true, {}, []);
     if (foo) {
       package1.ManyConstructorParameters.prototype.isEmpty.call(this,"FOO");

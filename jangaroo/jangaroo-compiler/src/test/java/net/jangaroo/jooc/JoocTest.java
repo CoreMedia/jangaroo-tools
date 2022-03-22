@@ -213,6 +213,14 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testSuperCallParameters() throws Exception {
     assertCompilationResult("package1/SuperCallParameters");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptThisBeforeSuperViaIgnore(true);
+    try {
+      internalAssertCompilationResult("package1/SuperCallParameters", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptThisBeforeSuperViaIgnore(false);
+    }
     assertApiCompilationResult("package1/SuperCallParameters");
   }
 

@@ -18,6 +18,8 @@ public interface JoocOptions {
 
   boolean isMigrateToTypeScript();
 
+  boolean isTypeScriptThisBeforeSuperViaIgnore();
+
   String getExtNamespace();
 
   String getExtSassNamespace();

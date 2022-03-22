@@ -160,13 +160,30 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private File catalogOutputDirectory;
 
   /**
-   * Experimental: If set to "true", compiler generates TypeScript output instead of JavaScript.
+   * If set to "true", compiler generates TypeScript output instead of JavaScript.
    */
   @Parameter(property = "maven.compiler.migrateToTypeScript")
   private boolean migrateToTypeScript = false;
 
   /**
-   * Experimental: The Ext namespace is stripped from the relative path to the source root.
+   * If <code>migrateToTypeScript</code> and this property are set to "true", compiler generates a simpler
+   * TypeScript syntax when accessing 'this' before 'super()' in the constructor, which is allowed in
+   * ActionScript, not in ECMAScript, but supported in TypeScript Ext TS classes by the new Jangaroo
+   * tooling.
+   * 
+   * Formerly, the workaround for 'this' before 'super()' not causing a TypeScript error was to wrap the
+   * directives that do so in an Immediately Evaluated (Arrow) Function. However, that led to a complex
+   * syntax and could become ineffectual with a TypeScript update.
+   * 
+   * The new option faces the fact that accessing 'this' before 'super()' is an error in ECMAScript
+   * (and thus in TypeScript), but allowed in Ext TS, so we explicitly ignore the error, using the
+   * TypeScript annotation
+   */
+  @Parameter(property = "maven.compiler.migrateToTypeScript")
+  private boolean typeScriptThisBeforeSuperViaIgnore = false;
+
+  /**
+   * The Ext namespace is stripped from the relative path to the source root.
    * Use "." to explicitly set this configuration to an empty namespace.
    */
   @Parameter(property = "extNamespace")
@@ -176,7 +193,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean extNamespaceRequired;
 
   /**
-   * Experimental: The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
+   * The Ext sass namespace is stripped from the relative path inside the sencha/sass/var
    * and sencha/sass/src of the source root. If not set (or null) it falls back to {@link #extNamespace}.
    * Use "." to explicitly set this configuration to an empty namespace.
    */
@@ -187,7 +204,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private File senchaSrcDir;
 
   /**
-   * Experimental: If set to "true", compiler generates parameter initializer code that implements
+   * If set to "true", compiler generates parameter initializer code that implements
    * ECMAScript semantics, which is subtly different from ActionScript 3 semantics.
    * In ECMAScript, initializer values are assigned to all 'undefined' arguments.
    * In AS3, initializer values are assigned only if you call a method with less arguments.
@@ -202,7 +219,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean useEcmaParameterInitializerSemantics = false;
 
   /**
-   * Experimental: If set to "true", compiler generates no ActionScript syntax in comments, resulting
+   * If set to "true", compiler generates no ActionScript syntax in comments, resulting
    * in "purer" JavaScript code.
    */
   @Parameter(property = "maven.compiler.suppressCommentedActionScriptCode")
