@@ -93,7 +93,16 @@ public class JangarooConfig {
         public int compare(String a, String b) {
           int indexOfA = ORDER.indexOf(a);
           int indexOfB = ORDER.indexOf(b);
-          return (indexOfA > -1 ? indexOfA : Integer.MAX_VALUE) - (indexOfB > -1 ? indexOfB : Integer.MAX_VALUE);
+          if (indexOfA > -1 && indexOfB > -1) {
+            return indexOfA - indexOfB;
+          }
+          if (indexOfA > -1) {
+            return -1;
+          }
+          if (indexOfB > -1) {
+            return 1;
+          }
+          return a.compareTo(b);
         }
       });
     }
