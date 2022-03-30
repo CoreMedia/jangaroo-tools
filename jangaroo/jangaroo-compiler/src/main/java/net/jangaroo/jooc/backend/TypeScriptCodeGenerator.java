@@ -64,7 +64,6 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
-import javax.xml.stream.events.Namespace;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1112,10 +1111,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
            currentVariableDeclaration != null;
            currentVariableDeclaration = currentVariableDeclaration.getOptNextVariableDeclaration()) {
         if (bindable) {
-          // we want the ASDoc at the generated accessor, so render (private) field first:
-          out.write("\n\n ");
-          visitVariableDeclarationBase(currentVariableDeclaration);
-          writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
+          boolean compilationUnitAmbient = isCompilationUnitAmbient();
+          if (!compilationUnitAmbient) {
+            // we want the ASDoc at the generated accessor, so render (private) field first:
+            out.write("\n\n ");
+            visitVariableDeclarationBase(currentVariableDeclaration);
+            writeOptSymbol(variableDeclaration.getOptSymSemicolon(), "\n");
+          }
 
           // generate accessors (field has been transformed to #-private)
           String accessor = currentVariableDeclaration.getName();
@@ -1124,7 +1126,11 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           out.writeToken("get");
           out.write(" " + accessor + "()");
           visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
-          out.write(String.format(" { return this.#%s; }", accessor));
+          if (compilationUnitAmbient) {
+            out.write(";");
+          } else {
+            out.write(String.format(" { return this.#%s; }", accessor));
+          }
 
           // generate a set accessor, but only if no custom set...() method exists:
           String setMethodName = MethodType.SET + MxmlUtils.capitalize(accessor);
@@ -1136,7 +1142,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             }
             out.write(String.format("set %s(value", accessor));
             visitIfNotNull(currentVariableDeclaration.getOptTypeRelation());
-            out.write(String.format(") { this.#%s = value; }", accessor));
+            out.write(")");
+            if (compilationUnitAmbient) {
+              out.write(";");
+            } else {
+              out.write(String.format(" { this.#%s = value; }", accessor));
+            }
           }
         } else {
           if (currentVariableDeclaration == variableDeclaration) {
@@ -1186,7 +1197,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Initializer initializer = variableDeclaration.getOptInitializer();
     Ide ide = variableDeclaration.getIde();
     if (variableDeclaration.isClassMember()) {
-      if (variableDeclaration.isPrivate() || variableDeclaration.isBindable()) {
+      if (variableDeclaration.isPrivate() || (variableDeclaration.isBindable() && !isAmbientOrInterface(compilationUnit))) {
         writeSymbolReplacement(ide.getSymbol(), getHashPrivateName(variableDeclaration));
       } else {
         ide.visit(this);
@@ -1330,7 +1341,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (functionDeclaration.isClassMember()) {
       boolean isAmbientOrInterface = isAmbientOrInterface(functionDeclaration.getCompilationUnit());
       boolean convertToProperty = functionDeclaration.isGetterOrSetter() &&
-              (functionDeclaration.isNative() && !functionDeclaration.isBindable() || isAmbientOrInterface);
+              !functionDeclaration.isBindable() && (functionDeclaration.isNative() || isAmbientOrInterface);
       if (convertToProperty && functionDeclaration.isSetter()) {
         // completely suppress (native) setter class members, they are covered by the writable property declaration
         return;
@@ -1383,7 +1394,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         }
       }
       TypedIdeDeclaration setAccessor = getAccessorNameFromSetMethod(functionDeclaration);
-      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()) {
+      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode && functionDeclaration.isGetter()
+              && !isAmbientOrInterface) {
         // it must be a [Bindable] native get function, so complement a private field for the default implementation:
         out.write("\n  #" + functionDeclaration.getName());
         visitIfNotNull(functionDeclaration.getOptTypeRelation());
@@ -1434,7 +1446,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         addBlockStartCodeGenerator(functionDeclaration.getBody(), ALIAS_THIS_CODE_GENERATOR);
       }
 
-      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode) {
+      if (functionDeclaration.isNative() && functionDeclaration.isBindable() && !companionInterfaceMode
+              && !isAmbientOrInterface) {
         // it must be a [Bindable] native, so complement the default implementation:
         if (functionDeclaration.isGetter()) {
           out.write(" { return this.#" + functionDeclaration.getName() + "; }");

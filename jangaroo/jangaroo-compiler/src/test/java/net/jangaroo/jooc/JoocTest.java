@@ -217,6 +217,18 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testNativeExtComponent() throws Exception {
+    config.setMigrateToTypeScript(true);
+    try {
+      compile(".as", "ext/Button");
+      assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
+      verifyOutput("Button", new File(outputFolder, "Ext"), "/expected/Ext", ".d.ts");
+    } finally {
+      config.setMigrateToTypeScript(false);
+    }
+  }
+
+  @Test
   public void testDoubleSuper() throws Exception {
     File sourcefile = getFile("/package2/TestDoubleSuper.as");
     config.addSourceFile(sourcefile);
