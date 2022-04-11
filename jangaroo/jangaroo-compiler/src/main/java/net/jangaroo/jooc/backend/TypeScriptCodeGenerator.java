@@ -1232,7 +1232,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         ide.visit(this);
       }
-      if (typeRelation != null && variableDeclaration.getAnnotation(Jooc.EMBED_ANNOTATION_NAME) == null) {
+      if (typeRelation != null) {
         typeRelation.visit(this);
       }
       if (!isAmbientOrInterface(compilationUnit)) {

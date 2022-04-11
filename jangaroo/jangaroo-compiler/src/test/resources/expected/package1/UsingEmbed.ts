@@ -9,11 +9,11 @@ import second_text_csv from "./second_text.csv";
  */
 class UsingEmbed {
 
-  static someText = Embed({source:first_text_txt, mimeType:"application/octet-stream"});
+  static someText:Class = Embed({source:first_text_txt, mimeType:"application/octet-stream"});
 
-  static #anotherText = Embed({source:second_text_csv, mimeType:"application/octet-stream"});
+  static #anotherText:Class = Embed({source:second_text_csv, mimeType:"application/octet-stream"});
 
-  static #jooley = Embed({source:jooley_png});
+  static #jooley:Class = Embed({source:jooley_png});
 
   annotated1;
 
