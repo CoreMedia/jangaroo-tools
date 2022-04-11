@@ -57,6 +57,7 @@ import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
@@ -66,6 +67,7 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -430,10 +432,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         localName = toIdentifier(resourceDependency.replaceAll("[.][.]?/", ""));
       }
       imports.put("!" + resourceDependency, localName);
-      if (!resourceDependency.startsWith(".")) {
-        resourceDependency = "./" + resourceDependency;
-      }
-      moduleNameToLocalName.put(resourceDependency, localName);
+      moduleNameToLocalName.put(transformEmbedPath(compilationUnit, resourceDependency), localName);
     }
 
     // now generate the import directives:
@@ -453,6 +452,28 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private static String transformEmbedPath(CompilationUnit compilationUnit, String resourceDependency) {
+    FileInputSource resourceInputSource = (FileInputSource) compilationUnit.getInputSource();
+    File resourceFile = new File(resourceInputSource.getFile().getParentFile(), resourceDependency);
+    if (CompilerUtils.getRelativePath(resourceInputSource.getSourceDir(), resourceFile, true) == null) {
+      // embedded resource file is not below source directory: assume it is copied over, so strip all "../":
+      resourceFile = new File(resourceInputSource.getSourceDir(),
+              resourceDependency.replaceFirst("^([.][.]/)*", ""));
+    }
+    // adjust to cut-off extNamespace in target directory:
+    resourceDependency = CompilerUtils.getRelativePath(
+            CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration()
+                    .getExtNamespaceRelativeTargetQualifiedNameStr(), resourceInputSource.getSourceDir(), "").getParentFile(),
+            resourceFile,
+            false).replaceAll("\\\\", "/");
+
+    // always start with ./ or ../ :
+    if (!(resourceDependency.startsWith("./") || resourceDependency.startsWith(".//"))) {
+      resourceDependency = "./" + resourceDependency;
+    }
+    return resourceDependency;
   }
 
   private static String getLocalNameOfResourceDependency(String resourceDependency) {
