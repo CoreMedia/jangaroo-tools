@@ -684,7 +684,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     generateClassMetadata(classDeclaration);
 
     if (classDeclaration.isPrimaryDeclaration()) {
-      visitAll(classDeclaration.getSecondaryDeclarations());
+      for (IdeDeclaration node : classDeclaration.getSecondaryDeclarations()) {
+        if (node instanceof ClassDeclaration) {
+          needsCompanionInterface = false;
+          mixinClasses = new ArrayList<>();
+          determineConfigAndEventsInterfaces((ClassDeclaration) node);
+          node.visit(this);
+        }
+      }
     }
   }
 
