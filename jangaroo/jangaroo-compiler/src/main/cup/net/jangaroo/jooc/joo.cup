@@ -328,7 +328,7 @@ compilationUnitDeclaration ::=
 optClassDeclarations ::=
     {: RESULT = new ArrayList(); :}
   | optDirectives:ds classDeclaration:cd optClassDeclarations:cds
-    {: RESULT = cds; RESULT.add(0,cd); :}
+    {: RESULT = cds; cd.setDirectives(ds); RESULT.add(0,cd); :}
   ;
 
 constOrVar ::=

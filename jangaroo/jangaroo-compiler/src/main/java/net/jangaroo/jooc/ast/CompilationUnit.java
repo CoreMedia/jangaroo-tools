@@ -57,6 +57,13 @@ public class CompilationUnit extends NodeImplBase {
     this.primaryDeclaration = primaryDeclaration;
     if (primaryDeclaration instanceof ClassDeclaration) {
       ((ClassDeclaration) primaryDeclaration).setSecondaryDeclarations(secondaryDeclarations);
+      if (secondaryDeclarations != null) {
+        for (IdeDeclaration secondaryDeclaration : secondaryDeclarations) {
+          if (secondaryDeclaration instanceof ClassDeclaration) {
+            this.directives.addAll(((ClassDeclaration) secondaryDeclaration).getDirectives());
+          }
+        }
+      }
     }
     this.rBrace = rBrace;
   }

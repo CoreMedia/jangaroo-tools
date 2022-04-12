@@ -57,6 +57,7 @@ public class ClassDeclaration extends TypeDeclaration {
   private Map<String, TypedIdeDeclaration> members = new LinkedHashMap<>();
   private Map<String, TypedIdeDeclaration> staticMembers = new LinkedHashMap<>();
   private ClassBody body;
+  private List<Directive> directives = Collections.emptyList();
   private FunctionDeclaration constructor = null;
   private Type thisType;
   private Type superType;
@@ -75,6 +76,14 @@ public class ClassDeclaration extends TypeDeclaration {
     this.optExtends = ext;
     this.optImplements = impl;
     this.body = body;
+  }
+
+  public void setDirectives(List<Directive> directives) {
+    this.directives = directives;
+  }
+
+  List<Directive> getDirectives() {
+    return directives;
   }
 
   @Override
