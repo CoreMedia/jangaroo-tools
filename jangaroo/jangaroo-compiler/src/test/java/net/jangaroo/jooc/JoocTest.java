@@ -273,32 +273,32 @@ public class JoocTest extends AbstractJoocTest {
   public void testPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/somePackageGlobal");
   }
-  
+
   @Test
   public void testInitPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/UsingSomePackageGlobal");
   }
-  
+
   @Test
   public void testUninitializedPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/uninitializedPackageGlobal");
   }
-  
+
   @Test
   public void testPackageGlobalConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalConst");
   }
-  
+
   @Test
   public void testPackageGlobalLazyConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalLazyConst");
   }
-  
+
   @Test
   public void testPackageGlobalFun() throws Exception {
     assertCompilationResult("package1/somePackageGlobalFun");
   }
-  
+
   @Test
   public void testArrayForIn() throws Exception {
     assertCompilationResult("package1/TestArrayForIn");
@@ -314,12 +314,12 @@ public class JoocTest extends AbstractJoocTest {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/somePackageGlobal");
   }
-  
+
   @Test
   public void testPackageGlobalFunApi() throws Exception {
     assertApiCompilationResult("package1/somePackageGlobalFun");
   }
-  
+
   @Test
   public void testNativeApi() throws Exception {
     String relativeClassFileName = "package1/SomeNativeClass";
