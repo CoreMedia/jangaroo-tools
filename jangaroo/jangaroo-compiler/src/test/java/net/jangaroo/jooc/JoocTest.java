@@ -305,6 +305,11 @@ public class JoocTest extends AbstractJoocTest {
   }
 
   @Test
+  public void testAutomaticSemicolonInsertion() throws Exception {
+    assertCompilationResult("package1/AutomaticSemicolonInsertion");
+  }
+
+  @Test
   public void testStatementStartingWithArrayLiteral() throws Exception {
     assertCompilationResult("package2/TestStatementStartingWithArrayLiteral");
   }
