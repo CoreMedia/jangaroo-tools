@@ -28,7 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
-  private boolean typeScriptThisBeforeSuperViaIgnore;
+  private long typeScriptTargetSourceFormatFeatures = 0L;
   private String extNamespace = "";
   private String extSassNamespace = "";
   private String npmPackageName;
@@ -116,8 +116,8 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
-  public boolean isTypeScriptThisBeforeSuperViaIgnore() {
-    return typeScriptThisBeforeSuperViaIgnore;
+  public long getTypeScriptTargetSourceFormatFeatures() {
+    return typeScriptTargetSourceFormatFeatures;
   }
 
   @Override
@@ -145,9 +145,19 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     this.migrateToTypeScript = migrateToTypeScript;
   }
 
-  @Option(name="--typescript-this-before-super-via-ignore", usage ="When migrating ActionScript/MXML code to TypeScript ")
-  public void setTypeScriptThisBeforeSuperViaIgnore(boolean typeScriptThisBeforeSuperViaIgnore) {
-    this.typeScriptThisBeforeSuperViaIgnore = typeScriptThisBeforeSuperViaIgnore;
+  @Option(name="-tsf", aliases="--typescript-target-source-format-features", usage =
+          "Sets the target source code format features for migrating ActionScript/MXML code to TypeScript, " +
+                  "implicitly activating migrate-to-typescript when the value is not 0 (zero). " +
+                  "The value is a combination (addition) of the following feature flags:\n"
+                  + "1 - simplified this-usage-before-super-constructor-call syntax\n"
+                  + "2 - simplify (as(foo, Foo)).bar to (foo as Foo).bar, i.e. leave out runtime check that would have caused NPE anyway\n"
+                  + "4 - generate static blocks (requires TypeScript 4.4, to correctly accept forward-references, 4.7)\n"
+  )
+  public void setTypeScriptTargetSourceFormatFeatures(long typeScriptTargetSourceFormatFeatures) {
+    this.typeScriptTargetSourceFormatFeatures = typeScriptTargetSourceFormatFeatures;
+    if (typeScriptTargetSourceFormatFeatures != 0) {
+      migrateToTypeScript = true;
+    }
   }
 
   @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root")

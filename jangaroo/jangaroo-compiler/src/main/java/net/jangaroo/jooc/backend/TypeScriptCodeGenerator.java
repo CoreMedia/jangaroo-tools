@@ -87,6 +87,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
@@ -587,7 +590,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (ownConfigs.isEmpty() && configSupers.isEmpty() && ownEvents.isEmpty() && eventsSupers.isEmpty()) {
           hasOwnConfigClass = false;
         } else {
-          classDeclaration.getIde().getScope().getCompiler().getLog().warning(
+          getCompiler().getLog().warning(
                   classDeclaration.getConstructor().getParams().getHead().getSymbol(),
                   "A class reusing the Config type of its superclass in its config constructor parameter " +
                           "may not define own Configs or add Configs from mixins."
@@ -1463,7 +1466,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             if (implMethodSymbolWithASDoc != null) {
               String implMethodWhitespace = implMethodSymbolWithASDoc.getWhitespace();
               if (!(implMethodWhitespace.contains("@inheritDoc") || implMethodWhitespace.contains("@private"))) {
-                functionDeclaration.getIde().getScope().getCompiler().getLog().warning(implMethodSymbolWithASDoc,
+                getCompiler().getLog().warning(implMethodSymbolWithASDoc,
                         "Mixin method implementation has non-inheriting ASDoc. " +
                                 "Please move such documentation to the mixin interface before TypeScript conversion.");
               }
@@ -1633,8 +1636,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     boolean isExtClass = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromExtBaseExplicitly();
-    Jooc compiler = (Jooc) compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler();
-    boolean useThisBeforeSuperViaIgnore = compiler.getConfig().isTypeScriptThisBeforeSuperViaIgnore();
+    boolean useThisBeforeSuperViaIgnore = isFeatureEnabled(SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL);
     Iterator<Directive> iterator = body.getDirectives().iterator();
     List<Directive> directivesToWrap = null;
     while (iterator.hasNext()) {
@@ -1648,7 +1650,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           directive.visit(this);
         } else {
           if (!isExtClass) {
-            compiler.getLog().warning(
+            getCompiler().getLog().warning(
                     (directivesToWrap.isEmpty() ? directive : directivesToWrap.get(0)).getSymbol(),
                     "Constructor code of non-Ext class may not access 'this' before calling 'super()'. "
                             + "Either move code or make this class an Ext class by inheriting from ext.Base.");
@@ -1678,6 +1680,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     while (iterator.hasNext()) {
       iterator.next().visit(this);
     }
+  }
+
+  private Jooc getCompiler() {
+    return (Jooc) compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler();
+  }
+
+  private boolean isFeatureEnabled(long feature) {
+    return (getCompiler().getConfig().getTypeScriptTargetSourceFormatFeatures() & feature) != 0L;
   }
 
   private void visitSuperCallWithWrappedDirectives(SuperConstructorCallStatement superCall, List<Directive> directivesToWrap) throws IOException {
@@ -2320,7 +2330,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
 
   @Override
   boolean convertToFunctionCall(InfixOpExpr expr) {
-    return !(expr instanceof AsExpr
+    return !(isFeatureEnabled(SIMPLIFIED_AS_EXPRESSIONS)
+            && expr instanceof AsExpr
             && expr.getArg2() instanceof IdeExpr
             && expr.getParentNode() instanceof ParenthesizedExpr
             && mayNotBeNull((Expr) expr.getParentNode()));
@@ -2493,7 +2504,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   : memberDeclaration;
           ExpressionType memberType = memberTypeHolder == null || memberTypeHolder.getType() == null ? null
                   : memberTypeHolder.getType().getEvalType();
-          primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
+          getCompiler().getLog().warning(
                   indexExpr.getSymbol(),
                   String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
                           memberDeclaration.getName(), memberType));
@@ -2674,7 +2685,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   // some (base) classes simply reuse their super class as their config type :(
                   || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
             TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
-            classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
+            getCompiler().getLog().warning(configParameterType.getSymbol(),
                     String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
                                     "Still generating a TypeScript Config class, but please fix this.",
                             configParameterType.getType().getIde().getQualifiedNameStr()));
@@ -2730,12 +2741,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     Directive firstDirective = directives.get(0);
     out.writeSymbolWhitespace(firstDirective.getSymbol());
-    String uniqueName = "";
-    if (staticCodeCounter > 0) {
-      uniqueName = String.valueOf(staticCodeCounter);
+    boolean generateStaticBlocks = isFeatureEnabled(STATIC_BLOCKS);
+    if (generateStaticBlocks) {
+      out.writeToken("static");
+    } else {
+      // simulate static blocks by declaring a unique #private static field with an immediately-evaluating
+      // arrow function expression:
+      String uniqueName = "";
+      if (staticCodeCounter > 0) {
+        uniqueName = String.valueOf(staticCodeCounter);
+      }
+      ++staticCodeCounter;
+      out.writeToken(String.format("static #static%s = (() =>", uniqueName));
     }
-    ++staticCodeCounter;
-    out.writeToken(String.format("static #static%s = (() =>", uniqueName));
 
     // is static code already wrapped in a block?
     if (directives.size() == 1 && firstDirective instanceof BlockStatement) {
@@ -2749,7 +2767,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       out.writeToken("\n  }");
     }
-    out.writeToken(")();");
+    if (!generateStaticBlocks) {
+      out.writeToken(")();");
+    }
   }
 
   @Override

@@ -13,6 +13,9 @@ import java.net.URISyntaxException;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
 
 public class JoocTest extends AbstractJoocTest {
 
@@ -149,11 +152,27 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptTargetSourceFormatFeatures(STATIC_BLOCKS);
+    try {
+      internalAssertCompilationResult("package1/StaticAndNonStatic", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
+    }
   }
 
   @Test
   public void testTestTypeCast() throws Exception {
     assertCompilationResult("package1/TestTypeCast");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_AS_EXPRESSIONS);
+    try {
+      internalAssertCompilationResult("package1/TestTypeCast", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
+    }
   }
 
   @Test
@@ -214,12 +233,12 @@ public class JoocTest extends AbstractJoocTest {
   public void testSuperCallParameters() throws Exception {
     assertCompilationResult("package1/SuperCallParameters");
     config.setMigrateToTypeScript(true);
-    config.setTypeScriptThisBeforeSuperViaIgnore(true);
+    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL);
     try {
       internalAssertCompilationResult("package1/SuperCallParameters", ".as", "/expected2");
     } finally {
       config.setMigrateToTypeScript(false);
-      config.setTypeScriptThisBeforeSuperViaIgnore(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
     }
     assertApiCompilationResult("package1/SuperCallParameters");
   }

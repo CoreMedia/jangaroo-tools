@@ -166,21 +166,17 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
   private boolean migrateToTypeScript = false;
 
   /**
-   * If <code>migrateToTypeScript</code> and this property are set to "true", compiler generates a simpler
-   * TypeScript syntax when accessing 'this' before 'super()' in the constructor, which is allowed in
-   * ActionScript, not in ECMAScript, but supported in TypeScript Ext TS classes by the new Jangaroo
-   * tooling.
-   * 
-   * Formerly, the workaround for 'this' before 'super()' not causing a TypeScript error was to wrap the
-   * directives that do so in an Immediately Evaluated (Arrow) Function. However, that led to a complex
-   * syntax and could become ineffectual with a TypeScript update.
-   * 
-   * The new option faces the fact that accessing 'this' before 'super()' is an error in ECMAScript
-   * (and thus in TypeScript), but allowed in Ext TS, so we explicitly ignore the error, using the
-   * TypeScript annotation
+   * Sets the target source code format features for migrating ActionScript/MXML code to TypeScript,
+   * implicitly activating <code>migrateToTypescript</code> when the value is not 0 (zero).
+   * The value is a combination (addition) of the following feature flags:
+   * <ul>
+   *  <li>1 - simplified this-usage-before-super-constructor-call syntax</li>
+   *  <li>2 - simplify (as(foo, Foo)).bar to (foo as Foo).bar, i.e. leave out runtime check that would have caused NPE anyway</li>
+   *  <li>4 - generate static blocks (requires TypeScript 4.4, to correctly accept forward-references, 4.7)</li>
+   * </ul>
    */
-  @Parameter(property = "maven.compiler.migrateToTypeScript")
-  private boolean typeScriptThisBeforeSuperViaIgnore = false;
+  @Parameter(property = "maven.compiler.typeScriptTargetSourceFormatFeatures")
+  private long typeScriptTargetSourceFormatFeatures = 0L;
 
   /**
    * The Ext namespace is stripped from the relative path to the source root.
@@ -375,6 +371,7 @@ public abstract class AbstractCompilerMojo extends AbstractJangarooMojo {
     configuration.setGenerateSourceMaps(generateSourceMaps);
     configuration.setKeepGeneratedActionScriptDirectory(keepGeneratedActionScriptDirectory);
     configuration.setMigrateToTypeScript(migrateToTypeScript);
+    configuration.setTypeScriptTargetSourceFormatFeatures(typeScriptTargetSourceFormatFeatures);
     configuration.setExtNamespace(extNamespace);
     configuration.setExtSassNamespace(extSassNamespace != null ? extSassNamespace : extNamespace);
     configuration.setUseEcmaParameterInitializerSemantics(useEcmaParameterInitializerSemantics);

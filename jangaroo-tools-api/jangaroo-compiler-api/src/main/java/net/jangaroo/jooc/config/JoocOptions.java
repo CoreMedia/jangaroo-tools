@@ -18,7 +18,7 @@ public interface JoocOptions {
 
   boolean isMigrateToTypeScript();
 
-  boolean isTypeScriptThisBeforeSuperViaIgnore();
+  long getTypeScriptTargetSourceFormatFeatures();
 
   String getExtNamespace();
 
