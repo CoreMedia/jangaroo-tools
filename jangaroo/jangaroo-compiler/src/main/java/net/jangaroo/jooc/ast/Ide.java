@@ -289,13 +289,18 @@ public class Ide extends NodeImplBase {
   }
 
   void bindIfNeeded(AstNode exprParent, Expr parentExpr, IdeDeclaration memberDeclaration) {
-    if (isBoundMethodCandidate(exprParent, parentExpr)) {
+    if (isBoundMethodCandidate(exprParent, parentExpr) && !isAppliedOrCalled(exprParent.getParentNode())) {
       // check candidates for instance methods, accessed as function:
       if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
         // check and handle instance methods declared in same file, accessed as function:
         setBound(true);
       }
     }
+  }
+
+  private static boolean isAppliedOrCalled(AstNode node) {
+    return node instanceof DotExpr && node.getParentNode() instanceof ApplyExpr
+            && ((DotExpr) node).getIde().getName().matches("call|apply");
   }
 
   private void usageInExpr(final AstNode exprParent) {
@@ -344,7 +349,7 @@ public class Ide extends NodeImplBase {
     return getDeclaration(false) != null;
   }
 
-  private boolean isBoundMethodCandidate(final AstNode exprParent, final Expr parentExpr) {
+  private static boolean isBoundMethodCandidate(final AstNode exprParent, final Expr parentExpr) {
     return exprParent instanceof ParenthesizedExpr &&
             !(exprParent.getParentNode() instanceof KeywordStatement) ||
             exprParent instanceof CommaSeparatedList ||

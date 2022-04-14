@@ -23,6 +23,7 @@ public class TestBind {
     this.state = state;
     var bound:Function = getStatePrivate;
     var bound2:Function = (this).getState;
+    var bound3:Function = TestBind(this).getState.call(this);
   }
 
   [Parameter("shouldBeString", coerceTo="String")]

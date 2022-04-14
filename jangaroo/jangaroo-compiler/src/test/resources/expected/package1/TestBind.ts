@@ -13,7 +13,7 @@
  * governing permissions and limitations under the License.
  */
 
-import { bind } from "@jangaroo/runtime";
+import { bind, cast } from "@jangaroo/runtime";
 import { AnyFunction } from "@jangaroo/runtime/types";
 
 
@@ -25,6 +25,7 @@ class TestBind {
     this.#state = state;
     var bound:AnyFunction =bind( this,this.#getStatePrivate);
     var bound2:AnyFunction =bind( (this),(this).getState);
+    var bound3:AnyFunction = cast(TestBind,this).getState.call(this);
   }
 
   #testCoerce(shouldBeString: any):void {}
