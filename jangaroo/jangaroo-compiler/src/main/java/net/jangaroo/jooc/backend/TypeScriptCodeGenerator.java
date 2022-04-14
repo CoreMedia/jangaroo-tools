@@ -13,6 +13,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
 import net.jangaroo.jooc.ast.BinaryOpExpr;
@@ -34,6 +35,7 @@ import net.jangaroo.jooc.ast.IdeExpr;
 import net.jangaroo.jooc.ast.IdeWithTypeParam;
 import net.jangaroo.jooc.ast.Implements;
 import net.jangaroo.jooc.ast.ImportDirective;
+import net.jangaroo.jooc.ast.InfixOpExpr;
 import net.jangaroo.jooc.ast.Initializer;
 import net.jangaroo.jooc.ast.LiteralExpr;
 import net.jangaroo.jooc.ast.NamespaceDeclaration;
@@ -55,6 +57,7 @@ import net.jangaroo.jooc.ast.TypeRelation;
 import net.jangaroo.jooc.ast.TypedIdeDeclaration;
 import net.jangaroo.jooc.ast.VariableDeclaration;
 import net.jangaroo.jooc.ast.VectorLiteral;
+import net.jangaroo.jooc.input.FileInputSource;
 import net.jangaroo.jooc.model.MethodType;
 import net.jangaroo.jooc.mxml.MxmlUtils;
 import net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit;
@@ -64,6 +67,7 @@ import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,6 +87,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.AS_STRING;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.NET_JANGAROO_EXT_EXML;
 
@@ -146,6 +153,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private boolean hasOwnConfigClass;
   private boolean hasOwnEventsClass;
   private List<TypedIdeDeclaration> ownConfigs;
+  private FunctionExpr constructorFun;
 
   TypeScriptCodeGenerator(TypeScriptModuleResolver typeScriptModuleResolver, JsWriter out, CompilationUnitResolver compilationUnitModelResolver) {
     super(out, compilationUnitModelResolver);
@@ -371,6 +379,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       throw new CompilerError(compilationUnit.getSymbol(), String.format("Compilation unit uses one or more removed jangaroo-runtime API. Please remove the following usages before migrating to TypeScript:\n%s", String.join("\n", usedRemovedNames)));
     }
 
+    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
+      String localName = getLocalNameOfResourceDependency(resourceDependency);
+      if (!localNames.add(localName)) {
+        localNameClashes.add(localName);
+      }
+    }
+
     // second pass: generate imports, using fully-qualified names for local name clashes:
     Map<String, String> moduleNameToLocalName = new TreeMap<>();
     for (CompilationUnit dependentCompilationUnitModel : dependentCompilationUnitModels) {
@@ -414,6 +429,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       imports.put(dependentPrimaryDeclaration.getQualifiedNameStr(), localName);
     }
 
+    for (String resourceDependency : compilationUnit.getResourceDependencies()) {
+      String localName = getLocalNameOfResourceDependency(resourceDependency);
+      if (localNameClashes.contains(localName)) {
+        localName = toIdentifier(resourceDependency.replaceAll("[.][.]?/", ""));
+      }
+      imports.put("!" + resourceDependency, localName);
+      moduleNameToLocalName.put(transformEmbedPath(compilationUnit, resourceDependency), localName);
+    }
+
     // now generate the import directives:
     for (Map.Entry<String, String> importEntry : moduleNameToLocalName.entrySet()) {
       out.write(String.format("import %s from \"%s\";\n", importEntry.getValue(), importEntry.getKey()));
@@ -431,6 +455,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private static String transformEmbedPath(CompilationUnit compilationUnit, String resourceDependency) {
+    FileInputSource resourceInputSource = (FileInputSource) compilationUnit.getInputSource();
+    File resourceFile = new File(resourceInputSource.getFile().getParentFile(), resourceDependency);
+    if (CompilerUtils.getRelativePath(resourceInputSource.getSourceDir(), resourceFile, true) == null) {
+      // embedded resource file is not below source directory: assume it is copied over, so strip all "../":
+      resourceFile = new File(resourceInputSource.getSourceDir(),
+              resourceDependency.replaceFirst("^([.][.]/)*", ""));
+    }
+    // adjust to cut-off extNamespace in target directory:
+    resourceDependency = CompilerUtils.getRelativePath(
+            CompilerUtils.fileFromQName(compilationUnit.getPrimaryDeclaration()
+                    .getExtNamespaceRelativeTargetQualifiedNameStr(), resourceInputSource.getSourceDir(), "").getParentFile(),
+            resourceFile,
+            false).replaceAll("\\\\", "/");
+
+    // always start with ./ or ../ :
+    if (!(resourceDependency.startsWith("./") || resourceDependency.startsWith(".//"))) {
+      resourceDependency = "./" + resourceDependency;
+    }
+    return resourceDependency;
+  }
+
+  private static String getLocalNameOfResourceDependency(String resourceDependency) {
+    int lastDotPos = resourceDependency.lastIndexOf('/');
+    String localResourceName = lastDotPos == -1 ? resourceDependency : resourceDependency.substring(lastDotPos + 1);
+    return toIdentifier(localResourceName);
+  }
+
+  private static String toIdentifier(String string) {
+    return string.replaceAll("[^a-zA-Z0-9$_]", "_");
   }
 
   private CompilationUnit getCompilationUnitToRequire(CompilationUnit compilationUnit) {
@@ -534,7 +590,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (ownConfigs.isEmpty() && configSupers.isEmpty() && ownEvents.isEmpty() && eventsSupers.isEmpty()) {
           hasOwnConfigClass = false;
         } else {
-          classDeclaration.getIde().getScope().getCompiler().getLog().warning(
+          getCompiler().getLog().warning(
                   classDeclaration.getConstructor().getParams().getHead().getSymbol(),
                   "A class reusing the Config type of its superclass in its config constructor parameter " +
                           "may not define own Configs or add Configs from mixins."
@@ -631,7 +687,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     generateClassMetadata(classDeclaration);
 
     if (classDeclaration.isPrimaryDeclaration()) {
-      visitAll(classDeclaration.getSecondaryDeclarations());
+      for (IdeDeclaration node : classDeclaration.getSecondaryDeclarations()) {
+        if (node instanceof ClassDeclaration) {
+          needsCompanionInterface = false;
+          mixinClasses = new ArrayList<>();
+          determineConfigAndEventsInterfaces((ClassDeclaration) node);
+          node.visit(this);
+        }
+      }
     }
   }
 
@@ -1089,9 +1152,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   @Override
   public void visitAnnotationParameter(AnnotationParameter annotationParameter) throws IOException {
     visitIfNotNull(annotationParameter.getOptName(), "\"_\"");
-    if (annotationParameter.getOptSymEq() != null) {
-      writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
-    }
+    writeSymbolReplacement(annotationParameter.getOptSymEq(), ":");
     visitIfNotNull(annotationParameter.getValue(), "true");
   }
 
@@ -1202,7 +1263,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       } else {
         ide.visit(this);
       }
-      visitIfNotNull(typeRelation);
+      if (typeRelation != null) {
+        typeRelation.visit(this);
+      }
       if (!isAmbientOrInterface(compilationUnit)) {
         generateInitializer(variableDeclaration);
       }
@@ -1292,12 +1355,31 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         initializer.visit(this);
       }
     } else {
-      // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
-      // so we have to add an explicit initializer to keep semantics:
-      String implicitDefaultValue = VariableDeclaration.getDefaultValue(variableDeclaration.getOptTypeRelation());
-      // no need to explicitly set a field to "undefined":
-      if (!"undefined".equals(implicitDefaultValue)) {
-        out.write(" = " + implicitDefaultValue);
+      Annotation embedAnnotation = variableDeclaration.getAnnotation(Jooc.EMBED_ANNOTATION_NAME);
+      if (embedAnnotation != null) {
+        out.write(" = Embed({");
+        CommaSeparatedList<AnnotationParameter> annotationParameters = embedAnnotation.getOptAnnotationParameters();
+        while (annotationParameters != null) {
+          AnnotationParameter annotationParameter = annotationParameters.getHead();
+          Ide optName = annotationParameter.getOptName();
+          if (optName != null && Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(optName.getName())) {
+            AstNode value = annotationParameter.getValue();
+            out.write(optName.getName() + ":" + imports.get("!" + ((LiteralExpr) value).getValue().getJooValue()));
+          } else {
+            annotationParameter.visit(this);
+          }
+          writeOptSymbol(annotationParameters.getSymComma());
+          annotationParameters = annotationParameters.getTail();
+        }
+        out.write("})");
+      } else {
+        // While AS3 automatically assigns default values to fields, TypeScript/ECMAScript don't,
+        // so we have to add an explicit initializer to keep semantics:
+        String implicitDefaultValue = VariableDeclaration.getDefaultValue(variableDeclaration.getOptTypeRelation());
+        // no need to explicitly set a field to "undefined":
+        if (!"undefined".equals(implicitDefaultValue)) {
+          out.write(" = " + implicitDefaultValue);
+        }
       }
     }
   }
@@ -1384,7 +1466,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             if (implMethodSymbolWithASDoc != null) {
               String implMethodWhitespace = implMethodSymbolWithASDoc.getWhitespace();
               if (!(implMethodWhitespace.contains("@inheritDoc") || implMethodWhitespace.contains("@private"))) {
-                functionDeclaration.getIde().getScope().getCompiler().getLog().warning(implMethodSymbolWithASDoc,
+                getCompiler().getLog().warning(implMethodSymbolWithASDoc,
                         "Mixin method implementation has non-inheriting ASDoc. " +
                                 "Please move such documentation to the mixin interface before TypeScript conversion.");
               }
@@ -1554,6 +1636,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       return;
     }
     boolean isExtClass = ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromExtBaseExplicitly();
+    boolean useThisBeforeSuperViaIgnore = isFeatureEnabled(SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL);
     Iterator<Directive> iterator = body.getDirectives().iterator();
     List<Directive> directivesToWrap = null;
     while (iterator.hasNext()) {
@@ -1567,12 +1650,24 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
           directive.visit(this);
         } else {
           if (!isExtClass) {
-            compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler().getLog().warning(
+            getCompiler().getLog().warning(
                     (directivesToWrap.isEmpty() ? directive : directivesToWrap.get(0)).getSymbol(),
                     "Constructor code of non-Ext class may not access 'this' before calling 'super()'. "
                             + "Either move code or make this class an Ext class by inheriting from ext.Base.");
           }
-          visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
+          if (useThisBeforeSuperViaIgnore) {
+            out.write("\n    // @ts-expect-error Ext JS semantics"
+                    + "\n    const this$ = this;");
+            constructorFun = ((FunctionDeclaration) body.getParentNode().getParentNode()).getFun();
+            for (Directive directiveToWrap : directivesToWrap) {
+              directiveToWrap.visit(this);
+            }
+            directive.visit(this);
+            constructorFun = null;
+            break;
+          } else {
+            visitSuperCallWithWrappedDirectives((SuperConstructorCallStatement) directive, directivesToWrap);
+          }
         }
         break;
       }
@@ -1585,6 +1680,14 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     while (iterator.hasNext()) {
       iterator.next().visit(this);
     }
+  }
+
+  private Jooc getCompiler() {
+    return (Jooc) compilationUnit.getPrimaryDeclaration().getIde().getScope().getCompiler();
+  }
+
+  private boolean isFeatureEnabled(long feature) {
+    return (getCompiler().getConfig().getTypeScriptTargetSourceFormatFeatures() & feature) != 0L;
   }
 
   private void visitSuperCallWithWrappedDirectives(SuperConstructorCallStatement superCall, List<Directive> directivesToWrap) throws IOException {
@@ -1659,6 +1762,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     out.write(")()");
     out.writeSymbol(args.getRParen());
     writeOptSymbol(superCall.getSymSemicolon());
+    if (superCall.getClassDeclaration().getConstructor().isThisAliased(true)) {
+      ALIAS_THIS_CODE_GENERATOR.generate(out, false);
+    }
   }
 
   private static Directive getParentDirective(IdeExpr usage, AstNode container) {
@@ -1689,7 +1795,8 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     // so leave out the ActionScript call:
     if (functionDeclaration == null || functionDeclaration.getClassDeclaration().notExtendsObject()) {
       super.visitSuperConstructorCallStatement(superConstructorCallStatement);
-      if (functionDeclaration != null && functionDeclaration.isThisAliased(true)) {
+      if (functionDeclaration != null && functionDeclaration.isThisAliased(true)
+              && functionDeclaration.getFun() != constructorFun) {
         ALIAS_THIS_CODE_GENERATOR.generate(out, false);
       }
     }
@@ -2214,6 +2321,22 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
   }
 
+  private static boolean mayNotBeNull(Expr firstArg) {
+    AstNode parentNode = firstArg.getParentNode();
+    return parentNode instanceof DotExpr && ((DotExpr) parentNode).getArg() == firstArg
+            || parentNode instanceof ArrayIndexExpr && ((ArrayIndexExpr) parentNode).getArray() == firstArg
+            || parentNode instanceof ApplyExpr && ((ApplyExpr) parentNode).getFun() == firstArg;
+  }
+
+  @Override
+  boolean convertToFunctionCall(InfixOpExpr expr) {
+    return !(isFeatureEnabled(SIMPLIFIED_AS_EXPRESSIONS)
+            && expr instanceof AsExpr
+            && expr.getArg2() instanceof IdeExpr
+            && expr.getParentNode() instanceof ParenthesizedExpr
+            && mayNotBeNull((Expr) expr.getParentNode()));
+  }
+
   @Override
   public void visitParameters(Parameters parameters) throws IOException {
     if (parameters.getHead().getOptTypeRelation() != null && parameters.getTail() == null) {
@@ -2381,7 +2504,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   : memberDeclaration;
           ExpressionType memberType = memberTypeHolder == null || memberTypeHolder.getType() == null ? null
                   : memberTypeHolder.getType().getEvalType();
-          primaryDeclaration.getIde().getScope().getCompiler().getLog().warning(
+          getCompiler().getLog().warning(
                   indexExpr.getSymbol(),
                   String.format("A declaration of member '%s' of type '%s' was found, assuming the untyped square-brackets access is not necessary.",
                           memberDeclaration.getName(), memberType));
@@ -2501,8 +2624,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return String.format("Config<%s>", targetClass);
   }
 
-  private static boolean rewriteThis(Ide ide) {
-    if (ide.isThis() && ide.isRewriteThis()) {
+  private boolean rewriteThis(Ide ide) {
+    // rewrite to this$ if either local flag on ide is set OR we are in constructor-this-rewrite-mode
+    if (ide.isThis() && (constructorFun != null || ide.isRewriteThis())) {
       // starting from current scope, look for enclosing non-arrow/non-class-member function:
       Scope scope = ide.getScope();
       FunctionExpr functionExpr = scope.getFunctionExpr();
@@ -2510,10 +2634,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
               (functionExpr.getFunctionDeclaration() == null ||
                       !functionExpr.getFunctionDeclaration().isClassMember())) {
         if (!functionExpr.rewriteToArrowFunction()) {
-          return true;
+          return ide.isRewriteThis();
         }
         scope = scope.getParentScope();
         functionExpr = scope.getFunctionExpr();
+      }
+      // if in constructor-this-rewrite-mode...
+      if (constructorFun != null) {
+        // ...did we reach the constructor function? If so, rewrite to this$!
+        return functionExpr == constructorFun;
       }
     }
     return false;
@@ -2556,7 +2685,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
                   // some (base) classes simply reuse their super class as their config type :(
                   || configClassDeclaration.equals(classDeclaration.getSuperTypeDeclaration()))) {
             TypeRelation configParameterType = classDeclaration.getConstructorConfigParameterType();
-            classDeclaration.getIde().getScope().getCompiler().getLog().warning(configParameterType.getSymbol(),
+            getCompiler().getLog().warning(configParameterType.getSymbol(),
                     String.format("Class extends ext.Base, has 'config' constructor parameter, but its type '%s' is not a valid Config type for this class. " +
                                     "Still generating a TypeScript Config class, but please fix this.",
                             configParameterType.getType().getIde().getQualifiedNameStr()));
@@ -2612,12 +2741,19 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     }
     Directive firstDirective = directives.get(0);
     out.writeSymbolWhitespace(firstDirective.getSymbol());
-    String uniqueName = "";
-    if (staticCodeCounter > 0) {
-      uniqueName = String.valueOf(staticCodeCounter);
+    boolean generateStaticBlocks = isFeatureEnabled(STATIC_BLOCKS);
+    if (generateStaticBlocks) {
+      out.writeToken("static");
+    } else {
+      // simulate static blocks by declaring a unique #private static field with an immediately-evaluating
+      // arrow function expression:
+      String uniqueName = "";
+      if (staticCodeCounter > 0) {
+        uniqueName = String.valueOf(staticCodeCounter);
+      }
+      ++staticCodeCounter;
+      out.writeToken(String.format("static #static%s = (() =>", uniqueName));
     }
-    ++staticCodeCounter;
-    out.writeToken(String.format("static #static%s = (() =>", uniqueName));
 
     // is static code already wrapped in a block?
     if (directives.size() == 1 && firstDirective instanceof BlockStatement) {
@@ -2631,7 +2767,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       }
       out.writeToken("\n  }");
     }
-    out.writeToken(")();");
+    if (!generateStaticBlocks) {
+      out.writeToken(")();");
+    }
   }
 
   @Override

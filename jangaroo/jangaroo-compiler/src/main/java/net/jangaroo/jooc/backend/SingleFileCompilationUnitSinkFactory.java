@@ -96,7 +96,6 @@ public class SingleFileCompilationUnitSinkFactory extends AbstractCompilationUni
             //noinspection TryFinallyCanBeTryWithResources
             try {
               out.setOptions(getOptions());
-              compilationUnit.visit(new TransitiveAstVisitor(new EmbeddedAssetResolver(compilationUnit, compilationUnitRegistry)));
               compilationUnit.visit(Jooc.OUTPUT_FILE_SUFFIX.equals(suffix) ? new JsCodeGenerator(out, compilationUnitModelResolver, new JsModuleResolver(compilationUnitModelResolver)) : new TypeScriptCodeGenerator(new TypeScriptModuleResolver(compilationUnitModelResolver), out, compilationUnitModelResolver));
               if (options.isGenerateSourceMaps()) {
                 codeSuffix = generateSourceMap(out, outFile);

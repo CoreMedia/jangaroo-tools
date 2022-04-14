@@ -29,6 +29,7 @@ public class CorrectDeclarationArray {
   }
   public function make():void {
     var x:Array;
+    [ArrayElementType("String")]
     var x:Array = [];
     var x:Array = getArray();
     var x:Array = getSomething();

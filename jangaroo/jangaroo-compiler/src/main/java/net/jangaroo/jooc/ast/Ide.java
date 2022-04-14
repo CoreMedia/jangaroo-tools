@@ -272,14 +272,7 @@ public class Ide extends NodeImplBase {
       }
       //todo check whether super method exists and is non-static
     }
-    if (isBoundMethodCandidate(exprParent, parentExpr)) {
-      IdeDeclaration memberDeclaration = getMemberDeclaration();
-      // check candidates for instance methods, accessed as function:
-      if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
-        // check and handle instance methods declared in same file, accessed as function:
-        setBound(true);
-      }
-    }
+    bindIfNeeded(exprParent, parentExpr, getMemberDeclaration());
     if (scope != null) {
       usageInExpr(exprParent);
       if (!isThis() && !isQualified()) {
@@ -291,6 +284,16 @@ public class Ide extends NodeImplBase {
                     && !(exprParent instanceof ArrayIndexExpr));
           }
         }
+      }
+    }
+  }
+
+  void bindIfNeeded(AstNode exprParent, Expr parentExpr, IdeDeclaration memberDeclaration) {
+    if (isBoundMethodCandidate(exprParent, parentExpr)) {
+      // check candidates for instance methods, accessed as function:
+      if (memberDeclaration != null && memberDeclaration.isMethod() && !((FunctionDeclaration) memberDeclaration).isGetterOrSetter() && !memberDeclaration.isStatic()) {
+        // check and handle instance methods declared in same file, accessed as function:
+        setBound(true);
       }
     }
   }

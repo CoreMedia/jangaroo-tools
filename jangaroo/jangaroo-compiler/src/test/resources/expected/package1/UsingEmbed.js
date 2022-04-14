@@ -7,14 +7,14 @@
 [SomeRuntimeAnnotation(foo="bar")]*/
 Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*public class UsingEmbed {
 
-  [Embed(source="package1/UsingEmbed.as")]
+  [Embed(source="first-text.txt", mimeType="application/octet-stream")]
   public var someText:Class;
 
-  [Embed(source="package1/Interface.as")]
-  private static*/ var anotherText$static/*:Class*/=function(){return new String($resource_1)};/*
+  [Embed(source="second_text.csv", mimeType="application/octet-stream")]
+  private static*/ var anotherText$static/*:Class*/=null;/*
 
-  [Embed(source="package1/jooley.png")]
-  private static*/ var jooley$static/*:Class*/=function(){return flash.display.Bitmap.fromImg($resource_2)};/*
+  [Embed(source="jooley.png")]
+  private static*/ var jooley$static/*:Class*/=null;/*
 
   [SomeRuntimeAnnotation]
   public var annotated1;
@@ -109,12 +109,12 @@ Ext.define("package1.UsingEmbed", function(UsingEmbed) {/*public class UsingEmbe
           ]
         ]
       },
-      someText: function(){return new String($resource_0)},
       annotated1: undefined,
       annotated2: annotated2,
       annotated3: annotated3,
       annotated4: annotated4,
       annotated5: annotated5,
-      uses: ["flash.display.Bitmap"]
+      statics: {someText: null},
+      uses: ["joo.flash.Embed"]
     };
 });

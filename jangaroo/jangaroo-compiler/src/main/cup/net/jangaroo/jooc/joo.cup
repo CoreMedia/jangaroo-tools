@@ -328,7 +328,7 @@ compilationUnitDeclaration ::=
 optClassDeclarations ::=
     {: RESULT = new ArrayList(); :}
   | optDirectives:ds classDeclaration:cd optClassDeclarations:cds
-    {: RESULT = cds; RESULT.add(0,cd); :}
+    {: RESULT = cds; cd.setDirectives(ds); RESULT.add(0,cd); :}
   ;
 
 constOrVar ::=
@@ -585,7 +585,7 @@ implements ::=
 lvalue ::=
     qualifiedIde:ide
     {: RESULT = new IdeExpr(ide); :}
-  | modifier:namespace NAMESPACESEP:sep IDE:ide
+  | IDE:namespace NAMESPACESEP:sep IDE:ide
     {: RESULT = new IdeExpr(new NamespacedIde(namespace, sep, ide)); :}
   | THIS:s DOT:d namespacedIde:ide
     {: RESULT = IdeExpr.fromPrefix(s,d,ide); :}

@@ -129,6 +129,11 @@ public class VariableDeclaration extends TypedIdeDeclaration {
   }
 
   @Override
+  public boolean isStatic() {
+    return super.isStatic() || getAnnotation(Jooc.EMBED_ANNOTATION_NAME) != null;
+  }
+
+  @Override
   public boolean isWritable() {
     return !isConst();
   }

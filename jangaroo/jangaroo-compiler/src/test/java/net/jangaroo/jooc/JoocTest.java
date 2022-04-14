@@ -13,6 +13,9 @@ import java.net.URISyntaxException;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
 
 public class JoocTest extends AbstractJoocTest {
 
@@ -149,11 +152,27 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testStaticAndNonStatic() throws Exception {
     assertCompilationResult("package1/StaticAndNonStatic");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptTargetSourceFormatFeatures(STATIC_BLOCKS);
+    try {
+      internalAssertCompilationResult("package1/StaticAndNonStatic", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
+    }
   }
 
   @Test
   public void testTestTypeCast() throws Exception {
     assertCompilationResult("package1/TestTypeCast");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_AS_EXPRESSIONS);
+    try {
+      internalAssertCompilationResult("package1/TestTypeCast", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
+    }
   }
 
   @Test
@@ -213,6 +232,14 @@ public class JoocTest extends AbstractJoocTest {
   @Test
   public void testSuperCallParameters() throws Exception {
     assertCompilationResult("package1/SuperCallParameters");
+    config.setMigrateToTypeScript(true);
+    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL);
+    try {
+      internalAssertCompilationResult("package1/SuperCallParameters", ".as", "/expected2");
+    } finally {
+      config.setMigrateToTypeScript(false);
+      config.setTypeScriptTargetSourceFormatFeatures(0L);
+    }
     assertApiCompilationResult("package1/SuperCallParameters");
   }
 
@@ -265,35 +292,40 @@ public class JoocTest extends AbstractJoocTest {
   public void testPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/somePackageGlobal");
   }
-  
+
   @Test
   public void testInitPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/UsingSomePackageGlobal");
   }
-  
+
   @Test
   public void testUninitializedPackageGlobalVar() throws Exception {
     assertCompilationResult("package1/uninitializedPackageGlobal");
   }
-  
+
   @Test
   public void testPackageGlobalConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalConst");
   }
-  
+
   @Test
   public void testPackageGlobalLazyConst() throws Exception {
     assertCompilationResult("package1/somePackageGlobalLazyConst");
   }
-  
+
   @Test
   public void testPackageGlobalFun() throws Exception {
     assertCompilationResult("package1/somePackageGlobalFun");
   }
-  
+
   @Test
   public void testArrayForIn() throws Exception {
     assertCompilationResult("package1/TestArrayForIn");
+  }
+
+  @Test
+  public void testAutomaticSemicolonInsertion() throws Exception {
+    assertCompilationResult("package1/AutomaticSemicolonInsertion");
   }
 
   @Test
@@ -306,12 +338,12 @@ public class JoocTest extends AbstractJoocTest {
     config.setExcludeClassByDefault(true);
     assertApiCompilationResult("package1/somePackageGlobal");
   }
-  
+
   @Test
   public void testPackageGlobalFunApi() throws Exception {
     assertApiCompilationResult("package1/somePackageGlobalFun");
   }
-  
+
   @Test
   public void testNativeApi() throws Exception {
     String relativeClassFileName = "package1/SomeNativeClass";

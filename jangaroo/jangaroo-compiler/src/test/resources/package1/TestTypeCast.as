@@ -14,6 +14,7 @@ public class TestTypeCast {
     var notB :Boolean = !(p is TestTypeCast);
     var castObjectToInterface: TestInterface = TestInterface({ foo: "FOO" });
     var castObjectToNonExt: SomeClass = SomeClass({ bar: "BAR" });
+    var useAsWithDotExpr: String = (p as TestTypeCast).toString();
     return p as TestTypeCast;
   }
 

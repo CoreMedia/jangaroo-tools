@@ -28,6 +28,7 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
 
   private File apiOutputDirectory;
   private boolean migrateToTypeScript = false;
+  private long typeScriptTargetSourceFormatFeatures = 0L;
   private String extNamespace = "";
   private String extSassNamespace = "";
   private String npmPackageName;
@@ -45,7 +46,6 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   private File reportOutputDirectory;
 
   private boolean findUnusedDependencies;
-  private boolean sourcesAreTests;
   private String dependencyReportOutputFile;
 
   public SemicolonInsertionMode getSemicolonInsertionMode() {
@@ -116,6 +116,11 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
   }
 
   @Override
+  public long getTypeScriptTargetSourceFormatFeatures() {
+    return typeScriptTargetSourceFormatFeatures;
+  }
+
+  @Override
   public String getExtNamespace() {
     return extNamespace;
   }
@@ -135,22 +140,37 @@ public class JoocConfiguration extends FileLocations implements JoocOptions, Par
     return useEcmaParameterInitializerSemantics;
   }
 
-  @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript (experimental)")
+  @Option(name="-ts", aliases = "--migrate-to-typescript", usage ="Migrate ActionScript/MXML code to TypeScript")
   public void setMigrateToTypeScript(boolean migrateToTypeScript) {
     this.migrateToTypeScript = migrateToTypeScript;
   }
 
-  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  @Option(name="-tsf", aliases="--typescript-target-source-format-features", usage =
+          "Sets the target source code format features for migrating ActionScript/MXML code to TypeScript, " +
+                  "implicitly activating migrate-to-typescript when the value is not 0 (zero). " +
+                  "The value is a combination (addition) of the following feature flags:\n"
+                  + "1 - simplified this-usage-before-super-constructor-call syntax\n"
+                  + "2 - simplify (as(foo, Foo)).bar to (foo as Foo).bar, i.e. leave out runtime check that would have caused NPE anyway\n"
+                  + "4 - generate static blocks (requires TypeScript 4.4, to correctly accept forward-references, 4.7)\n"
+  )
+  public void setTypeScriptTargetSourceFormatFeatures(long typeScriptTargetSourceFormatFeatures) {
+    this.typeScriptTargetSourceFormatFeatures = typeScriptTargetSourceFormatFeatures;
+    if (typeScriptTargetSourceFormatFeatures != 0) {
+      migrateToTypeScript = true;
+    }
+  }
+
+  @Option(name="--extNamespace", usage ="The Ext namespace is stripped from the relative path to the source root")
   public void setExtNamespace(String extNamespace) {
     this.extNamespace = extNamespace;
   }
 
-  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root (experimental)")
+  @Option(name="--extSassNamespace", usage ="The Ext namespace is stripped from the relative path to the source root")
   public void setExtSassNamespace(String extSassNamespace) {
     this.extSassNamespace = extSassNamespace;
   }
 
-  @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics (experimental)")
+  @Option(name="-epi", aliases = "--ecma-parameter-initializers", usage ="Use ECMAScript parameter initializer semantics")
   public void setUseEcmaParameterInitializerSemantics(boolean useEcmaParameterInitializerSemantics) {
     this.useEcmaParameterInitializerSemantics = useEcmaParameterInitializerSemantics;
   }

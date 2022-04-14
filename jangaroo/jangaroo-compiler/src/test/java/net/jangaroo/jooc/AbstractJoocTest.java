@@ -151,7 +151,7 @@ public class AbstractJoocTest {
     }
   }
 
-  private void internalAssertCompilationResult(String relativeClassFileName, String extension, String expectedPath) throws URISyntaxException, IOException {
+  void internalAssertCompilationResult(String relativeClassFileName, String extension, String expectedPath) throws URISyntaxException, IOException {
     compile(extension, relativeClassFileName);
     assertFalse("Compile errors: test marked as failure.", jooc.getLog().hasErrors());
     verifyClassOutput(relativeClassFileName, expectedPath);

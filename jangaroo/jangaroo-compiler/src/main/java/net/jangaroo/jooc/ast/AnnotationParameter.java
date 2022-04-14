@@ -76,9 +76,10 @@ public class AnnotationParameter extends NodeImplBase {
       }
       JooSymbol valueSymbol = value.getSymbol();
       String metaName = parentAnnotation.getMetaName();
-      if (Jooc.EMBED_ANNOTATION_NAME.equals(metaName) && getOptName() != null && Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(getOptName().getName())) {
-        if (valueSymbol.sym != sym.STRING_LITERAL) {
-          throw new CompilerError(valueSymbol, "The source parameter of an [Embed] annotation must be a string literal");
+      if (Jooc.EMBED_ANNOTATION_NAME.equals(metaName) && getOptName() != null) {
+        if ((Jooc.EMBED_ANNOTATION_SOURCE_PROPERTY.equals(getOptName().getName()) || Jooc.EMBED_ANNOTATION_MIME_TYPE_PROPERTY.equals(getOptName().getName()))
+                && valueSymbol.sym != sym.STRING_LITERAL) {
+          throw new CompilerError(valueSymbol, "The " + getOptName().getName() + " parameter of an [Embed] annotation must be a string literal");
         }
       } else if (Jooc.RESOURCE_BUNDLE_ANNOTATION_NAME.equals(metaName) && getOptName() == null) {
         if (valueSymbol.sym != sym.STRING_LITERAL) {

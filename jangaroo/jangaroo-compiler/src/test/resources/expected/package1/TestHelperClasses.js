@@ -1,4 +1,6 @@
-/*package package1 {*/
+/*package package1 {
+
+import package1.TestHelperClasses;*/
 
 Ext.define("package1.TestHelperClasses", function(TestHelperClasses) {/*public class TestHelperClasses {
 

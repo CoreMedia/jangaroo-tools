@@ -18,7 +18,7 @@ class TestTypeCast {
     var notB :boolean = !is(p,  TestTypeCast);
     var castObjectToInterface = Object.setPrototypeOf({ foo: "FOO" }, mixin(class {}, TestInterface).prototype);
     var castObjectToNonExt = Object.setPrototypeOf({ bar: "BAR" }, SomeClass.prototype);
-    var useAsWithDotExpr = as(p,  TestTypeCast).toString();
+    var useAsWithDotExpr = (p as TestTypeCast).toString();
     return as( p,  TestTypeCast);
   }
 

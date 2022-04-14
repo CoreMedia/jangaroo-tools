@@ -3,9 +3,9 @@ import ManyConstructorParameters from "./ManyConstructorParameters";
 
 class SuperCallParameters extends ManyConstructorParameters {
   constructor() {
-    var foo: boolean;
-    super(...(():[any,any,any,any,any,any]=>{
-    foo = this.isEmpty("");
+    // @ts-expect-error Ext JS semantics
+    const this$ = this;
+    const foo = this$.isEmpty("");
     var bar = "BAR";
     function innerUsingThis(): boolean {
       return this$.isEmpty("");
@@ -13,7 +13,7 @@ class SuperCallParameters extends ManyConstructorParameters {
     function innerDynamic(): boolean {
       return this.isEmpty("");
     }
-    return ["bar", -1, -4.2, true, {}, []];})());const this$=this;
+    super("bar", -1, -4.2, true, {}, []);
     if (foo) {
       super.isEmpty("FOO");
     }
