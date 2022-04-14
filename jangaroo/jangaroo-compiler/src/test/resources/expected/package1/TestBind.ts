@@ -24,6 +24,7 @@ class TestBind {
   constructor(state : string) {
     this.#state = state;
     var bound:AnyFunction =bind( this,this.#getStatePrivate);
+    var bound2:AnyFunction =bind( (this),(this).getState);
   }
 
   #testCoerce(shouldBeString: any):void {}

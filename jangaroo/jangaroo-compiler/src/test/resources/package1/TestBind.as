@@ -22,6 +22,7 @@ public class TestBind {
   public function TestBind(state : String) {
     this.state = state;
     var bound:Function = getStatePrivate;
+    var bound2:Function = (this).getState;
   }
 
   [Parameter("shouldBeString", coerceTo="String")]

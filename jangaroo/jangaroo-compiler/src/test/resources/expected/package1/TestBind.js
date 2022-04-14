@@ -22,6 +22,7 @@ Ext.define("package1.TestBind", function(TestBind) {/*public class TestBind {
   public*/ function TestBind$(state/* : String*/) {this.super$JrNo();
     this.state$JrNo = state;
     var bound/*:Function*/ =AS3.bind( this,"getStatePrivate$JrNo");
+    var bound2/*:Function*/ =AS3.bind( (this),"getState");
   }/*
 
   [Parameter("shouldBeString", coerceTo="String")]
