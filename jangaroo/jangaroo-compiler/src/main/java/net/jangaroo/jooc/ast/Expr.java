@@ -30,8 +30,8 @@ public abstract class Expr extends NodeImplBase {
     return type;
   }
 
-  public boolean isOfAS3Type(AS3Type as3Type) {
-    return type != null && type.getAS3Type() == as3Type;
+  public AS3Type getAS3Type() {
+    return type == null ? null : type.getAS3Type();
   }
 
   public void setType(final ExpressionType type) {//TODO compute type in more subclasses during analyze()

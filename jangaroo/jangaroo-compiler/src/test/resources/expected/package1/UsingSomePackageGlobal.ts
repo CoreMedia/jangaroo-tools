@@ -9,7 +9,7 @@ class UsingSomePackageGlobal {
 
   static main():void {
     somePackageGlobal._ = new SomeOtherClass();
-    var local:any = somePackageGlobal._ || {};
+    var local = somePackageGlobal._ || {};
     foo.somethingElse = null;
     var local2:any = foo.somethingElse || {};
   }

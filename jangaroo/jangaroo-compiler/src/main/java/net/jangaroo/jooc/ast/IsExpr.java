@@ -26,16 +26,8 @@ import java.io.IOException;
  */
 public class IsExpr extends InfixOpExpr {
 
-  private Scope scope;
-
   public IsExpr(Expr e1, JooSymbol symIs, Expr e2) {
     super(e1, symIs, e2);
-  }
-
-  @Override
-  public void scope(Scope scope) {
-    super.scope(scope);
-    this.scope = scope;
   }
 
   @Override

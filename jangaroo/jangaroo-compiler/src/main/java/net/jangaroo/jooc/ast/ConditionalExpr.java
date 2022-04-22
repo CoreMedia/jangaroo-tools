@@ -17,6 +17,7 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.types.ExpressionType;
 
 import java.io.IOException;
 import java.util.List;
@@ -62,6 +63,16 @@ public class ConditionalExpr extends Expr {
     getCond().analyze(this);
     getIfTrue().analyze(this);
     getIfFalse().analyze(this);
+    ExpressionType type1 = getIfTrue().getType();
+    ExpressionType type2 = getIfFalse().getType();
+    if (type1 != null && type2 != null) {
+      // use the more general type:
+      if (type1.isAssignableTo(type2)) {
+        setType(type2);
+      } else if (type2.isAssignableTo(type1)) {
+        setType(type1);
+      }
+    }
   }
 
   public JooSymbol getSymbol() {

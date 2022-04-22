@@ -18,9 +18,12 @@ package net.jangaroo.jooc.ast;
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,6 +52,7 @@ public class BinaryOpExpr extends OpExpr {
 
   @Override
   public void scope(final Scope scope) {
+    super.scope(scope);
     getArg1().scope(scope);
     getArg2().scope(scope);
   }
@@ -57,13 +61,54 @@ public class BinaryOpExpr extends OpExpr {
     super.analyze(parentNode);
     getArg1().analyze(this);
     getArg2().analyze(this);
-    if (getOp().sym == sym.PLUS) {
-      if (getArg1().isOfAS3Type(AS3Type.STRING)) {
-        setType(getArg1().getType());
-      } else if (getArg2().isOfAS3Type(AS3Type.STRING)) {
-        setType(getArg2().getType());
+    setType(computeResultingType());
+  }
+
+  private ExpressionType computeResultingType() {
+    AS3Type as3Type = getResultingAs3Type();
+    if (as3Type != null) {
+      return scope.getExpressionType(as3Type);
+    } else if (logicalOperators.contains(getOp().sym)) {
+      ExpressionType type1 = getArg1().getType();
+      ExpressionType type2 = getArg2().getType();
+      if (type1 != null && type2 != null) {
+        if (type1.isAssignableTo(type2)) {
+          return type2;
+        } else if (type2.isAssignableTo(type1)) {
+          return type1;
+        }
       }
     }
+    return null;
+  }
+
+  private AS3Type getResultingAs3Type() {
+    int operator = getOp().sym;
+    // check overloaded '+' first:
+    if (operator == sym.PLUS && !(isNumeric(getArg1().getAS3Type()) && isNumeric(getArg2().getAS3Type()))) {
+      return AS3Type.STRING;
+    } else if (numericOperators.contains(operator)) {
+      return AS3Type.NUMBER;
+    } else if (comparisonOperators.contains(operator)) {
+      return AS3Type.BOOLEAN;
+    }
+    return null;
+  }
+
+  private static final Collection<Integer> numericOperators =
+          Arrays.asList(sym.PLUS, sym.MINUS, sym.MUL, sym.DIV, sym.MOD,
+                  sym.AND, sym.OR, sym.LSHIFT, sym.RSHIFT, sym.URSHIFT);
+
+  private static final Collection<Integer> comparisonOperators =
+          Arrays.asList(sym.EQEQ, sym.EQEQEQ, sym.NOTEQ, sym.NOTEQEQ, sym.LT, sym.LTEQ, sym.GT, sym.GTEQ);
+
+  private static final Collection<Integer> logicalOperators =
+          Arrays.asList(sym.OROR, sym.ANDAND);
+
+  private static boolean isNumeric(AS3Type as3Type) {
+    return as3Type == AS3Type.NUMBER || as3Type == AS3Type.INT || as3Type == AS3Type.UINT
+            || as3Type == AS3Type.BOOLEAN // booleans true/false are converted to 1 / 0
+            || as3Type == AS3Type.VOID; // undefined is converted to NaN
   }
 
   public JooSymbol getSymbol() {

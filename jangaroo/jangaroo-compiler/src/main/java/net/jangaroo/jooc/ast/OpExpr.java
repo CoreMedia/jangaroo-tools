@@ -16,12 +16,14 @@
 package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
+import net.jangaroo.jooc.Scope;
 
 /**
  * @author Andreas Gawecki
  */
 public abstract class OpExpr extends Expr {
   private JooSymbol op;
+  Scope scope;
 
   protected OpExpr(JooSymbol op) {
     this.op = op;
@@ -29,5 +31,10 @@ public abstract class OpExpr extends Expr {
 
   public JooSymbol getOp() {
     return op;
+  }
+
+  @Override
+  public void scope(Scope scope) {
+    this.scope = scope;
   }
 }

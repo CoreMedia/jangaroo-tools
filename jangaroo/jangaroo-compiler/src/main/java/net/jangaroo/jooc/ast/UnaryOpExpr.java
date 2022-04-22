@@ -18,7 +18,11 @@ package net.jangaroo.jooc.ast;
 
 import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Scope;
+import net.jangaroo.jooc.sym;
+import net.jangaroo.utils.AS3Type;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,13 +44,24 @@ public abstract class UnaryOpExpr extends OpExpr {
 
   @Override
   public void scope(final Scope scope) {
+    super.scope(scope);
     getArg().scope(scope);
   }
 
   public void analyze(AstNode parentNode) {
     super.analyze(parentNode);
     getArg().analyze(this);
+    int operator = getOp().sym;
+    if (numericOperators.contains(operator)) {
+      setType(scope.getExpressionType(AS3Type.NUMBER)); // even ++uint becomes type Number!
+    } else if (operator == sym.NOT) {
+      setType(scope.getExpressionType(AS3Type.BOOLEAN));
+    }
   }
+
+  private static final Collection<Integer> numericOperators =
+          Arrays.asList(sym.PREFIX_PLUSPLUS, sym.PREFIX_PLUS, sym.PREFIX_MINUS, sym.PREFIX_MINUSMINUS,
+                  sym.PLUSPLUS, sym.MINUSMINUS, sym.PLUS, sym.MINUS);
 
   public boolean isRuntimeConstant() {
     return getArg().isRuntimeConstant();

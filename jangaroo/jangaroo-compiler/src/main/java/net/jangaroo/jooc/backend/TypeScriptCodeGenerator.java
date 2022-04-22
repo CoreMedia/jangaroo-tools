@@ -1874,7 +1874,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       AstNode statement = ((SemicolonTerminatedStatement) firstStatement).getOptStatement();
       if (statement instanceof Expr) {
         Expr expr = (Expr) statement;
-        if (expr.isOfAS3Type(AS3Type.VOID)) {
+        if (expr.getAS3Type() == AS3Type.VOID) {
           return expr;
         }
       }
@@ -2021,7 +2021,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             args.getExpr() != null &&
             args.getExpr().getTail() == null &&
             isApiCall(applyExpr, NET_JANGAROO_EXT_EXML, AS_STRING, true) &&
-            args.getExpr().getHead().isOfAS3Type(AS3Type.STRING)) {
+            args.getExpr().getHead().getAS3Type() == AS3Type.STRING) {
       // suppress obsolete net.jangaroo.ext.Exml.asString(<someString>):
       args.getExpr().getHead().visit(this);
     } else if (args != null) {
