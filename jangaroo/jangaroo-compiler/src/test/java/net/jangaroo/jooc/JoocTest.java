@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SAFE_COERCIONS;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
@@ -166,7 +167,7 @@ public class JoocTest extends AbstractJoocTest {
   public void testTestTypeCast() throws Exception {
     assertCompilationResult("package1/TestTypeCast");
     config.setMigrateToTypeScript(true);
-    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_AS_EXPRESSIONS);
+    config.setTypeScriptTargetSourceFormatFeatures(SIMPLIFIED_AS_EXPRESSIONS | SAFE_COERCIONS);
     try {
       internalAssertCompilationResult("package1/TestTypeCast", ".as", "/expected2");
     } finally {

@@ -248,6 +248,18 @@ public class JsCodeGenerator extends CodeGeneratorBase {
   }
 
   @Override
+  void visitExprWithCoercion(Expr expr) throws IOException {
+    out.writeSymbolWhitespace(expr.getSymbol());
+    AS3Type coerceTo = expr.getCoerceTo();
+    String coerceFunctionName =
+            coerceTo == AS3Type.INT || coerceTo == AS3Type.UINT ? "AS3." + coerceTo.name + "_" :
+                    coerceTo.name;
+    out.write(coerceFunctionName + "(");
+    expr.visit(this);
+    out.write(")");
+  }
+
+  @Override
   public void visitCompilationUnit(CompilationUnit compilationUnit) throws IOException {
     IdeDeclaration primaryDeclaration = compilationUnit.getPrimaryDeclaration();
     boolean isClassDeclaration = primaryDeclaration instanceof ClassDeclaration;

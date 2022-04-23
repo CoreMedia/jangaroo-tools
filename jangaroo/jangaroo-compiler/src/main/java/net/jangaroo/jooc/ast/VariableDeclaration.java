@@ -20,6 +20,7 @@ import net.jangaroo.jooc.JooSymbol;
 import net.jangaroo.jooc.Jooc;
 import net.jangaroo.jooc.Scope;
 import net.jangaroo.jooc.sym;
+import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.utils.AS3Type;
 
 import java.io.IOException;
@@ -162,6 +163,7 @@ public class VariableDeclaration extends TypedIdeDeclaration {
     super.analyze(parentNode);
     if (getOptInitializer() != null) {
       getOptInitializer().analyze(this);
+      getCompilationUnit().addDependency(getOptInitializer().getValue().applyCoercionIfNeeded(getType()), false);
     } else if (isConst()
       && getIde().getScope().getCompilationUnit().getPrimaryDeclaration().getAnnotation(Jooc.NATIVE_ANNOTATION_NAME) == null) {
       JangarooParser.warning(getOptSymConstOrVar(), "constant should be initialized");

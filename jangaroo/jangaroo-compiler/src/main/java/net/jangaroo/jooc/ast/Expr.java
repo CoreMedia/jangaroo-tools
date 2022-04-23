@@ -25,6 +25,7 @@ import net.jangaroo.utils.AS3Type;
 public abstract class Expr extends NodeImplBase {
 
   private ExpressionType type;
+  private AS3Type coerceTo;
 
   public ExpressionType getType() {
     return type;
@@ -36,6 +37,20 @@ public abstract class Expr extends NodeImplBase {
 
   public void setType(final ExpressionType type) {//TODO compute type in more subclasses during analyze()
     this.type = type;
+  }
+
+  CompilationUnit applyCoercionIfNeeded(ExpressionType targetType) {
+    if (targetType != null
+            && !isCompileTimeConstant() // Assume devs know what they're doing when using compile-time constants:
+            && targetType.needsCoercion(getType())) {
+      coerceTo = targetType.getAS3Type();
+      return targetType.getDeclaration().getCompilationUnit();
+    }
+    return null;
+  }
+
+  public AS3Type getCoerceTo() {
+    return coerceTo;
   }
 
   public boolean isRuntimeConstant() {

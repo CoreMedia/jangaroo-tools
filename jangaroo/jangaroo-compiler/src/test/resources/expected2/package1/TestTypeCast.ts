@@ -14,6 +14,7 @@ class TestTypeCast {
     var r = 99.7;
     var n = Number("99.8");
     var i = int(r);
+    var u = uint(n); // coercion from Number to uint
     var b =is( p,  TestTypeCast);
     var notB = !is(p,  TestTypeCast);
     var castObjectToInterface = Object.setPrototypeOf({ foo: "FOO" }, mixin(class {}, TestInterface).prototype);

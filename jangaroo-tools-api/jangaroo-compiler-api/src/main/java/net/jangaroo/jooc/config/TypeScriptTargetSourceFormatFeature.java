@@ -47,4 +47,6 @@ public interface TypeScriptTargetSourceFormatFeature {
    * contains forward references, you should only switch it on when targeting TypeScript 4.7+.
    */
   long STATIC_BLOCKS = 4L;
+
+  long SAFE_COERCIONS = 8L;
 }

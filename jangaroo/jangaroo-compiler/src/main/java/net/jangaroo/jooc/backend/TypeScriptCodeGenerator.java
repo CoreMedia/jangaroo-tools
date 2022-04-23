@@ -87,6 +87,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SAFE_COERCIONS;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.STATIC_BLOCKS;
@@ -1315,16 +1316,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // TypeScript supports type inference! And since the rhs might be changed to a config type,
         // leaving TypeScript to chose the same type leads to better results than to declaring it again!
         // So leave out type declaration if it just re-declares the exact type of the initializer:
-        if (initializer == null
-                || isAmbientOrInterface(compilationUnit)
-                || initializer.getValue().getType() == null
-                || initializer.getValue() instanceof ObjectLiteral   // do not suppress type for object literals
-                || !initializer.getValue().getType().equals(variableDeclaration.getType())) {
+        if (initializer == null || keepExplicitTypeRelation(variableDeclaration.getType(), initializer.getValue())) {
           typeRelation.visit(this);
         }
       }
       visitIfNotNull(initializer);
     }
+  }
+
+  private boolean keepExplicitTypeRelation(ExpressionType declaredType, Expr initializerValue) {
+    return isAmbientOrInterface(compilationUnit)
+            || initializerValue.getType() == null
+            || initializerValue instanceof ObjectLiteral   // do not suppress type for object literals
+            || (!isFeatureEnabled(SAFE_COERCIONS) || initializerValue.getCoerceTo() == null)  // coercion will take care of type equality!
+            && !initializerValue.getType().equals(declaredType);
   }
 
   // is it a primary modifiable (var, not const) _or_ [Lazy] variable declaration?
@@ -2335,6 +2340,18 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
             && expr.getArg2() instanceof IdeExpr
             && expr.getParentNode() instanceof ParenthesizedExpr
             && mayNotBeNull((Expr) expr.getParentNode()));
+  }
+
+  @Override
+  void visitExprWithCoercion(Expr expr) throws IOException {
+    if (isFeatureEnabled(SAFE_COERCIONS)) {
+      out.writeSymbolWhitespace(expr.getSymbol());
+      out.write(expr.getCoerceTo().name + "(");
+      expr.visit(this);
+      out.write(")");
+    } else {
+      expr.visit(this);
+    }
   }
 
   @Override

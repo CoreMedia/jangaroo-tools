@@ -101,6 +101,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SAFE_COERCIONS;
 import static net.jangaroo.jooc.mxml.ast.MxmlCompilationUnit.isValidConfigMode;
 
 public abstract class CodeGeneratorBase implements AstVisitor {
@@ -152,7 +153,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public final void visitPostfixOpExpr(PostfixOpExpr postfixOpExpr) throws IOException {
-    postfixOpExpr.getArg().visit(this);
+    visitExpr(postfixOpExpr.getArg());
     out.writeSymbol(postfixOpExpr.getOp());
   }
 
@@ -165,14 +166,14 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitPrefixOpExpr(PrefixOpExpr prefixOpExpr) throws IOException {
     out.writeSymbol(prefixOpExpr.getOp());
-    prefixOpExpr.getArg().visit(this);
+    visitExpr(prefixOpExpr.getArg());
   }
 
   @Override
   public final void visitBinaryOpExpr(BinaryOpExpr binaryOpExpr) throws IOException {
-    binaryOpExpr.getArg1().visit(this);
+    visitExpr(binaryOpExpr.getArg1());
     out.writeSymbol(binaryOpExpr.getOp());
-    binaryOpExpr.getArg2().visit(this);
+    visitExpr(binaryOpExpr.getArg2());
   }
 
   @Override
@@ -182,11 +183,11 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public final void visitConditionalExpr(ConditionalExpr conditionalExpr) throws IOException {
-    conditionalExpr.getCond().visit(this);
+    visitExpr(conditionalExpr.getCond());
     out.writeSymbol(conditionalExpr.getSymQuestion());
-    conditionalExpr.getIfTrue().visit(this);
+    visitExpr(conditionalExpr.getIfTrue());
     out.writeSymbol(conditionalExpr.getSymColon());
-    conditionalExpr.getIfFalse().visit(this);
+    visitExpr(conditionalExpr.getIfFalse());
   }
 
   @Override
@@ -380,7 +381,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
       }
       index.visit(this);
       out.writeToken(":");
-      propertyAssignment.getArg2().visit(this);
+      visitExpr(propertyAssignment.getArg2());
     }
   }
 
@@ -421,8 +422,19 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitInitializer(Initializer initializer) throws IOException {
     out.writeSymbol(initializer.getSymEq());
-    initializer.getValue().visit(this);
+    Expr initializerValue = initializer.getValue();
+    visitExpr(initializerValue);
   }
+
+  void visitExpr(Expr expr) throws IOException {
+    if (expr.getCoerceTo() != null) {
+      visitExprWithCoercion(expr);
+    } else {
+      expr.visit(this);
+    }
+  }
+
+  abstract void visitExprWithCoercion(Expr expr) throws IOException;
 
   @Override
   public void visitObjectField(ObjectField objectField) throws IOException {
@@ -437,7 +449,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   }
 
   protected void visitObjectFieldValue(ObjectField objectField) throws IOException {
-    objectField.getValue().visit(this);
+    visitExpr(objectField.getValue());
   }
 
   protected abstract void handleExmlAppendPrepend(ObjectField objectField, DotExpr exmlAppendOrPrepend) throws IOException;
@@ -583,10 +595,10 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbolWhitespace(lParenSym);
     out.writeToken(builtInIdentifierCode(infixOpExpr.getOp().getText()));
     out.writeSymbol(lParenSym);
-    infixOpExpr.getArg1().visit(this);
+    visitExpr(infixOpExpr.getArg1());
     out.write(',');
     out.writeSymbolWhitespace(infixOpExpr.getOp());
-    infixOpExpr.getArg2().visit(this);
+    visitExpr(infixOpExpr.getArg2());
     out.writeSymbol(rParenSym);
   }
 
@@ -597,7 +609,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitArrayIndexExpr(ArrayIndexExpr arrayIndexExpr) throws IOException {
-    arrayIndexExpr.getArray().visit(this);
+    visitExpr(arrayIndexExpr.getArray());
     arrayIndexExpr.getIndexExpr().visit(this);
   }
 
@@ -631,7 +643,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   @Override
   public void visitApplyExpr(ApplyExpr applyExpr) throws IOException {
-    applyExpr.getFun().visit(this);
+    visitExpr(applyExpr.getFun());
     visitApplyExprArguments(applyExpr);
   }
 
@@ -699,14 +711,14 @@ public abstract class CodeGeneratorBase implements AstVisitor {
             if (type == null || !type.getAS3Type().toString().equals(coerceTo)) {
               coerced = true;
               out.write(coerceTo + "(");
-              argument.visit(this);
+              visitExpr(argument);
               out.write(")");
             }
           }
         }
         if (!coerced && !renderSingleSpreadValue(argument, parameter == null ? null
                         : parameter.getIde().getScope().getExpressionType(parameter))) {
-          argument.visit(this);
+          visitExpr(argument);
         }
         if (isVectorConstructor && arguments.getTail() != null) {
           // The second parameter of a Vector constructor is its 'fixed' property (boolean), which is not supported
@@ -727,7 +739,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
             if (!first) {
               out.write(",");
             }
-            parameterInitializer.getValue().visit(this);
+            visitExpr(parameterInitializer.getValue());
           }
         }
       }
@@ -745,13 +757,13 @@ public abstract class CodeGeneratorBase implements AstVisitor {
 
   void generateTypeAssertion(Expr argument, String type) throws IOException {
     // default: suppress type assertion, only generate argument:
-    argument.visit(this);
+    visitExpr(argument);
   }
 
   @Override
   public void visitNewExpr(NewExpr newExpr) throws IOException {
     out.writeSymbol(newExpr.getSymNew());
-    newExpr.getApplyConstructor().visit(this);
+    visitExpr(newExpr.getApplyConstructor());
   }
 
   @Override
@@ -809,7 +821,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitIfStatement(IfStatement ifStatement) throws IOException {
     out.writeSymbol(ifStatement.getSymKeyword());
-    ifStatement.getCond().visit(this);
+    visitExpr(ifStatement.getCond());
     ifStatement.getIfTrue().visit(this);
     if (ifStatement.getSymElse() != null) {
       out.writeSymbol(ifStatement.getSymElse());
@@ -820,7 +832,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
   @Override
   public void visitCaseStatement(CaseStatement caseStatement) throws IOException {
     out.writeSymbol(caseStatement.getSymKeyword());
-    caseStatement.getExpr().visit(this);
+    visitExpr(caseStatement.getExpr());
     out.writeSymbol(caseStatement.getSymColon());
   }
 
@@ -931,7 +943,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     visitIfNotNull(forInStatement.getDecl());
     visitIfNotNull(forInStatement.getLValue());
     out.writeSymbol(forInStatement.getSymIn());
-    forInStatement.getExpr().visit(this);
+    visitExpr(forInStatement.getExpr());
     out.writeSymbol(forInStatement.getRParen());
     forInStatement.getBody().visit(this);
   }
@@ -961,7 +973,7 @@ public abstract class CodeGeneratorBase implements AstVisitor {
     out.writeSymbol(doStatement.getSymKeyword());
     doStatement.getBody().visit(this);
     out.writeSymbol(doStatement.getSymWhile());
-    doStatement.getOptCond().visit(this);
+    visitExpr(doStatement.getOptCond());
     out.writeSymbol(doStatement.getSymSemicolon());
   }
 

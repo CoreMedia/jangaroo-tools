@@ -153,6 +153,18 @@ public class ExpressionType {
     return currentDeclaration.isAssignableTo((ClassDeclaration) toCheck.getDeclaration());
   }
 
+  public boolean needsCoercion(ExpressionType type) {
+    AS3Type targetAS3Type = this.getAS3Type();
+    // only coerce basic types:
+    if (!(targetAS3Type == AS3Type.NUMBER || targetAS3Type == AS3Type.INT || targetAS3Type == AS3Type.UINT
+            || targetAS3Type == AS3Type.BOOLEAN || targetAS3Type == AS3Type.STRING)) {
+      return false;
+    }
+    // else, compare AS3Types:
+    AS3Type as3Type = type == null ? null : type.getAS3Type();
+    return targetAS3Type != as3Type && !(targetAS3Type == AS3Type.NUMBER && (as3Type == AS3Type.INT || as3Type == AS3Type.UINT));
+  }
+
   @Override
   public boolean equals(Object o) {
     TypeDeclaration declaration = getDeclaration();

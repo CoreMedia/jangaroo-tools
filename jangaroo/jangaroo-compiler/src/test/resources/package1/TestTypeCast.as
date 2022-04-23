@@ -10,6 +10,7 @@ public class TestTypeCast {
     var r :Number = 99.7;
     var n :Number = Number("99.8");
     var i :int = int(r);
+    var u :uint = n; // coercion from Number to uint
     var b :Boolean = p is TestTypeCast;
     var notB :Boolean = !(p is TestTypeCast);
     var castObjectToInterface: TestInterface = TestInterface({ foo: "FOO" });

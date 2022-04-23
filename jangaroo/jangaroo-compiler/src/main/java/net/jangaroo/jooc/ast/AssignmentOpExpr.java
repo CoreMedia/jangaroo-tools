@@ -50,6 +50,7 @@ public class AssignmentOpExpr extends BinaryOpExpr {
         scope.getCompilationUnit().addBuiltInIdentifierUsage("Config");
       }
     }
+    scope.getCompilationUnit().addDependency(getArg2().applyCoercionIfNeeded(lhsType), false);
     setType(lhsType);
   }
 
