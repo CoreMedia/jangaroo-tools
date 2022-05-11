@@ -271,7 +271,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
 
     String projectExtensionFor = getProjectExtensionFor(mavenModule);
     String projectExtensionPoint = getProjectExtensionPoint(mavenModule);
-    String relativePackageFolderName = getPackageFolderName(aPackage.getName(), mavenModule);
+    String relativePackageFolderName = getPackageFolderName(aPackage.getName(), mavenModule).replace(File.separatorChar, '/');
 
     final JangarooConfig jangarooConfig = new JangarooConfig();
     AdditionalPackageJsonEntries additionalJsonEntries = new AdditionalPackageJsonEntries();
