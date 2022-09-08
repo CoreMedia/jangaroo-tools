@@ -396,6 +396,9 @@ public class SenchaUtils {
             targetName = targetName.substring(Type.SWC_PKG_PATH.length());
           }
           File target = new File(targetDir, targetName);
+          if (!target.toPath().normalize().startsWith(targetDir.toPath().normalize())) {
+            throw new IOException("Bad zip entry");
+          }
           if (entry.isDirectory()) {
             FileHelper.ensureDirectory(target);
           } else {
