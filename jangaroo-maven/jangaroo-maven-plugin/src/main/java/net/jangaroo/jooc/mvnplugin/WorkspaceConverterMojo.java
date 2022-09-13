@@ -794,6 +794,7 @@ public class WorkspaceConverterMojo extends AbstractMojo {
   }
 
   private String getReplacedPackageFolderName(String packageFolderName) {
+    packageFolderName = packageFolderName.replace(File.separatorChar, '/');
     for (SearchAndReplace searchAndReplace : resolvedNpmPackageFolderNameReplacers) {
       Matcher matcher = searchAndReplace.search.matcher(packageFolderName);
       if (matcher.matches()) {
