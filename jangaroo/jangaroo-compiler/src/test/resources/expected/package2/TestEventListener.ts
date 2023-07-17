@@ -1,5 +1,6 @@
 import Config from "@jangaroo/runtime/Config";
 import { asConfig } from "@jangaroo/runtime";
+import Component from "../Ext/Component";
 import Panel from "../Ext/Panel";
 
 
@@ -14,10 +15,11 @@ class TestEventListener {
 
   constructor() {
     this.#panel.title = "not yet clicked.";
-    this.#panel.addListener("flipflop", ():void => {
+    this.#panel.addListener("flipflop", (source: Component):void => {
+      const event = { source };
       asConfig(this.getThis().getPanel()).title = "clicked!";
       asConfig(this.#panel.layout.getOwner()).title = "clicked!";
-      this.#panels.push(this.#panel);
+      this.#panels.push(event.source);
       asConfig(this.#getPanels()[0]).title = "yes, clicked!";
     } );
   }

@@ -79,6 +79,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -86,6 +87,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_AS_EXPRESSIONS;
 import static net.jangaroo.jooc.config.TypeScriptTargetSourceFormatFeature.SIMPLIFIED_THIS_USAGE_BEFORE_SUPER_CONSTRUCTOR_CALL;
@@ -337,7 +339,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     Collection<CompilationUnit> dependentCompilationUnitModels = compilationUnit.getCompileDependencies().stream()
             .map(dependencyName -> RESOURCE_MANAGER_IMPL_QUALIFIED_NAME.equals(dependencyName) ? RESOURCE_MANAGER_QUALIFIED_NAME : dependencyName)
             .map(compilationUnitModelResolver::resolveCompilationUnit)
-            .filter(TypeScriptCodeGenerator::isNoFlExtEventClass)
+            .flatMap(this::expandEventParameterTypes)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     boolean jooImported = false;
     List<String> usedRemovedNames = new ArrayList<>();
@@ -455,6 +457,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       out.writeSymbol(compilationUnit.getRBrace());
       out.write("\n");
     }
+  }
+
+  private Stream<CompilationUnit> expandEventParameterTypes(CompilationUnit compilationUnit) {
+    if (isNoFlExtEventClass(compilationUnit)) {
+      return Stream.of(compilationUnit);
+    }
+    List<TypedIdeDeclaration> eventParameters = getEventParameters(compilationUnit);
+    return eventParameters.stream()
+      .map(eventParameter -> eventParameter.getOptTypeRelation() != null ? eventParameter.getOptTypeRelation().getType().resolveDeclaration().getCompilationUnit() : null)
+      .filter(Objects::nonNull);
   }
 
   private static String transformEmbedPath(CompilationUnit compilationUnit, String resourceDependency) {
@@ -2342,6 +2354,20 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     if (parameters.getHead().getOptTypeRelation() != null && parameters.getTail() == null) {
       TypeDeclaration declaration = parameters.getHead().getOptTypeRelation().getType().getDeclaration(false);
       if (declaration instanceof ClassDeclaration && ((ClassDeclaration) declaration).inheritsFromFlExtEvent()) {
+        List<TypedIdeDeclaration> eventParameters = getEventParameters(declaration.getCompilationUnit());
+        String eventParametersCode = eventParameters
+          .stream()
+          .map(this::getEventParameterCode)
+          .collect(Collectors.joining(", "));
+        out.write(eventParametersCode);
+        FunctionExpr functionExpr = (FunctionExpr) parameters.getParentNode();
+        if (functionExpr.getBody() != null) {
+          String eventObjectKeys = eventParameters
+            .stream()
+            .map(IdeDeclaration::getName)
+            .collect(Collectors.joining(", "));
+          addBlockStartCodeGenerator(functionExpr.getBody(), (out, first) -> out.write(String.format("\n      const event = { %s };", eventObjectKeys)));
+        }
         return;
       }
     }

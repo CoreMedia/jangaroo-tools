@@ -4,6 +4,7 @@ import int from "../AS3/int_";
 import uint from "../AS3/uint_";
 import Action from "../Ext/Action";
 import Button from "../Ext/Button";
+import Component from "../Ext/Component";
 import MenuItem from "../Ext/MenuItem";
 import Panel from "../Ext/Panel";
 import SomeMixin from "../Ext/mixin/SomeMixin";
@@ -125,8 +126,9 @@ class AllElements extends Panel{
 }),config);})());
   }
 
-  #$on_flipflop_14_23 () :void {
-      this.#myProperty = 1;
+  #$on_flipflop_14_23 (source: Component) :void {
+      const event = { source };
+      this.#myProperty = event.source;
     }
 
   #gear:any = null;

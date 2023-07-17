@@ -18,7 +18,7 @@ public class TestEventListener {
     panel.addEventListener( PanelEvent.FLIP_FLOP, function(event:PanelEvent):void {
       getThis().getPanel().title = "clicked!";
       panel.layout.getOwner().title = "clicked!";
-      panels.push(panel);
+      panels.push(event.source);
       getPanels()[0].title = "yes, clicked!";
     } );
   }

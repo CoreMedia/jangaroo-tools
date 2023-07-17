@@ -121,7 +121,7 @@ Ext.define("package1.AllElements", function(AllElements) {/*public class AllElem
   }/*
 
     private*/ function $on_flipflop_14_23 (event/*:ext.events.PanelEvent*/)/* :void*/ {
-      this.myProperty$6tZL = 1;
+      this.myProperty$6tZL = event.source;
     }/*
 
       /*

@@ -11,7 +11,7 @@
            xmlns:plugins="ext.plugins.*"
            title="I am a panel"
            layout="{config.myProperty}"
-           onFlipFlop="myProperty = 1">
+           onFlipFlop="myProperty = event.source;">
 
   <fx:Script><![CDATA[
     /* add an extra import statement to the class */

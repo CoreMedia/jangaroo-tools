@@ -18,7 +18,7 @@ Ext.define("package2.TestEventListener", function(TestEventListener) {/*public c
     AS3.addEventListener(panel, Ext.events.PanelEvent,"FLIP_FLOP", function(event/*:PanelEvent*/)/*:void*/ {
       AS3.setBindable(_this.getThis().getPanel(),"title" , "clicked!");
       AS3.setBindable(_this.panel$iwqQ.layout.getOwner(),"title" , "clicked!");
-      _this.panels$iwqQ.push(_this.panel$iwqQ);
+      _this.panels$iwqQ.push(event.source);
       AS3.setBindable(_this.getPanels$iwqQ()[0],"title" , "yes, clicked!");
     } );
   }/*

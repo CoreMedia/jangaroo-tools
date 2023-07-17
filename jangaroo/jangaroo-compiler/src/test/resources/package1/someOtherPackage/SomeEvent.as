@@ -16,7 +16,7 @@ public class SomeEvent extends FlExtEvent {
    */
   public static const CLICK_CLACK:String = "onClickClack";
 
-  public static const __PARAMETER_SEQUENCE__:Array = ["source", "stanger", "eOpts"];
+  public static const __PARAMETER_SEQUENCE__:Array = ["source", "stranger", "eOpts"];
 
   public function SomeEvent(type: String, arguments:Array) {
     super(type, arguments);

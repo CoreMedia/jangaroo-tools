@@ -126,11 +126,11 @@ Ext.define("package1.mxml.SimpleMxmlClass", function(SimpleMxmlClass) {/*public 
     public var other:package1.someOtherPackage.SomeOtherClass;
 
     private*/ function $on_click_14_22 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-      var result/*:String*/ = 'gotcha!';
+      var result/*:String*/ = 'gotcha: ' + event.source + ' / ' + event.stranger;
     }/*
 
     private*/ function $on_clickclack_56_43 (event/*:package1.someOtherPackage.SomeEvent*/)/* :void*/ {
-      var test=0;
+      var test = event.stranger;
     }/*
 
         [Bindable]
