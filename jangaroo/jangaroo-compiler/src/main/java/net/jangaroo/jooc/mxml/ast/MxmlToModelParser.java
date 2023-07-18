@@ -625,9 +625,17 @@ final class MxmlToModelParser {
     }
     String eventHandlerName = "$on_" + eventName.replace('-', '_')
             + "_" + value.getLine() + "_" + value.getColumn();
+    String eventHandlerBodyCode = (String) value.getJooValue();
+    // Some legacy code uses curly braces in event handler attributes, although these are already code.
+    // This does not create an error, since in JavaScript, nested blocks are allowed, but has no effect, thus
+    // is redundant and leads to ugly TypeScript output. So we can safely remove outer curly braces:
+    if (eventHandlerBodyCode.startsWith("{") && eventHandlerBodyCode.endsWith("}")) {
+      eventHandlerBodyCode = eventHandlerBodyCode.substring(1, eventHandlerBodyCode.length() - 1);
+      jangarooParser.getLog().warning(value, "MXML: event property '" + event.getEventName() + "': value is code; surrounding curly braces are redundant and should be removed.");
+    }
     String classBodyCode = "\n    private function " + eventHandlerName +
             " (" + "event" + ':' + eventTypeIde.getQualifiedNameStr() + ") :void {\n" +
-            "      " + value.getJooValue() +
+            "      " + eventHandlerBodyCode +
             "\n    }";
     classBodyDirectives.addAll(mxmlParserHelper.parseClassBody(new JooSymbol(classBodyCode)).getDirectives());
 
