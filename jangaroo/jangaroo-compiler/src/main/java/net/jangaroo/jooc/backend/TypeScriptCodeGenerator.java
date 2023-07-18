@@ -460,13 +460,13 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private Stream<CompilationUnit> expandEventParameterTypes(CompilationUnit compilationUnit) {
-    if (isNoFlExtEventClass(compilationUnit)) {
-      return Stream.of(compilationUnit);
+    if (isFlExtEventClass(compilationUnit)) {
+      return getEventParameters(compilationUnit).stream()
+            .map(TypedIdeDeclaration::getOptTypeRelation)
+            .filter(Objects::nonNull)
+            .map(typeRelation -> typeRelation.getType().resolveDeclaration().getCompilationUnit());
     }
-    List<TypedIdeDeclaration> eventParameters = getEventParameters(compilationUnit);
-    return eventParameters.stream()
-      .map(eventParameter -> eventParameter.getOptTypeRelation() != null ? eventParameter.getOptTypeRelation().getType().resolveDeclaration().getCompilationUnit() : null)
-      .filter(Objects::nonNull);
+    return Stream.of(compilationUnit);
   }
 
   private static String transformEmbedPath(CompilationUnit compilationUnit, String resourceDependency) {
@@ -513,9 +513,9 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static boolean isNoFlExtEventClass(CompilationUnit compilationUnit) {
-    return !(compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
-            && ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromFlExtEvent());
+  private static boolean isFlExtEventClass(CompilationUnit compilationUnit) {
+    return compilationUnit.getPrimaryDeclaration() instanceof ClassDeclaration
+            && ((ClassDeclaration) compilationUnit.getPrimaryDeclaration()).inheritsFromFlExtEvent();
   }
 
   private boolean isObservable(ClassDeclaration classDeclaration) {
@@ -571,7 +571,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       for (Annotation ownEvent : ownEvents) {
         CompilationUnit eventTypeCompilationUnit = getEventTypeCompilationUnit(ownEvent);
         if (eventTypeCompilationUnit != null) {
-          if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+          if (!isFlExtEventClass(eventTypeCompilationUnit)) {
             compilationUnit.addDependency(eventTypeCompilationUnit, false);
           } else {
             List<TypedIdeDeclaration> eventParameters = getEventParameters(eventTypeCompilationUnit);
@@ -747,7 +747,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
       CompilationUnit eventTypeCompilationUnit = getEventTypeCompilationUnit(ownEvent);
       if (eventTypeCompilationUnit != null) {
         String eventParametersASDoc;
-        if (isNoFlExtEventClass(eventTypeCompilationUnit)) {
+        if (!isFlExtEventClass(eventTypeCompilationUnit)) {
           eventParametersASDoc = "\n * @param event";
           eventParametersCode = "event: " + compilationUnitAccessCode(eventTypeCompilationUnit.getPrimaryDeclaration());
         } else {
