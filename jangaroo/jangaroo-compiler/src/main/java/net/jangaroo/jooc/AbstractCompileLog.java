@@ -27,7 +27,12 @@ public abstract class AbstractCompileLog implements CompileLog {
   }
 
   public void error(FilePosition position, String msg) {
-    error(formatError(position.getFileName(), position.getLine(), position.getColumn(), "Error", msg));
+    if (position == null) {
+      // some MXML errors lack a position; fall back to logging the message only:
+      error(msg);
+    } else {
+      error(formatError(position.getFileName(), position.getLine(), position.getColumn(), "Error", msg));
+    }
   }
 
   public void warning(FilePosition position, String msg) {

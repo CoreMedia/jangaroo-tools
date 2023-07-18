@@ -50,6 +50,10 @@ public class AbstractJoocTest {
 
     @Override
     public void error(FilePosition position, String msg) {
+      if (position == null) {
+        error(msg);
+        return;
+      }
       hasErrors = true;
       errors.put(msg, position);
       System.out.println(String.format("[ERROR] %s (%d:%d): %s", position.getFileName(), position.getLine(), position.getColumn(), msg));
