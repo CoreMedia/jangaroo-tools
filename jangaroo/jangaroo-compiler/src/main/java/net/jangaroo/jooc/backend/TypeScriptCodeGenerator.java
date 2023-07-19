@@ -66,6 +66,7 @@ import net.jangaroo.jooc.types.ExpressionType;
 import net.jangaroo.jooc.types.FunctionSignature;
 import net.jangaroo.utils.AS3Type;
 import net.jangaroo.utils.CompilerUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,6 +74,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -787,6 +789,49 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private List<TypedIdeDeclaration> getEventParameters(CompilationUnit eventTypeCompilationUnit) {
+    List<TypedIdeDeclaration> eventPropertyDeclarations = getEventPropertyDeclarations(eventTypeCompilationUnit);
+    /* Unfortunately, the _order_ of event class properties as callback parameters in Ext JS is not included in
+     * the Ext AS API, it is only available at runtime via an event class' __PARAMETER_SEQUENCE__ field.
+     * Thus, a heuristic must be used that derives the order / sequence of parameters from the event class name... :-(
+     * The format of the event class names in Ext AS is:
+     *   <Event-Source-Type>_<parameter-1>_<parameter-1>_...<parameter-n>Event
+     * Example: BaseField_newValue_oldValueEvent
+     * In Ext AS, the name of the event source parameter is always 'source'.
+     */
+    if (eventPropertyDeclarations.stream()
+            .anyMatch(eventPropertyDeclaration -> "source".equals(eventPropertyDeclaration.getName()))) {
+      String eventClassName = eventTypeCompilationUnit.getPrimaryDeclaration().getName();
+      // Does it use the ...Event suffix?
+      String eventClassNameWithoutEventSuffix = StringUtils.removeEnd(eventClassName, "Event");
+      if (eventClassNameWithoutEventSuffix.length() < eventClassName.length()) {
+        // split into event source type and remaining parameter names, separator '_':
+        String[] eventClassNameParts = eventClassNameWithoutEventSuffix.split("_");
+        // The number of parts and properties must match:
+        if (eventClassNameParts.length == eventPropertyDeclarations.size()) {
+          // Replace the first part, the event source property type, by the event source property name:
+          eventClassNameParts[0] = "source";
+          List<String> eventClassPropertyNameOrder = Arrays.asList(eventClassNameParts);
+          // sort the event property declarations according to this name sequence:
+          List<TypedIdeDeclaration> sortedEventPropertyDeclarations = eventPropertyDeclarations.stream()
+                  .sorted(Comparator.comparingInt(typedIdeDeclaration ->
+                          eventClassPropertyNameOrder.indexOf(typedIdeDeclaration.getName())))
+                  .collect(Collectors.toList());
+          // sanity check: make sure that actually all property names were present:
+          List<String> sortedEventPropertyNames = sortedEventPropertyDeclarations.stream()
+                  .map(IdeDeclaration::getName)
+                  .collect(Collectors.toList());
+          if (sortedEventPropertyNames.equals(eventClassPropertyNameOrder)) {
+            // only then, use the property declarations sorted in the heuristically determined order:
+            return sortedEventPropertyDeclarations;
+          }
+        }
+      }
+    }
+    // in all other cases, use the source code sequence of property declarations:
+    return eventPropertyDeclarations;
+  }
+
+  private static List<TypedIdeDeclaration> getEventPropertyDeclarations(CompilationUnit eventTypeCompilationUnit) {
     return ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
             .stream()
             .filter(eventParameter ->

@@ -182,13 +182,13 @@ class SimpleMxmlClass extends ConfigClass{
   get other():SomeOtherClass { return this.#other; }
   set other(value:SomeOtherClass) { this.#other = value; }
 
-  #$on_click_14_22 (source: ConfigClass, stranger: IncludedClass) :void {
-      const event = { source, stranger };
+  #$on_click_14_22 (source: ConfigClass, stranger: IncludedClass, anton: string) :void {
+      const event = { source, stranger, anton };
       var result = "gotcha: " + event.source + " / " + event.stranger;
     }
 
-  #$on_clickclack_56_43 (source: ConfigClass, stranger: IncludedClass) :void {
-      const event = { source, stranger };
+  #$on_clickclack_56_43 (source: ConfigClass, stranger: IncludedClass, anton: string) :void {
+      const event = { source, stranger, anton };
       var test = event.stranger;
     }
 

@@ -3,9 +3,9 @@ import ext.mixin.Observable;
 
 /**
  * click event documentation.
- * @eventType package1.someOtherPackage.SomeEvent.CLICK
+ * @eventType package1.someOtherPackage.ConfigClass_stranger_antonEvent.CLICK
  * /
-[Event(name="onClick", type="package1.someOtherPackage.SomeEvent")]*/
+[Event(name="onClick", type="package1.someOtherPackage.ConfigClass_stranger_antonEvent")]*/
 
 Ext.define("package1.ConfigClass", function(ConfigClass) {/*public class ConfigClass extends Observable {
 

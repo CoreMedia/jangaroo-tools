@@ -4,7 +4,7 @@ import net.jangaroo.ext.FlExtEvent;
 import package1.ConfigClass;
 import package1.IncludedClass;
 
-public class SomeEvent extends FlExtEvent {
+public class ConfigClass_stranger_antonEvent extends FlExtEvent {
 
   /**
    * @eventType onClick
@@ -16,11 +16,13 @@ public class SomeEvent extends FlExtEvent {
    */
   public static const CLICK_CLACK:String = "onClickClack";
 
-  public static const __PARAMETER_SEQUENCE__:Array = ["source", "stranger", "eOpts"];
+  public static const __PARAMETER_SEQUENCE__:Array = ["source", "stranger", "anton", "eOpts"];
 
-  public function SomeEvent(type: String, arguments:Array) {
+  public function ConfigClass_stranger_antonEvent(type: String, arguments:Array) {
     super(type, arguments);
   }
+
+  public native function get anton():String;
 
   /**
    * The config event source.
