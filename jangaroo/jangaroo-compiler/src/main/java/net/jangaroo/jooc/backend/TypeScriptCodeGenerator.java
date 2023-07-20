@@ -789,15 +789,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(type == null ? null : type.getTypeParameter());
   }
 
-  private static List<String> getEventParameterNames(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
-    List<String> eventParameterNames = getEventParameterNamesFromStaticFieldValue(eventClassDeclaration, eventPropertyDeclarations);
+  private static List<String> getEventParameterNames(ClassDeclaration eventClassDeclaration) {
+    List<String> eventParameterNames = getEventParameterNamesFromStaticFieldValue(eventClassDeclaration);
     if (eventParameterNames == null) {
-      eventParameterNames = getEventParameterNamesFromClassName(eventClassDeclaration, eventPropertyDeclarations);
+      eventParameterNames = getEventParameterNamesFromClassName(eventClassDeclaration);
     }
     return eventParameterNames;
   }
 
-  private static List<String> getEventParameterNamesFromStaticFieldValue(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
+  private static List<String> getEventParameterNamesFromStaticFieldValue(ClassDeclaration eventClassDeclaration) {
     /*
      * First, try to access the value of the static const __PARAMETER_SEQUENCE__, which is unfortunately not
      * available in AS3 source stubs.
@@ -831,7 +831,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return null;
   }
 
-  private static List<String> getEventParameterNamesFromClassName(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
+  private static List<String> getEventParameterNamesFromClassName(ClassDeclaration eventClassDeclaration) {
     /* Unfortunately, the _order_ of event class properties as callback parameters in Ext JS is not included in
      * the Ext AS API, it is only available at runtime via an event class' __PARAMETER_SEQUENCE__ field.
      * Thus, a heuristic must be used that derives the order / sequence of parameters from the event class name... :-(
@@ -840,20 +840,16 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
      * Example: BaseField_newValue_oldValueEvent
      * In Ext AS, the name of the event source parameter is always 'source'.
      */
-    if (eventPropertyDeclarations.stream()
-            .anyMatch(eventPropertyDeclaration -> "source".equals(eventPropertyDeclaration.getName()))) {
+    if (isEventPropertyDeclaration(eventClassDeclaration.getMemberDeclaration("source"))) {
       String eventClassName = eventClassDeclaration.getName();
       // Does it use the ...Event suffix?
       String eventClassNameWithoutEventSuffix = StringUtils.removeEnd(eventClassName, "Event");
       if (eventClassNameWithoutEventSuffix.length() < eventClassName.length()) {
         // split into event source type and remaining parameter names, separator '_':
         String[] eventClassNameParts = eventClassNameWithoutEventSuffix.split("_");
-        // The number of parts and properties must match:
-        if (eventClassNameParts.length == eventPropertyDeclarations.size()) {
-          // Replace the first part, the event source property type, by the event source property name:
-          eventClassNameParts[0] = "source";
-          return Arrays.asList(eventClassNameParts);
-        }
+        // Replace the first part, the event source property type, by the event source property name:
+        eventClassNameParts[0] = "source";
+        return Arrays.asList(eventClassNameParts);
       }
     }
     return null;
@@ -862,7 +858,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private List<TypedIdeDeclaration> getEventParameters(CompilationUnit eventTypeCompilationUnit) {
     ClassDeclaration eventClassDeclaration = (ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration();
     List<TypedIdeDeclaration> eventPropertyDeclarations = getEventPropertyDeclarations(eventClassDeclaration);
-    List<String> eventParameterNames = getEventParameterNames(eventClassDeclaration, eventPropertyDeclarations);
+    List<String> eventParameterNames = getEventParameterNames(eventClassDeclaration);
     if (eventParameterNames == null) {
       getCompiler().getLog().error(eventClassDeclaration.getSymbol(),
               "Cannot determine event parameter order of event class " + eventClassDeclaration.getName() + ". " +
@@ -894,11 +890,15 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   private static List<TypedIdeDeclaration> getEventPropertyDeclarations(ClassDeclaration eventClassDeclaration) {
     return eventClassDeclaration.getMembers()
             .stream()
-            .filter(eventParameter ->
-                    !eventParameter.isStatic()
-                            && eventParameter instanceof FunctionDeclaration
-                            && ((FunctionDeclaration) eventParameter).isGetter())
+            .filter(TypeScriptCodeGenerator::isEventPropertyDeclaration)
             .collect(Collectors.toList());
+  }
+
+  private static boolean isEventPropertyDeclaration(TypedIdeDeclaration declaration) {
+    return declaration != null
+            && !declaration.isStatic()
+            && declaration instanceof FunctionDeclaration
+            && ((FunctionDeclaration) declaration).isGetter();
   }
 
   private CompilationUnit getEventTypeCompilationUnit(Annotation ownEvent) {
