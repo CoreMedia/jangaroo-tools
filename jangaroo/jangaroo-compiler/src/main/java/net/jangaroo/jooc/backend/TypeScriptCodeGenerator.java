@@ -13,6 +13,7 @@ import net.jangaroo.jooc.ast.Annotation;
 import net.jangaroo.jooc.ast.AnnotationParameter;
 import net.jangaroo.jooc.ast.ApplyExpr;
 import net.jangaroo.jooc.ast.ArrayIndexExpr;
+import net.jangaroo.jooc.ast.ArrayLiteral;
 import net.jangaroo.jooc.ast.AsExpr;
 import net.jangaroo.jooc.ast.AssignmentOpExpr;
 import net.jangaroo.jooc.ast.AstNode;
@@ -789,6 +790,48 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
   }
 
   private static List<String> getEventParameterNames(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
+    List<String> eventParameterNames = getEventParameterNamesFromStaticFieldValue(eventClassDeclaration, eventPropertyDeclarations);
+    if (eventParameterNames == null) {
+      eventParameterNames = getEventParameterNamesFromClassName(eventClassDeclaration, eventPropertyDeclarations);
+    }
+    return eventParameterNames;
+  }
+
+  private static List<String> getEventParameterNamesFromStaticFieldValue(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
+    /*
+     * First, try to access the value of the static const __PARAMETER_SEQUENCE__, which is unfortunately not
+     * available in AS3 source stubs.
+     */
+    TypedIdeDeclaration parameterSequenceDeclaration = eventClassDeclaration.getStaticMemberDeclaration("__PARAMETER_SEQUENCE__");
+    if (parameterSequenceDeclaration instanceof VariableDeclaration) {
+      Initializer parameterSequenceInitializer = ((VariableDeclaration) parameterSequenceDeclaration).getOptInitializer();
+      if (parameterSequenceInitializer != null && parameterSequenceInitializer.getValue() instanceof ArrayLiteral) {
+        CommaSeparatedList<Expr> arrayElements = ((ArrayLiteral) parameterSequenceInitializer.getValue()).getExpr();
+        List<String> eventClassPropertyNameOrder = new ArrayList<>();
+        while (arrayElements != null) {
+          Expr arrayElementExpr = arrayElements.getHead();
+          if (!(arrayElementExpr instanceof LiteralExpr)) {
+            // bail out on unexpected array element (non-literal):
+            return null;
+          }
+          Object eventPropertyName = ((LiteralExpr) arrayElementExpr).getValue().getJooValue();
+          if (!(eventPropertyName instanceof String)) {
+            // bail out on unexpected type of array literal:
+            return null;
+          }
+          // ignore "eOpts" event property; it is not supported in Ext TS:
+          if (!eventPropertyName.equals("eOpts")) {
+            eventClassPropertyNameOrder.add((String) eventPropertyName);
+          }
+          arrayElements = arrayElements.getTail();
+        }
+        return eventClassPropertyNameOrder;
+      }
+    }
+    return null;
+  }
+
+  private static List<String> getEventParameterNamesFromClassName(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
     /* Unfortunately, the _order_ of event class properties as callback parameters in Ext JS is not included in
      * the Ext AS API, it is only available at runtime via an event class' __PARAMETER_SEQUENCE__ field.
      * Thus, a heuristic must be used that derives the order / sequence of parameters from the event class name... :-(
@@ -820,7 +863,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     ClassDeclaration eventClassDeclaration = (ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration();
     List<TypedIdeDeclaration> eventPropertyDeclarations = getEventPropertyDeclarations(eventClassDeclaration);
     List<String> eventParameterNames = getEventParameterNames(eventClassDeclaration, eventPropertyDeclarations);
-    if (eventParameterNames != null) {
+    if (eventParameterNames == null) {
+      getCompiler().getLog().error(eventClassDeclaration.getSymbol(),
+              "Cannot determine event parameter order of event class " + eventClassDeclaration.getName() + ". " +
+                      "Please either follow the event class naming convention '<event-source-type>_<event-property-1>..._<event-property-n>Event' " +
+                      "or make sure the event class has a static const __PARAMETER_SEQUENCE__: Array = [\"source\", \"<event-property-1>\", ..., \"<event-property-n>\"] and its source (not only the API stub) is contained in the compiler path.");
+    } else {
       // sort the event property declarations according to this name sequence:
       List<TypedIdeDeclaration> sortedEventPropertyDeclarations = eventPropertyDeclarations.stream()
               .sorted(Comparator.comparingInt(typedIdeDeclaration ->
@@ -834,8 +882,12 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         // only then, use the property declarations sorted in the heuristically determined order:
         return sortedEventPropertyDeclarations;
       }
+      getCompiler().getLog().error(eventClassDeclaration.getSymbol(),
+              "In event class " + eventClassDeclaration.getName() + ", the declared properties " +
+                      String.join(", ", sortedEventPropertyNames) + " are inconsistent with the event parameter order specification " +
+                      String.join(", ", eventParameterNames) + ".");
     }
-    // in all other cases, use the source code sequence of property declarations:
+    // as fallback after error, use the source code sequence of property declarations:
     return eventPropertyDeclarations;
   }
 
