@@ -788,8 +788,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
     return eventParameter.getName() + ": " + getTypeScriptTypeForActionScriptType(type == null ? null : type.getTypeParameter());
   }
 
-  private List<TypedIdeDeclaration> getEventParameters(CompilationUnit eventTypeCompilationUnit) {
-    List<TypedIdeDeclaration> eventPropertyDeclarations = getEventPropertyDeclarations(eventTypeCompilationUnit);
+  private static List<String> getEventParameterNames(ClassDeclaration eventClassDeclaration, List<TypedIdeDeclaration> eventPropertyDeclarations) {
     /* Unfortunately, the _order_ of event class properties as callback parameters in Ext JS is not included in
      * the Ext AS API, it is only available at runtime via an event class' __PARAMETER_SEQUENCE__ field.
      * Thus, a heuristic must be used that derives the order / sequence of parameters from the event class name... :-(
@@ -800,7 +799,7 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
      */
     if (eventPropertyDeclarations.stream()
             .anyMatch(eventPropertyDeclaration -> "source".equals(eventPropertyDeclaration.getName()))) {
-      String eventClassName = eventTypeCompilationUnit.getPrimaryDeclaration().getName();
+      String eventClassName = eventClassDeclaration.getName();
       // Does it use the ...Event suffix?
       String eventClassNameWithoutEventSuffix = StringUtils.removeEnd(eventClassName, "Event");
       if (eventClassNameWithoutEventSuffix.length() < eventClassName.length()) {
@@ -810,29 +809,38 @@ public class TypeScriptCodeGenerator extends CodeGeneratorBase {
         if (eventClassNameParts.length == eventPropertyDeclarations.size()) {
           // Replace the first part, the event source property type, by the event source property name:
           eventClassNameParts[0] = "source";
-          List<String> eventClassPropertyNameOrder = Arrays.asList(eventClassNameParts);
-          // sort the event property declarations according to this name sequence:
-          List<TypedIdeDeclaration> sortedEventPropertyDeclarations = eventPropertyDeclarations.stream()
-                  .sorted(Comparator.comparingInt(typedIdeDeclaration ->
-                          eventClassPropertyNameOrder.indexOf(typedIdeDeclaration.getName())))
-                  .collect(Collectors.toList());
-          // sanity check: make sure that actually all property names were present:
-          List<String> sortedEventPropertyNames = sortedEventPropertyDeclarations.stream()
-                  .map(IdeDeclaration::getName)
-                  .collect(Collectors.toList());
-          if (sortedEventPropertyNames.equals(eventClassPropertyNameOrder)) {
-            // only then, use the property declarations sorted in the heuristically determined order:
-            return sortedEventPropertyDeclarations;
-          }
+          return Arrays.asList(eventClassNameParts);
         }
+      }
+    }
+    return null;
+  }
+
+  private List<TypedIdeDeclaration> getEventParameters(CompilationUnit eventTypeCompilationUnit) {
+    ClassDeclaration eventClassDeclaration = (ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration();
+    List<TypedIdeDeclaration> eventPropertyDeclarations = getEventPropertyDeclarations(eventClassDeclaration);
+    List<String> eventParameterNames = getEventParameterNames(eventClassDeclaration, eventPropertyDeclarations);
+    if (eventParameterNames != null) {
+      // sort the event property declarations according to this name sequence:
+      List<TypedIdeDeclaration> sortedEventPropertyDeclarations = eventPropertyDeclarations.stream()
+              .sorted(Comparator.comparingInt(typedIdeDeclaration ->
+                      eventParameterNames.indexOf(typedIdeDeclaration.getName())))
+              .collect(Collectors.toList());
+      // sanity check: make sure that actually all property names were present:
+      List<String> sortedEventPropertyNames = sortedEventPropertyDeclarations.stream()
+              .map(IdeDeclaration::getName)
+              .collect(Collectors.toList());
+      if (sortedEventPropertyNames.equals(eventParameterNames)) {
+        // only then, use the property declarations sorted in the heuristically determined order:
+        return sortedEventPropertyDeclarations;
       }
     }
     // in all other cases, use the source code sequence of property declarations:
     return eventPropertyDeclarations;
   }
 
-  private static List<TypedIdeDeclaration> getEventPropertyDeclarations(CompilationUnit eventTypeCompilationUnit) {
-    return ((ClassDeclaration) eventTypeCompilationUnit.getPrimaryDeclaration()).getMembers()
+  private static List<TypedIdeDeclaration> getEventPropertyDeclarations(ClassDeclaration eventClassDeclaration) {
+    return eventClassDeclaration.getMembers()
             .stream()
             .filter(eventParameter ->
                     !eventParameter.isStatic()
