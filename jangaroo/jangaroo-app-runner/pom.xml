@@ -16,7 +16,7 @@
   <parent>
     <artifactId>jangaroo-parent</artifactId>
     <groupId>net.jangaroo</groupId>
-    <version>4.1.17-SNAPSHOT</version>
+    <version>4.1.17</version>
     <relativePath>../../jangaroo-parent</relativePath>
   </parent>
 
